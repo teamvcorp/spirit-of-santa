@@ -57,6 +57,23 @@ Tests: Node's built-in runner (`node --conditions=react-server --test`), no DB r
 - Turborepo: `node_modules/turbo/docs/`
 - Our notes: `docs/vendor/*.md`
 
+## Phase 1 status vs. SpiritOfSanta.md (reviewed 2026-11-04)
+
+Done: monorepo, CLAUDE.md, full schema, NextAuth roles, parent PIN.
+
+**Waiting on the user (accounts):** MongoDB Atlas cluster + `MONGODB_URI`, Vercel projects/env vars,
+Stripe (test keys, webhook secret, Connect), Twilio, Cloudinary, FCM project, domains.
+
+**Agreed next order (code):**
+1. i18n with **next-intl** (roadmap says next-i18next, which targets the Pages Router; swapped, confirm with user)
+2. Shared UI components + sign-in pages per app (replace starter pages)
+3. Cloudinary upload helper (store item photos)
+4. Seed script + end-to-end login test (needs Atlas)
+5. FCM + PWA (Next 16 native manifest + **Serwist**; roadmap's next-pwa is unmaintained)
+
+Check each library against the bundled Next 16 docs before use; save notes in `docs/vendor/`.
+Deadline that matters most: **Store MVP live Jan 1, 2027.**
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.

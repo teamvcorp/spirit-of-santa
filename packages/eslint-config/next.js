@@ -1,39 +1,25 @@
-import { globalIgnores } from "eslint/config";
-import pluginReactHooks from "eslint-plugin-react-hooks";
-import globals from "globals";
-import pluginNext from "@next/eslint-plugin-next";
-import { config as baseConfig } from "./base.js";
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+import eslintConfigPrettier from "eslint-config-prettier";
+import turboPlugin from "eslint-plugin-turbo";
+import onlyWarn from "eslint-plugin-only-warn";
 
 /**
- * A custom ESLint configuration for libraries that use Next.js.
+ * ESLint config for the Next.js apps (family, store, admin).
+ * Uses Next's official rule sets (React, hooks, a11y, Core Web Vitals, TS) plus
+ * the same turbo env-var check as ./base.js.
  *
  * @type {import("eslint").Linter.Config[]}
- * */
-export const nextJsConfig = [
-  ...baseConfig,
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
+ */
+export const nextJsConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  eslintConfigPrettier,
   {
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.serviceworker,
-      },
-    },
+    plugins: { turbo: turboPlugin },
+    rules: { "turbo/no-undeclared-env-vars": "warn" },
   },
-  {
-    plugins: {
-      "@next/next": pluginNext,
-    },
-    rules: {
-      ...pluginNext.configs.recommended.rules,
-      ...pluginNext.configs["core-web-vitals"].rules,
-    },
-  },
-  pluginReactHooks.configs.flat.recommended,
-];
+  { plugins: { onlyWarn } },
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+]);

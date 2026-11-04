@@ -8,7 +8,13 @@
  */
 import { z } from "zod";
 
-export const ROLES = ["child", "parent", "store_owner", "store_rep", "admin"] as const;
+export const ROLES = [
+  "child",
+  "parent",
+  "store_owner",
+  "store_rep",
+  "admin",
+] as const;
 export type Role = (typeof ROLES)[number];
 export const roleSchema = z.enum(ROLES);
 

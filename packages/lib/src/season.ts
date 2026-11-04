@@ -35,7 +35,10 @@ export interface CalendarDate {
 const formatters = new Map<string, Intl.DateTimeFormat>();
 
 /** The wall-calendar date of instant `at` in `timeZone`. */
-export function calendarDateIn(at: Date, timeZone = SEASON_TIME_ZONE): CalendarDate {
+export function calendarDateIn(
+  at: Date,
+  timeZone = SEASON_TIME_ZONE,
+): CalendarDate {
   let fmt = formatters.get(timeZone);
   if (!fmt) {
     fmt = new Intl.DateTimeFormat("en-US", {
@@ -46,8 +49,14 @@ export function calendarDateIn(at: Date, timeZone = SEASON_TIME_ZONE): CalendarD
     });
     formatters.set(timeZone, fmt);
   }
-  const parts = Object.fromEntries(fmt.formatToParts(at).map((p) => [p.type, p.value]));
-  return { year: Number(parts.year), month: Number(parts.month), day: Number(parts.day) };
+  const parts = Object.fromEntries(
+    fmt.formatToParts(at).map((p) => [p.type, p.value]),
+  );
+  return {
+    year: Number(parts.year),
+    month: Number(parts.month),
+    day: Number(parts.day),
+  };
 }
 
 /** Sortable month/day key: Oct 1 → 1001, Dec 25 → 1225. */
@@ -66,7 +75,10 @@ export function getSeasonPhase(at: Date = new Date()): SeasonPhase {
 /** True while stores may add/edit/price items (Jan 1 – Mar 31). */
 export function isStoreItemWindowOpen(at: Date = new Date()): boolean {
   const k = key(calendarDateIn(at));
-  return k >= key(SEASON_CALENDAR.storeWindowStart) && k <= key(SEASON_CALENDAR.storeWindowEnd);
+  return (
+    k >= key(SEASON_CALENDAR.storeWindowStart) &&
+    k <= key(SEASON_CALENDAR.storeWindowEnd)
+  );
 }
 
 /**

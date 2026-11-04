@@ -1,0 +1,30 @@
+{
+  "name": "@repo/lib",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./constants": "./src/constants.ts",
+    "./points": "./src/points.ts",
+    "./season": "./src/season.ts",
+    "./roles": "./src/roles.ts",
+    "./limits": "./src/limits.ts",
+    "./format": "./src/format.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit",
+    "test": "node --conditions=react-server --test \"test/**/*.test.ts\""
+  },
+  "dependencies": {
+    "server-only": "0.0.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/node": "24.19.2",
+    "eslint": "9.39.5",
+    "typescript": "6.0.3"
+  }
+}

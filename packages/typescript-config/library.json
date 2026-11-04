@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./base.json",
+  "compilerOptions": {
+    // Shared TS-source packages (lib, db, auth) are consumed directly by Next (no build
+    // step) and their tests run on Node's built-in type stripping. That needs:
+    //  - explicit ".ts" extensions on relative imports (Node doesn't guess extensions)
+    //  - erasableSyntaxOnly: forbids enums/namespaces/parameter properties, which Node
+    //    can't strip. Use `as const` objects and union types instead of enums.
+    // TS 6 no longer auto-includes every @types/* package; list the ones we use.
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false
+  }
+}

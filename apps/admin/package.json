@@ -10,6 +10,7 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@repo/lib": "*",
     "@repo/ui": "*",
     "next": "16.4.5",
     "react": "19.3.1",

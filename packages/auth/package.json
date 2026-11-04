@@ -1,0 +1,34 @@
+{
+  "name": "@repo/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./password": "./src/password.ts",
+    "./parent-pin": "./src/parent-pin.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit",
+    "test": "node --conditions=react-server --test \"test/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@repo/db": "*",
+    "@repo/lib": "*",
+    "next-auth": "4.24.15",
+    "server-only": "0.0.1",
+    "zod": "4.6.7"
+  },
+  "peerDependencies": {
+    "next": "^16"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/node": "24.19.2",
+    "eslint": "9.39.5",
+    "next": "16.4.5",
+    "typescript": "6.0.3"
+  }
+}

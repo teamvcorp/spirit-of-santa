@@ -8,6 +8,7 @@
     "allowJs": true,
     "jsx": "react-jsx",
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "incremental": true,
     "declaration": false,
     "declarationMap": false

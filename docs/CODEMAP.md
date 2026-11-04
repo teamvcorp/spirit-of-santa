@@ -1,55 +1,74 @@
 # turboSanta CODEMAP
 
-> Read this before exploring the repo, and keep it current as code is added.
-> Last mapped: 2026-11-04. Status: **fresh scaffold, no business logic yet.**
-> Product rules and constants are in [../CLAUDE.md](../CLAUDE.md).
+> Read this before exploring. Keep it current when packages/routes are added.
+> Last updated: 2026-11-04. Status: **Phase 1 foundation: shared packages done, no UI yet.**
+> Rules/constants: [../CLAUDE.md](../CLAUDE.md). Roadmap: [../SpiritOfSanta.md](../SpiritOfSanta.md).
 
-## What exists today
+## Layout
 
-| Path | State |
+| Path | What |
 |---|---|
-| `apps/family` | Default create-next-app page (Next 16.4.5, React 19.3.0, Tailwind v4) |
-| `apps/store` | Same as family |
-| `apps/admin` | Same as family |
-| `packages/ui` | Turbo starter components (`button`, `card`, `code`); **no app imports it yet** |
-| `packages/eslint-config` | Shared ESLint flat configs (`./base`, `./next-js`, `./react-internal`); **apps don't use it yet** |
-| `packages/typescript-config` | Shared tsconfigs (`base`, `nextjs`, `react-library`); **apps don't use them yet** |
+| `apps/family` :3000 | Next 16 app. `auth.ts` (authOptions), `app/api/auth/[...nextauth]/route.ts`; default home page |
+| `apps/store` :3001 | Same skeleton |
+| `apps/admin` :3002 | Same skeleton |
+| `packages/lib` | Client-safe: `season`, `roles`, `limits`, `format`. **Server-only:** `constants`, `points` |
+| `packages/db` | `connectDb()` + 10 Mongoose models (server-only) |
+| `packages/auth` | NextAuth v4 options, guards, argon2id hashing, parent PIN (server-only) |
+| `packages/ui` | Turbo starter components (unused so far) |
+| `packages/eslint-config` | `./base` (packages), `./next-js` (apps). only-warn + `--max-warnings 0` |
+| `packages/typescript-config` | `base`, `nextjs` (apps), `library` (lib/db/auth), `react-library` (ui) |
+| `docs/vendor/` | Version-specific notes: `mongoose-9.md`, `next-auth-v4.md` |
 
-Git: one commit (`8aa8df2`, create-turbo). The starter apps `apps/web` and `apps/docs` have been
-deleted in the working tree, and the three real apps are still untracked (not committed).
+## Key decisions (why things look the way they do)
 
-## Planned in CLAUDE.md but not created yet
+- **Units:** money = integer **cents**; points = integer **centipoints** (1 pt = 100). Tip→points
+  rounds down, points→money rounds up, item cost in centipoints = retail cents. (`packages/lib/src/points.ts`)
+- **Server-only enforcement:** `import "server-only"` in constants/points/db/auth makes a client
+  import a build error (verified).
+- **Season dates** are evaluated in `America/Chicago` (`SEASON_TIME_ZONE`). DB `Season` doc overrides defaults.
+- **Roles:** `child | parent | store_owner | store_rep | admin`; `APP_ROLES` limits which roles may sign in per app.
+  Kids are `Kid` records, not Users (COPPA). Community tippers have no account.
+- **Ledger:** `Transaction` is append-only (Mongoose middleware) with `idempotencyKey` unique index.
+  Kid balances are a cache; change them only with ledger inserts in one DB transaction.
+- **Mongoose globals:** `sanitizeFilter: true` (wrap OUR operators in `trusted()`), `strictQuery: "throw"`.
+- **Auth:** credentials + JWT, per-app cookies (`__Host-` in prod), 5-try/15-min lockout, timing-equalised
+  unknown-email path, 5-min revocation re-check via `User.sessionVersion`, generic errors only.
+- **Parent PIN:** argon2id hash on Family, own lockout, 15-min HMAC-signed unlock cookie bound to family+user.
+- **TS source packages:** no build step; Next transpiles them. Relative imports use `.ts` extensions
+  (Node type-stripping for tests). Mongoose must be default-imported (CJS) in packages/db.
 
-- `packages/db`: Mongoose models and the connection helper (`MONGODB_URI`)
-- `packages/auth`: NextAuth config and role helpers (`child | parent | store_owner | store_rep | admin`)
-- `packages/lib`: `constants.ts` (`DOLLARS_PER_POINT`, season dates), shared utilities
-- Zod, Stripe, Mongoose and NextAuth: none of these are installed yet
+## Toolchain (pinned)
 
-## App config (identical across all 3 apps)
+Node >= 24.7 (built-in `crypto.argon2`) · npm 11 · Next 16.4.5 · React 19.3.1 · **TypeScript 6.0.3**
+(not 7: typescript-eslint rejects TS 7; revisit when supported) · ESLint 9.39.5 · Mongoose 9.11.4 ·
+next-auth 4.24.15 · Zod 4.6.7 · Turbo 2.11.
 
-`next.config.ts` turns on `cacheComponents`, `partialPrefetching`, `experimental.agentFeedback`, and runs
-Tailwind through a Turbopack CSS loader rule. Each tsconfig is self-contained (`strict: true`,
-`@/*` → app root) and does not extend `@repo/typescript-config`.
-
-## Drift to fix before building features
-
-1. **Version mismatch:** apps use React 19.3.0 and TS `^5`. `packages/ui` and the root use React 19.2.8 and TS 7.0.2.
-   The apps also use eslint `^9`, while `@repo/eslint-config` uses eslint 10. Pick one set of versions.
-2. Apps have no `check-types` script, so `turbo check-types` skips them.
-3. Apps don't depend on `@repo/ui`, `@repo/typescript-config` or `@repo/eslint-config`.
-4. There is no `.env.example`. Env vars must be listed in `turbo.json`
-   (`env` / `globalEnv`) so the build cache invalidates when they change. They are not listed yet.
-5. The root README is still the create-turbo boilerplate.
-
-## Local docs (version-matched, offline; read these instead of guessing or searching the web)
-
-- **Next.js 16:** `apps/<app>/node_modules/next/dist/docs/` or `node_modules/next/dist/docs/`
-  (`01-app/`, `03-architecture/`, …). The `apps/*/AGENTS.md` files say Next 16 has breaking changes, so read these docs first.
-- **Turborepo:** `node_modules/turbo/docs/` (start at `README.md`), as directed by the root `AGENTS.md`.
-- These docs live in node_modules, so they come back with `npm install`. Copy pages into `docs/vendor/` only
-  for third-party APIs we add that don't ship their own docs (Stripe, NextAuth, and so on).
+Turbo `transit` task makes app builds/checks re-run when internal packages change. **Without it
+the app build cache goes stale** (seen while building this).
 
 ## Commands
 
-Node >=24 (v26 installed) and npm 11.20 workspaces.
-`npm run dev | build | lint | check-types` runs through turbo. To target one app, add `--filter=family`.
+`npm run dev | build | lint | check-types | test` (via turbo). One workspace: `--filter=family`.
+Tests: Node's built-in runner (`node --conditions=react-server --test`), no DB required.
+
+## Local docs (read before guessing)
+
+- Next.js 16: `node_modules/next/dist/docs/` (breaking changes vs. training data)
+- Turborepo: `node_modules/turbo/docs/`
+- Our notes: `docs/vendor/*.md`
+
+## Open items / TODO
+
+- **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.
+  Next: Atlas dev cluster → seed script → sign-in test.
+- **Security TODO:** Atlas DB user for the apps should have only `find`/`insert` on `transactions`
+  (real ledger immutability); per-IP rate limiting on sign-in & tip endpoints (Vercel Firewall/Upstash);
+  admin MFA (roadmap); production `syncIndexes` script (autoIndex is off in prod).
+- **Account lockout can be abused** to lock out a known email for 15 min. Acceptable now; per-IP limiting mitigates.
+- `npm audit`: 10 moderate (minimatch ReDoS) in the ESLint dev toolchain only, not shipped. Not force-fixed.
+- Login UI (`pages.signIn`), sign-up/registration, email verification: not built.
+- Apps' `layout.tsx` still has create-next-app metadata/content.
+- `vercelsetup.md` (user's draft) conflicts with the repo: Node 20.x → **24.x**; Turbo `pipeline` → `tasks`;
+  `STRIPE_PUBLISHABLE_KEY` → `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`; `FCB_` → `FCM_`.
+- Product decisions assumed (confirm): fractional points (centipoints); `MAX_TIP_CENTS` $1,000;
+  default kid `itemCap` 5; family session 30 days.

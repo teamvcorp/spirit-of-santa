@@ -77,12 +77,15 @@ Stripe test keys ✅ (family + store). **Still blank:** `NEXTAUTH_SECRET` in all
 5. FCM + PWA (Next 16 native manifest + **Serwist**; roadmap's next-pwa is unmaintained)
 
 **Stripe webhook endpoints (decided 2026-11-04; routes not built yet):**
-- `https://spiritofsanta.com/api/webhooks/stripe` (family; "Your account" events: payment_intent.*,
-  checkout.session.completed, charge.refunded, charge.dispute.created)
-- `https://store.spiritofsanta.com/api/webhooks/stripe-connect` (store; "Connected accounts" events:
-  account.updated, account.application.deauthorized, payout.failed)
-- Each endpoint has its own `whsec_` secret → that app's `STRIPE_WEBHOOK_SECRET`. Stripe doesn't
-  follow redirects, so use the exact canonical host (apex vs www). Local: `stripe listen --forward-to`.
+- `https://spiritofsanta.com/api/webhooks/stripe` (family; "Your account"; snapshot payloads):
+  payment_intent.succeeded / .payment_failed / .canceled; checkout.session.completed / .expired /
+  .async_payment_succeeded / .async_payment_failed; charge.refunded; charge.dispute.created / .closed
+- `https://store.spiritofsanta.com/api/webhooks/stripe-connect` (store; "Connected accounts"):
+  account.updated, account.application.deauthorized, payout.failed, payout.paid
+- Each endpoint has its own `whsec_` secret. Dashboard secret → Vercel env (that project only);
+  local `.env.local` uses the secret printed by `stripe listen --forward-to localhost:<port>/...`.
+  Stripe doesn't follow redirects, so use the exact canonical host (apex vs www).
+- Pay-later 7-day expiry: Payment Links don't expire on their own; our code deactivates them.
 - Handler rule: read the raw body, verify the signature first, dedupe on `event.id`, return 2xx fast.
 
 Check each library against the bundled Next 16 docs before use; save notes in `docs/vendor/`.

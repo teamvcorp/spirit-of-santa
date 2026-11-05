@@ -26,9 +26,9 @@ Spirit O Santa is a community-service incentive platform where children earn Chr
 | Auth | NextAuth.js | Role-aware sessions; parent PIN stored separately |
 | Payments | Stripe (embedded) | No redirects; Stripe Elements + webhooks |
 | Push notifications | Firebase Cloud Messaging (FCM) | Web Push via service worker |
-| Image storage | Cloudinary | Store item photos; free tier covers launch |
+| Image storage | Vercel Blob (public store) | Store item photos only; re-encoded to WebP, EXIF stripped (`@repo/storage`). Decided 2026-11-05 |
 | i18n | next-i18next | English + Spanish at launch |
-| PWA | next-pwa | manifest.json + service worker for add-to-home-screen |
+| Home-screen icon | Next.js icon + manifest conventions | Icon/shortcut that opens the website (`display: "browser"`). No installable app/offline mode. Decided 2026-11-05 |
 | SMS (pay-later) | Twilio | 7-day expiring payment links via text |
 
 **Monorepo structure (recommended)**
@@ -60,10 +60,10 @@ Everything that all three apps share. No user-facing features yet — just the i
 - [ ] Parent PIN system (hashed, separate from main auth session)
 - [ ] Stripe account setup: webhook endpoint, test mode keys in the family app (no Connect: stores are paid by check/outside the app, decided 2026-11-04)
 - [ ] FCM project setup; service worker scaffolding in all three apps
-- [ ] Cloudinary account; shared upload helper in `packages/ui`
+- [x] Vercel Blob (public) store; shared upload helper in `packages/storage` (replaces Cloudinary, 2026-11-05)
 - [ ] Twilio account for SMS (pay-later links)
 - [ ] next-i18next wired up; English and Spanish locale files stubbed out
-- [ ] next-pwa configured; manifest.json per app with Spirit O Santa branding
+- [x] Home-screen icon + manifest per app (placeholder star art until a real logo; no PWA, 2026-11-05)
 - [ ] Shared component library baseline: buttons, forms, navigation, QR code renderer
 - [ ] CLAUDE.md in repo root with project context for Claude Code sessions
 - [ ] Domain configuration: spiritofsanta.com, store.spiritofsanta.com, admin.spiritofsanta.com
@@ -78,7 +78,7 @@ Stores must be able to register and set their item lists during the Q1 window (J
 - [ ] Admin approval queue: admin reviews and approves/rejects store applications
 - [ ] Store owner dashboard: profile management, rep enrollment/unenrollment, item pricing
 - [ ] Store rep dashboard: add/edit items, adjust inventory counts, mark items as processed/shipped
-- [ ] Item catalog: photo upload (Cloudinary), name, description, price (retail), 50-item max enforced
+- [ ] Item catalog: photo upload (Vercel Blob), name, description, price (retail), 50-item max enforced
 - [ ] Season lock logic: item lists editable Jan 1–Mar 31 only; locked April 1 via date-gated UI + API validation
 - [ ] Engagement matrix: impressions, wish-list adds, funding progress per item
 - [ ] Store discount agreement: on signup, stores acknowledge discount + guarantee requirements
@@ -196,8 +196,8 @@ Where magic points become Christmas presents.
 
 **Aug – Sep 2027**
 
-- [ ] Service worker complete and registered in all three apps
-- [ ] Add-to-home-screen tested on iOS Safari and Android Chrome
+- [ ] Push-only service worker (no offline/install). Note: iPhones only allow web push for sites added to the Home Screen as a web app, so iOS users may need SMS/email instead (decide in Phase 7)
+- [ ] Home-screen icon tested on iOS Safari and Android Chrome
 - [ ] FCM tokens stored per user; notification permission requested at key moments (first deed, first point)
 - [ ] Notification triggers implemented and tested:
   - Magic received (tip confirmed or parent bonus added)
@@ -327,8 +327,12 @@ TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
 TWILIO_PHONE_NUMBER=
 
-# Store app
-CLOUDINARY_URL=
+# Store app (Vercel adds these when the Blob store is connected; on Vercel it uses OIDC)
+BLOB_STORE_ID=
+BLOB_READ_WRITE_TOKEN=
+
+# Family + admin (not secret: lets <Image> show store photos)
+BLOB_STORE_ID=
 
 # Admin app
 (no additional keys beyond shared)

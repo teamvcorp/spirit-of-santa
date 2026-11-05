@@ -27,6 +27,9 @@ Verified against the installed `.d.ts`, Next's bundled docs, and a production sm
   `sos-<app>.locale` in dev. It's set whenever a prefixed URL is visited, so the switcher works.
 - The proxy sets `Link: rel="alternate" hreflang` headers (SEO) on every page.
 - `/api/*` is excluded from the proxy matcher (NextAuth, webhooks stay locale-free).
+  So are the generated icons `/icon/<size>` and `/apple-icon` (no dot in their URLs, so they
+  were getting a locale prefix and 404ing; fixed 2026-11-05). Any new dot-less metadata route
+  (e.g. `opengraph-image`) needs adding to the matcher too.
 - Pages under `[locale]` prerender statically (`/en`, `/es` show as ○ in the build).
 
 ## Rules / gotchas

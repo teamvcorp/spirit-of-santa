@@ -1,0 +1,27 @@
+{
+  "name": "@repo/storage",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./images": "./src/images.ts",
+    "./image-rules": "./src/image-rules.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit",
+    "test": "node --conditions=react-server --test \"test/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@vercel/blob": "2.8.2",
+    "server-only": "0.0.1",
+    "sharp": "0.35.5"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/node": "24.19.2",
+    "eslint": "9.39.5",
+    "typescript": "6.0.3"
+  }
+}

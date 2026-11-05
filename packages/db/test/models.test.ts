@@ -52,3 +52,23 @@ test("Transaction: ledger is append-only through Mongoose", async () => {
   await assert.rejects(Transaction.findOneAndUpdate({ kidId: id() }, { note: "x" }, {}).exec(), blocked);
   await assert.rejects(Transaction.bulkWrite([]), blocked);
 });
+
+test("Item photo: only our Blob URL for the same pathname is accepted (review hardening)", () => {
+  const base = { storeId: id(), seasonYear: 2027, name: "Sled", priceCents: 2999, payoutCents: 2000 };
+  const pathname = `items/${"a".repeat(24)}/123e4567-e89b-42d3-a456-426614174000.webp`;
+  const host = "https://abc123.public.blob.vercel-storage.com";
+  const photoErrors = (photo: object) => errorPaths(new Item({ ...base, photo })).filter((p) => p.startsWith("photo"));
+  assert.deepEqual(photoErrors({ url: `${host}/${pathname}`, pathname }), []);
+  for (const url of [
+    `https://evil.example/${pathname}`,
+    `https://abc123.private.blob.vercel-storage.com/${pathname}`,
+    `http://abc123.public.blob.vercel-storage.com/${pathname}`,
+    `${host}/items/${"b".repeat(24)}/other.webp`, // URL doesn't match pathname
+    `${host}/${pathname}?track=1`,
+    `https://user@abc123.public.blob.vercel-storage.com/${pathname}`,
+    "not a url",
+  ]) {
+    assert.ok(photoErrors({ url, pathname }).includes("photo.url"), url);
+  }
+  assert.ok(photoErrors({ url: `${host}/../x.svg`, pathname: "../x.svg" }).includes("photo.pathname"));
+});

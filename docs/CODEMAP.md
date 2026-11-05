@@ -1,24 +1,25 @@
 # turboSanta CODEMAP
 
 > Read this before exploring. Keep it current when packages/routes are added.
-> Last updated: 2026-11-04. Status: **Phase 1: shared packages + i18n (en/es) done; placeholder pages only.**
+> Last updated: 2026-11-05. Status: **Phase 1: shared packages, i18n, sign-in, image storage, home-screen icons done; placeholder pages otherwise.**
 > Rules/constants: [../CLAUDE.md](../CLAUDE.md). Roadmap: [../SpiritOfSanta.md](../SpiritOfSanta.md).
 
 ## Layout
 
 | Path | What |
 |---|---|
-| `apps/family` :3000 | Next 16 app. `auth.ts`, `app/api/auth/[...nextauth]/route.ts`, `proxy.ts` (locale), `i18n/`, `messages/`, `app/[locale]/` (layout, placeholder page, not-found, `[...rest]` catch-all) |
+| `apps/family` :3000 | Next 16 app. `auth.ts`, `app/api/auth/[...nextauth]/route.ts`, `proxy.ts` (locale), `i18n/`, `messages/`, `app/[locale]/` (layout, placeholder page, not-found, `[...rest]` catch-all), `app/icon.tsx` + `apple-icon.tsx` + `manifest.ts` |
 | `apps/store` :3001 | Same skeleton |
 | `apps/admin` :3002 | Same skeleton (+ `robots: noindex`) |
 | `packages/lib` | Client-safe: `season`, `roles`, `limits`, `format`, `locales`, `cookies`. **Server-only:** `constants`, `points` |
 | `packages/i18n` | next-intl factories (routing, request, proxy), `Common` messages, `LocaleSwitcher`, `getCommonTranslator` for SMS/push |
 | `packages/db` | `connectDb()` + 10 Mongoose models (server-only) |
 | `packages/auth` | NextAuth v4 options, guards, argon2id hashing, parent PIN (server-only); UI: `SignInSlot`/`SignInForm`, `AccountMenu`, `SignOutButton`; `safeCallbackPath` (open-redirect guard); `scripts/seed-dev.ts` |
-| `packages/ui` | Button, TextField, Card, Alert, SiteHeader, `cn`, `theme.css` (brand tokens, `danger`, focus ring) |
+| `packages/ui` | Button, TextField, Card, Alert, SiteHeader, `cn`, `theme.css` (brand tokens, `danger`, focus ring), `app-icon` (icon art + manifest factory) |
+| `packages/storage` | **Server-only** `images` (`uploadPublicImage`/`deletePublicImage` on public Vercel Blob, sharp re-encode); client-safe `image-rules` (limits, magic-byte sniff, `blobImagesConfig` for next.config) |
 | `packages/eslint-config` | `./base` (packages), `./next-js` (apps). only-warn + `--max-warnings 0` |
 | `packages/typescript-config` | `base`, `nextjs` (apps), `library` (lib/db/auth), `react-library` (ui) |
-| `docs/vendor/` | Version-specific notes: `mongoose-9.md`, `next-auth-v4.md`, `next-intl.md` |
+| `docs/vendor/` | Version-specific notes: `mongoose-9.md`, `next-auth-v4.md`, `next-intl.md`, `vercel-blob.md` (also icons) |
 
 ## Key decisions (why things look the way they do)
 
@@ -38,6 +39,10 @@
 - **i18n:** English at `/`, Spanish at `/es` (next-intl, `as-needed`). Locale read via
   `next/root-params` so pages stay static. All UI text goes in `messages/*.json`, never inline;
   shared strings live in `Common`. Parity test fails on any missing Spanish key. See `docs/vendor/next-intl.md`.
+- **Images (2026-11-05):** public Vercel Blob store, product/store photos ONLY (never kids/families/documents).
+  Every upload is size-capped (4 MB), type-checked by magic bytes, re-encoded to WebP with EXIF/GPS
+  stripped, and stored as `<folder>/<ownerId>/<uuid>.webp`. DB keeps `{ url, pathname }`. See `docs/vendor/vercel-blob.md`.
+- **No PWA (2026-11-05):** home-screen icon only (`display: "browser"` manifest, no service worker).
 - **TS source packages:** no build step; Next transpiles them. Relative imports use `.ts` extensions
   (Node type-stripping for tests). Mongoose must be default-imported (CJS) in packages/db.
 
@@ -75,16 +80,18 @@ the command line; stop by PID only. Old servers silently answer tests with stale
 Done: monorepo, CLAUDE.md, full schema, NextAuth roles, parent PIN, i18n (en/es).
 
 **Accounts:** Atlas ✅ (cluster `santaadmin.10ptpiw`, db `spiritofsanta`, per-app `.env.local`, ping OK).
-Stripe test keys ✅ (family + store). **Still blank:** `NEXTAUTH_SECRET` in all three apps
-(auth endpoints 500 until set), Stripe webhook secrets, Twilio, Cloudinary, FCM, Vercel, domains.
+Stripe test keys ✅ (family + store; remove from store). NEXTAUTH_SECRET ✅ (all 3). Vercel Blob ✅ (public store;
+`BLOB_*` in store `.env.local`). **Still blank:** Twilio, FCM, Vercel projects, domains. Family + admin need
+`BLOB_STORE_ID` (not secret) for store photos to display.
 
 **Agreed next order (code):**
 1. ✅ i18n with **next-intl** (roadmap said next-i18next, Pages Router only; swap still to confirm with user)
 2. ✅ Shared UI components + sign-in pages per app (e2e-tested against Atlas dev DB, all 3 apps)
-3. Cloudinary upload helper (store item photos)
+3. ✅ Image upload helper: **Vercel Blob (public)** instead of Cloudinary (`packages/storage`; live round trip verified)
 4. ✅ Seed script + end-to-end login test (pulled forward). `scripts/e2e/signin.mjs` and `roles.mjs`
    run against a started app (usage in file headers); not in CI yet (needs a dev DB in CI).
-5. FCM + PWA (Next 16 native manifest + **Serwist**; roadmap's next-pwa is unmaintained)
+5. ✅ Home-screen icons + manifest (user: no installable app, so no Serwist/offline). FCM push moved to Phase 7;
+   iOS only allows web push for Home Screen web apps, so plan SMS/email fallback there.
 
 **No Stripe Connect (user decision 2026-11-04):** stores are paid by check or outside the app.
 Stripe only collects money (tips, parent bonuses/pay-ups, donations) into the platform account.

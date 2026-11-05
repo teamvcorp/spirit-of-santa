@@ -109,8 +109,12 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
 - **Store payout log (not designed yet):** with offline payment, admin needs to record what each
   store is owed (sum of locked items' `payoutCents`) and what was paid (amount, method e.g. check,
   reference/check #, date, recorded-by admin). Likely a `StorePayout` model; design with user in Phase 4.
-  Margin (user, 2026-11-04) also comes from the point conversion itself: money in at $1.50/point
-  (ledger `earn_*` rows store it in `cents`) vs. 1 point = $1 retail and the item's `payoutCents`.
+  **Platform margin = two parts, both kept** (user, 2026-11-04):
+  1. Conversion margin: money in at $1.50/point vs. points spent at $1 retail per point
+     (= ledger `earn_*` `cents` − spent `amountCentipoints`, since 1 centipoint = 1 retail cent).
+  2. Wholesale margin: item `priceCents` (retail) − `payoutCents` (wholesale paid to store).
+  Per item: money collected for its points − `payoutCents`. Open question: money behind points
+  wiped at the Jan 1 `season_reset` (collected, never spent): kept as margin, or tracked separately?
 - `vercelsetup.md` (user's draft) conflicts with the repo: Node 20.x → **24.x**; Turbo `pipeline` → `tasks`;
   `STRIPE_PUBLISHABLE_KEY` → `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`; `FCB_` → `FCM_`.
 - Product decisions assumed (confirm): fractional points (centipoints); `MAX_TIP_CENTS` $1,000;

@@ -75,7 +75,8 @@ const storeSchema = new Schema(
       acceptedByUserId: objectId("User", false),
     },
 
-    stripeConnectAccountId: { type: String, match: /^acct_[A-Za-z0-9]+$/ },
+    // No Stripe Connect (decided 2026-11-04): stores are paid by check or other means
+    // outside the app, so we store no bank or Stripe account details for them.
 
     invitedByAdminId: objectId("User", false),
     reviewedByAdminId: objectId("User", false),

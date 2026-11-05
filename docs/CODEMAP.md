@@ -76,14 +76,18 @@ Stripe test keys ✅ (family + store). **Still blank:** `NEXTAUTH_SECRET` in all
 4. Seed script + end-to-end login test (needs Atlas)
 5. FCM + PWA (Next 16 native manifest + **Serwist**; roadmap's next-pwa is unmaintained)
 
-**Stripe webhook endpoints (decided 2026-11-04; routes not built yet):**
+**No Stripe Connect (user decision 2026-11-04):** stores are paid by check or outside the app.
+Stripe only collects money (tips, parent bonuses/pay-ups, donations) into the platform account.
+Store payouts will need an admin-recorded payout log (TODO below), not Stripe.
+
+**Stripe webhook endpoint (one; route not built yet):**
 - `https://spiritofsanta.com/api/webhooks/stripe` (family; "Your account"; snapshot payloads):
   payment_intent.succeeded / .payment_failed / .canceled; checkout.session.completed / .expired /
   .async_payment_succeeded / .async_payment_failed; charge.refunded; charge.dispute.created / .closed
-- `https://store.spiritofsanta.com/api/webhooks/stripe-connect` (store; "Connected accounts"):
-  account.updated, account.application.deauthorized, payout.failed, payout.paid
-- Each endpoint has its own `whsec_` secret. Dashboard secret → Vercel env (that project only);
-  local `.env.local` uses the secret printed by `stripe listen --forward-to localhost:<port>/...`.
+- Its `whsec_` secret → family `STRIPE_WEBHOOK_SECRET` in Vercel; local `.env.local` uses the
+  secret printed by `stripe listen --forward-to localhost:3000/api/webhooks/stripe`.
+- Store app needs **no** Stripe keys (least privilege: remove them from its env). Admin may later
+  need `STRIPE_SECRET_KEY` only if refunds are issued from the admin app.
   Stripe doesn't follow redirects, so use the exact canonical host (apex vs www).
 - Pay-later 7-day expiry: Payment Links don't expire on their own; our code deactivates them.
 - Handler rule: read the raw body, verify the signature first, dedupe on `event.id`, return 2xx fast.
@@ -102,8 +106,9 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
 - `npm audit`: 10 moderate (minimatch ReDoS) in the ESLint dev toolchain only, not shipped. Not force-fixed.
 - Login UI (`pages.signIn`), sign-up/registration, email verification: not built.
 - Home pages are placeholders (title + intro + language switcher); real UI is step 2.
-- `STRIPE_CONNECT_CLIENT_ID` is only for Connect OAuth. If store onboarding uses Account Links
-  (Stripe's current recommendation for Express accounts) it isn't needed; decide when building payouts.
+- **Store payout log (not designed yet):** with offline payment, admin needs to record what each
+  store is owed (sum of locked items' `payoutCents`) and what was paid (amount, method e.g. check,
+  reference/check #, date, recorded-by admin). Likely a `StorePayout` model; design with user in Phase 4.
 - `vercelsetup.md` (user's draft) conflicts with the repo: Node 20.x → **24.x**; Turbo `pipeline` → `tasks`;
   `STRIPE_PUBLISHABLE_KEY` → `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`; `FCB_` → `FCM_`.
 - Product decisions assumed (confirm): fractional points (centipoints); `MAX_TIP_CENTS` $1,000;

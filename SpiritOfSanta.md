@@ -58,7 +58,7 @@ Everything that all three apps share. No user-facing features yet — just the i
 - [ ] Design and implement full MongoDB schema (Users, Kids, Families, Stores, Items, Deeds, Transactions, Seasons)
 - [ ] Implement NextAuth.js with role-based sessions (child, parent, store-owner, store-rep, admin, community)
 - [ ] Parent PIN system (hashed, separate from main auth session)
-- [ ] Stripe account setup: Connect account for payouts, webhook endpoint, test mode keys in all three apps
+- [ ] Stripe account setup: webhook endpoint, test mode keys in the family app (no Connect: stores are paid by check/outside the app, decided 2026-11-04)
 - [ ] FCM project setup; service worker scaffolding in all three apps
 - [ ] Cloudinary account; shared upload helper in `packages/ui`
 - [ ] Twilio account for SMS (pay-later links)
@@ -140,7 +140,7 @@ The financial layer. Every dollar in and out flows through Stripe; every point h
 
 - [ ] Stripe Elements embedded in family and community-member pages (no redirects)
 - [ ] Payment Intents for one-time tips; webhook handler for all Stripe events
-- [ ] Stripe Connect for Spirit O Santa payouts to stores
+- [ ] Store payouts recorded by admin (paid by check/outside the app; no Stripe Connect)
 - [ ] Parent bonus magic: parent pays via Stripe; converts at $1.50 = 1 point, credited to chosen child
 - [ ] Pay-later: Twilio sends SMS with Stripe Payment Link; link expires in 7 days via webhook
 
@@ -329,7 +329,6 @@ TWILIO_PHONE_NUMBER=
 
 # Store app
 CLOUDINARY_URL=
-STRIPE_CONNECT_CLIENT_ID=
 
 # Admin app
 (no additional keys beyond shared)

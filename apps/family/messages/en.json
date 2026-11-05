@@ -6,5 +6,8 @@
   "HomePage": {
     "title": "Welcome to Spirit O Santa",
     "intro": "Good deeds earn points. Points make wishes come true."
+  },
+  "SignInPage": {
+    "intro": "For parents. Kids don’t need an account."
   }
 }

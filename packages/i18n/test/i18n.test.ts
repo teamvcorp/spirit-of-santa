@@ -10,7 +10,14 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { DEFAULT_LOCALE, LOCALES } from "@repo/lib/locales";
-import { stripLocale, switchLocalePath } from "../src/paths.ts";
+import { localizePath, stripLocale, switchLocalePath } from "../src/paths.ts";
+
+test("localizePath uses no prefix for English", () => {
+  assert.equal(localizePath("/signin", "en"), "/signin");
+  assert.equal(localizePath("/signin", "es"), "/es/signin");
+  assert.equal(localizePath("/", "es"), "/es");
+  assert.equal(localizePath("/es/signin", "en"), "/signin");
+});
 
 test("stripLocale removes only a real locale prefix", () => {
   assert.equal(stripLocale("/es/wishlist"), "/wishlist");

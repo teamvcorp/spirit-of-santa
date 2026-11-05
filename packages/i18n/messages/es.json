@@ -13,6 +13,15 @@
       "save": "Guardar",
       "cancel": "Cancelar"
     },
-    "points": "{count, plural, one {# punto} other {# puntos}}"
+    "points": "{count, plural, one {# punto} other {# puntos}}",
+    "auth": {
+      "title": "Iniciar sesión",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "submit": "Iniciar sesión",
+      "submitting": "Iniciando sesión…",
+      "failed": "Ese correo y contraseña no funcionaron. Después de 5 intentos fallidos, el inicio de sesión se pausa por 15 minutos.",
+      "signedInAs": "Sesión iniciada como {email}"
+    }
   }
 }

@@ -86,6 +86,10 @@ export function createAuthOptions(app: AppName): AuthOptions {
     secret: process.env.NEXTAUTH_SECRET, // next-auth refuses to run in production without it
     session: { strategy: "jwt", maxAge: SESSION_MAX_AGE[app] },
     cookies: nextAuthCookies(app),
+    // Our own translated page (apps/<app>/app/[locale]/signin) instead of next-auth's
+    // unstyled default. Errors land there too as ?error=..., shown as one generic message.
+    // The proxy adds the language prefix (/es/signin) from the locale cookie.
+    pages: { signIn: "/signin", error: "/signin" },
     providers: [
       CredentialsProvider({
         name: "Email",

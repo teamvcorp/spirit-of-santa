@@ -14,8 +14,8 @@
 | `packages/lib` | Client-safe: `season`, `roles`, `limits`, `format`, `locales`, `cookies`. **Server-only:** `constants`, `points` |
 | `packages/i18n` | next-intl factories (routing, request, proxy), `Common` messages, `LocaleSwitcher`, `getCommonTranslator` for SMS/push |
 | `packages/db` | `connectDb()` + 10 Mongoose models (server-only) |
-| `packages/auth` | NextAuth v4 options, guards, argon2id hashing, parent PIN (server-only) |
-| `packages/ui` | Turbo starter components (unused so far) |
+| `packages/auth` | NextAuth v4 options, guards, argon2id hashing, parent PIN (server-only); UI: `SignInSlot`/`SignInForm`, `AccountMenu`, `SignOutButton`; `safeCallbackPath` (open-redirect guard); `scripts/seed-dev.ts` |
+| `packages/ui` | Button, TextField, Card, Alert, SiteHeader, `cn`, `theme.css` (brand tokens, `danger`, focus ring) |
 | `packages/eslint-config` | `./base` (packages), `./next-js` (apps). only-warn + `--max-warnings 0` |
 | `packages/typescript-config` | `base`, `nextjs` (apps), `library` (lib/db/auth), `react-library` (ui) |
 | `docs/vendor/` | Version-specific notes: `mongoose-9.md`, `next-auth-v4.md`, `next-intl.md` |
@@ -55,6 +55,15 @@ the app build cache goes stale** (seen while building this).
 `npm run dev | build | lint | check-types | test` (via turbo). One workspace: `--filter=family`.
 Tests: Node's built-in runner (`node --conditions=react-server --test`), no DB required.
 
+**Dev database + test accounts:** local `.env.local` files use database `spiritofsanta_dev`
+(Vercel uses `spiritofsanta`). `npm run seed:dev` (needs `SEED_PASSWORD`, 12+ chars) creates
+`dev-parent@`, `dev-owner@`, `dev-rep@`, `dev-admin@spiritofsanta.test` + a Dev Family and
+Dev Toy Shop; refuses any DB not ending in `_dev`. `npm run seed:dev -- --remove` deletes them.
+
+**Local server gotcha (Windows):** `netstat`/`Get-NetTCPConnection` may not show a `next start`
+listener. Find strays with `Get-CimInstance Win32_Process -Filter "Name='node.exe'"` and match
+the command line; stop by PID only. Old servers silently answer tests with stale builds.
+
 ## Local docs (read before guessing)
 
 - Next.js 16: `node_modules/next/dist/docs/` (breaking changes vs. training data)
@@ -71,9 +80,10 @@ Stripe test keys ✅ (family + store). **Still blank:** `NEXTAUTH_SECRET` in all
 
 **Agreed next order (code):**
 1. ✅ i18n with **next-intl** (roadmap said next-i18next, Pages Router only; swap still to confirm with user)
-2. Shared UI components + sign-in pages per app (replace starter pages)
+2. ✅ Shared UI components + sign-in pages per app (e2e-tested against Atlas dev DB, all 3 apps)
 3. Cloudinary upload helper (store item photos)
-4. Seed script + end-to-end login test (needs Atlas)
+4. ✅ Seed script + end-to-end login test (pulled forward). `scripts/e2e/signin.mjs` and `roles.mjs`
+   run against a started app (usage in file headers); not in CI yet (needs a dev DB in CI).
 5. FCM + PWA (Next 16 native manifest + **Serwist**; roadmap's next-pwa is unmaintained)
 
 **No Stripe Connect (user decision 2026-11-04):** stores are paid by check or outside the app.

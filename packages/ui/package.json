@@ -3,11 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
+    "./cn": "./src/cn.ts",
+    "./theme.css": "./src/theme.css",
     "./*": "./src/*.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
-    "generate:component": "turbo gen react-component",
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
@@ -24,5 +25,6 @@
   "peerDependencies": {
     "react": "^19",
     "react-dom": "^19"
-  }
+  },
+  "type": "module"
 }

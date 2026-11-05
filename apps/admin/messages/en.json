@@ -6,5 +6,8 @@
   "HomePage": {
     "title": "Spirit O Santa Admin",
     "intro": "Sign in with your team account to continue."
+  },
+  "SignInPage": {
+    "intro": "Spirit O Santa team only."
   }
 }

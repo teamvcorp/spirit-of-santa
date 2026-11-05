@@ -4,7 +4,13 @@ import { notFound } from "next/navigation";
 import { locale as rootLocale } from "next/root-params";
 import { NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
+import { AccountMenu } from "@repo/auth/account-menu";
+import { LocaleSwitcher } from "@repo/i18n/locale-switcher";
 import { isLocale, LOCALES } from "@repo/lib/locales";
+import { SiteHeader } from "@repo/ui/site-header";
+import { authOptions } from "@/auth";
+import { Link } from "@/i18n/navigation";
 import "../globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -28,6 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function LocaleLayout({ children }: LayoutProps<"/[locale]">) {
   const locale = await rootLocale();
   if (!isLocale(locale)) notFound(); // the proxy normally guarantees a valid locale
+  const common = await getTranslations("Common");
 
   return (
     <html
@@ -36,7 +43,22 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
     >
       <body className="min-h-full flex flex-col">
         {/* Gives Client Components access to the locale and messages. */}
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          <SiteHeader
+            brand={<Link href="/">{common("brand")}</Link>}
+            actions={
+              <>
+                <LocaleSwitcher label={common("languageSwitcher")} />
+                {/* Reads the session cookie (request-time), so it streams in after the
+                    prerendered shell instead of making the whole page dynamic. */}
+                <Suspense fallback={null}>
+                  <AccountMenu authOptions={authOptions} />
+                </Suspense>
+              </>
+            }
+          />
+          {children}
+        </NextIntlClientProvider>
       </body>
     </html>
   );

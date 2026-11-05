@@ -27,8 +27,14 @@ https://next-auth.js.org (v4). Verified against the installed package's `.d.ts` 
   per app. Our parent-PIN HMAC key is derived from it via HKDF (separate purpose label).
 - **Cookies**: default names collide across apps on localhost (cookies ignore ports), so we set
   per-app names; production uses the `__Host-` prefix (Secure, no Domain → host-only).
-- **Default pages**: `/api/auth/signin` is a built-in unstyled form. Replace via `pages.signIn`
-  when the app has its own login UI.
+- **Custom pages (done)**: `pages: { signIn: "/signin", error: "/signin" }` → our translated
+  `app/[locale]/signin` (proxy adds `/es`). A failed credentials POST returns 401 with
+  `{ url: "/api/auth/error?error=CredentialsSignin" }`; that route redirects to
+  `/api/auth/signin?error=…`, which redirects to `pages.signIn` (two hops, ends on our page).
+  `callbackUrl` there is the absolute site URL; `safeCallbackPath` turns it into `/`.
+- **Client sign-in**: `signIn("credentials", { redirect: false })` from `next-auth/react`
+  returns `{ ok, error }`; no `SessionProvider` needed for signIn/signOut. Testing with curl
+  needs the CSRF cookie + token and `json=true`; the result URL is in the body, not `Location`.
 - **Middleware (`next-auth/middleware` `withAuth`)**: not used. Next 16 renamed middleware → proxy,
   and auth must be checked at the data access point anyway (CVE-2025-29927).
 
@@ -36,3 +42,10 @@ https://next-auth.js.org (v4). Verified against the installed package's `.d.ts` 
 
 `getServerSession` reads cookies → it's request-time data. Call it inside a component wrapped in
 `<Suspense>` (or in Server Actions / Route Handlers), never inside a `"use cache"` scope.
+
+**Call `await connection()` (from `next/server`) before `getServerSession`.** It creates a CSRF
+token with `crypto.randomBytes` before touching cookies, and Next logs
+`blocking-prerender-random` errors for random values during prerender. `AccountMenu` does this.
+
+Same rule for `searchParams`: read them in a Suspense child (see `SignInSlot`), never with
+`useSearchParams` in the form itself (that makes the whole form client-only, blank before JS).

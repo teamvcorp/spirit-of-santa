@@ -14,6 +14,7 @@ import type { AuthOptions } from "next-auth";
 import { getServerSession } from "next-auth/next";
 import { notFound, redirect } from "next/navigation";
 import type { Role } from "@repo/lib/roles";
+import { safeCallbackPath } from "./redirect.ts";
 
 export type SessionUser = NonNullable<
   NonNullable<Awaited<ReturnType<typeof getServerSession<AuthOptions>>>>["user"]
@@ -27,10 +28,17 @@ export async function getSessionUser(
   return session?.user ?? null;
 }
 
-/** Signed-in user or redirect to sign-in. */
-export async function requireUser(options: AuthOptions): Promise<SessionUser> {
+/**
+ * Signed-in user or redirect to our sign-in page. Pass `returnTo` (a path on this site,
+ * e.g. "/wishlist") to come back after signing in; it is re-validated on the way back
+ * by safeCallbackPath, so passing a request value here can't create an open redirect.
+ */
+export async function requireUser(options: AuthOptions, returnTo?: string): Promise<SessionUser> {
   const user = await getSessionUser(options);
-  if (!user) redirect("/api/auth/signin");
+  if (!user) {
+    const safe = safeCallbackPath(returnTo, "");
+    redirect(safe ? `/signin?callbackUrl=${encodeURIComponent(safe)}` : "/signin");
+  }
   return user;
 }
 
@@ -43,6 +51,6 @@ export async function requireRole(
   ...roles: Role[]
 ): Promise<SessionUser> {
   const user = await requireUser(options);
-  if (!roles.includes(user.role)) notFound();
+  if (!roles.includes(user.role)) notFound(); // 404, not 403: don't reveal the page exists
   return user;
 }

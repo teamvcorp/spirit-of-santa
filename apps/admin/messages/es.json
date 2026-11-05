@@ -6,5 +6,8 @@
   "HomePage": {
     "title": "Administración de Spirit O Santa",
     "intro": "Inicie sesión con su cuenta del equipo para continuar."
+  },
+  "SignInPage": {
+    "intro": "Solo para el equipo de Spirit O Santa."
   }
 }

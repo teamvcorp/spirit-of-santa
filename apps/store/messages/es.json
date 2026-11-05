@@ -6,5 +6,8 @@
   "HomePage": {
     "title": "Spirit O Santa para tiendas",
     "intro": "Publique hasta 50 artículos de regalo. Los niños los ganan con buenas acciones y usted recibe el pago."
+  },
+  "SignInPage": {
+    "intro": "Para dueños y personal de tiendas."
   }
 }

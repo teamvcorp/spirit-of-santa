@@ -6,5 +6,8 @@
   "HomePage": {
     "title": "Spirit O Santa for Stores",
     "intro": "List up to 50 gift items. Kids earn them with good deeds, and you get paid."
+  },
+  "SignInPage": {
+    "intro": "For store owners and staff."
   }
 }

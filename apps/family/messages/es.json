@@ -6,5 +6,8 @@
   "HomePage": {
     "title": "Bienvenidos a Spirit O Santa",
     "intro": "Las buenas acciones ganan puntos. Los puntos hacen realidad los deseos."
+  },
+  "SignInPage": {
+    "intro": "Para padres. Los niños no necesitan una cuenta."
   }
 }

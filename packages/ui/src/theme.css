@@ -1,0 +1,42 @@
+/*
+ * Shared design tokens (Tailwind v4). Each app's globals.css imports this file, so
+ * `bg-brand-red`, `text-danger`, `border-input` etc. mean the same thing in every app.
+ *
+ * Contrast, measured (WCAG AA: 4.5:1 for text, 3:1 for focus rings and field borders):
+ *   white on brand-red 6.54:1 · white on brand-red-dark 9.11:1
+ *   danger (text/borders): #b3261e on white 6.54:1 · #ff8a80 on dark bg 8.67:1
+ *   focus ring: #8c1d18 on white 9.11:1 · #c9a227 on dark bg 8.18:1
+ *   input border: #767676 on white 4.54:1 · #8a8a8a on dark bg 5.73:1
+ * Brand red on the dark background is only 3.03:1 and gold on white only ~2.4:1, which is
+ * why error text, focus rings and borders use theme-aware tokens instead of brand colours.
+ */
+@theme {
+  --color-brand-red: #b3261e;
+  --color-brand-red-dark: #8c1d18;
+  --color-brand-green: #1f6f43;
+  --color-brand-gold: #c9a227;
+  --color-danger: var(--danger);
+  --color-input: var(--input-border);
+}
+
+:root {
+  --danger: #b3261e;
+  --focus: #8c1d18;
+  --input-border: #767676;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --danger: #ff8a80;
+    --focus: #c9a227;
+    --input-border: #8a8a8a;
+  }
+}
+
+/* Visible keyboard focus everywhere (never remove outlines without a replacement). */
+@layer base {
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+}

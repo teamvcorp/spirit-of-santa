@@ -6,7 +6,11 @@
   "exports": {
     ".": "./src/index.ts",
     "./password": "./src/password.ts",
-    "./parent-pin": "./src/parent-pin.ts"
+    "./parent-pin": "./src/parent-pin.ts",
+    "./redirect": "./src/redirect.ts",
+    "./sign-in-form": "./src/sign-in-form.tsx",
+    "./account-menu": "./src/account-menu.tsx",
+    "./sign-in-slot": "./src/sign-in-slot.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -15,13 +19,17 @@
   },
   "dependencies": {
     "@repo/db": "*",
+    "@repo/i18n": "*",
     "@repo/lib": "*",
+    "@repo/ui": "*",
     "next-auth": "4.24.15",
+    "next-intl": "4.14.9",
     "server-only": "0.0.1",
     "zod": "4.6.7"
   },
   "peerDependencies": {
-    "next": "^16"
+    "next": "^16",
+    "react": "^19"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
@@ -29,6 +37,7 @@
     "@types/node": "24.19.2",
     "eslint": "9.39.5",
     "next": "16.4.5",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "@types/react": "19.3.0"
   }
 }

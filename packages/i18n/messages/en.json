@@ -13,6 +13,15 @@
       "save": "Save",
       "cancel": "Cancel"
     },
-    "points": "{count, plural, one {# point} other {# points}}"
+    "points": "{count, plural, one {# point} other {# points}}",
+    "auth": {
+      "title": "Sign in",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "failed": "That email and password didn’t work. After 5 failed tries, sign-in is paused for 15 minutes.",
+      "signedInAs": "Signed in as {email}"
+    }
   }
 }

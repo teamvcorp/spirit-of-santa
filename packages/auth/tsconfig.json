@@ -1,10 +1,12 @@
 {
   // Runs only inside Next (imports next/headers, next/navigation), so resolve like Next's
-  // bundler does. Tests import only the Next-free files (password.ts, unlock-token.ts).
+  // bundler does. Tests import only the Next-free files (password, unlock-token, redirect).
   "extends": "@repo/typescript-config/library.json",
   "compilerOptions": {
     "module": "ESNext",
-    "moduleResolution": "Bundler"
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "types": ["node", "react"]
   },
-  "include": ["src", "test"]
+  "include": ["src", "test", "scripts"]
 }

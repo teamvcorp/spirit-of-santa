@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
   images: blobImagesConfig(process.env.BLOB_STORE_ID),
   experimental: {
     agentFeedback: true,
+    // Store photo / item photo uploads go through Server Actions. Default limit is 1 MB;
+    // images may be up to 4 MB (MAX_IMAGE_BYTES), and Vercel caps request bodies at 4.5 MB.
+    serverActions: { bodySizeLimit: "4.5mb" },
   },
   cacheComponents: true,
   partialPrefetching: true,

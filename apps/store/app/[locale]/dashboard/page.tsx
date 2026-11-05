@@ -1,0 +1,69 @@
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
+import { Alert } from "@repo/ui/alert";
+import { Card } from "@repo/ui/card";
+import { Link } from "@/i18n/navigation";
+import { DashboardNav } from "./dashboard-nav";
+import { loadMember } from "./member";
+import { NoAccess } from "./no-access";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Dashboard");
+  return { title: t("title"), robots: { index: false, follow: false } };
+}
+
+async function Overview() {
+  const { user, store, isOwner } = await loadMember();
+  if (!store) return <NoAccess />;
+  const [t, statusT] = await Promise.all([getTranslations("Dashboard"), getTranslations("Common.storeStatus")]);
+  return (
+    <>
+      <DashboardNav isOwner={isOwner} current="overview" />
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <h1 className="text-2xl font-bold">{store.name}</h1>
+        <span className="rounded-full border border-foreground/20 px-3 py-1 text-sm">{statusT(store.status)}</span>
+      </div>
+      <Alert tone={store.status === "rejected" || store.status === "suspended" ? "error" : "info"} className="mb-6">
+        {/* Only the "rejected" text has a {reason} placeholder; the others ignore it. */}
+        {(t as unknown as (k: string, v?: Record<string, string>) => string)(`statusHelp.${store.status}`, { reason: store.rejectionReason ?? "" })}
+      </Alert>
+      <div className="grid gap-4 md:grid-cols-2">
+        {isOwner && (
+          <Card>
+            <h2 className="text-lg font-semibold">{t("profileCardTitle")}</h2>
+            <p className="mb-3 mt-1 text-sm text-foreground/70">{t("profileCardBody")}</p>
+            <Link href="/dashboard/profile" className="font-semibold underline underline-offset-4">
+              {t("nav.profile")}
+            </Link>
+          </Card>
+        )}
+        {isOwner && (
+          <Card>
+            <h2 className="text-lg font-semibold">{t("repsCardTitle")}</h2>
+            <p className="mb-3 mt-1 text-sm text-foreground/70">{t("repsCardBody", { count: store.repUserIds?.length ?? 0 })}</p>
+            <Link href="/dashboard/reps" className="font-semibold underline underline-offset-4">
+              {t("nav.reps")}
+            </Link>
+          </Card>
+        )}
+        <Card>
+          <h2 className="text-lg font-semibold">{t("itemsCardTitle")}</h2>
+          <p className="mt-1 text-sm text-foreground/70">{t("itemsCardBody")}</p>
+        </Card>
+      </div>
+      <p className="mt-6 text-sm text-foreground/70">{t(isOwner ? "signedInOwner" : "signedInRep", { email: user.email })}</p>
+    </>
+  );
+}
+
+export default async function DashboardPage() {
+  const t = await getTranslations("Dashboard");
+  return (
+    <main className="mx-auto w-full max-w-5xl flex-1 p-6">
+      <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+        <Overview />
+      </Suspense>
+    </main>
+  );
+}

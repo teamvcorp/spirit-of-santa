@@ -9,13 +9,13 @@
 | Path | What |
 |---|---|
 | `apps/family` :3000 | Next 16 app. `auth.ts`, `app/api/auth/[...nextauth]/route.ts`, `proxy.ts` (locale), `i18n/`, `messages/`, `app/[locale]/` (layout, placeholder page, not-found, `[...rest]` catch-all), `app/icon.tsx` + `apple-icon.tsx` + `manifest.ts`, `app/api/webhooks/stripe/route.ts` |
-| `apps/store` :3001 | Same skeleton |
+| `apps/store` :3001 | Same skeleton + `/register`, `/verify`, `/accept-invite`, `/accept-rep-invite`; `dashboard/` (overview, `profile/` details + photos, `reps/`), `dashboard/actions.ts` (owner Server Actions), `api/cron/purge-signups` |
 | `apps/admin` :3002 | Same skeleton (+ `robots: noindex`). Dashboard (pending count), `stores/` queue, `stores/[id]` detail + actions, `stores/invite`, `stores/actions.ts` (admin Server Actions) |
 | `packages/lib` | Client-safe: `season`, `roles`, `limits`, `format`, `locales`, `cookies`. **Server-only:** `constants`, `points` |
 | `packages/i18n` | next-intl factories (routing, request, proxy), `Common` messages, `LocaleSwitcher`, `getCommonTranslator` for SMS/push |
 | `packages/db` | `connectDb()`, `withTransaction()` + 12 Mongoose models incl. `Payment` (money records) and `StripeEvent` (webhook log) (server-only) |
 | `packages/email` | **Server-only** `sendEmail()` via Resend + pure `renderEmail()` templates (en/es, escaped, link allow-list). Dev prints instead of sending |
-| `packages/stores` | **Server-only** store business logic: `admin.ts` (approve/reject/suspend/reinstate/discount/invite: atomic transitions + AuditLog + owner emails), `queries.ts` (queue, detail), `schemas.ts` (discount % → bps), `urls.ts` (STORE_APP_URL) |
+| `packages/stores` | **Server-only** store business logic: `admin.ts` (approve/reject/suspend/reinstate/discount/invite/resend/cancel: atomic transitions + AuditLog + owner emails), `owner.ts` (profile, photos, reps; ownership re-checked from the DB on every call), `queries.ts` (queue, detail), `schemas.ts` (discount % → bps), `urls.ts` (STORE_APP_URL) |
 | `packages/payments` | **Server-only** Stripe: `client` (`getStripe`, `expectedLivemode`), `metadata` (`sos_*` payment-label contract), `webhook` (verify → dedupe → `handlers`) |
 | `packages/auth` | NextAuth v4 options, guards, argon2id hashing, parent PIN (server-only); UI: `SignInSlot`/`SignInForm`, `AccountMenu`, `SignOutButton`; `safeCallbackPath` (open-redirect guard); `scripts/seed-dev.ts`; account flows (`account-flows.ts`: store sign-up, verify, resend, forgot/reset), `tokens.ts` (hashed single-use links), `rate-limit.ts`, `schemas.ts`, shared forms (`forms.tsx`, `token-slot.tsx`, `form-actions.ts`) |
 | `packages/ui` | Button, TextField, Card, Alert, SiteHeader, `cn`, `theme.css` (brand tokens, `danger`, focus ring), `app-icon` (icon art + manifest factory) |
@@ -134,7 +134,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
   families see a store only once approved.
 - **Pricing:** owners set prices; reps add/edit item details + inventory (rep-created items wait for a price).
 - **Agreement wording is a DRAFT** (`StoreAgreement` messages, version `2026-11-05`): user must review before launch.
-- Slices: 1 accounts+email (DONE, 349c069) · 2 admin approval/invite (built; review pending) · 3 owner dashboard/reps · 4 item catalog · 5 engagement stats.
+- Slices: 1 accounts+email (DONE, 349c069) · 2 admin approval/invite (DONE, d900b67 + review fixes 44e58aa) · 3 owner dashboard/reps (built; review pending) · 3 owner dashboard/reps · 4 item catalog · 5 engagement stats.
 
 ## Phase 2 gotchas (learned 2026-11-05)
 
@@ -166,6 +166,14 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
   owner accepts at store `/accept-invite` → one transaction: consume token, create active owner, store → approved.
 - **Admin E2E:** `scripts/e2e/browser-admin-stores.ts` (dev: 25 checks incl. emails from the dev log; `--prod`: 15
   checks against `next start`, owner emails go to `delivered+...@resend.dev`).
+- **Owner dashboard (slice 3):** owners edit details/photos (pending/approved only; rejected/suspended read-only)
+  and manage reps (invite by email → `/accept-rep-invite`; remove = suspend + unlink + sessionVersion++; a removed
+  rep can be re-invited and is re-activated). Store pages re-check membership in the DB (`memberStore`), so a
+  removed rep loses access immediately even though their JWT lives up to 5 more minutes.
+- **Store app emails use its own NEXTAUTH_URL** for links (rep invites). `STORE_APP_URL` is only for the admin
+  app (found by the production E2E: production refuses the dev localhost fallback).
+- **Store app Server Action body limit = 4.5mb** (`experimental.serverActions.bodySizeLimit`) for photo uploads.
+- **Store E2E:** `scripts/e2e/browser-store-dashboard.ts` (dev 21 checks; `--prod` 13 checks, real Blob uploads).
 - **New env:** store `CRON_SECRET` (Vercel cron auth); admin `STORE_APP_URL` (links in invite/approval emails;
   defaults to http://localhost:3001 in dev, required in production).
 

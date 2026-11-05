@@ -5,7 +5,10 @@
   },
   "HomePage": {
     "title": "Spirit O Santa for Stores",
-    "intro": "List up to 50 gift items. Kids earn them with good deeds, and you get paid."
+    "intro": "List up to 50 gift items. Kids earn them with good deeds, and you get paid.",
+    "dashboard": "Go to your dashboard",
+    "register": "List your store",
+    "signIn": "Sign in"
   },
   "SignInPage": {
     "intro": "For store owners and staff.",
@@ -63,5 +66,86 @@
     "done": "You're all set! Your store is approved and your account is ready.",
     "signIn": "Sign in",
     "invalid": "This invitation link has expired or was already used. Ask Spirit O Santa to send a new one."
+  },
+  "Dashboard": {
+    "title": "Store dashboard",
+    "loading": "Loading…",
+    "noAccess": "Your account isn't connected to a store right now. If you were removed by the store owner, ask them to invite you again.",
+    "nav": {
+      "label": "Dashboard sections",
+      "overview": "Overview",
+      "profile": "Store profile",
+      "reps": "Reps"
+    },
+    "statusHelp": {
+      "pending": "We're reviewing your store. You can set up your profile, photos and team now. Families will see your store once it's approved.",
+      "invited": "Your store invitation hasn't been accepted yet.",
+      "approved": "Your store is approved and visible to families.",
+      "rejected": "Your store wasn't approved. Reason: {reason}",
+      "suspended": "Your store is suspended and hidden from families. Contact Spirit O Santa to resolve this."
+    },
+    "profileCardTitle": "Store profile",
+    "profileCardBody": "Your store's details and photos, as families will see them.",
+    "repsCardTitle": "Team",
+    "repsCardBody": "{count, plural, =0 {No reps yet. Invite staff to help manage items.} one {# rep can help manage items.} other {# reps can help manage items.}}",
+    "itemsCardTitle": "Items",
+    "itemsCardBody": "Your item list (up to 50 items) opens for editing January 1 – March 31. This section arrives in the next update.",
+    "signedInOwner": "Signed in as {email} (owner).",
+    "signedInRep": "Signed in as {email} (rep).",
+    "errors": {
+      "notFound": "That wasn't found. Refresh the page and try again.",
+      "readOnly": "Changes aren't possible while the store is in this status.",
+      "tooManyPhotos": "You already have the maximum number of photos. Remove one first.",
+      "emailInUse": "That email already has an account and can't be invited.",
+      "rateLimited": "Too many tries. Please wait and try again later.",
+      "empty": "Please choose a photo first.",
+      "too_large": "That photo is too big (max 4 MB).",
+      "unsupported_type": "Please use a JPEG, PNG or WebP photo.",
+      "unreadable": "That file couldn't be read as a photo."
+    }
+  },
+  "Profile": {
+    "title": "Store profile",
+    "details": "Details",
+    "photos": "Photos",
+    "save": "Save changes",
+    "saved": "Saved.",
+    "readOnly": "Your store's profile can't be edited in its current status.",
+    "noPhotos": "No photos yet. Add a photo of your storefront or products.",
+    "photoAlt": "Store photo {n}",
+    "removePhoto": "Remove",
+    "addPhoto": "Add a photo ({count} of {max})",
+    "photoHint": "JPEG, PNG or WebP, up to {mb} MB. We remove location data from photos automatically.",
+    "upload": "Upload photo"
+  },
+  "Reps": {
+    "title": "Reps",
+    "intro": "Reps are your staff. They can manage items and inventory, but only you can change prices, your profile and your team.",
+    "readOnly": "Your team can't be changed in your store's current status.",
+    "current": "Current reps",
+    "none": "No reps yet.",
+    "remove": "Remove",
+    "confirmRemove": "Remove {name}? They'll be signed out and lose access to your store.",
+    "pending": "Invitations waiting",
+    "expires": "link expires {date}",
+    "inviteTitle": "Invite a rep",
+    "inviteIntro": "They'll get an email link (valid 7 days) to choose a name and password.",
+    "email": "Rep's email",
+    "language": "Email language",
+    "sendInvite": "Send invitation",
+    "invited": "Invitation sent."
+  },
+  "AcceptRepInvitePage": {
+    "title": "Join your store's team",
+    "intro": "You've been invited to help manage {storeName} on Spirit O Santa.",
+    "email": "Account email",
+    "name": "Your name",
+    "password": "Choose a password",
+    "passwordHint": "At least {min} characters. A short sentence works well.",
+    "submit": "Create my account",
+    "submitting": "Creating account…",
+    "done": "You're all set! Sign in to start helping with your store's items.",
+    "signIn": "Sign in",
+    "invalid": "This invitation link has expired or was already used. Ask the store owner to send a new one."
   }
 }

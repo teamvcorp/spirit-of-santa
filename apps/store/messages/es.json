@@ -5,7 +5,10 @@
   },
   "HomePage": {
     "title": "Spirit O Santa para tiendas",
-    "intro": "Publique hasta 50 artículos de regalo. Los niños los ganan con buenas acciones y usted recibe el pago."
+    "intro": "Publique hasta 50 artículos de regalo. Los niños los ganan con buenas acciones y usted recibe el pago.",
+    "dashboard": "Ir a tu panel",
+    "register": "Inscribe tu tienda",
+    "signIn": "Iniciar sesión"
   },
   "SignInPage": {
     "intro": "Para dueños y personal de tiendas.",
@@ -63,5 +66,86 @@
     "done": "¡Listo! Tu tienda está aprobada y tu cuenta está lista.",
     "signIn": "Iniciar sesión",
     "invalid": "Este enlace de invitación venció o ya se usó. Pide a Spirit O Santa que te envíe uno nuevo."
+  },
+  "Dashboard": {
+    "title": "Panel de la tienda",
+    "loading": "Cargando…",
+    "noAccess": "Tu cuenta no está conectada a una tienda en este momento. Si el dueño te quitó del equipo, pídele que te invite de nuevo.",
+    "nav": {
+      "label": "Secciones del panel",
+      "overview": "Resumen",
+      "profile": "Perfil de la tienda",
+      "reps": "Representantes"
+    },
+    "statusHelp": {
+      "pending": "Estamos revisando tu tienda. Ya puedes preparar tu perfil, fotos y equipo. Las familias verán tu tienda cuando sea aprobada.",
+      "invited": "La invitación de tu tienda aún no ha sido aceptada.",
+      "approved": "Tu tienda está aprobada y visible para las familias.",
+      "rejected": "Tu tienda no fue aprobada. Motivo: {reason}",
+      "suspended": "Tu tienda está suspendida y oculta para las familias. Comunícate con Spirit O Santa para resolverlo."
+    },
+    "profileCardTitle": "Perfil de la tienda",
+    "profileCardBody": "Los datos y fotos de tu tienda, tal como los verán las familias.",
+    "repsCardTitle": "Equipo",
+    "repsCardBody": "{count, plural, =0 {Aún no hay representantes. Invita a tu personal para ayudar con los artículos.} one {# representante puede ayudar con los artículos.} other {# representantes pueden ayudar con los artículos.}}",
+    "itemsCardTitle": "Artículos",
+    "itemsCardBody": "Tu lista de artículos (hasta 50) se puede editar del 1 de enero al 31 de marzo. Esta sección llega en la próxima actualización.",
+    "signedInOwner": "Sesión iniciada como {email} (dueño).",
+    "signedInRep": "Sesión iniciada como {email} (representante).",
+    "errors": {
+      "notFound": "No se encontró. Actualiza la página e inténtalo de nuevo.",
+      "readOnly": "No se pueden hacer cambios mientras la tienda tenga este estado.",
+      "tooManyPhotos": "Ya tienes el número máximo de fotos. Quita una primero.",
+      "emailInUse": "Ese correo ya tiene una cuenta y no se puede invitar.",
+      "rateLimited": "Demasiados intentos. Espera e inténtalo más tarde.",
+      "empty": "Primero elige una foto.",
+      "too_large": "Esa foto es demasiado grande (máximo 4 MB).",
+      "unsupported_type": "Usa una foto JPEG, PNG o WebP.",
+      "unreadable": "No se pudo leer ese archivo como foto."
+    }
+  },
+  "Profile": {
+    "title": "Perfil de la tienda",
+    "details": "Datos",
+    "photos": "Fotos",
+    "save": "Guardar cambios",
+    "saved": "Guardado.",
+    "readOnly": "El perfil de tu tienda no se puede editar con su estado actual.",
+    "noPhotos": "Aún no hay fotos. Agrega una foto de tu tienda o tus productos.",
+    "photoAlt": "Foto de la tienda {n}",
+    "removePhoto": "Quitar",
+    "addPhoto": "Agregar una foto ({count} de {max})",
+    "photoHint": "JPEG, PNG o WebP, hasta {mb} MB. Quitamos automáticamente los datos de ubicación de las fotos.",
+    "upload": "Subir foto"
+  },
+  "Reps": {
+    "title": "Representantes",
+    "intro": "Los representantes son tu personal. Pueden administrar artículos e inventario, pero solo tú puedes cambiar precios, tu perfil y tu equipo.",
+    "readOnly": "Tu equipo no se puede cambiar con el estado actual de tu tienda.",
+    "current": "Representantes actuales",
+    "none": "Aún no hay representantes.",
+    "remove": "Quitar",
+    "confirmRemove": "¿Quitar a {name}? Se cerrará su sesión y perderá el acceso a tu tienda.",
+    "pending": "Invitaciones pendientes",
+    "expires": "el enlace vence el {date}",
+    "inviteTitle": "Invitar a un representante",
+    "inviteIntro": "Recibirá un enlace por correo (válido 7 días) para elegir su nombre y contraseña.",
+    "email": "Correo del representante",
+    "language": "Idioma del correo",
+    "sendInvite": "Enviar invitación",
+    "invited": "Invitación enviada."
+  },
+  "AcceptRepInvitePage": {
+    "title": "Únete al equipo de tu tienda",
+    "intro": "Te invitaron a ayudar a administrar {storeName} en Spirit O Santa.",
+    "email": "Correo de la cuenta",
+    "name": "Tu nombre",
+    "password": "Elige una contraseña",
+    "passwordHint": "Al menos {min} caracteres. Una frase corta funciona bien.",
+    "submit": "Crear mi cuenta",
+    "submitting": "Creando cuenta…",
+    "done": "¡Listo! Inicia sesión para empezar a ayudar con los artículos de tu tienda.",
+    "signIn": "Iniciar sesión",
+    "invalid": "Este enlace de invitación venció o ya se usó. Pide al dueño de la tienda que te envíe uno nuevo."
   }
 }

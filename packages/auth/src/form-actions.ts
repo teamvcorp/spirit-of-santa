@@ -16,6 +16,7 @@ import { headers } from "next/headers";
 import { DEFAULT_LOCALE, isLocale } from "@repo/lib/locales";
 import type { AppName } from "@repo/lib/roles";
 import {
+  acceptRepInvite,
   acceptStoreInvite,
   registerStoreOwner,
   requestPasswordReset,
@@ -24,7 +25,7 @@ import {
   verifyEmail,
   type FlowContext,
 } from "./account-flows.ts";
-import { acceptInviteSchema, emailSchema, fieldErrors, newPasswordSchema, storeRegistrationSchema } from "./schemas.ts";
+import { acceptInviteSchema, acceptRepInviteSchema, emailSchema, fieldErrors, newPasswordSchema, storeRegistrationSchema } from "./schemas.ts";
 import type { FormState } from "./form-state.ts";
 
 async function context(fd: FormData): Promise<FlowContext> {
@@ -101,5 +102,12 @@ export async function acceptInvite(_prev: FormState, fd: FormData): Promise<Form
   const values = { ownerName: str(fd, "ownerName").slice(0, 100), agree: str(fd, "agree") };
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), values, nonce: randomUUID() };
   const r = await acceptStoreInvite(parsed.data, await context(fd));
+  return r.ok ? { status: "done" } : { status: "error", error: r.error, values, nonce: randomUUID() };
+}
+export async function acceptRepInviteForm(_prev: FormState, fd: FormData): Promise<FormState> {
+  const parsed = acceptRepInviteSchema.safeParse(Object.fromEntries(fd));
+  const values = { name: str(fd, "name").slice(0, 100) };
+  if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), values, nonce: randomUUID() };
+  const r = await acceptRepInvite(parsed.data, await context(fd));
   return r.ok ? { status: "done" } : { status: "error", error: r.error, values, nonce: randomUUID() };
 }

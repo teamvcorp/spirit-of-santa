@@ -49,6 +49,8 @@ const storeB = await pendingStore("b");
 const storeC = await pendingStore("c", "pending"); // owner never confirmed their email
 const inviteEmail = mail("inv");
 class ProdDone extends Error {}
+/** Stores the app deletes itself (cancelled invites): remember their ids so audit rows get cleaned. */
+const extraStoreIds: { toString(): string }[] = [];
 
 const log = () => (PROD ? "" : readFileSync(logFile, "utf8"));
 const emailCount = (to: string, template: string) => log().split("[email:dev] to=").filter((b) => b.startsWith(`${to} template=${template}`)).length;
@@ -279,6 +281,7 @@ try {
   await page.click('main button[type="submit"]');
   await page.locator("main").getByText("Invitation sent.").waitFor();
   const toCancel = await Store.findOne({ name: `E2E Cancel ${tag}` }).lean();
+  if (toCancel) extraStoreIds.push(toCancel._id);
   await page.goto(`${adminBase}/stores/${toCancel?._id}`);
   await ready(page);
   await page.locator("form", { hasText: "Cancel the invitation" }).locator('button[type="submit"]').click();
@@ -298,7 +301,7 @@ try {
 } finally {
   await browser.close();
   const stores = await Store.find({ name: trusted({ $regex: new RegExp(tag) }) }).select("_id").lean();
-  const ids = stores.map((s) => s._id);
+  const ids = [...stores.map((s) => s._id), ...extraStoreIds.map((i) => new mongoose.Types.ObjectId(String(i)))];
   await AuditLog.collection.deleteMany({ targetId: { $in: ids } });
   await Store.collection.deleteMany({ _id: { $in: ids } });
   const users = await User.find({ email: trusted({ $regex: new RegExp(`(-${tag}@spiritofsanta\\.test|${tag}@resend\\.dev)$`) }) }).select("_id").lean();

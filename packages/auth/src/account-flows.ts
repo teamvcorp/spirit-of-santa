@@ -26,7 +26,7 @@ import { isRoleAllowedInApp, type AppName } from "@repo/lib/roles";
 import { STORE_AGREEMENT_VERSION } from "@repo/lib/store";
 import { burnVerifyTime, hashSecret } from "./password.ts";
 import { clientIp, emailKey, hitRateLimit, ipKey } from "./rate-limit.ts";
-import type { AcceptInviteInput, StoreRegistrationInput } from "./schemas.ts";
+import type { AcceptInviteInput, AcceptRepInviteInput, StoreRegistrationInput } from "./schemas.ts";
 import { slugify } from "./slug.ts";
 import { consumeActionToken, createActionToken, hashToken, peekActionToken } from "./tokens.ts";
 
@@ -328,5 +328,74 @@ class InviteNoLongerValid extends Error {
   constructor() {
     super("store is no longer in the invited state");
     this.name = "InviteNoLongerValid";
+  }
+}
+// ── Rep invite (store owner invited a rep) ──────────────────────────────────────────
+/** Store name for /accept-rep-invite, or null if the link is invalid/used/expired. */
+export async function peekRepInvite(raw: unknown): Promise<{ storeName: string; email: string } | null> {
+  await connectDb();
+  const token = await peekActionToken(raw, "invite_rep");
+  if (!token?.storeId) return null;
+  const store = await Store.findOne({ _id: token.storeId, status: trusted({ $in: ["pending", "approved"] }) }).select("name").lean();
+  return store ? { storeName: store.name, email: token.email } : null;
+}
+
+/**
+ * Accept a rep invite, in ONE transaction: use up the token, create the rep (active: the
+ * emailed link proves the address) or re-activate a rep who was removed from a store earlier,
+ * and add them to the store's reps. Anything unexpected rolls back and the link keeps working.
+ */
+export async function acceptRepInvite(input: AcceptRepInviteInput, ctx: FlowContext): Promise<FlowResult> {
+  await connectDb();
+  if (!(await hitRateLimit(`invite:ip:${ipKey(clientIp(ctx.headers))}`, 20, HOUR))) return { ok: false, error: "rateLimited" };
+  const passwordHash = await hashSecret(input.password);
+  try {
+    return await withTransaction(async (session): Promise<FlowResult> => {
+      const now = new Date();
+      const token = await ActionToken.findOneAndUpdate(
+        { tokenHash: hashToken(input.token), purpose: "invite_rep", usedAt: null, expiresAt: trusted({ $gt: now }) },
+        { $set: { usedAt: now } },
+        { session, returnDocument: "after" },
+      ).lean();
+      if (!token?.storeId) return { ok: false, error: "invalidLink" };
+      const store = await Store.findOne({ _id: token.storeId, status: trusted({ $in: ["pending", "approved"] }) })
+        .select("_id")
+        .session(session)
+        .lean();
+      if (!store) throw new InviteNoLongerValid();
+
+      const existing = await User.findOne({ email: token.email }).select("role status storeId").session(session).lean();
+      let repId;
+      if (existing) {
+        // Only a rep who was REMOVED from a store (suspended, no store) may be re-activated.
+        if (existing.role !== "store_rep" || existing.status !== "suspended" || existing.storeId) throw new InviteNoLongerValid();
+        await User.updateOne(
+          { _id: existing._id },
+          {
+            $set: { passwordHash, name: input.name, status: "active", storeId: store._id, failedLoginCount: 0, locale: ctx.locale },
+            $unset: { lockedUntil: 1 },
+            $inc: { sessionVersion: 1 },
+          },
+          { session },
+        );
+        repId = existing._id;
+      } else {
+        const [user] = await User.create(
+          [{ email: token.email, passwordHash, role: "store_rep", name: input.name, status: "active", storeId: store._id, locale: ctx.locale }],
+          { session },
+        );
+        repId = user!._id;
+      }
+      await Store.updateOne({ _id: store._id }, { $addToSet: { repUserIds: repId } }, { session });
+      await AuditLog.create(
+        [{ actorUserId: repId, action: "rep.accept", targetType: "store", targetId: store._id, details: { reactivated: !!existing } }],
+        { session },
+      );
+      return { ok: true };
+    });
+  } catch (err) {
+    if (err instanceof InviteNoLongerValid) return { ok: false, error: "invalidLink" };
+    if ((err as { code?: number }).code === 11000) return { ok: false, error: "invalidLink" };
+    throw err;
   }
 }

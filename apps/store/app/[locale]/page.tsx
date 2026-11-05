@@ -1,12 +1,44 @@
-import { useTranslations } from "next-intl";
+import { connection } from "next/server";
+import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
+import { getSessionUser } from "@repo/auth";
+import { authOptions } from "@/auth";
+import { Link } from "@/i18n/navigation";
 
-// Placeholder home page (real screens come in later phases).
-export default function Home() {
-  const t = useTranslations("HomePage");
+/** Request-time call to action: dashboard if signed in, else sign up / sign in. */
+async function Cta() {
+  await connection();
+  const user = await getSessionUser(authOptions);
+  const t = await getTranslations("HomePage");
+  const btn = "rounded-lg px-5 py-3 font-semibold";
+  if (user) {
+    return (
+      <Link href="/dashboard" className={`${btn} bg-brand-red text-white hover:bg-brand-red-dark`}>
+        {t("dashboard")}
+      </Link>
+    );
+  }
+  return (
+    <div className="flex flex-wrap justify-center gap-3">
+      <Link href="/register" className={`${btn} bg-brand-red text-white hover:bg-brand-red-dark`}>
+        {t("register")}
+      </Link>
+      <Link href="/signin" className={`${btn} border border-foreground/30`}>
+        {t("signIn")}
+      </Link>
+    </div>
+  );
+}
+
+export default async function Home() {
+  const t = await getTranslations("HomePage");
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 p-8 text-center">
       <h1 className="text-4xl font-bold">{t("title")}</h1>
       <p className="max-w-xl text-lg">{t("intro")}</p>
+      <Suspense fallback={null}>
+        <Cta />
+      </Suspense>
     </main>
   );
 }

@@ -4,7 +4,7 @@
  * and security live in @repo/auth/form-actions (shared by every app). The app name here
  * decides which roles may reset a password through this site.
  */
-import { acceptInvite, confirmEmailWithToken, forgotPassword, registerStore, resendVerificationEmail, resetPasswordWithToken } from "@repo/auth/form-actions";
+import { acceptInvite, acceptRepInviteForm, confirmEmailWithToken, forgotPassword, registerStore, resendVerificationEmail, resetPasswordWithToken } from "@repo/auth/form-actions";
 import type { FormState } from "@repo/auth/form-state";
 
 export async function forgotPasswordAction(prev: FormState, fd: FormData) {
@@ -26,4 +26,7 @@ export async function resendVerificationAction(prev: FormState, fd: FormData) {
 }
 export async function acceptInviteAction(prev: FormState, fd: FormData) {
   return acceptInvite(prev, fd);
+}
+export async function acceptRepInviteAction(prev: FormState, fd: FormData) {
+  return acceptRepInviteForm(prev, fd);
 }

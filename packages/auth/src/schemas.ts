@@ -93,3 +93,12 @@ export function fieldErrors(error: z.ZodError): Record<string, string> {
   }
   return out;
 }
+
+/** Store app /accept-invite form (owner invited by an admin). */
+export const acceptInviteSchema = z.object({
+  token: z.string().max(100),
+  ownerName: z.string().trim().min(1, "required").max(100, "tooLong"),
+  password: newPasswordSchema,
+  agree: z.literal("on", "mustAgree"),
+});
+export type AcceptInviteInput = z.infer<typeof acceptInviteSchema>;

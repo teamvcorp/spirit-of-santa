@@ -22,6 +22,25 @@
       "body": "We got a request to reset the password for this email address.",
       "button": "Choose a new password",
       "expiry": "This link works once and expires in 1 hour."
+    },
+    "inviteOwner": {
+      "subject": "You're invited to list your store on Spirit O Santa",
+      "heading": "Your store is invited",
+      "body": "Spirit O Santa has invited {storeName} to list gift items for local kids. Set your password and accept the store agreement to get started.",
+      "button": "Accept the invitation",
+      "expiry": "This link works once and expires in 7 days."
+    },
+    "storeApproved": {
+      "subject": "{storeName} is approved on Spirit O Santa",
+      "heading": "Your store is approved",
+      "body": "Good news: {storeName} is approved. Families can now see your store and items. Sign in to manage your item list.",
+      "button": "Sign in"
+    },
+    "storeRejected": {
+      "subject": "About your Spirit O Santa application",
+      "heading": "Application not approved",
+      "body": "We weren't able to approve {storeName} at this time. Reason: {reason}. If you have questions, reply to this email.",
+      "button": "Sign in"
     }
   }
 }

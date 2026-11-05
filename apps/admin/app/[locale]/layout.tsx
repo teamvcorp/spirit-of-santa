@@ -48,7 +48,14 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
             brand={<Link href="/">{common("brand")}</Link>}
             actions={
               <>
-                <LocaleSwitcher label={common("languageSwitcher")} />
+                <Link href="/stores" className="font-semibold underline-offset-4 hover:underline">
+                  {common("nav.stores")}
+                </Link>
+                {/* usePathname() inside: on dynamic routes (e.g. /stores/[id]) the path isn't known
+                    at prerender time, so it must stream in inside Suspense (Cache Components). */}
+                <Suspense fallback={null}>
+                  <LocaleSwitcher label={common("languageSwitcher")} />
+                </Suspense>
                 {/* Reads the session cookie (request-time), so it streams in after the
                     prerendered shell instead of making the whole page dynamic. */}
                 <Suspense fallback={null}>

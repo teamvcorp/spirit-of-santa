@@ -23,6 +23,11 @@ export type EmailTemplates = {
   verifyEmail: { link: string };
   accountExists: { link: string };
   resetPassword: { link: string };
+  /** storeName typed by an admin. */
+  inviteOwner: { storeName: string; link: string };
+  /** Sent to the VERIFIED owner of the store, about their own store. */
+  storeApproved: { storeName: string; link: string };
+  storeRejected: { storeName: string; reason: string; link: string };
 };
 export type EmailTemplateName = keyof EmailTemplates;
 
@@ -56,7 +61,8 @@ export function renderEmail<T extends EmailTemplateName>(
 
   const link = assertSafeLink(values.link);
   const textValues = values as unknown as Record<string, string>;
-  const subject = tt(`${template}.subject`);
+  // Subjects are a header: never let a value smuggle line breaks into it.
+  const subject = tt(`${template}.subject`, textValues).replace(/[\r\n\t]+/g, " ").slice(0, 200);
   const heading = tt(`${template}.heading`);
   const body = tt(`${template}.body`, textValues);
   const button = tt(`${template}.button`);

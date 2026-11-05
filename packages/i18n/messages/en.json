@@ -67,6 +67,28 @@
         "done": "Thanks! Your email is confirmed. You can sign in now.",
         "signIn": "Sign in"
       }
+    },
+    "storeCategories": {
+      "toys": "Toys",
+      "books": "Books",
+      "games": "Games & puzzles",
+      "sports": "Sports",
+      "arts_crafts": "Arts & crafts",
+      "clothing": "Clothing",
+      "music": "Music",
+      "electronics": "Electronics",
+      "outdoors": "Outdoors",
+      "other": "Other"
+    },
+    "nav": {
+      "stores": "Stores"
+    },
+    "storeStatus": {
+      "invited": "Invited",
+      "pending": "Pending approval",
+      "approved": "Approved",
+      "rejected": "Not approved",
+      "suspended": "Suspended"
     }
   }
 }

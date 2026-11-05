@@ -72,7 +72,17 @@ const storeSchema = new Schema(
       required: true,
       index: true,
     },
-    ownerUserId: objectId("User"),
+    /** Required except while "invited" (the owner account is created when they accept). */
+    ownerUserId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: [
+        function (this: { status?: string }) {
+          return this.status !== "invited";
+        },
+        "ownerUserId is required once the store is not just invited",
+      ],
+    },
     repUserIds: {
       type: [{ type: Schema.Types.ObjectId, ref: "User" }],
       default: [],

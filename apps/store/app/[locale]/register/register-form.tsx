@@ -12,20 +12,18 @@ import { useLocale, useTranslations } from "next-intl";
 import { useFieldError } from "@repo/auth/forms";
 import { INITIAL_FORM_STATE, type FormState } from "@repo/auth/form-state";
 import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "@repo/auth/schemas";
-import { STORE_AGREEMENT_VERSION, STORE_CATEGORIES } from "@repo/lib/store";
+import { STORE_CATEGORIES } from "@repo/lib/store";
 import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
+import { AgreementFields } from "../_components/agreement-fields";
 
 type Action = (prev: FormState, fd: FormData) => Promise<FormState>;
 
-const AGREEMENT_POINTS = ["p1", "p2", "p3", "p4", "p5"] as const;
-
 export function RegisterForm({ action }: { action: Action }) {
   const t = useTranslations("RegisterPage");
-  const cats = useTranslations("StoreCategories");
-  const agreement = useTranslations("StoreAgreement");
+  const cats = useTranslations("Common.storeCategories");
   const errorsT = useTranslations("Common.accounts.errors");
   const fieldError = useFieldError();
   const [state, formAction, pending] = useActionState(action, INITIAL_FORM_STATE);
@@ -137,29 +135,7 @@ export function RegisterForm({ action }: { action: Action }) {
         </div>
       </fieldset>
 
-      <fieldset className="flex flex-col gap-3">
-        <legend className="mb-2 text-lg font-semibold">{agreement("title")}</legend>
-        <div className="max-h-56 overflow-y-auto rounded-lg border border-input p-4 text-sm" tabIndex={0} aria-label={agreement("title")}>
-          <ol className="list-decimal space-y-2 pl-5">
-            {AGREEMENT_POINTS.map((p) => (
-              <li key={p}>{agreement(p)}</li>
-            ))}
-          </ol>
-          <p className="mt-3 text-foreground/70">{agreement("version", { version: STORE_AGREEMENT_VERSION })}</p>
-        </div>
-        <label className="flex items-start gap-3">
-          <input
-            type="checkbox"
-            name="agree"
-            required
-            defaultChecked={v.agree === "on"}
-            aria-invalid={state.fieldErrors?.agree ? true : undefined}
-            className="mt-1 size-5"
-          />
-          <span>{agreement("accept")}</span>
-        </label>
-        {state.fieldErrors?.agree && <p className="text-sm text-danger">{err("agree")}</p>}
-      </fieldset>
+      <AgreementFields defaultChecked={v.agree === "on"} error={err("agree")} />
 
       {/* Honeypot (see header). Off-screen rather than display:none, which some bots skip. */}
       <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">

@@ -41,18 +41,6 @@
     "haveAccount": "¿Ya tienes una cuenta?",
     "signIn": "Iniciar sesión"
   },
-  "StoreCategories": {
-    "toys": "Juguetes",
-    "books": "Libros",
-    "games": "Juegos y rompecabezas",
-    "sports": "Deportes",
-    "arts_crafts": "Arte y manualidades",
-    "clothing": "Ropa",
-    "music": "Música",
-    "electronics": "Electrónica",
-    "outdoors": "Aire libre",
-    "other": "Otro"
-  },
   "StoreAgreement": {
     "title": "Acuerdo de descuento y garantía para tiendas",
     "p1": "Publicas los artículos a tu precio normal de venta. El precio de cada artículo en puntos mágicos es igual a su precio de venta en dólares.",
@@ -62,5 +50,18 @@
     "p5": "Spirit O Santa paga tus facturas con cheque u otro método fuera de la aplicación. No se guardan datos bancarios en la aplicación.",
     "version": "Versión del acuerdo {version}",
     "accept": "He leído y acepto el acuerdo de descuento y garantía para tiendas."
+  },
+  "AcceptInvitePage": {
+    "title": "Acepta la invitación de tu tienda",
+    "intro": "Spirit O Santa invitó a {storeName}. Crea tu cuenta de dueño para empezar a publicar artículos.",
+    "email": "Correo de la cuenta",
+    "ownerName": "Tu nombre",
+    "password": "Elige una contraseña",
+    "passwordHint": "Al menos {min} caracteres. Una frase corta funciona bien.",
+    "submit": "Aceptar y crear cuenta",
+    "submitting": "Creando cuenta…",
+    "done": "¡Listo! Tu tienda está aprobada y tu cuenta está lista.",
+    "signIn": "Iniciar sesión",
+    "invalid": "Este enlace de invitación venció o ya se usó. Pide a Spirit O Santa que te envíe uno nuevo."
   }
 }

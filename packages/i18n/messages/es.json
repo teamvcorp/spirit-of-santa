@@ -67,6 +67,28 @@
         "done": "¡Gracias! Tu correo está confirmado. Ya puedes iniciar sesión.",
         "signIn": "Iniciar sesión"
       }
+    },
+    "storeCategories": {
+      "toys": "Juguetes",
+      "books": "Libros",
+      "games": "Juegos y rompecabezas",
+      "sports": "Deportes",
+      "arts_crafts": "Arte y manualidades",
+      "clothing": "Ropa",
+      "music": "Música",
+      "electronics": "Electrónica",
+      "outdoors": "Aire libre",
+      "other": "Otro"
+    },
+    "nav": {
+      "stores": "Tiendas"
+    },
+    "storeStatus": {
+      "invited": "Invitada",
+      "pending": "Pendiente de aprobación",
+      "approved": "Aprobada",
+      "rejected": "No aprobada",
+      "suspended": "Suspendida"
     }
   }
 }

@@ -10,11 +10,12 @@
 |---|---|
 | `apps/family` :3000 | Next 16 app. `auth.ts`, `app/api/auth/[...nextauth]/route.ts`, `proxy.ts` (locale), `i18n/`, `messages/`, `app/[locale]/` (layout, placeholder page, not-found, `[...rest]` catch-all), `app/icon.tsx` + `apple-icon.tsx` + `manifest.ts`, `app/api/webhooks/stripe/route.ts` |
 | `apps/store` :3001 | Same skeleton |
-| `apps/admin` :3002 | Same skeleton (+ `robots: noindex`) |
+| `apps/admin` :3002 | Same skeleton (+ `robots: noindex`). Dashboard (pending count), `stores/` queue, `stores/[id]` detail + actions, `stores/invite`, `stores/actions.ts` (admin Server Actions) |
 | `packages/lib` | Client-safe: `season`, `roles`, `limits`, `format`, `locales`, `cookies`. **Server-only:** `constants`, `points` |
 | `packages/i18n` | next-intl factories (routing, request, proxy), `Common` messages, `LocaleSwitcher`, `getCommonTranslator` for SMS/push |
 | `packages/db` | `connectDb()`, `withTransaction()` + 12 Mongoose models incl. `Payment` (money records) and `StripeEvent` (webhook log) (server-only) |
 | `packages/email` | **Server-only** `sendEmail()` via Resend + pure `renderEmail()` templates (en/es, escaped, link allow-list). Dev prints instead of sending |
+| `packages/stores` | **Server-only** store business logic: `admin.ts` (approve/reject/suspend/reinstate/discount/invite: atomic transitions + AuditLog + owner emails), `queries.ts` (queue, detail), `schemas.ts` (discount % → bps), `urls.ts` (STORE_APP_URL) |
 | `packages/payments` | **Server-only** Stripe: `client` (`getStripe`, `expectedLivemode`), `metadata` (`sos_*` payment-label contract), `webhook` (verify → dedupe → `handlers`) |
 | `packages/auth` | NextAuth v4 options, guards, argon2id hashing, parent PIN (server-only); UI: `SignInSlot`/`SignInForm`, `AccountMenu`, `SignOutButton`; `safeCallbackPath` (open-redirect guard); `scripts/seed-dev.ts`; account flows (`account-flows.ts`: store sign-up, verify, resend, forgot/reset), `tokens.ts` (hashed single-use links), `rate-limit.ts`, `schemas.ts`, shared forms (`forms.tsx`, `token-slot.tsx`, `form-actions.ts`) |
 | `packages/ui` | Button, TextField, Card, Alert, SiteHeader, `cn`, `theme.css` (brand tokens, `danger`, focus ring), `app-icon` (icon art + manifest factory) |
@@ -133,7 +134,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
   families see a store only once approved.
 - **Pricing:** owners set prices; reps add/edit item details + inventory (rep-created items wait for a price).
 - **Agreement wording is a DRAFT** (`StoreAgreement` messages, version `2026-11-05`): user must review before launch.
-- Slices: 1 accounts+email (DONE) · 2 admin approval/invite · 3 owner dashboard/reps · 4 item catalog · 5 engagement stats.
+- Slices: 1 accounts+email (DONE, 349c069) · 2 admin approval/invite (built; review pending) · 3 owner dashboard/reps · 4 item catalog · 5 engagement stats.
 
 ## Phase 2 gotchas (learned 2026-11-05)
 
@@ -158,6 +159,13 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
   site-wide cap (100/h); the verification email contains NO user-typed text (anti spam-relay); unconfirmed
   sign-ups are purged after 48 h by Vercel Cron (`apps/store/vercel.json` → `/api/cron/purge-signups`, needs
   `CRON_SECRET` in the store project's env); a locked account burns argon2 time like other failures.
+- **Dynamic routes + Cache Components:** any client component using `usePathname()` outside `<Suspense>`
+  (our `LocaleSwitcher` in every layout) breaks the PRODUCTION build of dynamic routes like `/stores/[id]`
+  (dev doesn't show it). It's wrapped in Suspense in all layouts. Always run a production build.
+- **Invites:** admin creates the store as `invited` (no owner yet; `ownerUserId` required only once not invited),
+  owner accepts at store `/accept-invite` → one transaction: consume token, create active owner, store → approved.
+- **Admin E2E:** `scripts/e2e/browser-admin-stores.ts` (dev: 25 checks incl. emails from the dev log; `--prod`: 15
+  checks against `next start`, owner emails go to `delivered+...@resend.dev`).
 - **New env:** store `CRON_SECRET` (Vercel cron auth); admin `STORE_APP_URL` (links in invite/approval emails;
   defaults to http://localhost:3001 in dev, required in production).
 

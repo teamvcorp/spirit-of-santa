@@ -18,7 +18,7 @@
  *    SUSPENDED account stays suspended.
  */
 import "server-only";
-import { ActionToken, connectDb, Store, trusted, User, withTransaction } from "@repo/db";
+import { ActionToken, AuditLog, connectDb, Store, trusted, User, withTransaction } from "@repo/db";
 import { sendEmail } from "@repo/email";
 import { localizePath } from "@repo/i18n/paths";
 import type { Locale } from "@repo/lib/locales";
@@ -26,9 +26,9 @@ import { isRoleAllowedInApp, type AppName } from "@repo/lib/roles";
 import { STORE_AGREEMENT_VERSION } from "@repo/lib/store";
 import { burnVerifyTime, hashSecret } from "./password.ts";
 import { clientIp, emailKey, hitRateLimit, ipKey } from "./rate-limit.ts";
-import type { StoreRegistrationInput } from "./schemas.ts";
+import type { AcceptInviteInput, StoreRegistrationInput } from "./schemas.ts";
 import { slugify } from "./slug.ts";
-import { consumeActionToken, createActionToken } from "./tokens.ts";
+import { consumeActionToken, createActionToken, hashToken, peekActionToken } from "./tokens.ts";
 
 /** Per-request facts the app passes in. */
 export type FlowContext = {
@@ -241,4 +241,75 @@ export async function purgeUnverifiedStoreSignups(olderThanHours = 48): Promise<
   await ActionToken.deleteMany({ userId: trusted({ $in: ids }) });
   const deleted = await User.deleteMany({ _id: trusted({ $in: ids }), status: "pending" });
   return { users: deleted.deletedCount, stores: stores.deletedCount };
+}
+// ── Store invite (admin invited the store; owner accepts) ────────────────────────────
+/** Store name for the /accept-invite page, or null if the link is invalid/used/expired. */
+export async function peekStoreInvite(raw: unknown): Promise<{ storeName: string; email: string } | null> {
+  await connectDb();
+  const token = await peekActionToken(raw, "invite_owner");
+  if (!token?.storeId) return null;
+  const store = await Store.findOne({ _id: token.storeId, status: "invited" }).select("name").lean();
+  return store ? { storeName: store.name, email: token.email } : null;
+}
+
+/**
+ * Accept an owner invite. In ONE transaction: use up the token, create the owner (active:
+ * clicking the emailed link proves the address), and switch the store invited → approved
+ * with the agreement recorded. If any step fails, nothing changes and the link still works.
+ * The store is approved immediately because the admin already agreed the discount when
+ * inviting it.
+ */
+export async function acceptStoreInvite(input: AcceptInviteInput, ctx: FlowContext): Promise<FlowResult> {
+  await connectDb();
+  // argon2 per request: cap attempts per IP so this can't be used to burn CPU.
+  if (!(await hitRateLimit(`invite:ip:${ipKey(clientIp(ctx.headers))}`, 20, HOUR))) return { ok: false, error: "rateLimited" };
+  const passwordHash = await hashSecret(input.password);
+  try {
+    return await withTransaction(async (session): Promise<FlowResult> => {
+      const now = new Date();
+      const token = await ActionToken.findOneAndUpdate(
+        { tokenHash: hashToken(input.token), purpose: "invite_owner", usedAt: null, expiresAt: trusted({ $gt: now }) },
+        { $set: { usedAt: now } },
+        { session, returnDocument: "after" },
+      ).lean();
+      if (!token?.storeId) return { ok: false, error: "invalidLink" };
+      if (await User.exists({ email: token.email }).session(session)) return { ok: false, error: "invalidLink" };
+
+      const [user] = await User.create(
+        [{ email: token.email, passwordHash, role: "store_owner", name: input.ownerName, status: "active", locale: ctx.locale, storeId: token.storeId }],
+        { session },
+      );
+      const updated = await Store.updateOne(
+        { _id: token.storeId, status: "invited" },
+        {
+          $set: {
+            status: "approved",
+            ownerUserId: user!._id,
+            "contact.email": token.email,
+            discountAgreement: { version: STORE_AGREEMENT_VERSION, acceptedAt: now, acceptedByUserId: user!._id },
+            reviewedByAdminId: token.createdByUserId,
+            reviewedAt: now,
+          },
+        },
+        { session, runValidators: true },
+      );
+      if (updated.matchedCount !== 1) throw new InviteNoLongerValid(); // roll everything back
+      await AuditLog.create(
+        [{ actorUserId: user!._id, action: "store.invite_accepted", targetType: "store", targetId: token.storeId, details: { from: "invited", to: "approved" } }],
+        { session },
+      );
+      return { ok: true };
+    });
+  } catch (err) {
+    if (err instanceof InviteNoLongerValid) return { ok: false, error: "invalidLink" };
+    if ((err as { code?: number }).code === 11000) return { ok: false, error: "invalidLink" }; // email taken meanwhile
+    throw err;
+  }
+}
+
+class InviteNoLongerValid extends Error {
+  constructor() {
+    super("store is no longer in the invited state");
+    this.name = "InviteNoLongerValid";
+  }
 }

@@ -41,18 +41,6 @@
     "haveAccount": "Already have an account?",
     "signIn": "Sign in"
   },
-  "StoreCategories": {
-    "toys": "Toys",
-    "books": "Books",
-    "games": "Games & puzzles",
-    "sports": "Sports",
-    "arts_crafts": "Arts & crafts",
-    "clothing": "Clothing",
-    "music": "Music",
-    "electronics": "Electronics",
-    "outdoors": "Outdoors",
-    "other": "Other"
-  },
   "StoreAgreement": {
     "title": "Store discount and guarantee agreement",
     "p1": "You list items at your normal retail price. Each item's price in magic points equals its retail price in dollars.",
@@ -62,5 +50,18 @@
     "p5": "Spirit O Santa pays your invoices by check or another method outside the app. No bank details are stored in the app.",
     "version": "Agreement version {version}",
     "accept": "I have read and accept the store discount and guarantee agreement."
+  },
+  "AcceptInvitePage": {
+    "title": "Accept your store invitation",
+    "intro": "Spirit O Santa has invited {storeName}. Set up your owner account to start listing items.",
+    "email": "Account email",
+    "ownerName": "Your name",
+    "password": "Choose a password",
+    "passwordHint": "At least {min} characters. A short sentence works well.",
+    "submit": "Accept and create account",
+    "submitting": "Creating account…",
+    "done": "You're all set! Your store is approved and your account is ready.",
+    "signIn": "Sign in",
+    "invalid": "This invitation link has expired or was already used. Ask Spirit O Santa to send a new one."
   }
 }

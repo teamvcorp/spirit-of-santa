@@ -22,6 +22,25 @@
       "body": "Recibimos una solicitud para restablecer la contraseña de esta dirección de correo.",
       "button": "Elegir una nueva contraseña",
       "expiry": "Este enlace funciona una sola vez y vence en 1 hora."
+    },
+    "inviteOwner": {
+      "subject": "Te invitamos a inscribir tu tienda en Spirit O Santa",
+      "heading": "Tu tienda está invitada",
+      "body": "Spirit O Santa invitó a {storeName} a publicar artículos de regalo para los niños de tu zona. Crea tu contraseña y acepta el acuerdo para tiendas para empezar.",
+      "button": "Aceptar la invitación",
+      "expiry": "Este enlace funciona una sola vez y vence en 7 días."
+    },
+    "storeApproved": {
+      "subject": "{storeName} fue aprobada en Spirit O Santa",
+      "heading": "Tu tienda fue aprobada",
+      "body": "Buenas noticias: {storeName} fue aprobada. Las familias ya pueden ver tu tienda y tus artículos. Inicia sesión para administrar tu lista de artículos.",
+      "button": "Iniciar sesión"
+    },
+    "storeRejected": {
+      "subject": "Sobre tu solicitud en Spirit O Santa",
+      "heading": "Solicitud no aprobada",
+      "body": "No pudimos aprobar {storeName} en este momento. Motivo: {reason}. Si tienes preguntas, responde a este correo.",
+      "button": "Iniciar sesión"
     }
   }
 }

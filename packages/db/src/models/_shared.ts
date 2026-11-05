@@ -30,7 +30,8 @@ export const seasonYearField = {
 export const objectId = (ref: string, required = true) =>
   ({ type: Schema.Types.ObjectId, ref, required }) as const;
 
-export const LOCALES = ["en", "es"] as const;
+// Supported languages live in @repo/lib/locales (one list for DB, routing and UI).
+export { LOCALES } from "@repo/lib/locales";
 
 /** An uploaded Cloudinary image. Keep publicId so the image can be deleted later. */
 export const imageSchema = new Schema(

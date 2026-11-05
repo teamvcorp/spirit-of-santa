@@ -1,0 +1,36 @@
+{
+  "name": "@repo/i18n",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./routing": "./src/routing.ts",
+    "./proxy": "./src/proxy.ts",
+    "./request": "./src/request.ts",
+    "./server": "./src/server.ts",
+    "./locale-switcher": "./src/locale-switcher.tsx",
+    "./paths": "./src/paths.ts",
+    "./messages/*": "./messages/*"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit",
+    "test": "node --conditions=react-server --test \"test/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@repo/lib": "*",
+    "next-intl": "4.14.9"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/node": "24.19.2",
+    "eslint": "9.39.5",
+    "typescript": "6.0.3",
+    "@types/react": "19.3.0"
+  },
+  "peerDependencies": {
+    "next": "16.4.5",
+    "react": "19.3.1"
+  }
+}

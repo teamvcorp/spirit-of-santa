@@ -1,0 +1,13 @@
+{
+  // Runs inside Next (imports next/navigation, next-intl), so resolve like Next's bundler.
+  // Tests import only the Next-free files (paths.ts) and read message JSON with fs.
+  "extends": "@repo/typescript-config/library.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "types": ["node", "react"]
+  },
+  "include": ["src", "test"]
+}

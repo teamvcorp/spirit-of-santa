@@ -1,0 +1,18 @@
+{
+  "Common": {
+    "brand": "Spirit O Santa",
+    "languageSwitcher": "Elegir idioma",
+    "notFound": {
+      "title": "Página no encontrada",
+      "body": "No pudimos encontrar esa página.",
+      "home": "Ir a la página de inicio"
+    },
+    "actions": {
+      "signIn": "Iniciar sesión",
+      "signOut": "Cerrar sesión",
+      "save": "Guardar",
+      "cancel": "Cancelar"
+    },
+    "points": "{count, plural, one {# punto} other {# puntos}}"
+  }
+}

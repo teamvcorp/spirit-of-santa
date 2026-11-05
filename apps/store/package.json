@@ -12,9 +12,11 @@
   "dependencies": {
     "@repo/auth": "*",
     "@repo/db": "*",
+    "@repo/i18n": "*",
     "@repo/lib": "*",
     "@repo/ui": "*",
     "next": "16.4.5",
+    "next-intl": "4.14.9",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },

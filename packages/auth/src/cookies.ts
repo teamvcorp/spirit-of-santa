@@ -1,21 +1,13 @@
 /**
- * Cookie naming. SERVER-ONLY.
- *
- * Production: `__Host-` prefix. Browsers then REQUIRE Secure, Path=/ and NO Domain
- * attribute, so a family cookie can never be sent to admin.spiritofsanta.com (and a
- * compromised subdomain can't plant one on another).
- * Development: browsers share localhost cookies across ports, so each app needs its own
- * cookie names or signing in to admin (:3002) would clobber the family session (:3000).
+ * NextAuth cookie set. SERVER-ONLY. Naming rules (__Host- prefix in production, per-app
+ * names on localhost) live in @repo/lib/cookies so the i18n locale cookie follows them too.
  */
 import "server-only";
 import type { CookiesOptions } from "next-auth";
 import type { AppName } from "@repo/lib/roles";
+import { cookieName, isProd } from "@repo/lib/cookies";
 
-export const isProd = () => process.env.NODE_ENV === "production";
-
-export function cookieName(app: AppName, name: string): string {
-  return `${isProd() ? "__Host-" : ""}sos-${app}.${name}`;
-}
+export { cookieName, isProd };
 
 export function baseCookieOptions() {
   return {

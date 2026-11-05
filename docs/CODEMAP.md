@@ -1,23 +1,24 @@
 # turboSanta CODEMAP
 
 > Read this before exploring. Keep it current when packages/routes are added.
-> Last updated: 2026-11-04. Status: **Phase 1 foundation: shared packages done, no UI yet.**
+> Last updated: 2026-11-04. Status: **Phase 1: shared packages + i18n (en/es) done; placeholder pages only.**
 > Rules/constants: [../CLAUDE.md](../CLAUDE.md). Roadmap: [../SpiritOfSanta.md](../SpiritOfSanta.md).
 
 ## Layout
 
 | Path | What |
 |---|---|
-| `apps/family` :3000 | Next 16 app. `auth.ts` (authOptions), `app/api/auth/[...nextauth]/route.ts`; default home page |
+| `apps/family` :3000 | Next 16 app. `auth.ts`, `app/api/auth/[...nextauth]/route.ts`, `proxy.ts` (locale), `i18n/`, `messages/`, `app/[locale]/` (layout, placeholder page, not-found, `[...rest]` catch-all) |
 | `apps/store` :3001 | Same skeleton |
-| `apps/admin` :3002 | Same skeleton |
-| `packages/lib` | Client-safe: `season`, `roles`, `limits`, `format`. **Server-only:** `constants`, `points` |
+| `apps/admin` :3002 | Same skeleton (+ `robots: noindex`) |
+| `packages/lib` | Client-safe: `season`, `roles`, `limits`, `format`, `locales`, `cookies`. **Server-only:** `constants`, `points` |
+| `packages/i18n` | next-intl factories (routing, request, proxy), `Common` messages, `LocaleSwitcher`, `getCommonTranslator` for SMS/push |
 | `packages/db` | `connectDb()` + 10 Mongoose models (server-only) |
 | `packages/auth` | NextAuth v4 options, guards, argon2id hashing, parent PIN (server-only) |
 | `packages/ui` | Turbo starter components (unused so far) |
 | `packages/eslint-config` | `./base` (packages), `./next-js` (apps). only-warn + `--max-warnings 0` |
 | `packages/typescript-config` | `base`, `nextjs` (apps), `library` (lib/db/auth), `react-library` (ui) |
-| `docs/vendor/` | Version-specific notes: `mongoose-9.md`, `next-auth-v4.md` |
+| `docs/vendor/` | Version-specific notes: `mongoose-9.md`, `next-auth-v4.md`, `next-intl.md` |
 
 ## Key decisions (why things look the way they do)
 
@@ -34,6 +35,9 @@
 - **Auth:** credentials + JWT, per-app cookies (`__Host-` in prod), 5-try/15-min lockout, timing-equalised
   unknown-email path, 5-min revocation re-check via `User.sessionVersion`, generic errors only.
 - **Parent PIN:** argon2id hash on Family, own lockout, 15-min HMAC-signed unlock cookie bound to family+user.
+- **i18n:** English at `/`, Spanish at `/es` (next-intl, `as-needed`). Locale read via
+  `next/root-params` so pages stay static. All UI text goes in `messages/*.json`, never inline;
+  shared strings live in `Common`. Parity test fails on any missing Spanish key. See `docs/vendor/next-intl.md`.
 - **TS source packages:** no build step; Next transpiles them. Relative imports use `.ts` extensions
   (Node type-stripping for tests). Mongoose must be default-imported (CJS) in packages/db.
 
@@ -59,13 +63,14 @@ Tests: Node's built-in runner (`node --conditions=react-server --test`), no DB r
 
 ## Phase 1 status vs. SpiritOfSanta.md (reviewed 2026-11-04)
 
-Done: monorepo, CLAUDE.md, full schema, NextAuth roles, parent PIN.
+Done: monorepo, CLAUDE.md, full schema, NextAuth roles, parent PIN, i18n (en/es).
 
-**Waiting on the user (accounts):** MongoDB Atlas cluster + `MONGODB_URI`, Vercel projects/env vars,
-Stripe (test keys, webhook secret, Connect), Twilio, Cloudinary, FCM project, domains.
+**Accounts:** Atlas ✅ (cluster `santaadmin.10ptpiw`, db `spiritofsanta`, per-app `.env.local`, ping OK).
+Stripe test keys ✅ (family + store). **Still blank:** `NEXTAUTH_SECRET` in all three apps
+(auth endpoints 500 until set), Stripe webhook secrets, Twilio, Cloudinary, FCM, Vercel, domains.
 
 **Agreed next order (code):**
-1. i18n with **next-intl** (roadmap says next-i18next, which targets the Pages Router; swapped, confirm with user)
+1. ✅ i18n with **next-intl** (roadmap said next-i18next, Pages Router only; swap still to confirm with user)
 2. Shared UI components + sign-in pages per app (replace starter pages)
 3. Cloudinary upload helper (store item photos)
 4. Seed script + end-to-end login test (needs Atlas)
@@ -93,7 +98,9 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
 - **Account lockout can be abused** to lock out a known email for 15 min. Acceptable now; per-IP limiting mitigates.
 - `npm audit`: 10 moderate (minimatch ReDoS) in the ESLint dev toolchain only, not shipped. Not force-fixed.
 - Login UI (`pages.signIn`), sign-up/registration, email verification: not built.
-- Apps' `layout.tsx` still has create-next-app metadata/content.
+- Home pages are placeholders (title + intro + language switcher); real UI is step 2.
+- `STRIPE_CONNECT_CLIENT_ID` is only for Connect OAuth. If store onboarding uses Account Links
+  (Stripe's current recommendation for Express accounts) it isn't needed; decide when building payouts.
 - `vercelsetup.md` (user's draft) conflicts with the repo: Node 20.x → **24.x**; Turbo `pipeline` → `tasks`;
   `STRIPE_PUBLISHABLE_KEY` → `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`; `FCB_` → `FCM_`.
 - Product decisions assumed (confirm): fractional points (centipoints); `MAX_TIP_CENTS` $1,000;

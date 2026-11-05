@@ -113,8 +113,9 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
   1. Conversion margin: money in at $1.50/point vs. points spent at $1 retail per point
      (= ledger `earn_*` `cents` − spent `amountCentipoints`, since 1 centipoint = 1 retail cent).
   2. Wholesale margin: item `priceCents` (retail) − `payoutCents` (wholesale paid to store).
-  Per item: money collected for its points − `payoutCents`. Open question: money behind points
-  wiped at the Jan 1 `season_reset` (collected, never spent): kept as margin, or tracked separately?
+  3. Breakage: money behind points wiped at the Jan 1 `season_reset` (collected, never spent)
+     **counts as margin** (user, 2026-11-04). Report it as its own line so it stays visible.
+  Season total = all money collected − all `payoutCents` paid − refunds/disputes.
 - `vercelsetup.md` (user's draft) conflicts with the repo: Node 20.x → **24.x**; Turbo `pipeline` → `tasks`;
   `STRIPE_PUBLISHABLE_KEY` → `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`; `FCB_` → `FCM_`.
 - Product decisions assumed (confirm): fractional points (centipoints); `MAX_TIP_CENTS` $1,000;

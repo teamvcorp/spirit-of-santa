@@ -18,7 +18,11 @@
         "TWILIO_AUTH_TOKEN",
         "TWILIO_PHONE_NUMBER",
         "BLOB_STORE_ID",
-        "BLOB_READ_WRITE_TOKEN"
+        "BLOB_READ_WRITE_TOKEN",
+        "RESEND_API_KEY",
+        "RESEND_FROM",
+        "CRON_SECRET",
+        "STORE_APP_URL"
       ],
       "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"]
     },

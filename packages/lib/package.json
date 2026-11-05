@@ -11,7 +11,8 @@
     "./limits": "./src/limits.ts",
     "./format": "./src/format.ts",
     "./locales": "./src/locales.ts",
-    "./cookies": "./src/cookies.ts"
+    "./cookies": "./src/cookies.ts",
+    "./store": "./src/store.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

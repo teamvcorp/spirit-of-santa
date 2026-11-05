@@ -1,0 +1,27 @@
+{
+  "name": "@repo/email",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit",
+    "test": "node --conditions=react-server --test \"test/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@repo/lib": "*",
+    "use-intl": "4.14.9",
+    "resend": "6.34.1",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/node": "24.19.2",
+    "eslint": "9.39.5",
+    "typescript": "6.0.3"
+  }
+}

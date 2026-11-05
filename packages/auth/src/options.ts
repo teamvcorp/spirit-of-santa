@@ -131,7 +131,12 @@ async function verifyCredentials(raw: unknown, app: AppName) {
     await burnVerifyTime(password); // equalise timing with the "wrong password" path
     return GENERIC_FAILURE;
   }
-  if (user.lockedUntil && user.lockedUntil > new Date()) return GENERIC_FAILURE;
+  if (user.lockedUntil && user.lockedUntil > new Date()) {
+    // Same cost as the other failure paths, so a fast answer can't reveal "this email exists
+    // and is locked" (review finding 2026-11-05).
+    await burnVerifyTime(password);
+    return GENERIC_FAILURE;
+  }
 
   const ok = await verifySecret(password, user.passwordHash);
   if (!ok) {
@@ -155,11 +160,12 @@ async function verifyCredentials(raw: unknown, app: AppName) {
     return GENERIC_FAILURE;
   }
 
-  // Correct password, but still refuse suspended users and other apps' roles.
-  if (user.status === "suspended" || !isRoleAllowedInApp(user.role, app)) {
+  // Correct password, but still refuse other apps' roles and any account that isn't active:
+  // "pending" = email not verified yet (sign-up flow), "suspended" = blocked by admin.
+  // Same generic failure, so the response never reveals which case applies.
+  if (user.status !== "active" || !isRoleAllowedInApp(user.role, app)) {
     return GENERIC_FAILURE;
   }
-  if (app === "admin" && user.status !== "active") return GENERIC_FAILURE;
 
   const update: Record<string, unknown> = {
     failedLoginCount: 0,

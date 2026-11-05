@@ -38,6 +38,7 @@ test("switchLocalePath always produces an explicit prefix", () => {
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const MESSAGE_DIRS = [
   "packages/i18n/messages",
+  "packages/email/messages",
   "apps/family/messages",
   "apps/store/messages",
   "apps/admin/messages",

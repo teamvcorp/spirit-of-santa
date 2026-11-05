@@ -8,7 +8,7 @@
  */
 import "server-only";
 
-export { connectDb, trusted, withTransaction } from "./connect.ts";
+export { connectDb, trusted, withTransaction, type DbSession } from "./connect.ts";
 export { User, USER_STATUSES, type UserDoc } from "./models/user.ts";
 export { Family, type FamilyDoc } from "./models/family.ts";
 export { Kid, type KidDoc } from "./models/kid.ts";
@@ -36,6 +36,14 @@ export {
   type PaymentDoc,
 } from "./models/payment.ts";
 export { StripeEvent, STRIPE_EVENT_STATUSES, type StripeEventDoc } from "./models/stripe-event.ts";
+export {
+  ActionToken,
+  ACTION_TOKEN_PURPOSES,
+  type ActionTokenDoc,
+  type ActionTokenPurpose,
+} from "./models/action-token.ts";
+export { RateLimit, type RateLimitDoc } from "./models/rate-limit.ts";
+export { AuditLog, AUDIT_ACTIONS, type AuditAction, type AuditLogDoc } from "./models/audit-log.ts";
 export {
   WishListItem,
   WISH_LIST_STATUSES,

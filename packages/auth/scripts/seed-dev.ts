@@ -99,8 +99,9 @@ async function main() {
     {
       $set: {
         name: "Dev Toy Shop",
-        category: "Toys",
+        category: "toys",
         status: "approved",
+        discountBps: 2000, // 20% off retail (dev value; real stores agree theirs with admin)
         ownerUserId: owner._id,
         repUserIds: [rep._id],
         "contact.email": EMAILS.owner,

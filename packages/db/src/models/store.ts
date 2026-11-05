@@ -1,10 +1,20 @@
-/** Store = a local business that lists items kids can wish for. Needs admin approval. */
+/**
+ * Store = a local business that lists items kids can wish for. Needs admin approval.
+ *
+ * Status flow:  invited (admin sent an invite, owner hasn't accepted yet)
+ *               pending (self-registered, waiting for admin)  → approved | rejected
+ *               approved ⇄ suspended
+ * Pending/invited stores may already set up their profile and items (user decision
+ * 2026-11-05); families only ever see APPROVED stores.
+ */
 // Default import: mongoose is CommonJS, so named runtime imports fail under plain Node ESM.
 import mongoose, { type InferSchemaType, type Model } from "mongoose";
 const { Schema, model, models } = mongoose;
+import { MAX_DISCOUNT_BPS, STORE_CATEGORIES } from "@repo/lib/store";
 import { imageSchema, objectId } from "./_shared.ts";
 
 export const STORE_STATUSES = [
+  "invited",
   "pending",
   "approved",
   "rejected",
@@ -22,7 +32,7 @@ const storeSchema = new Schema(
       lowercase: true,
       match: /^[a-z0-9-]{3,60}$/,
     },
-    category: { type: String, required: true, trim: true, maxlength: 60 },
+    category: { type: String, required: true, enum: STORE_CATEGORIES },
     description: { type: String, trim: true, maxlength: 2000 },
     photos: {
       type: [imageSchema],
@@ -66,6 +76,17 @@ const storeSchema = new Schema(
     repUserIds: {
       type: [{ type: Schema.Types.ObjectId, ref: "User" }],
       default: [],
+    },
+
+    /**
+     * Discount off retail agreed with admin, in basis points (2000 = 20%). Set at approval
+     * (or in the invite). Wholesale owed per item = wholesaleCents(price, discountBps).
+     */
+    discountBps: {
+      type: Number,
+      min: 0,
+      max: MAX_DISCOUNT_BPS,
+      validate: { validator: (v: unknown) => v == null || Number.isSafeInteger(v), message: "discountBps must be an integer" },
     },
 
     /** Signup acknowledgement of the discount + guarantee terms (record which version). */

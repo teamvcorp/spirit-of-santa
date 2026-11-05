@@ -8,6 +8,59 @@
     "intro": "Publique hasta 50 artículos de regalo. Los niños los ganan con buenas acciones y usted recibe el pago."
   },
   "SignInPage": {
-    "intro": "Para dueños y personal de tiendas."
+    "intro": "Para dueños y personal de tiendas.",
+    "noAccount": "¿Tienda nueva?",
+    "register": "Crear una cuenta de tienda"
+  },
+  "RegisterPage": {
+    "title": "Inscribe tu tienda en Spirit O Santa",
+    "intro": "Los niños de tu zona ganan regalos con buenas acciones. Regístrate, agrega hasta 50 artículos y cóbranos el costo mayorista acordado cuando un niño gane un artículo.",
+    "you": "Sobre ti",
+    "ownerName": "Tu nombre",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "passwordHint": "Al menos {min} caracteres. Una frase corta funciona bien.",
+    "store": "Sobre tu tienda",
+    "storeName": "Nombre de la tienda",
+    "category": "Categoría principal",
+    "categoryPlaceholder": "Elige una categoría",
+    "description": "Descripción breve (opcional)",
+    "descriptionHint": "¿Qué vendes? Las familias verán esto cuando tu tienda sea aprobada.",
+    "phone": "Teléfono de la tienda (opcional)",
+    "website": "Sitio web (opcional)",
+    "address": "Dirección de la tienda",
+    "line1": "Calle y número",
+    "city": "Ciudad",
+    "state": "Estado (2 letras)",
+    "zip": "Código postal",
+    "submit": "Crear cuenta de tienda",
+    "submitting": "Creando cuenta…",
+    "fixErrors": "Corrige los campos marcados.",
+    "sentTitle": "Revisa tu correo",
+    "sentBody": "Te enviamos un enlace de confirmación. Confirma tu correo y luego inicia sesión para preparar tus artículos mientras revisamos tu tienda.",
+    "haveAccount": "¿Ya tienes una cuenta?",
+    "signIn": "Iniciar sesión"
+  },
+  "StoreCategories": {
+    "toys": "Juguetes",
+    "books": "Libros",
+    "games": "Juegos y rompecabezas",
+    "sports": "Deportes",
+    "arts_crafts": "Arte y manualidades",
+    "clothing": "Ropa",
+    "music": "Música",
+    "electronics": "Electrónica",
+    "outdoors": "Aire libre",
+    "other": "Otro"
+  },
+  "StoreAgreement": {
+    "title": "Acuerdo de descuento y garantía para tiendas",
+    "p1": "Publicas los artículos a tu precio normal de venta. El precio de cada artículo en puntos mágicos es igual a su precio de venta en dólares.",
+    "p2": "Spirit O Santa acuerda un descuento sobre el precio de venta con tu tienda al aprobarla. Cuando se financia el artículo de un niño, le cobras a Spirit O Santa el costo mayorista acordado (precio de venta menos ese descuento).",
+    "p3": "Garantizas que los artículos publicados seguirán disponibles al precio publicado durante la temporada, o ofreces un sustituto igual o mejor.",
+    "p4": "Spirit O Santa se queda con la diferencia entre el precio de venta y el mayorista para operar el programa.",
+    "p5": "Spirit O Santa paga tus facturas con cheque u otro método fuera de la aplicación. No se guardan datos bancarios en la aplicación.",
+    "version": "Versión del acuerdo {version}",
+    "accept": "He leído y acepto el acuerdo de descuento y garantía para tiendas."
   }
 }

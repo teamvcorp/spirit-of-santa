@@ -1,0 +1,27 @@
+{
+  "Email": {
+    "footer": "Spirit O Santa · Kids earn gifts with good deeds. You got this email because someone used this address on Spirit O Santa.",
+    "ignore": "If this wasn't you, you can ignore this email. Nothing will change.",
+    "linkFallback": "If the button doesn't work, copy this link into your browser:",
+    "verifyEmail": {
+      "subject": "Confirm your email for Spirit O Santa",
+      "heading": "Confirm your email",
+      "body": "Thanks for signing up your store on Spirit O Santa. Please confirm this is your email address.",
+      "button": "Confirm email",
+      "expiry": "This link works once and expires in 24 hours."
+    },
+    "accountExists": {
+      "subject": "You already have a Spirit O Santa account",
+      "heading": "You already have an account",
+      "body": "Someone tried to sign up with this email address, but it already has an account. You can sign in, or reset your password if you've forgotten it.",
+      "button": "Sign in"
+    },
+    "resetPassword": {
+      "subject": "Reset your Spirit O Santa password",
+      "heading": "Reset your password",
+      "body": "We got a request to reset the password for this email address.",
+      "button": "Choose a new password",
+      "expiry": "This link works once and expires in 1 hour."
+    }
+  }
+}

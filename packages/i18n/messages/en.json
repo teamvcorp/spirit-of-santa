@@ -22,6 +22,51 @@
       "submitting": "Signing in…",
       "failed": "That email and password didn’t work. After 5 failed tries, sign-in is paused for 15 minutes.",
       "signedInAs": "Signed in as {email}"
+    },
+    "formErrors": {
+      "required": "Please fill this in.",
+      "invalid": "This doesn't look right. Please check it.",
+      "tooShort": "Too short.",
+      "tooLong": "Too long.",
+      "httpsOnly": "Use a full web address starting with https://",
+      "mustAgree": "Please read and accept the agreement to continue."
+    },
+    "accounts": {
+      "links": {
+        "forgot": "Forgot your password?",
+        "resend": "Didn't get the confirmation email?"
+      },
+      "errors": {
+        "rateLimited": "Too many tries. Please wait an hour and try again.",
+        "invalidLink": "This link has expired or was already used. Please request a new one."
+      },
+      "forgot": {
+        "title": "Forgot your password?",
+        "intro": "Enter your email and we'll send you a link to choose a new password.",
+        "submit": "Send reset link",
+        "sent": "If that email has an account, we've sent a reset link. It works for 1 hour. Check your spam folder too."
+      },
+      "resend": {
+        "title": "Resend confirmation email",
+        "intro": "Enter the email you signed up with and we'll send a new confirmation link.",
+        "submit": "Send new link",
+        "sent": "If that email is waiting to be confirmed, we've sent a new link. Check your spam folder too."
+      },
+      "reset": {
+        "title": "Choose a new password",
+        "newPassword": "New password",
+        "hint": "At least {min} characters. A short sentence is easy to remember and hard to guess.",
+        "submit": "Save new password",
+        "done": "Your password has been changed. You've been signed out on other devices.",
+        "signIn": "Sign in"
+      },
+      "verify": {
+        "title": "Confirm your email",
+        "intro": "Press the button to confirm your email address.",
+        "submit": "Confirm my email",
+        "done": "Thanks! Your email is confirmed. You can sign in now.",
+        "signIn": "Sign in"
+      }
     }
   }
 }

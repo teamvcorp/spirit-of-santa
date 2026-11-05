@@ -8,6 +8,59 @@
     "intro": "List up to 50 gift items. Kids earn them with good deeds, and you get paid."
   },
   "SignInPage": {
-    "intro": "For store owners and staff."
+    "intro": "For store owners and staff.",
+    "noAccount": "New store?",
+    "register": "Create a store account"
+  },
+  "RegisterPage": {
+    "title": "List your store on Spirit O Santa",
+    "intro": "Local kids earn gifts with good deeds. Sign up, add up to 50 items, and bill us the agreed wholesale cost when an item is earned.",
+    "you": "About you",
+    "ownerName": "Your name",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "At least {min} characters. A short sentence works well.",
+    "store": "About your store",
+    "storeName": "Store name",
+    "category": "Main category",
+    "categoryPlaceholder": "Choose a category",
+    "description": "Short description (optional)",
+    "descriptionHint": "What do you sell? Families will see this once you're approved.",
+    "phone": "Store phone (optional)",
+    "website": "Website (optional)",
+    "address": "Store address",
+    "line1": "Street address",
+    "city": "City",
+    "state": "State (2 letters)",
+    "zip": "ZIP code",
+    "submit": "Create store account",
+    "submitting": "Creating account…",
+    "fixErrors": "Please fix the highlighted fields.",
+    "sentTitle": "Check your email",
+    "sentBody": "We've sent a confirmation link. Confirm your email, then sign in to set up your items while we review your store.",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign in"
+  },
+  "StoreCategories": {
+    "toys": "Toys",
+    "books": "Books",
+    "games": "Games & puzzles",
+    "sports": "Sports",
+    "arts_crafts": "Arts & crafts",
+    "clothing": "Clothing",
+    "music": "Music",
+    "electronics": "Electronics",
+    "outdoors": "Outdoors",
+    "other": "Other"
+  },
+  "StoreAgreement": {
+    "title": "Store discount and guarantee agreement",
+    "p1": "You list items at your normal retail price. Each item's price in magic points equals its retail price in dollars.",
+    "p2": "Spirit O Santa agrees a discount off retail with your store when we approve it. When a child's item is funded, you bill Spirit O Santa the agreed wholesale cost (retail price minus that discount).",
+    "p3": "You guarantee listed items stay available at the listed price for the season, or you offer an equal or better substitute.",
+    "p4": "Spirit O Santa keeps the difference between retail and wholesale to run the program.",
+    "p5": "Spirit O Santa pays your invoices by check or another method outside the app. No bank details are stored in the app.",
+    "version": "Agreement version {version}",
+    "accept": "I have read and accept the store discount and guarantee agreement."
   }
 }

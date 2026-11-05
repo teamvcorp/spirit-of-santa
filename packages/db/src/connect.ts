@@ -62,8 +62,11 @@ export function connectDb(): Promise<typeof mongoose> {
  * Use for anything that must stay consistent: a ledger row + the kid balance it changes.
  * Pass `session` to EVERY read/write inside, or that operation runs outside the transaction.
  */
+/** A MongoDB session (pass as { session } to every query inside withTransaction). */
+export type DbSession = mongoose.mongo.ClientSession;
+
 export async function withTransaction<T>(
-  fn: (session: mongoose.mongo.ClientSession) => Promise<T>,
+  fn: (session: DbSession) => Promise<T>,
 ): Promise<T> {
   const m = await connectDb();
   return m.connection.transaction(fn);

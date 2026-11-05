@@ -22,6 +22,51 @@
       "submitting": "Iniciando sesión…",
       "failed": "Ese correo y contraseña no funcionaron. Después de 5 intentos fallidos, el inicio de sesión se pausa por 15 minutos.",
       "signedInAs": "Sesión iniciada como {email}"
+    },
+    "formErrors": {
+      "required": "Completa este campo.",
+      "invalid": "Esto no parece correcto. Revísalo, por favor.",
+      "tooShort": "Demasiado corto.",
+      "tooLong": "Demasiado largo.",
+      "httpsOnly": "Usa una dirección web completa que empiece con https://",
+      "mustAgree": "Lee y acepta el acuerdo para continuar."
+    },
+    "accounts": {
+      "links": {
+        "forgot": "¿Olvidaste tu contraseña?",
+        "resend": "¿No recibiste el correo de confirmación?"
+      },
+      "errors": {
+        "rateLimited": "Demasiados intentos. Espera una hora e inténtalo de nuevo.",
+        "invalidLink": "Este enlace venció o ya se usó. Solicita uno nuevo."
+      },
+      "forgot": {
+        "title": "¿Olvidaste tu contraseña?",
+        "intro": "Escribe tu correo y te enviaremos un enlace para elegir una nueva contraseña.",
+        "submit": "Enviar enlace",
+        "sent": "Si ese correo tiene una cuenta, te enviamos un enlace. Funciona por 1 hora. Revisa también la carpeta de spam."
+      },
+      "resend": {
+        "title": "Reenviar correo de confirmación",
+        "intro": "Escribe el correo con el que te registraste y te enviaremos un nuevo enlace de confirmación.",
+        "submit": "Enviar nuevo enlace",
+        "sent": "Si ese correo está pendiente de confirmar, te enviamos un nuevo enlace. Revisa también la carpeta de spam."
+      },
+      "reset": {
+        "title": "Elige una nueva contraseña",
+        "newPassword": "Nueva contraseña",
+        "hint": "Al menos {min} caracteres. Una frase corta es fácil de recordar y difícil de adivinar.",
+        "submit": "Guardar nueva contraseña",
+        "done": "Tu contraseña cambió. Cerramos tu sesión en otros dispositivos.",
+        "signIn": "Iniciar sesión"
+      },
+      "verify": {
+        "title": "Confirma tu correo",
+        "intro": "Presiona el botón para confirmar tu dirección de correo.",
+        "submit": "Confirmar mi correo",
+        "done": "¡Gracias! Tu correo está confirmado. Ya puedes iniciar sesión.",
+        "signIn": "Iniciar sesión"
+      }
     }
   }
 }

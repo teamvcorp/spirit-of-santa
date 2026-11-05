@@ -18,13 +18,14 @@
  *  - No useSearchParams (that would make the form client-only and blank until JS loads).
  *    The server validates ?callbackUrl / ?error and passes them in: see sign-in-slot.tsx.
  */
-import { useState, useSyncExternalStore, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/text-field";
+import { useHydrated } from "@repo/ui/use-hydrated";
 import { safeCallbackPath } from "./redirect.ts";
 
 export function SignInForm({
@@ -93,8 +94,3 @@ export function SignInForm({
   );
 }
 
-const noopSubscribe = () => () => {};
-/** false during server render and hydration, true once React runs in the browser. */
-function useHydrated(): boolean {
-  return useSyncExternalStore(noopSubscribe, () => true, () => false);
-}

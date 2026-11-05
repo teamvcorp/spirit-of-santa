@@ -4,6 +4,7 @@
   "private": true,
   "exports": {
     "./cn": "./src/cn.ts",
+    "./use-hydrated": "./src/use-hydrated.ts",
     "./theme.css": "./src/theme.css",
     "./*": "./src/*.tsx"
   },

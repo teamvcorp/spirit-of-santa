@@ -10,7 +10,16 @@
     "./redirect": "./src/redirect.ts",
     "./sign-in-form": "./src/sign-in-form.tsx",
     "./account-menu": "./src/account-menu.tsx",
-    "./sign-in-slot": "./src/sign-in-slot.tsx"
+    "./sign-in-slot": "./src/sign-in-slot.tsx",
+    "./schemas": "./src/schemas.ts",
+    "./account-flows": "./src/account-flows.ts",
+    "./tokens": "./src/tokens.ts",
+    "./slug": "./src/slug.ts",
+    "./rate-limit": "./src/rate-limit.ts",
+    "./forms": "./src/forms.tsx",
+    "./form-actions": "./src/form-actions.ts",
+    "./form-state": "./src/form-state.ts",
+    "./token-slot": "./src/token-slot.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -19,6 +28,7 @@
   },
   "dependencies": {
     "@repo/db": "*",
+    "@repo/email": "*",
     "@repo/i18n": "*",
     "@repo/lib": "*",
     "@repo/ui": "*",

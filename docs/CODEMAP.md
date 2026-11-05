@@ -14,13 +14,14 @@
 | `packages/lib` | Client-safe: `season`, `roles`, `limits`, `format`, `locales`, `cookies`. **Server-only:** `constants`, `points` |
 | `packages/i18n` | next-intl factories (routing, request, proxy), `Common` messages, `LocaleSwitcher`, `getCommonTranslator` for SMS/push |
 | `packages/db` | `connectDb()`, `withTransaction()` + 12 Mongoose models incl. `Payment` (money records) and `StripeEvent` (webhook log) (server-only) |
+| `packages/email` | **Server-only** `sendEmail()` via Resend + pure `renderEmail()` templates (en/es, escaped, link allow-list). Dev prints instead of sending |
 | `packages/payments` | **Server-only** Stripe: `client` (`getStripe`, `expectedLivemode`), `metadata` (`sos_*` payment-label contract), `webhook` (verify → dedupe → `handlers`) |
-| `packages/auth` | NextAuth v4 options, guards, argon2id hashing, parent PIN (server-only); UI: `SignInSlot`/`SignInForm`, `AccountMenu`, `SignOutButton`; `safeCallbackPath` (open-redirect guard); `scripts/seed-dev.ts` |
+| `packages/auth` | NextAuth v4 options, guards, argon2id hashing, parent PIN (server-only); UI: `SignInSlot`/`SignInForm`, `AccountMenu`, `SignOutButton`; `safeCallbackPath` (open-redirect guard); `scripts/seed-dev.ts`; account flows (`account-flows.ts`: store sign-up, verify, resend, forgot/reset), `tokens.ts` (hashed single-use links), `rate-limit.ts`, `schemas.ts`, shared forms (`forms.tsx`, `token-slot.tsx`, `form-actions.ts`) |
 | `packages/ui` | Button, TextField, Card, Alert, SiteHeader, `cn`, `theme.css` (brand tokens, `danger`, focus ring), `app-icon` (icon art + manifest factory) |
 | `packages/storage` | **Server-only** `images` (`uploadPublicImage`/`deletePublicImage` on public Vercel Blob, sharp re-encode); client-safe `image-rules` (limits, magic-byte sniff, `blobImagesConfig` for next.config) |
 | `packages/eslint-config` | `./base` (packages), `./next-js` (apps). only-warn + `--max-warnings 0` |
 | `packages/typescript-config` | `base`, `nextjs` (apps), `library` (lib/db/auth), `react-library` (ui) |
-| `docs/vendor/` | Version-specific notes: `mongoose-9.md`, `next-auth-v4.md`, `next-intl.md`, `vercel-blob.md` (also icons), `stripe.md` |
+| `docs/vendor/` | Version-specific notes: `mongoose-9.md`, `next-auth-v4.md`, `next-intl.md`, `vercel-blob.md` (also icons), `stripe.md`, `resend.md` |
 
 ## Key decisions (why things look the way they do)
 
@@ -123,6 +124,43 @@ Store payouts will need an admin-recorded payout log (TODO below), not Stripe.
 Check each library against the bundled Next 16 docs before use; save notes in `docs/vendor/`.
 Deadline that matters most: **Store MVP live Jan 1, 2027.**
 
+## Phase 2 decisions (user, 2026-11-05)
+
+- **Email:** Resend, sending domain `fyht4.com` (verified). Default from: `Spirit O Santa <no-reply@fyht4.com>`.
+- **Payout:** per-store discount % agreed with admin at approval. Store bills Spirit O Santa the agreed wholesale
+  cost (retail − discount); we keep the difference. Stored as integer basis points on Store.
+- **Pending/invited stores** may set up profile + items immediately; dashboards show a Pending/Invited badge;
+  families see a store only once approved.
+- **Pricing:** owners set prices; reps add/edit item details + inventory (rep-created items wait for a price).
+- **Agreement wording is a DRAFT** (`StoreAgreement` messages, version `2026-11-05`): user must review before launch.
+- Slices: 1 accounts+email (DONE) · 2 admin approval/invite · 3 owner dashboard/reps · 4 item catalog · 5 engagement stats.
+
+## Phase 2 gotchas (learned 2026-11-05)
+
+- **Forms + Cache Components:** a Server Action form submitted BEFORE hydration runs the action,
+  but the production response doesn't show its result (dev does). Every form keeps submit
+  disabled until hydrated (`@repo/ui/use-hydrated`). Verified with a real browser (Edge).
+- **React 19 resets forms after an action:** selects/checkboxes lose echoed defaults. Error
+  results carry a `nonce`; the form uses it as `key` to re-mount with the echoed `values`.
+- **next-intl embeds ALL messages in the page JSON**: E2E checks must look inside rendered
+  `role="alert|status"` boxes (`shown()` in `scripts/e2e/lib.ts`), never `html.includes(text)`.
+  Next also renders its own `role="alert"` route announcer: scope browser locators to `main`.
+- **`after()`** didn't run reliably in dev for Server Actions; emails are sent inline and
+  public account actions are padded to a 1.5 s minimum response (no account enumeration by timing).
+- **Next dev-only InvariantError** ("cookies object does not match") from `getServerSession` when
+  re-rendering after a no-JS form post: dev-mode code path only; production is clean.
+- **Browser E2E:** `playwright-core` (dev dep, no browser download) with `channel: "msedge"`.
+  `scripts/e2e/browser-store.ts` runs against `next start`; production SENDS email, so only
+  `delivered+...@resend.dev` addresses may receive mail there.
+- Sign-in now requires `status: "active"` in every app (pending = email not verified).
+- **Account abuse controls (slice 1 review, 2026-11-05):** per-IP limits key IPv6 by /64 (`ipKey`); per-email
+  limits are SILENT (answer "sent", skip sending) so strangers can't lock someone out of recovery; sign-up has a
+  site-wide cap (100/h); the verification email contains NO user-typed text (anti spam-relay); unconfirmed
+  sign-ups are purged after 48 h by Vercel Cron (`apps/store/vercel.json` → `/api/cron/purge-signups`, needs
+  `CRON_SECRET` in the store project's env); a locked account burns argon2 time like other failures.
+- **New env:** store `CRON_SECRET` (Vercel cron auth); admin `STORE_APP_URL` (links in invite/approval emails;
+  defaults to http://localhost:3001 in dev, required in production).
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.
@@ -132,7 +170,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
   admin MFA (roadmap); production `syncIndexes` script (autoIndex is off in prod).
 - **Account lockout can be abused** to lock out a known email for 15 min. Acceptable now; per-IP limiting mitigates.
 - `npm audit`: 10 moderate (minimatch ReDoS) in the ESLint dev toolchain only, not shipped. Not force-fixed.
-- Login UI (`pages.signIn`), sign-up/registration, email verification: not built.
+- Family (parent) registration + email verification: Phase 4 (store sign-up/verify/reset built in Phase 2 slice 1).
 - Home pages are placeholders (title + intro + language switcher); real UI is step 2.
 - **Store payout log (not designed yet):** with offline payment, admin needs to record what each
   store is owed (sum of locked items' `payoutCents`) and what was paid (amount, method e.g. check,

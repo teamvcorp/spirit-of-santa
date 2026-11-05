@@ -1,0 +1,66 @@
+/**
+ * AuditLog = append-only record of privileged actions (admin approves/rejects/suspends a
+ * store, changes a discount, sends an invite; later: point adjustments, refunds review...).
+ *
+ * Why: these actions change money and access. An audit trail answers "who did this, when,
+ * and what changed?" for support, disputes and security reviews, and deters misuse.
+ * Like the ledger, it's append-only through Mongoose (updates/deletes throw). For real
+ * immutability the Atlas app user should only have find/insert on this collection (same
+ * TODO as transactions in docs/CODEMAP.md).
+ *
+ * Never store secrets, passwords, tokens or full personal data in `details`: ids, statuses
+ * and the specific fields that changed are enough.
+ */
+// Default import: mongoose is CommonJS, so named runtime imports fail under plain Node ESM.
+import mongoose, { type InferSchemaType, type Model } from "mongoose";
+const { Schema, model, models } = mongoose;
+import { objectId } from "./_shared.ts";
+
+export const AUDIT_ACTIONS = [
+  "store.approve",
+  "store.reject",
+  "store.suspend",
+  "store.reinstate",
+  "store.discount",
+  "store.invite",
+  "store.invite_accepted",
+] as const;
+export type AuditAction = (typeof AUDIT_ACTIONS)[number];
+
+const auditLogSchema = new Schema(
+  {
+    actorUserId: objectId("User"),
+    action: { type: String, enum: AUDIT_ACTIONS, required: true },
+    targetType: { type: String, enum: ["store", "user"], required: true },
+    targetId: { type: Schema.Types.ObjectId, required: true },
+    /** Small JSON of what changed, e.g. { from: "pending", to: "approved", discountBps: 2000 }. */
+    details: { type: Schema.Types.Mixed },
+  },
+  { timestamps: { createdAt: true, updatedAt: false }, versionKey: false },
+);
+
+auditLogSchema.index({ targetType: 1, targetId: 1, createdAt: -1 });
+auditLogSchema.index({ actorUserId: 1, createdAt: -1 });
+
+const appendOnly = () => {
+  throw new Error("Audit log entries are append-only");
+};
+auditLogSchema.pre("save", function () {
+  if (!this.isNew) appendOnly();
+});
+for (const op of [
+  "updateOne",
+  "updateMany",
+  "findOneAndUpdate",
+  "findOneAndReplace",
+  "replaceOne",
+  "deleteOne",
+  "deleteMany",
+  "findOneAndDelete",
+] as const) {
+  auditLogSchema.pre(op, appendOnly);
+}
+auditLogSchema.pre("bulkWrite", appendOnly);
+
+export type AuditLogDoc = InferSchemaType<typeof auditLogSchema>;
+export const AuditLog = (models.AuditLog ?? model("AuditLog", auditLogSchema)) as Model<AuditLogDoc>;

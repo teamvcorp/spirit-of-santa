@@ -1,0 +1,27 @@
+{
+  "Email": {
+    "footer": "Spirit O Santa · Los niños ganan regalos con buenas acciones. Recibiste este correo porque alguien usó esta dirección en Spirit O Santa.",
+    "ignore": "Si no fuiste tú, puedes ignorar este correo. No cambiará nada.",
+    "linkFallback": "Si el botón no funciona, copia este enlace en tu navegador:",
+    "verifyEmail": {
+      "subject": "Confirma tu correo para Spirit O Santa",
+      "heading": "Confirma tu correo",
+      "body": "Gracias por registrar tu tienda en Spirit O Santa. Confirma que esta es tu dirección de correo.",
+      "button": "Confirmar correo",
+      "expiry": "Este enlace funciona una sola vez y vence en 24 horas."
+    },
+    "accountExists": {
+      "subject": "Ya tienes una cuenta de Spirit O Santa",
+      "heading": "Ya tienes una cuenta",
+      "body": "Alguien intentó registrarse con esta dirección de correo, pero ya tiene una cuenta. Puedes iniciar sesión o restablecer tu contraseña si la olvidaste.",
+      "button": "Iniciar sesión"
+    },
+    "resetPassword": {
+      "subject": "Restablece tu contraseña de Spirit O Santa",
+      "heading": "Restablece tu contraseña",
+      "body": "Recibimos una solicitud para restablecer la contraseña de esta dirección de correo.",
+      "button": "Elegir una nueva contraseña",
+      "expiry": "Este enlace funciona una sola vez y vence en 1 hora."
+    }
+  }
+}

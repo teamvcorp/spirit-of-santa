@@ -34,8 +34,8 @@ const mail = (n: string) => (PROD ? `delivered+adm${n}${tag}@resend.dev` : `e2e-
 const mongoose = await connectDb();
 if (!mongoose.connection.name.endsWith("_dev")) throw new Error("refusing: not a *_dev database");
 
-async function pendingStore(n: string) {
-  const user = await User.create({ email: mail(n), passwordHash: "x", role: "store_owner", status: "active", name: `Owner ${n}` });
+async function pendingStore(n: string, ownerStatus: "active" | "pending" = "active") {
+  const user = await User.create({ email: mail(n), passwordHash: "x", role: "store_owner", status: ownerStatus, name: `Owner ${n}` });
   const store = await Store.create({
     name: `E2E ${n} Shop ${tag}`, slug: `e2e-${n}-${tag}`, category: "books", status: "pending", ownerUserId: user._id,
     contact: { email: mail(n), address: { line1: "1 Test", city: "Storm Lake", state: "IA", zip: "50588" } },
@@ -46,6 +46,7 @@ async function pendingStore(n: string) {
 }
 const storeA = await pendingStore("a");
 const storeB = await pendingStore("b");
+const storeC = await pendingStore("c", "pending"); // owner never confirmed their email
 const inviteEmail = mail("inv");
 class ProdDone extends Error {}
 
@@ -66,7 +67,13 @@ const page = await browser.newPage();
 const consoleErrors: string[] = [];
 page.on("pageerror", (e) => consoleErrors.push(e.message));
 const mainAlerts = async (p: Page) => (await p.locator('main [role="alert"], main [role="status"]').allInnerTexts()).join(" | ");
-const ready = (p: Page) => p.waitForFunction(() => [...document.querySelectorAll('main button[type="submit"]')].every((b) => !(b as HTMLButtonElement).disabled));
+/** Content streamed in AND hydrated: at least one submit button, all enabled. (An empty list
+ * would count as "all enabled" and let checks run before the page content arrives.) */
+const ready = (p: Page) =>
+  p.waitForFunction(() => {
+    const buttons = [...document.querySelectorAll('main button[type="submit"]')];
+    return buttons.length > 0 && buttons.every((b) => !(b as HTMLButtonElement).disabled);
+  });
 
 try {
   // 0. Signed out: the queue doesn't show data.
@@ -103,6 +110,8 @@ try {
   await page.waitForTimeout(500);
   if (!PROD) check("owner got a 'store approved' email", emailCount(mail("a"), "storeApproved") === 1);
   check("history on the page shows the approval", (await page.locator("main ol").innerText()).includes("Approved"));
+  await page.locator("main [role=status]").getByText("Store approved").waitFor({ timeout: 10_000 }).catch(() => {});
+  check("a visible confirmation stays after the page updates", (await mainAlerts(page)).includes("Store approved"));
 
   // 4. Suspend (reason required) → reinstate → change discount.
   await ready(page);
@@ -119,7 +128,7 @@ try {
   const discountForm = page.locator("form", { hasText: "Change agreed discount" });
   await discountForm.locator('[name="discount"]').fill("20");
   await discountForm.locator('button[type="submit"]').click();
-  await page.locator("form", { hasText: "Change agreed discount" }).getByText("Saved.").waitFor();
+  await page.locator("main [role=status]").getByText("Discount saved.").waitFor();
   check("discount change saved + audited", (await Store.findById(storeA).lean())?.discountBps === 2000 && !!(await AuditLog.exists({ targetId: a?._id, action: "store.discount" })));
   await discountForm.locator('[name="discount"]').fill("95");
   await discountForm.locator('button[type="submit"]').click({ force: true }).catch(() => {});
@@ -137,6 +146,23 @@ try {
   await page.waitForTimeout(500);
   const rejBlock = log().split("[email:dev] to=").filter((x) => x.startsWith(`${mail("b")} template=storeRejected`)).at(-1) ?? "";
   if (!PROD) check("owner got a 'not approved' email that includes the reason", rejBlock.includes("Outside our service area (E2E)"));
+
+  // 5b. Review fixes: owner who never confirmed their email.
+  await page.goto(`${adminBase}/stores/${storeC}`);
+  await ready(page);
+  check("unconfirmed owner: no Approve form, explanation shown instead",
+    (await page.locator("form", { hasText: "Approve this store" }).count()) === 0 && (await page.locator("main").innerText()).includes("hasn't confirmed their email"));
+  const rejectC = page.locator("form", { hasText: "Don't approve" }).last();
+  await rejectC.locator('[name="reason"]').fill("Spam sign-up (E2E)");
+  await rejectC.locator('button[type="submit"]').click();
+  await page.locator("main").getByText("Not approved", { exact: true }).first().waitFor();
+  await page.waitForTimeout(500);
+  if (!PROD) check("rejecting it sends NO email to the unconfirmed address", emailCount(mail("c"), "storeRejected") === 0);
+  // The daily purge must keep this owner: their store was rejected (no longer 'pending').
+  await User.collection.updateOne({ email: mail("c") }, { $set: { createdAt: new Date(Date.now() - 72 * 3600e3) } });
+  const { purgeUnverifiedStoreSignups } = await import("@repo/auth/account-flows");
+  await purgeUnverifiedStoreSignups();
+  check("purge keeps the owner of an already-reviewed store", !!(await User.exists({ email: mail("c") })) && !!(await Store.exists({ _id: storeC })));
 
   // 6. Stale page: another admin rejected B meanwhile → approving now says 'status changed'.
   //    (B is rejected; an approve is still allowed from rejected, so use a SUSPEND on B instead,
@@ -194,8 +220,36 @@ try {
   });
   check("inviting an email that already has an account is refused", dup.includes("already has an account"));
 
+  // Duplicate invite for the same email is refused.
+  await page.goto(`${adminBase}/stores/invite`);
+  await ready(page);
+  await page.fill('[name="storeName"]', "Second try"); await page.fill('[name="ownerEmail"]', inviteEmail);
+  await page.selectOption('[name="category"]', "toys"); await page.fill('[name="discount"]', "15");
+  await page.click('main button[type="submit"]');
+  await page.locator("main [role=alert]").first().waitFor();
+  check("a second invite to the same email is refused ('already has a pending invitation')", (await mainAlerts(page)).includes("pending invitation"));
+
+  // Resend: new link works, the old one stops working.
+  await page.goto(`${adminBase}/stores/${invited?._id}`);
+  await ready(page);
+  await page.locator("form", { hasText: "Resend the invitation" }).locator('button[type="submit"]').click();
+  await page.locator("main").getByText("A new invitation was sent").waitFor();
+  const oldLink = link!;
+  let newLink: string | null = null;
+  for (let i = 0; i < 20 && (!newLink || newLink === oldLink); i++) { newLink = await inviteLink(inviteEmail); await page.waitForTimeout(300); }
+  check("resend issues a different link", !!newLink && newLink !== oldLink);
+  const stale = await (await browser.newContext()).newPage();
+  await stale.goto(oldLink);
+  await stale.locator("main [role=alert]").waitFor();
+  check("the old invitation link no longer works", (await mainAlerts(stale)).includes("expired or was already used"));
+  await stale.close();
+
+  // Squatter: someone self-signs-up with the invited email (unconfirmed) before the owner accepts.
+  const squat = await User.create({ email: inviteEmail, passwordHash: "x", role: "store_owner", status: "pending" });
+  await Store.create({ name: `Squatter ${tag}`, slug: `squat-${tag}`, category: "toys", status: "pending", ownerUserId: squat._id, contact: { email: inviteEmail } });
+
   const owner = await (await browser.newContext()).newPage();
-  await owner.goto(link!);
+  await owner.goto(newLink!);
   await owner.locator("main").getByText(`E2E Invited ${tag}`).waitFor();
   check("accept page shows the invited store's name", true);
   await ready(owner);
@@ -214,6 +268,22 @@ try {
   await owner.goto(link!);
   await owner.locator("main [role=alert]").waitFor();
   check("the invite link can't be used twice", (await mainAlerts(owner)).includes("expired or was already used"));
+  check("the unconfirmed squatter account and its store were replaced",
+    (await User.countDocuments({ email: inviteEmail })) === 1 && !(await Store.exists({ slug: `squat-${tag}` })) && !(await User.exists({ _id: squat._id })));
+
+  // Cancel an invitation: the invited store disappears.
+  await page.goto(`${adminBase}/stores/invite`);
+  await ready(page);
+  await page.fill('[name="storeName"]', `E2E Cancel ${tag}`); await page.fill('[name="ownerEmail"]', mail("cancel"));
+  await page.selectOption('[name="category"]', "toys"); await page.fill('[name="discount"]', "10");
+  await page.click('main button[type="submit"]');
+  await page.locator("main").getByText("Invitation sent.").waitFor();
+  const toCancel = await Store.findOne({ name: `E2E Cancel ${tag}` }).lean();
+  await page.goto(`${adminBase}/stores/${toCancel?._id}`);
+  await ready(page);
+  await page.locator("form", { hasText: "Cancel the invitation" }).locator('button[type="submit"]').click();
+  await page.waitForURL(/status=invited/, { timeout: 15_000 });
+  check("cancel invitation → store deleted, back on the Invited tab", !(await Store.exists({ _id: toCancel?._id })));
 
   check("no browser errors", consoleErrors.length === 0, consoleErrors.slice(0, 3).join(" || "));
 } catch (err) {

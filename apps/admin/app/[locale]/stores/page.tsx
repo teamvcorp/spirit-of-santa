@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { requireRole } from "@repo/auth";
 import { STORE_STATUSES } from "@repo/db";
 import { formatDiscount } from "@repo/lib/store";
-import { listStores, storeStatusCounts, type StoreStatus } from "@repo/stores/queries";
+import { listStores, storeStatusCounts, STORES_PAGE_SIZE, type StoreStatus } from "@repo/stores/queries";
 import { authOptions } from "@/auth";
 import { Link } from "@/i18n/navigation";
 
@@ -20,9 +20,11 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/[locale]/stor
   await requireRole(authOptions, "admin"); // not signed in → /signin; not admin → 404
   const sp = await searchParams;
   const status: StoreStatus = (STORE_STATUSES as readonly string[]).includes(String(sp.status)) ? (sp.status as StoreStatus) : "pending";
+  // ?page=1,2,… (1-based in the URL). Clamp junk to 1.
+  const pageNum = Math.max(1, Math.min(10_000, Number.parseInt(String(sp.page ?? "1"), 10) || 1));
   const [counts, rows, t, statusT, cats, format] = await Promise.all([
     storeStatusCounts(),
-    listStores(status),
+    listStores(status, pageNum - 1),
     getTranslations("StoreAdmin"),
     getTranslations("Common.storeStatus"),
     getTranslations("Common.storeCategories"),
@@ -76,10 +78,30 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/[locale]/stor
           </table>
         </div>
       )}
+      {counts[status] > STORES_PAGE_SIZE && (
+        <nav aria-label={t("pagination")} className="mt-4 flex items-center gap-4 text-sm">
+          <span>
+            {t("showing", {
+              from: Math.min((pageNum - 1) * STORES_PAGE_SIZE + 1, counts[status]),
+              to: Math.min(pageNum * STORES_PAGE_SIZE, counts[status]),
+              total: counts[status],
+            })}
+          </span>
+          {pageNum > 1 && (
+            <Link href={{ pathname: "/stores", query: { status, page: pageNum - 1 } }} className="underline underline-offset-4">
+              {t("previous")}
+            </Link>
+          )}
+          {pageNum * STORES_PAGE_SIZE < counts[status] && (
+            <Link href={{ pathname: "/stores", query: { status, page: pageNum + 1 } }} className="underline underline-offset-4">
+              {t("next")}
+            </Link>
+          )}
+        </nav>
+      )}
     </>
   );
 }
-
 export default async function StoresPage({ searchParams }: PageProps<"/[locale]/stores">) {
   const t = await getTranslations("StoreAdmin");
   return (

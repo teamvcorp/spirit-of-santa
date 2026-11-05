@@ -22,7 +22,7 @@ export function InviteForm() {
   if (state.status === "done" && state.storeId) {
     return (
       <div className="flex flex-col gap-4">
-        <Alert>{t("inviteSent")}</Alert>
+        <Alert>{state.emailFailed ? t("inviteEmailFailed") : t("inviteSent")}</Alert>
         <Link href={`/stores/${state.storeId}`} className="font-semibold underline underline-offset-4">
           {t("viewStore")}
         </Link>

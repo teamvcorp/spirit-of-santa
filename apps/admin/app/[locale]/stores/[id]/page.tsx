@@ -68,6 +68,7 @@ async function Detail({ params }: { params: PageProps<"/[locale]/stores/[id]">["
             storeId={store.id}
             status={store.status}
             discountPercent={store.discountBps != null ? String(store.discountBps / 100) : undefined}
+            ownerVerified={store.ownerVerified}
           />
           <Card>
             <h2 className="mb-3 text-lg font-semibold">{t("history")}</h2>

@@ -55,6 +55,8 @@ export async function sendEmail<T extends EmailTemplateName>(input: SendEmailInp
       subject,
       text,
       html,
+      // A monitored inbox for replies (set RESEND_REPLY_TO), since no-reply@ isn't read.
+      ...(process.env.RESEND_REPLY_TO ? { replyTo: process.env.RESEND_REPLY_TO } : {}),
       tags: [{ name: "template", value: input.template }],
     },
     input.idempotencyKey ? { idempotencyKey: input.idempotencyKey.slice(0, 256) } : undefined,

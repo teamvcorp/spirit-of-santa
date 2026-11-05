@@ -14,7 +14,7 @@
  *              approved ⇄ suspended
  */
 import "server-only";
-import { AuditLog, connectDb, Store, STORE_STATUSES, trusted, User, withTransaction, type AuditAction, type DbSession } from "@repo/db";
+import { ActionToken, AuditLog, connectDb, Store, STORE_STATUSES, trusted, User, withTransaction, type AuditAction, type DbSession } from "@repo/db";
 import { sendEmail } from "@repo/email";
 import { localizePath } from "@repo/i18n/paths";
 import { DEFAULT_LOCALE, isLocale } from "@repo/lib/locales";
@@ -27,7 +27,9 @@ export type AdminActor = { id: string; role: string };
 type StoreStatus = (typeof STORE_STATUSES)[number];
 /** The fields of a store we need after a transition (explicit, so types stay simple). */
 type StoreBefore = { _id: { toString(): string }; name: string; status: StoreStatus; ownerUserId?: { toString(): string } | null };
-export type AdminResult = { ok: true; storeId?: string } | { ok: false; error: "notFound" | "badStatus" | "emailInUse" };
+export type AdminResult =
+  | { ok: true; storeId?: string; emailFailed?: boolean }
+  | { ok: false; error: "notFound" | "badStatus" | "emailInUse" | "ownerUnverified" | "alreadyInvited" };
 
 function assertAdmin(actor: AdminActor) {
   // Defence in depth: the Server Action already called requireRole(..., "admin").
@@ -50,8 +52,10 @@ async function emailOwner(
   build: (link: string) => Omit<Parameters<typeof sendEmail>[0], "to" | "locale">,
 ) {
   try {
-    const owner = await User.findById(ownerUserId).select("email locale").lean();
-    if (!owner) return;
+    const owner = await User.findById(ownerUserId).select("email locale status").lean();
+    // Only to a CONFIRMED owner: an unconfirmed address may belong to someone else, and these
+    // emails contain the store name a stranger typed (review finding 2026-11-05: spam relay).
+    if (!owner || owner.status !== "active") return;
     const locale = isLocale(owner.locale) ? owner.locale : DEFAULT_LOCALE;
     const link = new URL(localizePath("/signin", locale), storeAppOrigin()).toString();
     await sendEmail({ ...build(link), to: owner.email, locale } as Parameters<typeof sendEmail>[0]);
@@ -94,6 +98,13 @@ async function explain(storeId: string): Promise<AdminResult> {
 }
 
 export async function approveStore(actor: AdminActor, storeId: string, discountBps: number): Promise<AdminResult> {
+  // An owner who never confirmed their email can't run the store (and the daily purge would
+  // delete them), so approval waits until they confirm (review finding 2026-11-05).
+  await connectDb();
+  const target = await Store.findById(storeId).select("ownerUserId").lean();
+  if (!target) return { ok: false, error: "notFound" };
+  const ownerActive = target.ownerUserId ? await User.exists({ _id: target.ownerUserId, status: "active" }) : null;
+  if (!ownerActive) return { ok: false, error: "ownerUnverified" };
   const before = await transition(
     actor,
     storeId,
@@ -164,7 +175,10 @@ export async function inviteStore(actor: AdminActor, input: InviteStoreInput, lo
   assertAdmin(actor);
   await connectDb();
   // Admins may learn whether an email is taken (they're trusted staff): clearer than a silent no-op.
-  if (await User.exists({ email: input.ownerEmail })) return { ok: false, error: "emailInUse" };
+  // An UNCONFIRMED self-sign-up doesn't count: anyone can type any email into the public form, so
+  // it must not be able to block an invite (accepting the invite replaces it; review 2026-11-05).
+  if (await User.exists({ email: input.ownerEmail, status: trusted({ $ne: "pending" }) })) return { ok: false, error: "emailInUse" };
+  if (await Store.exists({ status: "invited", "contact.email": input.ownerEmail })) return { ok: false, error: "alreadyInvited" };
 
   let storeId: string | null = null;
   let slug = slugify(input.storeName);
@@ -195,19 +209,46 @@ export async function inviteStore(actor: AdminActor, input: InviteStoreInput, lo
   }
   if (!storeId) throw new Error("could not allocate a store slug");
 
-  const { raw } = await createActionToken("invite_owner", { email: input.ownerEmail, storeId, createdByUserId: actor.id });
+  const emailFailed = !(await sendOwnerInvite(actor, storeId, input.ownerEmail, input.storeName, locale));
+  return { ok: true, storeId, emailFailed };
+}
+
+/** New single-use invite link for an invited store (older links stop working). true = email sent. */
+async function sendOwnerInvite(actor: AdminActor, storeId: string, email: string, storeName: string, locale: string): Promise<boolean> {
+  const { raw } = await createActionToken("invite_owner", { email, storeId, createdByUserId: actor.id });
   const safeLocale = isLocale(locale) ? locale : DEFAULT_LOCALE;
   const link = new URL(localizePath("/accept-invite", safeLocale), storeAppOrigin());
   link.searchParams.set("token", raw);
   try {
-    await sendEmail({
-      to: input.ownerEmail,
-      locale: safeLocale,
-      template: "inviteOwner",
-      values: { storeName: input.storeName, link: link.toString() },
-    });
+    await sendEmail({ to: email, locale: safeLocale, template: "inviteOwner", values: { storeName, link: link.toString() } });
+    return true;
   } catch (err) {
     console.error("[stores] invite email failed:", err instanceof Error ? err.message : "unknown");
+    return false;
   }
-  return { ok: true, storeId };
+}
+
+/** Resend the invitation for a still-invited store (e.g. the email was lost or expired). */
+export async function resendStoreInvite(actor: AdminActor, storeId: string, locale: string): Promise<AdminResult> {
+  assertAdmin(actor);
+  await connectDb();
+  const store = await Store.findOne({ _id: storeId, status: "invited" }).select("name contact.email").lean();
+  if (!store?.contact?.email) return explain(storeId);
+  const sent = await sendOwnerInvite(actor, storeId, store.contact.email, store.name, locale);
+  await AuditLog.create({ actorUserId: actor.id, action: "store.invite_resent", targetType: "store", targetId: storeId, details: { emailSent: sent } });
+  return { ok: true, storeId, emailFailed: !sent };
+}
+
+/** Cancel an invitation: the invited store is deleted and its links stop working. */
+export async function cancelStoreInvite(actor: AdminActor, storeId: string): Promise<AdminResult> {
+  assertAdmin(actor);
+  await connectDb();
+  const removed = await withTransaction(async (session) => {
+    const store = await Store.findOneAndDelete({ _id: storeId, status: "invited" }, { session }).select("_id").lean();
+    if (!store) return false;
+    await ActionToken.updateMany({ storeId, purpose: "invite_owner", usedAt: null }, { $set: { usedAt: new Date() } }, { session });
+    await audit(session, actor, "store.invite_cancelled", storeId, {});
+    return true;
+  });
+  return removed ? { ok: true } : explain(storeId);
 }

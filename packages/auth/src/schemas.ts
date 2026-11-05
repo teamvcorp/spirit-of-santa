@@ -49,11 +49,11 @@ const optionalText = (max: number) =>
     .transform((v) => (v === "" ? undefined : v))
     .optional();
 
-/** Store self-registration form (store app /register). */
-export const storeRegistrationSchema = z.object({
-  ownerName: z.string().trim().min(1, "required").max(100, "tooLong"),
-  email: emailSchema,
-  password: newPasswordSchema,
+/**
+ * Store details shared by self-registration (/register) and the owner's profile editor
+ * (/dashboard/profile): one set of rules, so both stay consistent.
+ */
+export const storeDetailsFields = {
   storeName: z.string().trim().min(2, "tooShort").max(120, "tooLong"),
   category: z.enum(STORE_CATEGORIES, "required"),
   description: optionalText(2000),
@@ -75,6 +75,16 @@ export const storeRegistrationSchema = z.object({
   city: z.string().trim().min(1, "required").max(60, "tooLong"),
   state: z.string().trim().toUpperCase().regex(/^[A-Z]{2}$/, "invalid"),
   zip: z.string().trim().regex(/^\d{5}$/, "invalid"),
+};
+export const storeDetailsSchema = z.object(storeDetailsFields);
+export type StoreDetailsInput = z.infer<typeof storeDetailsSchema>;
+
+/** Store self-registration form (store app /register). */
+export const storeRegistrationSchema = z.object({
+  ownerName: z.string().trim().min(1, "required").max(100, "tooLong"),
+  email: emailSchema,
+  password: newPasswordSchema,
+  ...storeDetailsFields,
   agree: z.literal("on", "mustAgree"),
   /**
    * Honeypot: hidden from people, bots fill it in. Accepted here ON PURPOSE: the sign-up flow
@@ -102,3 +112,10 @@ export const acceptInviteSchema = z.object({
   agree: z.literal("on", "mustAgree"),
 });
 export type AcceptInviteInput = z.infer<typeof acceptInviteSchema>;
+/** Store app /accept-rep-invite form (rep invited by a store owner). */
+export const acceptRepInviteSchema = z.object({
+  token: z.string().max(100),
+  name: z.string().trim().min(1, "required").max(100, "tooLong"),
+  password: newPasswordSchema,
+});
+export type AcceptRepInviteInput = z.infer<typeof acceptRepInviteSchema>;

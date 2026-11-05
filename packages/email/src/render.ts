@@ -28,6 +28,8 @@ export type EmailTemplates = {
   /** Sent to the VERIFIED owner of the store, about their own store. */
   storeApproved: { storeName: string; link: string };
   storeRejected: { storeName: string; reason: string; link: string };
+  /** storeName from a verified owner of that store. */
+  inviteRep: { storeName: string; link: string };
 };
 export type EmailTemplateName = keyof EmailTemplates;
 

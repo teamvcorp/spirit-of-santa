@@ -74,7 +74,9 @@
     "errors": {
       "notFound": "Esa tienda ya no existe.",
       "badStatus": "El estado de esta tienda cambió mientras tanto. Actualiza la página e inténtalo de nuevo.",
-      "emailInUse": "Ese correo ya tiene una cuenta."
+      "emailInUse": "Ese correo ya tiene una cuenta.",
+      "ownerUnverified": "El dueño aún no confirmó su correo, así que la tienda no se puede aprobar.",
+      "alreadyInvited": "Este correo ya tiene una invitación pendiente. Abre esa tienda para reenviarla o cancelarla."
     },
     "audit": {
       "store_approve": "Aprobada",
@@ -83,7 +85,28 @@
       "store_reinstate": "Reactivada",
       "store_discount": "Descuento cambiado",
       "store_invite": "Invitada",
-      "store_invite_accepted": "Invitación aceptada"
-    }
+      "store_invite_accepted": "Invitación aceptada",
+      "store_invite_resent": "Invitación reenviada",
+      "store_invite_cancelled": "Invitación cancelada"
+    },
+    "ownerUnverifiedNote": "El dueño aún no confirmó su dirección de correo. Podrás aprobar la tienda cuando lo haga. Los registros sin confirmar se eliminan automáticamente después de 48 horas.",
+    "rejectReasonNoEmail": "Motivo (nota interna; no se envía correo porque la dirección del dueño no está confirmada)",
+    "resendTitle": "Reenviar la invitación",
+    "resend": "Reenviar invitación",
+    "cancelInviteTitle": "Cancelar la invitación",
+    "cancelInvite": "Cancelar invitación",
+    "emailFailedNotice": "Guardado, pero no se pudo enviar el correo. Intenta reenviarlo más tarde.",
+    "inviteEmailFailed": "La tienda se creó, pero no se pudo enviar el correo de invitación. Abre la tienda y usa \"Reenviar invitación\".",
+    "doneApprove": "Tienda aprobada. Se envió un correo al dueño.",
+    "doneReject": "Tienda marcada como no aprobada.",
+    "doneSuspend": "Tienda suspendida.",
+    "doneReinstate": "Tienda reactivada.",
+    "doneResend": "Se envió una nueva invitación. Los enlaces anteriores ya no funcionan.",
+    "doneCancel": "Invitación cancelada.",
+    "doneDiscount": "Descuento guardado.",
+    "pagination": "Páginas",
+    "showing": "Mostrando {from}–{to} de {total}",
+    "previous": "Anterior",
+    "next": "Siguiente"
   }
 }

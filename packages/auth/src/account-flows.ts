@@ -226,7 +226,8 @@ export async function resetPassword(raw: unknown, newPassword: string): Promise<
  * Delete store sign-ups whose email was never confirmed within `olderThanHours` (default 48).
  * Run daily by Vercel Cron (apps/store/app/api/cron/purge-signups). Keeps spam/abandoned
  * sign-ups from piling up and frees the email/slug for a real owner (review 2026-11-05).
- * Only touches PENDING users and their PENDING stores; never verified or approved ones.
+ * Only touches PENDING users whose stores are all still PENDING; never confirmed users, and never
+ * the owner of a store an admin has already approved or rejected.
  */
 export async function purgeUnverifiedStoreSignups(olderThanHours = 48): Promise<{ users: number; stores: number }> {
   await connectDb();
@@ -236,7 +237,13 @@ export async function purgeUnverifiedStoreSignups(olderThanHours = 48): Promise<
     .limit(1000) // bounded batch per run
     .lean();
   if (users.length === 0) return { users: 0, stores: 0 };
-  const ids = users.map((u) => u._id);
+  // Never delete an owner whose store already left "pending" (an admin approved/rejected it):
+  // that would leave a store pointing at a deleted owner (review finding 2026-11-05).
+  const keep = new Set(
+    (await Store.distinct("ownerUserId", { ownerUserId: trusted({ $in: users.map((u) => u._id) }), status: trusted({ $ne: "pending" }) })).map(String),
+  );
+  const ids = users.map((u) => u._id).filter((id) => !keep.has(String(id)));
+  if (ids.length === 0) return { users: 0, stores: 0 };
   const stores = await Store.deleteMany({ ownerUserId: trusted({ $in: ids }), status: "pending" });
   await ActionToken.deleteMany({ userId: trusted({ $in: ids }) });
   const deleted = await User.deleteMany({ _id: trusted({ $in: ids }), status: "pending" });
@@ -273,7 +280,17 @@ export async function acceptStoreInvite(input: AcceptInviteInput, ctx: FlowConte
         { session, returnDocument: "after" },
       ).lean();
       if (!token?.storeId) return { ok: false, error: "invalidLink" };
-      if (await User.exists({ email: token.email }).session(session)) return { ok: false, error: "invalidLink" };
+      const existing = await User.findOne({ email: token.email }).select("status role").session(session).lean();
+      if (existing) {
+        // An UNCONFIRMED self-sign-up with this email (anyone can type any address into the
+        // public form) must not block the invite: clicking the emailed link proves who owns
+        // the address, so the squatter's pending account + pending store are removed
+        // (review finding 2026-11-05). Any other existing account → refuse, keep the token.
+        if (existing.status !== "pending" || existing.role !== "store_owner") throw new InviteNoLongerValid();
+        await Store.deleteMany({ ownerUserId: existing._id, status: "pending" }, { session });
+        await ActionToken.updateMany({ userId: existing._id, usedAt: null }, { $set: { usedAt: now } }, { session });
+        await User.deleteOne({ _id: existing._id, status: "pending" }, { session });
+      }
 
       const [user] = await User.create(
         [{ email: token.email, passwordHash, role: "store_owner", name: input.ownerName, status: "active", locale: ctx.locale, storeId: token.storeId }],

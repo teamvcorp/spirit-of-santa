@@ -20,7 +20,7 @@ export type StoreListRow = {
   createdAt: string;
 };
 
-const PAGE_SIZE = 50;
+export const STORES_PAGE_SIZE = 50;
 
 /** Counts per status for the queue tabs (one aggregation). */
 export async function storeStatusCounts(): Promise<Record<StoreStatus, number>> {
@@ -36,8 +36,8 @@ export async function listStores(status: StoreStatus, page = 0): Promise<StoreLi
   await connectDb();
   const stores = await Store.find({ status })
     .sort({ createdAt: 1 })
-    .skip(Math.max(0, page) * PAGE_SIZE)
-    .limit(PAGE_SIZE)
+    .skip(Math.max(0, page) * STORES_PAGE_SIZE)
+    .limit(STORES_PAGE_SIZE)
     .select("name category status contact.address.city contact.address.state contact.email ownerUserId discountBps createdAt")
     .lean();
   const owners = await User.find({ _id: trusted({ $in: stores.map((s) => s.ownerUserId).filter(Boolean) }) })

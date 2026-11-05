@@ -21,6 +21,7 @@
         "BLOB_READ_WRITE_TOKEN",
         "RESEND_API_KEY",
         "RESEND_FROM",
+        "RESEND_REPLY_TO",
         "CRON_SECRET",
         "STORE_APP_URL"
       ],

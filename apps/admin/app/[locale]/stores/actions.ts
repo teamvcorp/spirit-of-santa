@@ -11,7 +11,7 @@ import { randomUUID } from "node:crypto";
 import { refresh } from "next/cache";
 import { requireRole } from "@repo/auth";
 import { fieldErrors } from "@repo/auth/schemas";
-import { approveStore, inviteStore, reinstateStore, rejectStore, setStoreDiscount, suspendStore, type AdminResult } from "@repo/stores/admin";
+import { approveStore, cancelStoreInvite, inviteStore, reinstateStore, rejectStore, resendStoreInvite, setStoreDiscount, suspendStore, type AdminResult } from "@repo/stores/admin";
 import { discountPercentSchema, inviteStoreSchema, objectIdSchema, rejectReasonSchema, suspendReasonSchema } from "@repo/stores/schemas";
 import { isLocale } from "@repo/lib/locales";
 import { authOptions } from "@/auth";
@@ -31,7 +31,7 @@ const fail = (fieldErrors: Record<string, string>, fd: FormData, keep: string[])
 function finish(r: AdminResult): AdminFormState {
   if (!r.ok) return { status: "error", error: r.error, nonce: randomUUID() };
   refresh();
-  return { status: "done", storeId: r.storeId, nonce: randomUUID() };
+  return { status: "done", storeId: r.storeId, emailFailed: r.emailFailed, nonce: randomUUID() };
 }
 function storeIdOf(fd: FormData): string | null {
   const id = objectIdSchema.safeParse(str(fd, "storeId"));
@@ -91,4 +91,20 @@ export async function inviteAction(_prev: AdminFormState, fd: FormData): Promise
   const r = await inviteStore(admin, { ...rest, discountBps: discount }, isLocale(language) ? language : "en");
   if (!r.ok) return { ...fail({}, fd, keep), error: r.error };
   return finish(r);
+}
+export async function resendInviteAction(_prev: AdminFormState, fd: FormData): Promise<AdminFormState> {
+  const admin = await currentAdmin();
+  const id = storeIdOf(fd);
+  if (!id) return { status: "error", error: "notFound" };
+  const language = str(fd, "locale");
+  return finish(await resendStoreInvite(admin, id, isLocale(language) ? language : "en"));
+}
+
+export async function cancelInviteAction(_prev: AdminFormState, fd: FormData): Promise<AdminFormState> {
+  const admin = await currentAdmin();
+  const id = storeIdOf(fd);
+  if (!id) return { status: "error", error: "notFound" };
+  const r = await cancelStoreInvite(admin, id);
+  // No refresh(): the store no longer exists; the page navigates back to the queue.
+  return r.ok ? { status: "done", nonce: randomUUID() } : { status: "error", error: r.error, nonce: randomUUID() };
 }

@@ -39,8 +39,15 @@
     "storeRejected": {
       "subject": "Sobre tu solicitud en Spirit O Santa",
       "heading": "Solicitud no aprobada",
-      "body": "No pudimos aprobar {storeName} en este momento. Motivo: {reason}. Si tienes preguntas, responde a este correo.",
+      "body": "No pudimos aprobar {storeName} en este momento. Motivo: {reason}. Si tienes preguntas, comunícate con el equipo de Spirit O Santa.",
       "button": "Iniciar sesión"
+    },
+    "inviteRep": {
+      "subject": "Te invitan a ayudar a administrar {storeName} en Spirit O Santa",
+      "heading": "Únete al equipo de tu tienda",
+      "body": "Te invitaron a ayudar a administrar los artículos de regalo de {storeName} en Spirit O Santa. Elige tu nombre y contraseña para empezar.",
+      "button": "Aceptar la invitación",
+      "expiry": "Este enlace funciona una sola vez y vence en 7 días."
     }
   }
 }

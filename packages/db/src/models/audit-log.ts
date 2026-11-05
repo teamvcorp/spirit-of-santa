@@ -24,6 +24,14 @@ export const AUDIT_ACTIONS = [
   "store.discount",
   "store.invite",
   "store.invite_accepted",
+  "store.invite_resent",
+  "store.invite_cancelled",
+  "store.profile_update",
+  "store.photo_add",
+  "store.photo_remove",
+  "rep.invite",
+  "rep.accept",
+  "rep.remove",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 

@@ -74,7 +74,9 @@
     "errors": {
       "notFound": "That store no longer exists.",
       "badStatus": "This store's status changed meanwhile. Refresh the page and try again.",
-      "emailInUse": "That email already has an account."
+      "emailInUse": "That email already has an account.",
+      "ownerUnverified": "The owner hasn't confirmed their email yet, so the store can't be approved.",
+      "alreadyInvited": "This email already has a pending invitation. Open that store to resend or cancel it."
     },
     "audit": {
       "store_approve": "Approved",
@@ -83,7 +85,28 @@
       "store_reinstate": "Reinstated",
       "store_discount": "Discount changed",
       "store_invite": "Invited",
-      "store_invite_accepted": "Invitation accepted"
-    }
+      "store_invite_accepted": "Invitation accepted",
+      "store_invite_resent": "Invitation resent",
+      "store_invite_cancelled": "Invitation cancelled"
+    },
+    "ownerUnverifiedNote": "The owner hasn't confirmed their email address yet. You can approve the store once they do. Unconfirmed sign-ups are removed automatically after 48 hours.",
+    "rejectReasonNoEmail": "Reason (internal note; no email is sent because the owner's address isn't confirmed)",
+    "resendTitle": "Resend the invitation",
+    "resend": "Resend invitation",
+    "cancelInviteTitle": "Cancel the invitation",
+    "cancelInvite": "Cancel invitation",
+    "emailFailedNotice": "Saved, but the email could not be sent. Try resending it later.",
+    "inviteEmailFailed": "The store was created, but the invitation email could not be sent. Open the store and use \"Resend invitation\".",
+    "doneApprove": "Store approved. The owner has been emailed.",
+    "doneReject": "Store marked as not approved.",
+    "doneSuspend": "Store suspended.",
+    "doneReinstate": "Store reinstated.",
+    "doneResend": "A new invitation was sent. Older links no longer work.",
+    "doneCancel": "Invitation cancelled.",
+    "doneDiscount": "Discount saved.",
+    "pagination": "Pages",
+    "showing": "Showing {from}–{to} of {total}",
+    "previous": "Previous",
+    "next": "Next"
   }
 }

@@ -6,6 +6,7 @@
   "exports": {
     "./admin": "./src/admin.ts",
     "./owner": "./src/owner.ts",
+    "./items": "./src/items.ts",
     "./queries": "./src/queries.ts",
     "./schemas": "./src/schemas.ts",
     "./urls": "./src/urls.ts"

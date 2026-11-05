@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { discountPercentSchema, inviteStoreSchema } from "../src/schemas.ts";
+import { discountPercentSchema, inviteStoreSchema, itemSchema, toItemInput } from "../src/schemas.ts";
 import { wholesaleCents } from "@repo/lib/store";
 
 test("discount % → basis points (integers, no float drift)", () => {
@@ -31,4 +31,20 @@ test("invite schema: normalises email, requires category + discount", () => {
   assert.equal(ok.discount, 1500);
   assert.equal(inviteStoreSchema.safeParse({ storeName: "T", ownerEmail: "x@y.z", category: "toys", discount: "15" }).success, false);
   assert.equal(inviteStoreSchema.safeParse({ storeName: "Toy Barn", ownerEmail: "x@y.z", category: "guns", discount: "15" }).success, false);
+});
+
+test("item form: dollars → integer cents, optional fields, inventory bounds", () => {
+  const ok = toItemInput(itemSchema.parse({ name: " Sled ", description: "Fast\r\nand red", category: "toys", price: "29.99", inventory: "12" }));
+  assert.deepEqual(ok, { name: "Sled", description: "Fast\nand red", category: "toys", priceCents: 2999, inventory: 12 });
+  const rep = toItemInput(itemSchema.parse({ name: "Ball", description: "", category: "", inventory: "0" }));
+  assert.equal(rep.priceCents, undefined); // reps send no price
+  assert.equal(rep.category, undefined);
+  for (const price of ["0", "12.345", "-1", "abc", "10000.01"]) {
+    const r = itemSchema.safeParse({ name: "X", price, inventory: "1" });
+    assert.equal(r.success, false, price);
+  }
+  for (const inventory of ["-1", "1.5", "10000", "lots"]) {
+    assert.equal(itemSchema.safeParse({ name: "X", price: "1", inventory }).success, false, inventory);
+  }
+  assert.equal(itemSchema.safeParse({ name: "X", category: "weapons", inventory: "1" }).success, false);
 });

@@ -49,7 +49,10 @@ async function Overview() {
         )}
         <Card>
           <h2 className="text-lg font-semibold">{t("itemsCardTitle")}</h2>
-          <p className="mt-1 text-sm text-foreground/70">{t("itemsCardBody")}</p>
+          <p className="mb-3 mt-1 text-sm text-foreground/70">{t("itemsCardBody")}</p>
+          <Link href="/dashboard/items" className="font-semibold underline underline-offset-4">
+            {t("nav.items")}
+          </Link>
         </Card>
       </div>
       <p className="mt-6 text-sm text-foreground/70">{t(isOwner ? "signedInOwner" : "signedInRep", { email: user.email })}</p>

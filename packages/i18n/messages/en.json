@@ -29,7 +29,8 @@
       "tooShort": "Too short.",
       "tooLong": "Too long.",
       "httpsOnly": "Use a full web address starting with https://",
-      "mustAgree": "Please read and accept the agreement to continue."
+      "mustAgree": "Please read and accept the agreement to continue.",
+      "invalidPrice": "Enter a price like 29.99 (between $0.01 and $10,000)."
     },
     "accounts": {
       "links": {

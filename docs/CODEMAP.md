@@ -9,13 +9,13 @@
 | Path | What |
 |---|---|
 | `apps/family` :3000 | Next 16 app. `auth.ts`, `app/api/auth/[...nextauth]/route.ts`, `proxy.ts` (locale), `i18n/`, `messages/`, `app/[locale]/` (layout, placeholder page, not-found, `[...rest]` catch-all), `app/icon.tsx` + `apple-icon.tsx` + `manifest.ts`, `app/api/webhooks/stripe/route.ts` |
-| `apps/store` :3001 | Same skeleton + `/register`, `/verify`, `/accept-invite`, `/accept-rep-invite`; `dashboard/` (overview, `profile/` details + photos, `reps/`), `dashboard/actions.ts` (owner Server Actions), `api/cron/purge-signups` |
+| `apps/store` :3001 | Same skeleton + `/register`, `/verify`, `/accept-invite`, `/accept-rep-invite`; `dashboard/` (overview, `items/` list + `new` + `[id]`, `profile/` details + photos, `reps/`), `dashboard/actions.ts` (owner Server Actions), `api/cron/purge-signups` |
 | `apps/admin` :3002 | Same skeleton (+ `robots: noindex`). Dashboard (pending count), `stores/` queue, `stores/[id]` detail + actions, `stores/invite`, `stores/actions.ts` (admin Server Actions) |
 | `packages/lib` | Client-safe: `season`, `roles`, `limits`, `format`, `locales`, `cookies`. **Server-only:** `constants`, `points` |
 | `packages/i18n` | next-intl factories (routing, request, proxy), `Common` messages, `LocaleSwitcher`, `getCommonTranslator` for SMS/push |
 | `packages/db` | `connectDb()`, `withTransaction()` + 12 Mongoose models incl. `Payment` (money records) and `StripeEvent` (webhook log) (server-only) |
 | `packages/email` | **Server-only** `sendEmail()` via Resend + pure `renderEmail()` templates (en/es, escaped, link allow-list). Dev prints instead of sending |
-| `packages/stores` | **Server-only** store business logic: `admin.ts` (approve/reject/suspend/reinstate/discount/invite/resend/cancel: atomic transitions + AuditLog + owner emails), `owner.ts` (profile, photos, reps; ownership re-checked from the DB on every call), `queries.ts` (queue, detail), `schemas.ts` (discount % → bps), `urls.ts` (STORE_APP_URL) |
+| `packages/stores` | **Server-only** store business logic: `admin.ts` (approve/reject/suspend/reinstate/discount/invite/resend/cancel: atomic transitions + AuditLog + owner emails), `owner.ts` (profile, photos, reps; ownership re-checked from the DB on every call), `items.ts` (catalog: window, 50 limit, owner-only pricing, photos), `queries.ts` (queue, detail), `schemas.ts` (discount % → bps), `urls.ts` (STORE_APP_URL) |
 | `packages/payments` | **Server-only** Stripe: `client` (`getStripe`, `expectedLivemode`), `metadata` (`sos_*` payment-label contract), `webhook` (verify → dedupe → `handlers`) |
 | `packages/auth` | NextAuth v4 options, guards, argon2id hashing, parent PIN (server-only); UI: `SignInSlot`/`SignInForm`, `AccountMenu`, `SignOutButton`; `safeCallbackPath` (open-redirect guard); `scripts/seed-dev.ts`; account flows (`account-flows.ts`: store sign-up, verify, resend, forgot/reset), `tokens.ts` (hashed single-use links), `rate-limit.ts`, `schemas.ts`, shared forms (`forms.tsx`, `token-slot.tsx`, `form-actions.ts`) |
 | `packages/ui` | Button, TextField, Card, Alert, SiteHeader, `cn`, `theme.css` (brand tokens, `danger`, focus ring), `app-icon` (icon art + manifest factory) |
@@ -134,7 +134,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
   families see a store only once approved.
 - **Pricing:** owners set prices; reps add/edit item details + inventory (rep-created items wait for a price).
 - **Agreement wording is a DRAFT** (`StoreAgreement` messages, version `2026-11-05`): user must review before launch.
-- Slices: 1 accounts+email (DONE, 349c069) · 2 admin approval/invite (DONE, d900b67 + review fixes 44e58aa) · 3 owner dashboard/reps (built; review pending) · 3 owner dashboard/reps · 4 item catalog · 5 engagement stats.
+- Slices: 1 accounts+email (DONE, 349c069) · 2 admin approval/invite (DONE, d900b67 + review fixes 44e58aa) · 3 owner dashboard/reps (DONE, ce397ac + 5a9b255) · 4 item catalog (built; review pending) · 3 owner dashboard/reps · 4 item catalog · 5 engagement stats.
 
 ## Phase 2 gotchas (learned 2026-11-05)
 
@@ -174,6 +174,20 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
   app (found by the production E2E: production refuses the dev localhost fallback).
 - **Store app Server Action body limit = 4.5mb** (`experimental.serverActions.bodySizeLimit`) for photo uploads.
 - **Store E2E:** `scripts/e2e/browser-store-dashboard.ts` (dev 21 checks; `--prod` 13 checks, real Blob uploads).
+- **Item catalog (slice 4):** items are per store per season (`seasonYear`); statuses `draft` (rep-created, no price) →
+  `active` (owner priced) → `archived` (frees a slot). Add/edit/price/archive only while the item window is open
+  (`storeItemWindow()`: Season `storeWindow` override, else Jan 1–Mar 31); stock updates any time. 50-item limit is
+  checked AFTER insert (counting the new item). Wholesale is shown to owners from the CURRENT discount; it gets fixed
+  on the item at funding/lock time (Phase 6, TODO). Prices typed in dollars are parsed to cents with
+  `parseDollarsToCents` (no float maths). Engagement columns (views, wish-list adds) show `Item.stats`; funding
+  progress per item needs Phase 6 wish lists. Item photos live under `items/<storeId>/`.
+- **Testing the item window now:** set `Season.storeWindow` to `"open"` for the current year in the dev DB (the E2E
+  does this and restores it). An admin control for it comes with the Phase 3 season settings.
+- **Never call a function exported from a `"use client"` file on the server** (e.g. form defaults): keep such helpers
+  in a plain module (`item-values.ts`). **E2E selector trap:** `[name="description"]` also matches
+  `<meta name="description">`; scope to `main`. Headings in the static shell render before streamed content: wait
+  for the content itself.
+- **Store E2E (items):** `scripts/e2e/browser-store-items.ts` (20 checks, dev and production).
 - **New env:** store `CRON_SECRET` (Vercel cron auth); admin `STORE_APP_URL` (links in invite/approval emails;
   defaults to http://localhost:3001 in dev, required in production).
 

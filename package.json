@@ -8,6 +8,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "test": "turbo run test",
+    "admin:create": "node --conditions=react-server packages/auth/scripts/create-admin.ts",
+    "db:sync-indexes": "node --conditions=react-server packages/db/scripts/sync-indexes.ts",
     "seed:dev": "node --conditions=react-server --env-file=apps/family/.env.local packages/auth/scripts/seed-dev.ts"
   },
   "devDependencies": {

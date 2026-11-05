@@ -17,3 +17,24 @@ export function formatCents(cents: number, locale = "en-US"): string {
     currency: "USD",
   }).format(cents / 100);
 }
+
+/** Largest item price we accept: $10,000 (a typo guard; kids' gifts are far below this). */
+export const MAX_PRICE_CENTS = 1_000_000;
+
+/**
+ * Parse a dollar amount typed by a person ("29.99", "30", "$1,299.50") into integer cents,
+ * WITHOUT floating-point maths (29.99 * 100 = 2998.9999… in floats). null if invalid.
+ * Accepts an optional "$", thousands commas, and up to 2 decimals.
+ */
+export function parseDollarsToCents(input: string): number | null {
+  const s = input.trim().replace(/^\$/, "").replace(/,(?=\d{3}(\D|$))/g, "");
+  const m = /^(\d{1,7})(?:\.(\d{1,2}))?$/.exec(s);
+  if (!m) return null;
+  const cents = Number(m[1]) * 100 + Number((m[2] ?? "").padEnd(2, "0") || "0");
+  return Number.isSafeInteger(cents) ? cents : null;
+}
+
+/** 2999 → "29.99" for pre-filling a price input (no currency symbol, always 2 decimals). */
+export function centsToInput(cents: number): string {
+  return `${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, "0")}`;
+}

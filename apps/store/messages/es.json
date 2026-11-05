@@ -75,7 +75,8 @@
       "label": "Secciones del panel",
       "overview": "Resumen",
       "profile": "Perfil de la tienda",
-      "reps": "Representantes"
+      "reps": "Representantes",
+      "items": "Artículos"
     },
     "statusHelp": {
       "pending": "Estamos revisando tu tienda. Ya puedes preparar tu perfil, fotos y equipo. Las familias verán tu tienda cuando sea aprobada.",
@@ -89,7 +90,7 @@
     "repsCardTitle": "Equipo",
     "repsCardBody": "{count, plural, =0 {Aún no hay representantes. Invita a tu personal para ayudar con los artículos.} one {# representante puede ayudar con los artículos.} other {# representantes pueden ayudar con los artículos.}}",
     "itemsCardTitle": "Artículos",
-    "itemsCardBody": "Tu lista de artículos (hasta 50) se puede editar del 1 de enero al 31 de marzo. Esta sección llega en la próxima actualización.",
+    "itemsCardBody": "Tu lista de regalos: hasta 50 artículos. Agrega y pon precio a los artículos del 1 de enero al 31 de marzo; actualiza el inventario en cualquier momento.",
     "signedInOwner": "Sesión iniciada como {email} (dueño).",
     "signedInRep": "Sesión iniciada como {email} (representante).",
     "errors": {
@@ -103,7 +104,10 @@
       "unsupported_type": "Usa una foto JPEG, PNG o WebP.",
       "unreadable": "No se pudo leer ese archivo como foto.",
       "notApproved": "Podrás invitar representantes cuando Spirit O Santa apruebe tu tienda.",
-      "emailFailed": "No pudimos enviar el correo. Inténtalo de nuevo en unos minutos."
+      "emailFailed": "No pudimos enviar el correo. Inténtalo de nuevo en unos minutos.",
+      "windowClosed": "Las listas de artículos solo se pueden cambiar del 1 de enero al 31 de marzo.",
+      "limitReached": "Llegaste al límite de 50 artículos. Archiva un artículo para agregar otro.",
+      "priceRequired": "Escribe un precio."
     }
   },
   "Profile": {
@@ -158,5 +162,66 @@
     "title": "Algo salió mal",
     "body": "Eso no funcionó. Es posible que tus cambios no se hayan guardado. Inténtalo de nuevo.",
     "retry": "Intentar de nuevo"
+  },
+  "Items": {
+    "title": "Artículos",
+    "count": "{count} de {limit} artículos",
+    "addButton": "Agregar un artículo",
+    "windowOpen": "Tu lista de artículos se puede cambiar hasta el 31 de marzo.",
+    "windowClosed": "Las listas de artículos se pueden cambiar del 1 de enero al 31 de marzo. Aún puedes actualizar el inventario.",
+    "readOnly": "Los artículos no se pueden cambiar mientras tu tienda tenga este estado.",
+    "discountNote": "Tu descuento acordado es {discount}. El precio mayorista es lo que le cobras a Spirit O Santa cuando un niño gana un artículo.",
+    "empty": "Aún no hay artículos.",
+    "needsPrice": "Falta el precio",
+    "colItem": "Artículo",
+    "colPrice": "Precio de venta",
+    "colWholesale": "Mayorista (lo que cobras)",
+    "colStock": "Inventario",
+    "colViews": "Vistas",
+    "colAdds": "Agregados a listas",
+    "archivedHeading": "Artículos archivados ({count})",
+    "status": {
+      "draft": "Falta el precio",
+      "active": "Publicado",
+      "archived": "Archivado"
+    },
+    "newTitle": "Agregar un artículo",
+    "editTitle": "Editar artículo",
+    "backToItems": "Volver a artículos",
+    "repDraftNote": "El dueño de tu tienda pondrá el precio antes de que se publique el artículo.",
+    "limitNote": "Llegaste al límite de {limit} artículos. Archiva un artículo para agregar otro.",
+    "name": "Nombre del artículo",
+    "description": "Descripción (opcional)",
+    "category": "Categoría",
+    "noCategory": "Sin categoría",
+    "price": "Precio de venta ($)",
+    "priceHint": "Tu precio normal en tienda. Los niños necesitan esa cantidad de puntos mágicos.",
+    "repPriceNote": "Solo el dueño de la tienda puede poner precios.",
+    "inventory": "En inventario",
+    "add": "Agregar artículo",
+    "save": "Guardar cambios",
+    "saved": "Guardado.",
+    "created": "Artículo agregado. Ya puedes agregar una foto.",
+    "details": "Datos",
+    "photo": "Foto",
+    "noPhoto": "Aún no hay foto.",
+    "addPhoto": "Agregar una foto",
+    "replacePhoto": "Cambiar la foto",
+    "wholesaleLine": "Venta {price} · le cobras a Spirit O Santa {wholesale}",
+    "archiveTitle": "Archivar este artículo",
+    "archiveHelp": "Lo quita de tu lista y libera un lugar. Puedes restaurarlo después.",
+    "restoreTitle": "Restaurar este artículo",
+    "restoreHelp": "Lo vuelve a poner en tu lista (si estás por debajo del límite).",
+    "archive": "Archivar",
+    "restore": "Restaurar",
+    "archived": "Artículo archivado.",
+    "restored": "Artículo restaurado.",
+    "confirmArchive": "¿Archivar {name}? Se quitará de tu lista.",
+    "inventoryFor": "Inventario de {name}",
+    "updateStock": "Actualizar",
+    "updateStockFor": "Actualizar inventario de {name}",
+    "stockSaved": "Guardado",
+    "stockInvalid": "Escribe 0–9999",
+    "photoReplaced": "Foto cambiada."
   }
 }

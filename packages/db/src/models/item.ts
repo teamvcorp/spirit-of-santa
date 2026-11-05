@@ -13,7 +13,12 @@ import {
   seasonYearField,
 } from "./_shared.ts";
 
-export const ITEM_STATUSES = ["active", "archived"] as const;
+/**
+ * draft    = created by a rep, waiting for the owner to set a price (not shown to families).
+ * active   = priced and listed (families see it once the store is approved).
+ * archived = removed from the list; kept for history and doesn't count toward the 50.
+ */
+export const ITEM_STATUSES = ["draft", "active", "archived"] as const;
 
 const itemSchema = new Schema(
   {
@@ -25,7 +30,17 @@ const itemSchema = new Schema(
     photo: imageSchema,
 
     /** Retail price. Its point cost is the same number in centipoints. */
-    priceCents: { ...centsField(), min: 1 },
+    priceCents: {
+      ...centsField(false),
+      min: 1,
+      // A price is required unless the item is a rep's draft awaiting the owner's price.
+      required: [
+        function (this: { status?: string }) {
+          return this.status !== "draft";
+        },
+        "priceCents is required unless the item is a draft",
+      ],
+    },
     /** What Spirit O Santa pays the store (after the agreed discount). Must be <= price. */
     payoutCents: {
       ...centsField(false),

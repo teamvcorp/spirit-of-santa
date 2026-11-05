@@ -1,4 +1,4 @@
-﻿import type { NextConfig } from "next";
+import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { blobImagesConfig } from "@repo/storage/image-rules";
 

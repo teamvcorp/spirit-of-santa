@@ -58,7 +58,7 @@ Everything that all three apps share. No user-facing features yet — just the i
 - [ ] Design and implement full MongoDB schema (Users, Kids, Families, Stores, Items, Deeds, Transactions, Seasons)
 - [ ] Implement NextAuth.js with role-based sessions (child, parent, store-owner, store-rep, admin, community)
 - [ ] Parent PIN system (hashed, separate from main auth session)
-- [ ] Stripe account setup: webhook endpoint, test mode keys in the family app (no Connect: stores are paid by check/outside the app, decided 2026-11-04)
+- [x] Stripe account setup: webhook endpoint + handler (`packages/payments`), test mode keys in the family app (no Connect: stores are paid by check/outside the app, decided 2026-11-04; no refunds, decided 2026-11-05)
 - [ ] FCM project setup; service worker scaffolding in all three apps
 - [x] Vercel Blob (public) store; shared upload helper in `packages/storage` (replaces Cloudinary, 2026-11-05)
 - [ ] Twilio account for SMS (pay-later links)
@@ -139,7 +139,7 @@ The financial layer. Every dollar in and out flows through Stripe; every point h
 **Stripe integration**
 
 - [ ] Stripe Elements embedded in family and community-member pages (no redirects)
-- [ ] Payment Intents for one-time tips; webhook handler for all Stripe events
+- [ ] Payment Intents for one-time tips (webhook handler done in Phase 1; "All tips are final" shown before paying: no-refunds policy)
 - [ ] Store payouts recorded by admin (paid by check/outside the app; no Stripe Connect)
 - [ ] Parent bonus magic: parent pays via Stripe; converts at $1.50 = 1 point, credited to chosen child
 - [ ] Pay-later: Twilio sends SMS with Stripe Payment Link; link expires in 7 days via webhook

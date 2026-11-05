@@ -8,7 +8,7 @@
  */
 import "server-only";
 
-export { connectDb } from "./connect.ts";
+export { connectDb, trusted, withTransaction } from "./connect.ts";
 export { User, USER_STATUSES, type UserDoc } from "./models/user.ts";
 export { Family, type FamilyDoc } from "./models/family.ts";
 export { Kid, type KidDoc } from "./models/kid.ts";
@@ -28,6 +28,14 @@ export {
   type TransactionDoc,
 } from "./models/transaction.ts";
 export { Season, type SeasonDoc } from "./models/season.ts";
+export {
+  Payment,
+  PAYMENT_PURPOSES,
+  PAYMENT_STATUSES,
+  PAYMENT_FULFILMENTS,
+  type PaymentDoc,
+} from "./models/payment.ts";
+export { StripeEvent, STRIPE_EVENT_STATUSES, type StripeEventDoc } from "./models/stripe-event.ts";
 export {
   WishListItem,
   WISH_LIST_STATUSES,

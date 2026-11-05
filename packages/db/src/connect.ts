@@ -53,3 +53,27 @@ export function connectDb(): Promise<typeof mongoose> {
   }
   return cache.promise;
 }
+
+/**
+ * Run `fn` inside a MongoDB transaction: every write made with `{ session }` commits
+ * together or not at all. Mongoose's connection.transaction() retries on transient errors
+ * (e.g. write conflicts) and resets document state if the transaction aborts.
+ *
+ * Use for anything that must stay consistent: a ledger row + the kid balance it changes.
+ * Pass `session` to EVERY read/write inside, or that operation runs outside the transaction.
+ */
+export async function withTransaction<T>(
+  fn: (session: mongoose.mongo.ClientSession) => Promise<T>,
+): Promise<T> {
+  const m = await connectDb();
+  return m.connection.transaction(fn);
+}
+
+/**
+ * Mark a filter operator WE wrote (e.g. { $ne: "x" }, { $in: [...] }) as safe. The global
+ * sanitizeFilter setting otherwise rewrites `$` keys in filters to literal matches (that's
+ * the NoSQL-injection guard for user input). Never wrap values that came from a request.
+ */
+export function trusted<T>(operator: T): T {
+  return mongoose.trusted(operator) as T;
+}

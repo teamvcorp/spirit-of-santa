@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Proxy (Next 16's name for middleware). Language detection only; NOT an auth check.
  * Shared logic: packages/i18n/src/proxy.ts. Notes: docs/vendor/next-intl.md
  */

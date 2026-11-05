@@ -8,18 +8,19 @@
 
 | Path | What |
 |---|---|
-| `apps/family` :3000 | Next 16 app. `auth.ts`, `app/api/auth/[...nextauth]/route.ts`, `proxy.ts` (locale), `i18n/`, `messages/`, `app/[locale]/` (layout, placeholder page, not-found, `[...rest]` catch-all), `app/icon.tsx` + `apple-icon.tsx` + `manifest.ts` |
+| `apps/family` :3000 | Next 16 app. `auth.ts`, `app/api/auth/[...nextauth]/route.ts`, `proxy.ts` (locale), `i18n/`, `messages/`, `app/[locale]/` (layout, placeholder page, not-found, `[...rest]` catch-all), `app/icon.tsx` + `apple-icon.tsx` + `manifest.ts`, `app/api/webhooks/stripe/route.ts` |
 | `apps/store` :3001 | Same skeleton |
 | `apps/admin` :3002 | Same skeleton (+ `robots: noindex`) |
 | `packages/lib` | Client-safe: `season`, `roles`, `limits`, `format`, `locales`, `cookies`. **Server-only:** `constants`, `points` |
 | `packages/i18n` | next-intl factories (routing, request, proxy), `Common` messages, `LocaleSwitcher`, `getCommonTranslator` for SMS/push |
-| `packages/db` | `connectDb()` + 10 Mongoose models (server-only) |
+| `packages/db` | `connectDb()`, `withTransaction()` + 12 Mongoose models incl. `Payment` (money records) and `StripeEvent` (webhook log) (server-only) |
+| `packages/payments` | **Server-only** Stripe: `client` (`getStripe`, `expectedLivemode`), `metadata` (`sos_*` payment-label contract), `webhook` (verify → dedupe → `handlers`) |
 | `packages/auth` | NextAuth v4 options, guards, argon2id hashing, parent PIN (server-only); UI: `SignInSlot`/`SignInForm`, `AccountMenu`, `SignOutButton`; `safeCallbackPath` (open-redirect guard); `scripts/seed-dev.ts` |
 | `packages/ui` | Button, TextField, Card, Alert, SiteHeader, `cn`, `theme.css` (brand tokens, `danger`, focus ring), `app-icon` (icon art + manifest factory) |
 | `packages/storage` | **Server-only** `images` (`uploadPublicImage`/`deletePublicImage` on public Vercel Blob, sharp re-encode); client-safe `image-rules` (limits, magic-byte sniff, `blobImagesConfig` for next.config) |
 | `packages/eslint-config` | `./base` (packages), `./next-js` (apps). only-warn + `--max-warnings 0` |
 | `packages/typescript-config` | `base`, `nextjs` (apps), `library` (lib/db/auth), `react-library` (ui) |
-| `docs/vendor/` | Version-specific notes: `mongoose-9.md`, `next-auth-v4.md`, `next-intl.md`, `vercel-blob.md` (also icons) |
+| `docs/vendor/` | Version-specific notes: `mongoose-9.md`, `next-auth-v4.md`, `next-intl.md`, `vercel-blob.md` (also icons), `stripe.md` |
 
 ## Key decisions (why things look the way they do)
 
@@ -42,6 +43,9 @@
 - **Images (2026-11-05):** public Vercel Blob store, product/store photos ONLY (never kids/families/documents).
   Every upload is size-capped (4 MB), type-checked by magic bytes, re-encoded to WebP with EXIF/GPS
   stripped, and stored as `<folder>/<ownerId>/<uuid>.webp`. DB keeps `{ url, pathname }`. See `docs/vendor/vercel-blob.md`.
+- **Payments (2026-11-05):** Stripe webhook credits tips/bonuses (ledger + balance + deed in one DB transaction,
+  idempotent per PaymentIntent). **No refunds at all**: refunds/chargebacks recorded on `Payment` + flagged, points kept.
+  Donations/pay-ups recorded as "held" until Phases 5–6. See `docs/vendor/stripe.md`.
 - **No PWA (2026-11-05):** home-screen icon only (`display: "browser"` manifest, no service worker).
 - **TS source packages:** no build step; Next transpiles them. Relative imports use `.ts` extensions
   (Node type-stripping for tests). Mongoose must be default-imported (CJS) in packages/db.
@@ -64,6 +68,12 @@ Tests: Node's built-in runner (`node --conditions=react-server --test`), no DB r
 (Vercel uses `spiritofsanta`). `npm run seed:dev` (needs `SEED_PASSWORD`, 12+ chars) creates
 `dev-parent@`, `dev-owner@`, `dev-rep@`, `dev-admin@spiritofsanta.test` + a Dev Family and
 Dev Toy Shop; refuses any DB not ending in `_dev`. `npm run seed:dev -- --remove` deletes them.
+
+**E2E scripts:** `scripts/e2e/signin.mjs`, `roles.mjs` (need seeded users), `stripe-webhook.ts` (self-contained,
+creates + deletes its own fixtures in the `_dev` DB; `--real-stripe` adds a real test payment). Usage in file headers.
+
+**PowerShell 5 gotcha:** `Set-Content -Encoding utf8` writes a BOM (breaks some JSON parsers). Use the Write tool
+or `[IO.File]::WriteAllText(path, text, (New-Object Text.UTF8Encoding $false))`.
 
 **Local server gotcha (Windows):** `netstat`/`Get-NetTCPConnection` may not show a `next start`
 listener. Find strays with `Get-CimInstance Win32_Process -Filter "Name='node.exe'"` and match
@@ -97,7 +107,7 @@ Stripe test keys ✅ (family + store; remove from store). NEXTAUTH_SECRET ✅ (a
 Stripe only collects money (tips, parent bonuses/pay-ups, donations) into the platform account.
 Store payouts will need an admin-recorded payout log (TODO below), not Stripe.
 
-**Stripe webhook endpoint (one; route not built yet):**
+**Stripe webhook endpoint (one; route BUILT 2026-11-05, 22/22 E2E incl. a real test payment):**
 - `https://spiritofsanta.com/api/webhooks/stripe` (family; "Your account"; snapshot payloads):
   payment_intent.succeeded / .payment_failed / .canceled; checkout.session.completed / .expired /
   .async_payment_succeeded / .async_payment_failed; charge.refunded; charge.dispute.created / .closed
@@ -108,6 +118,7 @@ Store payouts will need an admin-recorded payout log (TODO below), not Stripe.
   Stripe doesn't follow redirects, so use the exact canonical host (apex vs www).
 - Pay-later 7-day expiry: Payment Links don't expire on their own; our code deactivates them.
 - Handler rule: read the raw body, verify the signature first, dedupe on `event.id`, return 2xx fast.
+- **Set the endpoint API version to `2026-09-30.endive`** (account default is still 2022-11-15).
 
 Check each library against the bundled Next 16 docs before use; save notes in `docs/vendor/`.
 Deadline that matters most: **Store MVP live Jan 1, 2027.**

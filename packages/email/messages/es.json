@@ -43,7 +43,7 @@
       "button": "Iniciar sesión"
     },
     "inviteRep": {
-      "subject": "Te invitan a ayudar a administrar {storeName} en Spirit O Santa",
+      "subject": "Te invitan a ayudar a administrar una tienda en Spirit O Santa",
       "heading": "Únete al equipo de tu tienda",
       "body": "Te invitaron a ayudar a administrar los artículos de regalo de {storeName} en Spirit O Santa. Elige tu nombre y contraseña para empezar.",
       "button": "Aceptar la invitación",

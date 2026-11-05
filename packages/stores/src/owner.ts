@@ -15,7 +15,7 @@ import { ActionToken, AuditLog, connectDb, Store, trusted, User, withTransaction
 import { sendEmail } from "@repo/email";
 import { localizePath } from "@repo/i18n/paths";
 import { DEFAULT_LOCALE, isLocale } from "@repo/lib/locales";
-import { createActionToken } from "@repo/auth/tokens";
+import { cancelOtherTokens, createActionToken, voidToken } from "@repo/auth/tokens";
 import { emailKey, hitRateLimit } from "@repo/auth/rate-limit";
 import type { StoreDetailsInput } from "@repo/auth/schemas";
 import { deletePublicImage, ImageUploadError, isOwnedImagePath, uploadPublicImage, type ImageUploadErrorCode } from "@repo/storage/images";
@@ -23,7 +23,7 @@ import { deletePublicImage, ImageUploadError, isOwnedImagePath, uploadPublicImag
 export type StoreActor = { id: string; role: string; storeId?: string };
 export type OwnerResult =
   | { ok: true }
-  | { ok: false; error: "notFound" | "readOnly" | "tooManyPhotos" | "emailInUse" | "rateLimited" | ImageUploadErrorCode };
+  | { ok: false; error: "notFound" | "readOnly" | "notApproved" | "tooManyPhotos" | "emailInUse" | "rateLimited" | "emailFailed" | ImageUploadErrorCode };
 
 const EDITABLE = ["pending", "approved"] as const;
 export const MAX_STORE_PHOTOS = 10;
@@ -143,19 +143,23 @@ export async function listReps(actor: StoreActor): Promise<{ reps: RepRow[]; inv
 
 /**
  * Invite a rep by email: a 7-day single-use link to the store app's /accept-rep-invite.
- * Allowed: brand-new emails, or a rep previously REMOVED from a store (suspended rep with no
- * store). Any other existing account → emailInUse (the owner is a verified, trusted user
- * of THIS store, so telling them is acceptable). Rate-limited per store.
+ *
+ * Only APPROVED stores may invite (review finding 2026-11-05): an unreviewed store could
+ * otherwise send emails carrying text it chose to any address. The email subject doesn't
+ * include the store name either. Rate limits: per store, and per store+email (so one store
+ * can't use up another store's ability to invite a person).
+ * Allowed addresses: brand-new emails, or a rep previously REMOVED from a store. Any other
+ * existing account → emailInUse (only an admin-reviewed store can learn this).
+ * Older links for this person+store stop working only AFTER the new email is sent.
  */
-/** `appOrigin`: the store app's own public origin (its NEXTAUTH_URL), for the link in the email. */
 export async function inviteRep(actor: StoreActor, email: string, locale: string, appOrigin: string): Promise<OwnerResult> {
   const store = await ownedStore(actor);
   if (!store) return { ok: false, error: "notFound" };
-  if (!isEditable(store.status)) return { ok: false, error: "readOnly" };
+  if (store.status !== "approved") return { ok: false, error: "notApproved" };
   const storeId = String(store._id);
   const [storeOk, emailOk] = await Promise.all([
     hitRateLimit(`rep-invite:store:${storeId}`, 20, 86_400),
-    hitRateLimit(`rep-invite:email:${emailKey(email)}`, 3, 86_400),
+    hitRateLimit(`rep-invite:email:${storeId}:${emailKey(email)}`, 3, 86_400),
   ]);
   if (!storeOk || !emailOk) return { ok: false, error: "rateLimited" };
 
@@ -163,7 +167,7 @@ export async function inviteRep(actor: StoreActor, email: string, locale: string
   const reusable = existing && existing.role === "store_rep" && existing.status === "suspended" && !existing.storeId;
   if (existing && !reusable) return { ok: false, error: "emailInUse" };
 
-  const { raw } = await createActionToken("invite_rep", { email, storeId, createdByUserId: actor.id });
+  const { raw, id } = await createActionToken("invite_rep", { email, storeId, createdByUserId: actor.id }, { cancelOlder: false });
   const safeLocale = isLocale(locale) ? locale : DEFAULT_LOCALE;
   const link = new URL(localizePath("/accept-rep-invite", safeLocale), new URL(appOrigin).origin);
   link.searchParams.set("token", raw);
@@ -171,11 +175,13 @@ export async function inviteRep(actor: StoreActor, email: string, locale: string
     await sendEmail({ to: email, locale: safeLocale, template: "inviteRep", values: { storeName: store.name, link: link.toString() } });
   } catch (err) {
     console.error("[stores] rep invite email failed:", err instanceof Error ? err.message : "unknown");
+    await voidToken(id); // the earlier link (if any) keeps working
+    return { ok: false, error: "emailFailed" };
   }
+  await cancelOtherTokens("invite_rep", { email, storeId }, id);
   await audit(actor.id, "rep.invite", "store", storeId);
   return { ok: true };
 }
-
 /**
  * Remove a rep: take them off the store and suspend their login (their sessions end at the
  * next 5-minute re-check, and every store page re-checks membership immediately). The

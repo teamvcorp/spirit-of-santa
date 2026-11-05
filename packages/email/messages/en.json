@@ -43,7 +43,7 @@
       "button": "Sign in"
     },
     "inviteRep": {
-      "subject": "You're invited to help run {storeName} on Spirit O Santa",
+      "subject": "You're invited to help run a store on Spirit O Santa",
       "heading": "Join your store's team",
       "body": "You've been invited to help manage {storeName}'s gift items on Spirit O Santa. Choose your name and password to get started.",
       "button": "Accept the invitation",

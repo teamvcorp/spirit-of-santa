@@ -101,7 +101,9 @@
       "empty": "Please choose a photo first.",
       "too_large": "That photo is too big (max 4 MB).",
       "unsupported_type": "Please use a JPEG, PNG or WebP photo.",
-      "unreadable": "That file couldn't be read as a photo."
+      "unreadable": "That file couldn't be read as a photo.",
+      "notApproved": "You can invite reps once Spirit O Santa has approved your store.",
+      "emailFailed": "We couldn't send the email. Please try again in a few minutes."
     }
   },
   "Profile": {
@@ -116,7 +118,9 @@
     "removePhoto": "Remove",
     "addPhoto": "Add a photo ({count} of {max})",
     "photoHint": "JPEG, PNG or WebP, up to {mb} MB. We remove location data from photos automatically.",
-    "upload": "Upload photo"
+    "upload": "Upload photo",
+    "photoAdded": "Photo added.",
+    "photoRemoved": "Photo removed."
   },
   "Reps": {
     "title": "Reps",
@@ -133,7 +137,9 @@
     "email": "Rep's email",
     "language": "Email language",
     "sendInvite": "Send invitation",
-    "invited": "Invitation sent."
+    "invited": "Invitation sent.",
+    "removed": "Rep removed. They've been signed out.",
+    "inviteNeedsApproval": "You can invite reps once your store is approved."
   },
   "AcceptRepInvitePage": {
     "title": "Join your store's team",
@@ -147,5 +153,10 @@
     "done": "You're all set! Sign in to start helping with your store's items.",
     "signIn": "Sign in",
     "invalid": "This invitation link has expired or was already used. Ask the store owner to send a new one."
+  },
+  "ErrorPage": {
+    "title": "Something went wrong",
+    "body": "That didn't work. Your changes may not have been saved. Please try again.",
+    "retry": "Try again"
   }
 }

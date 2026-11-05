@@ -36,10 +36,12 @@ const idString = (v: Id) => (v == null ? undefined : String(v));
 export async function createActionToken(
   purpose: ActionTokenPurpose,
   target: TokenTarget,
+  /** false = keep older links working; call cancelOtherTokens() once the new email is sent. */
+  opts: { cancelOlder?: boolean } = {},
 ): Promise<{ raw: string; id: string }> {
   const email = target.email.trim().toLowerCase();
   const now = new Date();
-  await ActionToken.updateMany({ email, purpose, usedAt: null }, { $set: { usedAt: now } });
+  if (opts.cancelOlder !== false) await cancelOtherTokens(purpose, { email, storeId: target.storeId });
   const raw = randomBytes(32).toString("base64url");
   const doc = await ActionToken.create({
     purpose,
@@ -75,4 +77,33 @@ export async function peekActionToken(raw: unknown, purpose: ActionTokenPurpose)
     usedAt: null,
     expiresAt: trusted({ $gt: new Date() }),
   }).lean();
+}
+
+/**
+ * Cancel unused tokens of `purpose` for this email, except `keepId`. Invites are scoped to
+ * the same store: one store's invite must never cancel another store's pending invite to the
+ * same person (review finding 2026-11-05).
+ */
+export async function cancelOtherTokens(
+  purpose: ActionTokenPurpose,
+  target: { email: string; storeId?: Id },
+  keepId?: string,
+): Promise<void> {
+  const email = target.email.trim().toLowerCase();
+  const scoped = (purpose === "invite_rep" || purpose === "invite_owner") && target.storeId != null;
+  await ActionToken.updateMany(
+    {
+      email,
+      purpose,
+      usedAt: null,
+      ...(scoped ? { storeId: idString(target.storeId) } : {}),
+      ...(keepId ? { _id: trusted({ $ne: keepId }) } : {}),
+    },
+    { $set: { usedAt: new Date() } },
+  );
+}
+
+/** Mark one token used (e.g. its email could not be sent). */
+export async function voidToken(id: string): Promise<void> {
+  await ActionToken.updateOne({ _id: id }, { $set: { usedAt: new Date() } });
 }

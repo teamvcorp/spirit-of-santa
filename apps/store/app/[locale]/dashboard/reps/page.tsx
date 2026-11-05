@@ -7,7 +7,7 @@ import { Card } from "@repo/ui/card";
 import { DashboardNav } from "../dashboard-nav";
 import { EDITABLE_STATUSES, loadMember } from "../member";
 import { NoAccess } from "../no-access";
-import { InviteRepForm, RemoveRepButton } from "./reps-ui";
+import { InviteRepForm, RepsList } from "./reps-ui";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Reps");
@@ -30,21 +30,7 @@ async function Content() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <h2 className="mb-3 text-lg font-semibold">{t("current")}</h2>
-          {data.reps.length === 0 ? (
-            <p className="text-sm text-foreground/70">{t("none")}</p>
-          ) : (
-            <ul className="flex flex-col divide-y divide-foreground/10">
-              {data.reps.map((r) => (
-                <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                  <span>
-                    <span className="font-medium">{r.name ?? r.email}</span>
-                    {r.name && <span className="block text-sm text-foreground/70">{r.email}</span>}
-                  </span>
-                  <RemoveRepButton repId={r.id} name={r.name ?? r.email} />
-                </li>
-              ))}
-            </ul>
-          )}
+          <RepsList reps={data.reps} />
           {data.invites.length > 0 && (
             <>
               <h3 className="mb-2 mt-6 font-semibold">{t("pending")}</h3>
@@ -61,7 +47,8 @@ async function Content() {
         <Card>
           <h2 className="mb-3 text-lg font-semibold">{t("inviteTitle")}</h2>
           <p className="mb-4 text-sm text-foreground/70">{t("inviteIntro")}</p>
-          <InviteRepForm editable={editable} />
+          {/* Only admin-approved stores may send invites (anti spam-relay; review 2026-11-05). */}
+          <InviteRepForm canInvite={store.status === "approved"} />
         </Card>
       </div>
     </>

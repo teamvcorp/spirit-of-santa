@@ -47,6 +47,7 @@ async function storeWithOwner(n: string, status: string) {
 const A = await storeWithOwner("a", "approved");
 const B = await storeWithOwner("b", "approved"); // a different owner (IDOR test)
 const S = await storeWithOwner("s", "suspended");
+const P = await storeWithOwner("p", "pending"); // not yet reviewed by an admin
 const repEmail = mail("rep");
 
 const log = () => readFileSync(logFile, "utf8");
@@ -84,6 +85,7 @@ async function signInUI(p: Page, email: string, password: string) {
 }
 const photoFile = join(tmpdir(), `e2e-photo-${tag}.jpg`);
 const fakeFile = join(tmpdir(), `e2e-fake-${tag}.jpg`);
+const bigFile = join(tmpdir(), `e2e-big-${tag}.jpg`);
 const uploaded: string[] = [];
 
 try {
@@ -120,7 +122,12 @@ try {
   // 3. Photos: real upload (with fake GPS/EXIF), fake image rejected, remove.
   writeFileSync(photoFile, await sharp({ create: { width: 2400, height: 1600, channels: 3, background: "#1f6f43" } }).withExif({ IFD0: { ImageDescription: "secret-location" } }).jpeg().toBuffer());
   writeFileSync(fakeFile, "<html>not an image</html>");
+  writeFileSync(bigFile, Buffer.alloc(5 * 1024 * 1024, 0xff)); // 5 MB: over the limit
   await ready(owner);
+  await owner.setInputFiles('[name="photo"]', bigFile);
+  await owner.locator("form", { has: owner.locator('[name="photo"]') }).locator('button[type="submit"]').click();
+  await owner.locator("#photo-error").waitFor();
+  check("a 5 MB photo is stopped in the browser with a friendly message (no crash)", (await owner.locator("#photo-error").innerText()).includes("too big"));
   await owner.setInputFiles('[name="photo"]', fakeFile);
   await owner.locator("form", { has: owner.locator('[name="photo"]') }).locator('button[type="submit"]').click();
   await owner.locator("main [role=alert]").first().waitFor();
@@ -133,6 +140,7 @@ try {
   const photo = a2?.photos?.[0];
   if (photo) uploaded.push(photo.pathname);
   check("photo uploaded and shown", !!photo && photo.pathname.startsWith(`stores/${A.storeId}/`));
+  check("'Photo added' confirmation shown", (await mainText(owner)).includes("Photo added."));
   const served = photo ? await fetch(photo.url) : null;
   const meta = served ? await sharp(Buffer.from(await served.arrayBuffer())).metadata() : null;
   check("stored photo is WebP, resized, with location/EXIF stripped", meta?.format === "webp" && (meta.width ?? 0) <= 1600 && !meta.exif, `${meta?.format} ${meta?.width} exif=${!!meta?.exif}`);
@@ -155,7 +163,15 @@ try {
   await owner.locator("form", { has: owner.locator('input[name="pathname"]') }).first().locator('button[type="submit"]').click();
   await owner.locator("main").getByText("No photos yet").waitFor();
   check("owner removes the photo (DB updated)", ((await Store.findById(A.storeId).lean())?.photos?.length ?? 0) === 0);
+  check("'Photo removed' confirmation shown", (await mainText(owner)).includes("Photo removed."));
   uploaded.length = 0; // removed by the app itself
+
+  // Review fix: a store not yet approved can't send rep invites.
+  const ownerP = await newPage();
+  await signInUI(ownerP, mail("p"), PW);
+  await ownerP.goto(`${base}/dashboard/reps`);
+  await ownerP.locator("main h1").waitFor();
+  check("pending store: invite form disabled with an explanation", (await ownerP.locator('[name="email"]').isDisabled()) && (await mainText(ownerP)).includes("once your store is approved"));
 
   if (PROD) {
     // Invite still goes out (to Resend's test inbox); acceptance needs the emailed link, so stop here.
@@ -176,6 +192,14 @@ try {
   check("pending invitation listed", (await mainText(owner)).includes(repEmail));
   const repLink = await emailedLink(repEmail, "inviteRep", "/accept-rep-invite");
   check("rep invite email has an /accept-rep-invite link", !!repLink);
+  // Review fix: another store inviting the same person must NOT cancel store A's link.
+  await ownerB.goto(`${base}/dashboard/reps`);
+  await ready(ownerB);
+  await ownerB.fill('[name="email"]', repEmail);
+  await ownerB.click('main form:has([name="email"]) button[type="submit"]');
+  await ownerB.locator("main").getByText("Invitation sent.").waitFor();
+  const openA = await ActionToken.countDocuments({ email: repEmail, purpose: "invite_rep", storeId: A.storeId, usedAt: null });
+  check("store B's invite to the same person leaves store A's invite link working", openA === 1);
   const rep = await newPage();
   await rep.goto(repLink!);
   await rep.locator("main").getByText(`Dash a ${tag}`).waitFor();
@@ -199,6 +223,7 @@ try {
   await owner.locator("main").getByText("Rep One").waitFor();
   await owner.locator("li", { hasText: "Rep One" }).locator('button[type="submit"]').click();
   await owner.locator("main").getByText("No reps yet.").waitFor();
+  check("'Rep removed' confirmation shown", (await mainText(owner)).includes("Rep removed"));
   const removed = await User.findOne({ email: repEmail }).lean();
   check("removed rep: suspended, unlinked, sessions revoked", removed?.status === "suspended" && !removed.storeId && (removed.sessionVersion ?? 0) >= 1);
   await rep.goto(`${base}/dashboard`);
@@ -241,7 +266,7 @@ try {
   await browser.close();
   for (const p of uploaded) await deletePublicImage(p, { folder: "stores", ownerId: A.storeId }).catch(() => {});
   const users = await User.find({ email: trusted({ $regex: new RegExp(`(-${tag}@spiritofsanta\\.test|${tag}@resend\\.dev)$`) }) }).select("_id").lean();
-  const ids = [A.storeId, B.storeId, S.storeId];
+  const ids = [A.storeId, B.storeId, S.storeId, P.storeId];
   await AuditLog.collection.deleteMany({ $or: [{ targetId: { $in: ids.map((i) => new mongoose.Types.ObjectId(i)) } }, { actorUserId: { $in: users.map((u) => u._id) } }] });
   await Store.collection.deleteMany({ _id: { $in: ids.map((i) => new mongoose.Types.ObjectId(i)) } });
   await User.collection.deleteMany({ _id: { $in: users.map((u) => u._id) } });

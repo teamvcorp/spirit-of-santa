@@ -101,7 +101,9 @@
       "empty": "Primero elige una foto.",
       "too_large": "Esa foto es demasiado grande (máximo 4 MB).",
       "unsupported_type": "Usa una foto JPEG, PNG o WebP.",
-      "unreadable": "No se pudo leer ese archivo como foto."
+      "unreadable": "No se pudo leer ese archivo como foto.",
+      "notApproved": "Podrás invitar representantes cuando Spirit O Santa apruebe tu tienda.",
+      "emailFailed": "No pudimos enviar el correo. Inténtalo de nuevo en unos minutos."
     }
   },
   "Profile": {
@@ -116,7 +118,9 @@
     "removePhoto": "Quitar",
     "addPhoto": "Agregar una foto ({count} de {max})",
     "photoHint": "JPEG, PNG o WebP, hasta {mb} MB. Quitamos automáticamente los datos de ubicación de las fotos.",
-    "upload": "Subir foto"
+    "upload": "Subir foto",
+    "photoAdded": "Foto agregada.",
+    "photoRemoved": "Foto quitada."
   },
   "Reps": {
     "title": "Representantes",
@@ -133,7 +137,9 @@
     "email": "Correo del representante",
     "language": "Idioma del correo",
     "sendInvite": "Enviar invitación",
-    "invited": "Invitación enviada."
+    "invited": "Invitación enviada.",
+    "removed": "Representante quitado. Se cerró su sesión.",
+    "inviteNeedsApproval": "Podrás invitar representantes cuando tu tienda sea aprobada."
   },
   "AcceptRepInvitePage": {
     "title": "Únete al equipo de tu tienda",
@@ -147,5 +153,10 @@
     "done": "¡Listo! Inicia sesión para empezar a ayudar con los artículos de tu tienda.",
     "signIn": "Iniciar sesión",
     "invalid": "Este enlace de invitación venció o ya se usó. Pide al dueño de la tienda que te envíe uno nuevo."
+  },
+  "ErrorPage": {
+    "title": "Algo salió mal",
+    "body": "Eso no funcionó. Es posible que tus cambios no se hayan guardado. Inténtalo de nuevo.",
+    "retry": "Intentar de nuevo"
   }
 }

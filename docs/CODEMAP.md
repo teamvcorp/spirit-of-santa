@@ -71,6 +71,15 @@ Stripe (test keys, webhook secret, Connect), Twilio, Cloudinary, FCM project, do
 4. Seed script + end-to-end login test (needs Atlas)
 5. FCM + PWA (Next 16 native manifest + **Serwist**; roadmap's next-pwa is unmaintained)
 
+**Stripe webhook endpoints (decided 2026-11-04; routes not built yet):**
+- `https://spiritofsanta.com/api/webhooks/stripe` (family; "Your account" events: payment_intent.*,
+  checkout.session.completed, charge.refunded, charge.dispute.created)
+- `https://store.spiritofsanta.com/api/webhooks/stripe-connect` (store; "Connected accounts" events:
+  account.updated, account.application.deauthorized, payout.failed)
+- Each endpoint has its own `whsec_` secret → that app's `STRIPE_WEBHOOK_SECRET`. Stripe doesn't
+  follow redirects, so use the exact canonical host (apex vs www). Local: `stripe listen --forward-to`.
+- Handler rule: read the raw body, verify the signature first, dedupe on `event.id`, return 2xx fast.
+
 Check each library against the bundled Next 16 docs before use; save notes in `docs/vendor/`.
 Deadline that matters most: **Store MVP live Jan 1, 2027.**
 

@@ -44,7 +44,9 @@ async function Dashboard() {
   const user = await getSessionUser(authOptions, { includeRestricted: true }); // redirected below
   if (user?.role !== "admin") return null;
   if (user.mfaSetup) redirect("/mfa/setup"); // no admin data until MFA is set up
-  const [s, t, home, format] = await Promise.all([dashboardStats(), getTranslations("Dashboard"), getTranslations("HomePage"), getFormatter()]);
+  const [s, t, home, format, at] = await Promise.all([dashboardStats(), getTranslations("Dashboard"), getTranslations("HomePage"), getFormatter(), getTranslations("AuditActions")]);
+  // "store.approve" -> "Store approved"; unknown (future) actions fall back to the code.
+  const label = (action: string) => (at.has(action.replace(/\./g, "_") as never) ? at(action.replace(/\./g, "_") as never) : action);
   const when = (d: Date) => format.dateTime(new Date(d), { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
   return (
     <div className="flex w-full max-w-5xl flex-col gap-6 text-left">
@@ -78,7 +80,7 @@ async function Dashboard() {
           { label: t("users.parent"), value: s.users.parent, href: { pathname: "/users", query: { role: "parent", status: "active" } } },
           { label: t("users.store_owner"), value: s.users.store_owner, href: { pathname: "/users", query: { role: "store_owner", status: "active" } } },
           { label: t("users.store_rep"), value: s.users.store_rep, href: { pathname: "/users", query: { role: "store_rep", status: "active" } } },
-          { label: t("users.admin"), value: s.users.admin, href: { pathname: "/users", query: { role: "admin" } } },
+          { label: t("users.admin"), value: s.users.admin, href: { pathname: "/users", query: { role: "admin", status: "active" } } },
           { label: t("users.pending"), value: s.users.pending, href: { pathname: "/users", query: { status: "pending" } } },
           { label: t("users.suspended"), value: s.users.suspended, href: { pathname: "/users", query: { status: "suspended" } } },
         ]}
@@ -99,7 +101,7 @@ async function Dashboard() {
           <ul className="flex flex-col gap-1 text-sm" data-testid="recent-activity">
             {s.activity.map((a, i) => (
               <li key={i}>
-                <span className="text-foreground/70">{when(a.at)}</span> · <code>{a.action}</code> · {a.by}
+                <span className="text-foreground/70">{when(a.at)}</span> · {label(a.action)} · {a.by}
               </li>
             ))}
           </ul>

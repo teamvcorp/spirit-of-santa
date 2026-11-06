@@ -220,7 +220,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
 
 ## Phase 3 (admin app), agreed 2026-11-05
 
-Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, ccd6572 + review fixes) → 3 user management (DONE, a428090 + review fixes) → 4 deed catalog (DONE, 0bcd34f + review fixes) → 5 platform dashboard v1 (built; review pending). Deferred until their data exists: content moderation
+Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, ccd6572 + review fixes) → 3 user management (DONE, a428090 + review fixes) → 4 deed catalog (DONE, 0bcd34f + review fixes) → 5 platform dashboard v1 (DONE, 4c5af67 + review fixes). **Phase 3 buildable scope COMPLETE (2026-11-05).** Deferred until their data exists: content moderation
 (Phase 4), donation settings + pay-later links (Phase 5), announcements (Phase 7).
 
 - **Admin MFA (slice 1):** TOTP authenticator + 10 recovery codes (`docs/vendor/totp-mfa.md`). Admin without MFA
@@ -244,7 +244,8 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   own id once bypassed "not yourself").
 - **Dashboard (slice 5):** admin home (`apps/admin/lib/dashboard.ts`): stores/items, accounts by role + pending/suspended,
   deeds, views, items on lists, last 15 audit entries. Add points/money/completed-deed tiles in Phases 4–5.
-  E2E `browser-admin-dashboard.ts` (9; tiles compared with its own DB counts).
+  E2E `browser-admin-dashboard.ts` (12; tiles compared with its own DB counts). Audit actions have readable labels
+  (admin messages `AuditActions`, key = action with "." → "_"): ADD A LABEL whenever you add an audit action.
 - **Deed catalog (slice 4):** new package `@repo/deeds` (`catalog.ts` server, `schemas.ts` zod). Admin `/deeds`, `/deeds/new`,
   `/deeds/[id]`: titles en+es required, optional description + suggested tip range (cents, ≤ MAX_TIP_CENTS), ↑/↓ reorder
   (whole list renumbered 10,20,… in one transaction), on/off (no delete: deeds reference their type). "8 suggested

@@ -89,6 +89,8 @@ const userSchema = new Schema(
   },
 );
 
+userSchema.index({ status: 1, role: 1 }); // admin dashboard counts + /users filters
+
 export type UserDoc = InferSchemaType<typeof userSchema>;
 export const User = (models.User ??
   model("User", userSchema)) as Model<UserDoc>;

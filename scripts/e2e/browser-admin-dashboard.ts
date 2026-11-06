@@ -53,9 +53,22 @@ try {
   check("admins tile matches the database (incl. this test's admin)", (await tile("Admins (active)")) === admins, `${await tile("Admins (active)")} vs ${admins}`);
   check("approved stores tile matches", (await tile("Approved stores")) === approved);
   check("deeds tile matches", (await tile("Deeds in the catalog")) === deeds);
+  const { getSeasonYear } = await import("@repo/lib/season");
+  const { Item, WishListItem, trusted } = await import("@repo/db");
+  const year = getSeasonYear();
+  const [listed, drafts, pending, suspended, onLists] = await Promise.all([
+    Item.countDocuments({ seasonYear: year, status: "active" }),
+    Item.countDocuments({ seasonYear: year, status: "draft" }),
+    User.countDocuments({ status: "pending" }),
+    User.countDocuments({ status: "suspended" }),
+    WishListItem.countDocuments({ seasonYear: year, status: trusted({ $ne: "removed" }) }),
+  ]);
+  check("season item tiles match (listed + drafts)", (await tile("Items listed this season")) === listed && (await tile("Draft items (need a price)")) === drafts);
+  check("account status tiles match (unconfirmed + suspended)", (await tile("Email not confirmed")) === pending && (await tile("Suspended accounts")) === suspended);
+  check("items-on-wish-lists tile matches", (await tile("Items on wish lists")) === onLists);
   check("season line shown", (await page.locator('[data-testid="dash-season"]').innerText()).includes("Season"));
   const latest = await AuditLog.findOne().sort({ createdAt: -1 }).lean();
-  check("recent activity lists the newest audit entry", !latest || (await page.locator('[data-testid="recent-activity"]').innerText()).includes(latest.action));
+  check("recent activity shows readable labels, not codes", !latest || !(await page.locator('[data-testid="recent-activity"]').innerText()).includes(latest.action));
   check("pending-stores link kept", (await page.locator("main").innerText()).match(/stores? waiting for review/) !== null);
 
   await page.goto(`${base}/es`);

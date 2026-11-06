@@ -76,6 +76,7 @@ const itemSchema = new Schema(
 );
 
 itemSchema.index({ storeId: 1, seasonYear: 1, status: 1 });
+itemSchema.index({ seasonYear: 1, status: 1 }); // admin dashboard season totals
 itemSchema.index({ name: "text", description: "text" }); // national item search (Phase 6)
 
 export type ItemDoc = InferSchemaType<typeof itemSchema>;

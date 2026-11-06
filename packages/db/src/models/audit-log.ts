@@ -71,6 +71,7 @@ const auditLogSchema = new Schema(
 
 auditLogSchema.index({ targetType: 1, targetId: 1, createdAt: -1 });
 auditLogSchema.index({ actorUserId: 1, createdAt: -1 });
+auditLogSchema.index({ createdAt: -1 }); // admin dashboard "recent activity"
 
 const appendOnly = () => {
   throw new Error("Audit log entries are append-only");

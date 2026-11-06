@@ -24,7 +24,8 @@ async function Content({ params }: { params: PageProps<"/[locale]/users/[id]">["
   await connection();
   const admin = await requireRole(authOptions, "admin");
   const { id } = await params;
-  const [u, t, format] = await Promise.all([getUserDetail(id), getTranslations("Users"), getFormatter()]);
+  const [u, t, format, at] = await Promise.all([getUserDetail(id), getTranslations("Users"), getFormatter(), getTranslations("AuditActions")]);
+  const label = (action: string) => (at.has(action.replace(/\./g, "_") as never) ? at(action.replace(/\./g, "_") as never) : action);
   if (!u) notFound();
   const when = (d?: Date) => (d ? format.dateTime(new Date(d), { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—");
   const self = u.id === admin.id;
@@ -91,7 +92,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/users/[id]">["
           <ul className="flex flex-col gap-1 text-sm">
             {u.history.map((h, i) => (
               <li key={i}>
-                <span className="text-foreground/70">{when(h.at)}</span> · <code>{h.action}</code>
+                <span className="text-foreground/70">{when(h.at)}</span> · {label(h.action)}
                 {h.byThisUser ? ` (${t("byThisUser")})` : ""}
                 {typeof h.details?.reason === "string" ? ` · ${h.details.reason}` : ""}
               </li>

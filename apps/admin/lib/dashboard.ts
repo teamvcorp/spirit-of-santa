@@ -5,6 +5,7 @@
  */
 import "server-only";
 import { AuditLog, connectDb, DeedType, Item, trusted, User, WishListItem } from "@repo/db";
+import { getSeasonYear } from "@repo/lib/season";
 import { getSeasonState } from "@repo/stores/season";
 import { storeStatusCounts } from "@repo/stores/queries";
 
@@ -13,9 +14,9 @@ const countBy = async <K extends string>(rows: Promise<{ _id: K; n: number }[]>)
 
 export async function dashboardStats() {
   await connectDb();
-  const season = await getSeasonState();
-  const year = season.year;
-  const [stores, items, roles, statuses, deeds, views, onLists, activity] = await Promise.all([
+  const year = getSeasonYear(); // no DB trip needed for the year: season state runs in parallel
+  const [season, stores, items, roles, statuses, deeds, views, onLists, activity] = await Promise.all([
+    getSeasonState(),
     storeStatusCounts(),
     countBy(Item.aggregate<{ _id: string; n: number }>([{ $match: { seasonYear: year } }, { $group: { _id: "$status", n: { $sum: 1 } } }])),
     countBy(User.aggregate<{ _id: string; n: number }>([{ $match: { status: "active" } }, { $group: { _id: "$role", n: { $sum: 1 } } }])),
@@ -23,7 +24,7 @@ export async function dashboardStats() {
     DeedType.countDocuments({ active: true }),
     Item.aggregate<{ n: number }>([{ $match: { seasonYear: year } }, { $group: { _id: null, n: { $sum: "$stats.views" } } }]),
     WishListItem.countDocuments({ seasonYear: year, status: trusted({ $ne: "removed" }) }),
-    AuditLog.find().sort({ createdAt: -1 }).limit(15).select("action actorUserId targetType createdAt").lean(),
+    AuditLog.find().sort({ createdAt: -1 }).limit(15).select("action actorUserId createdAt").lean(),
   ]);
   // Who did each recent action (emails of at most 15 accounts).
   const actorIds = [...new Set(activity.map((a) => String(a.actorUserId)))];
@@ -44,6 +45,6 @@ export async function dashboardStats() {
     deeds,
     views: views[0]?.n ?? 0,
     onLists,
-    activity: activity.map((a) => ({ action: a.action, targetType: a.targetType, at: a.createdAt, by: emailOf.get(String(a.actorUserId)) ?? "—" })),
+    activity: activity.map((a) => ({ action: a.action, at: a.createdAt, by: emailOf.get(String(a.actorUserId)) ?? "—" })),
   };
 }

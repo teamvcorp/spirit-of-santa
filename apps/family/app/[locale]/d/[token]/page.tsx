@@ -26,10 +26,11 @@ async function Content({ params }: { params: PageProps<"/[locale]/d/[token]">["p
   await connection();
   const [{ token }, t, locale] = await Promise.all([params, getTranslations("Qr"), getLocale()]);
   if (!(await publicLimit(await headers(), "view", 120))) return <Alert tone="error">{t("errors.rateLimited")}</Alert>;
-  const [view, payLater] = await Promise.all([getPublicDeed(token, locale), payLaterForDeed(token)]);
+  const view = await getPublicDeed(token, locale);
   if (view.state === "invalid") return <Alert tone="error">{t("invalid")}</Alert>;
   if (view.state === "used") return <Alert>{view.outcome === "paid" ? t("usedPaid") : t("used")}</Alert>;
   if (view.state === "expired") return <Alert>{t("expired")}</Alert>;
+  const payLater = view.seasonOpen ? await payLaterForDeed(view.deedId) : null;
   return (
     <div className="flex flex-col gap-6">
       <div>

@@ -3,24 +3,29 @@
  * RECORD the carriers expect (number, time, wording version + language) and the state of the one
  * text we sent. Registered with the carriers (docs/vendor/twilio.md): exactly one text per request.
  *
- * - One per deed (unique deedId): a second request for the same deed is refused, so nobody can
- *   send repeated texts to a number through one QR code.
+ * - One ACTIVE request per deed (partial unique index on deedId where active: true): a second
+ *   request is refused while one is live; a failed/expired/closed one is no longer active, so
+ *   the deed can try again (still limited per number).
  * - phoneKey = HMAC of the number (per-number daily limit). The full number is kept only to prove
  *   consent; the whole record is deleted 13 months after it was created (TTL), as /privacy says.
- * - status: creating → sent → paid | expired; or failed (text or Stripe failed: link switched off).
+ * - status: creating → sending (text being sent) → sent → paid | expired | closed (deed thanked or
+ *   paid another way); or failed (Stripe/text failed: link switched off). "sending" = possibly
+ *   delivered, treated as sent.
  */
 // Default import: mongoose is CommonJS, so named runtime imports fail under plain Node ESM.
 import mongoose, { type InferSchemaType, type Model } from "mongoose";
 const { Schema, model, models } = mongoose;
 import { centsField, objectId } from "./_shared.ts";
 
-export const PAY_LATER_STATUSES = ["creating", "sent", "paid", "expired", "failed"] as const;
+export const PAY_LATER_STATUSES = ["creating", "sending", "sent", "paid", "expired", "closed", "failed"] as const;
 /** 13 months (≈ 395 days), stated in the privacy policy. */
 const KEEP_SECONDS = 395 * 24 * 3600;
 
 const payLaterRequestSchema = new Schema(
   {
-    deedId: { ...objectId("Deed"), unique: true },
+    deedId: objectId("Deed"),
+    /** true while the request is live (creating/sending/sent); unset when it ends. */
+    active: { type: Boolean },
     kidId: objectId("Kid"),
     familyId: objectId("Family"),
     phoneE164: { type: String, required: true, match: /^\+1\d{10}$/ },
@@ -42,6 +47,7 @@ const payLaterRequestSchema = new Schema(
 );
 
 payLaterRequestSchema.index({ createdAt: 1 }, { expireAfterSeconds: KEEP_SECONDS }); // privacy: deleted after 13 months
+payLaterRequestSchema.index({ deedId: 1 }, { unique: true, partialFilterExpression: { active: true }, name: "deedId_active_unique" }); // one live request per deed
 payLaterRequestSchema.index({ phoneKey: 1, createdAt: -1 }); // per-number daily limit
 payLaterRequestSchema.index({ status: 1, expiresAt: 1 }); // daily expiry job
 payLaterRequestSchema.index({ paymentLinkId: 1 }, { sparse: true }); // webhook: link paid

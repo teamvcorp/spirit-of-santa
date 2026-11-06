@@ -40,7 +40,7 @@ const year = getSeasonYear(new Date());
 const mkDeed = async (extra: object = {}) => {
   const _id = new mongooseLib.Types.ObjectId();
   const token = deedToken(String(_id));
-  await Deed.collection.insertOne({ _id, kidId: kid._id, familyId: fam._id, seasonYear: year, locale: "en", status: "pending", customDescription: "E2E deed", qrTokenHash: hashDeedToken(token), expiresAt: new Date(Date.now() + 7 * 86_400_000), createdAt: new Date(), updatedAt: new Date(), ...extra });
+  await Deed.collection.insertOne({ _id, kidId: kid._id, familyId: fam._id, seasonYear: year, locale: "en", status: "pending", customDescription: "E2E deed", qrTokenHash: hashDeedToken(token), expiresAt: new Date(Date.now() + 14 * 86_400_000), createdAt: new Date(), updatedAt: new Date(), ...extra });
   return { _id, token };
 };
 const d1 = await mkDeed();
@@ -110,7 +110,7 @@ try {
     link.active && link.restrictions?.completed_sessions?.limit === 1 && link.metadata?.sos_deed_id === String(d1._id) && link.url.startsWith("https://buy.stripe.com/"),
     JSON.stringify({ active: link.active, restrictions: link.restrictions, deed: link.metadata?.sos_deed_id, url: link.url.slice(0, 30) }));
   const days = (req!.expiresAt.getTime() - Date.now()) / 86_400_000;
-  check("link expires within 7 days (not later than the deed)", days > 6.9 && days <= 7.01);
+  check("link expires in 7 days (deed QR lives 14)", days > 6.99 && days <= 7.01);
 
   // 4. Reload: the page says it was sent (one per deed); a second request is refused.
   await openDeed(page, d1.token).catch(() => undefined);
@@ -120,6 +120,10 @@ try {
   // 5. Per-number limit: 3 per day (2 more fake records + d2's request = refused).
   await PayLaterRequest.collection.insertMany(
     [0, 1].map(() => ({ deedId: new mongooseLib.Types.ObjectId(), kidId: kid._id, familyId: fam._id, phoneE164: E164, phoneKey: phoneKey(E164), consentAt: new Date(), consentVersion: "sms-2026-11-06", consentLocale: "en", amountCents: 500, status: "sent", expiresAt: new Date(Date.now() + 86_400_000), createdAt: new Date(), updatedAt: new Date() })),
+  );
+  // Failed attempts (nothing delivered) must NOT count toward the limit.
+  await PayLaterRequest.collection.insertMany(
+    [0, 1, 2].map(() => ({ deedId: new mongooseLib.Types.ObjectId(), kidId: kid._id, familyId: fam._id, phoneE164: "+15552340197", phoneKey: phoneKey("+15552340197"), consentAt: new Date(), consentVersion: "sms-2026-11-06", consentLocale: "en", amountCents: 500, status: "failed", expiresAt: new Date(Date.now() + 86_400_000), createdAt: new Date(), updatedAt: new Date() })),
   );
   const p2 = await newPage();
   await openDeed(p2, d2.token);
@@ -146,10 +150,27 @@ try {
   check("paid: 6.66 points, deed confirmed 'paid', link switched off, request 'paid'",
     k?.availableCentipoints === 666 && d?.status === "confirmed" && d.outcome === "paid" && !l2.active && after?.status === "paid");
 
+  // 6b. Thank-you after a texted link: the link must not take money any more.
+  const d4 = await mkDeed();
+  const p4 = await newPage();
+  await openDeed(p4, d4.token);
+  await submit(p4, { phone: "(555) 234-0197", tick: true }); // 3 FAILED attempts for this number don't block it
+  await p4.locator("main:visible").getByText("We texted a payment link").waitFor({ timeout: 60_000 });
+  check("failed attempts don't count toward the daily limit", (await PayLaterRequest.findOne({ deedId: d4._id, active: true }).lean())?.status === "sent");
+  const r4 = await PayLaterRequest.findOne({ deedId: d4._id, active: true }).lean();
+  await openDeed(p4, d4.token);
+  await p4.locator("main:visible").getByRole("button", { name: "Say thank you" }).click();
+  await p4.locator("main:visible").getByText("thank", { exact: false }).first().waitFor({ timeout: 60_000 });
+  await new Promise((r) => setTimeout(r, 1500));
+  const [l4, r4b] = await Promise.all([getStripe().paymentLinks.retrieve(r4!.paymentLinkId!), PayLaterRequest.findById(r4!._id).lean()]);
+  check("thanking the deed switches off its texted link (no double payment)", !l4.active && r4b?.status === "closed" && !r4b.active, JSON.stringify({ active: l4.active, status: r4b?.status }));
+
   // 7. Expiry: a sent request past its date → the daily cron switches its link off.
   const d3 = await mkDeed();
   const p3 = await newPage();
   await PayLaterRequest.collection.deleteMany({ phoneKey: phoneKey(E164), deedId: { $ne: d1._id } }); // free the daily limit
+  // This test is ONE visitor making 6 requests: the per-visitor limit (5 per 15 min) rightly kicks in.
+  await RateLimit.collection.deleteMany({ key: { $regex: "^qr-paylater:" } });
   await openDeed(p3, d3.token);
   await submit(p3, { phone: "(555) 234-0198", tick: true });
   await p3.locator("main:visible").getByText("We texted a payment link").waitFor({ timeout: 60_000 });
@@ -159,6 +180,9 @@ try {
   const cj = (await cron.json()) as { payLater?: { expired?: number } };
   const l3 = await getStripe().paymentLinks.retrieve(r3!.paymentLinkId!);
   check("daily cron switches off an expired link", cron.status === 200 && (cj.payLater?.expired ?? 0) >= 1 && !l3.active && (await PayLaterRequest.findById(r3!._id).lean())?.status === "expired", JSON.stringify(cj.payLater));
+  // An expired request frees the deed: the form is offered again (no "already sent" dead end).
+  await openDeed(p3, d3.token);
+  check("after expiry the deed offers pay-later again", (await section(p3).count()) === 1);
 
   // 8. Spanish deed page shows the Spanish wording.
   const es = await newPage();

@@ -5,9 +5,9 @@
  * money secrets into more projects widens the blast radius).
  * Each part checks the season itself and does nothing when it isn't its time, IN ORDER:
  *  1. Split held donation pools (only while frozen, fee set). Daily runs share late gifts too.
- *  2. Season end (only in the off-season, once per ended season): unshared donation money
+ *  2. Switch off expired pay-later text links (Phase 5 slice 4b), BEFORE the season end.
+ *  3. Season end (only in the off-season, once per ended season): unshared donation money
  *     retained, every kid's points reset to 0 with a ledger row.
- *  3. Switch off expired pay-later text links (Phase 5 slice 4b).
  *  4. Email tax receipts still waiting (receipts switched on, gift on/after the start day).
  * Called by Vercel Cron (apps/family/vercel.json) with `Authorization: Bearer <CRON_SECRET>`;
  * anyone else gets 401. (Vercel Hobby allows 2 cron jobs: this + the store's purge-signups.)
@@ -43,8 +43,9 @@ export async function GET(request: Request): Promise<Response> {
     }
   };
   const split = await settle(() => runDonationSplit({ trigger: "cron" }));
-  const seasonEnd = await settle(() => runSeasonReset());
+  // Expired pay-later links off BEFORE the season end, so none is payable after points reset.
   const payLater = await settle(() => expirePayLaterLinks());
+  const seasonEnd = await settle(() => runSeasonReset());
   const receipts = await settle(() => sendPendingReceipts({ limit: 50 }));
   const result = {
     split: split.status === "fulfilled" ? split.value : "failed",

@@ -14,6 +14,7 @@ import { connectDb, Deed, DeedType, Family, Kid, trusted } from "@repo/db";
 import { parseDollarsToCents } from "@repo/lib/format";
 import { MAX_CHECKOUT_MS, MAX_TIP_CENTS, MIN_CHECKOUT_MS, MIN_TIP_CENTS, TIP_PRESETS_CENTS } from "@repo/lib/limits";
 import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, getStripe } from "@repo/payments/checkout";
+import { closePayLaterForDeed } from "@repo/payments/pay-later-links";
 import { giftWindow } from "@repo/stores/season";
 import { localized } from "./catalog.ts";
 import { hashDeedToken, isDeedToken } from "./qr.ts";
@@ -22,7 +23,7 @@ export type PublicDeed =
   | { state: "invalid" }
   | { state: "used"; outcome?: string }
   | { state: "expired" }
-  | { state: "open"; kidName: string; familyAlias?: string; deed?: string; seasonOpen: boolean; seasonCloseAt: Date };
+  | { state: "open"; kidName: string; familyAlias?: string; deed?: string; seasonOpen: boolean; seasonCloseAt: Date; /** server-side only (never rendered) */ deedId: string };
 
 type DeedLite = {
   _id: unknown;
@@ -73,6 +74,7 @@ async function view(token: unknown, locale: string): Promise<View> {
   return {
     view: {
       state: "open",
+      deedId: String(d._id),
       kidName: kid.displayName,
       familyAlias: publicFamilyAlias(fam),
       deed,
@@ -100,7 +102,10 @@ export async function thankDeed(token: unknown): Promise<ThankResult> {
     { qrTokenHash: hashDeedToken(token as string), status: "pending", qrUsedAt: null, expiresAt: trusted({ $gt: now }) },
     { $set: { status: "confirmed", outcome: "thanked", qrUsedAt: now, confirmedAt: now } },
   );
-  return res.modifiedCount === 1 ? { ok: true } : { ok: false, error: "used" };
+  if (res.modifiedCount !== 1) return { ok: false, error: "used" };
+  // Thanked: a texted pay-later link for this deed must not take money any more.
+  if (v.deedId) await closePayLaterForDeed(v.deedId).catch((e: unknown) => console.error("[pay-later] close after thanks failed:", e instanceof Error ? e.name : "unknown"));
+  return { ok: true };
 }
 
 /** Tip amount from the form: a preset ("500") or "other" + dollars ("12.50"). Server-side bounds. */

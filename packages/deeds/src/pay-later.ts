@@ -4,25 +4,29 @@
  * box, EXACTLY ONE text per request with a payment link that expires (≤ 7 days), no marketing,
  * STOP/HELP. Don't change the flow or the wording without updating the registration.
  *
- * Steps (startPayLater): consent + amount + US number + the deed can take money (tipTarget, the
- * same rule as paying now) → limits (one request per deed, 3 per number per day) → consent record
- * (PayLaterRequest) → single-use Stripe Payment Link (metadata = a normal deed tip, so the existing
- * webhook credits it and confirms the deed) → the text. If the text fails, the link is switched
- * off at once. Expired links are switched off by the daily money cron (expirePayLaterLinks).
+ * startPayLater: consent + amount + US number + the deed can take money (tipTarget, the same rule
+ * as paying now) → under a per-number LOCK: max 3 texts per number per 24 h (failed attempts don't
+ * count) + the consent record (PayLaterRequest; one ACTIVE request per deed) → single-use Stripe
+ * Payment Link → status "sending" → the one text → "sent". If the text fails the link is switched
+ * off and the request freed (failed, inactive).
+ *
+ * Expiry: a link expires at least a day BEFORE the deed/season deadline, so the once-a-day cron
+ * (expirePayLaterLinks, which runs before the season end) switches it off in time. The text says
+ * "expires in N days" rounded DOWN (never promises more), and a link needs ≥ 1 full day.
+ * A deed thanked or paid another way closes its link (@repo/payments/pay-later-links).
  */
 import "server-only";
-import { connectDb, Deed, PayLaterRequest, trusted } from "@repo/db";
+import { connectDb, ensureLock, PayLaterRequest, takeLock, trusted, withTransaction } from "@repo/db";
 import { SMS_CONSENT_VERSION } from "@repo/lib/family";
 import { MAX_TIP_CENTS, MIN_TIP_CENTS, PAY_LATER_LINK_DAYS } from "@repo/lib/limits";
 import { maskPhone, toUsE164 } from "@repo/lib/phone";
 import { buildPaymentMetadata, getStripe } from "@repo/payments/checkout";
+import { deactivateLink, LIVE_PAY_LATER } from "@repo/payments/pay-later-links";
 import { sendSms, SmsError, smsFailureFor } from "@repo/sms";
 import { tipTarget } from "./public.ts";
-import { hashDeedToken, isDeedToken, phoneKey } from "./qr.ts";
+import { phoneKey } from "./qr.ts";
 
 const DAY_MS = 86_400_000;
-/** Less than this left before the deed/season closes: don't text a link that dies right away. */
-const MIN_LINK_MS = 2 * 3_600_000;
 /** Texts per phone number per 24 h (abuse limit: nobody can flood a number through many QR codes). */
 const PHONE_DAILY_LIMIT = 3;
 
@@ -32,6 +36,15 @@ const PHONE_DAILY_LIMIT = 3;
  */
 export function payLaterText(url: string, days: number): string {
   return `Spirit O Santa: here is your link to pay the tip for the good deed you received. It expires in ${days} ${days === 1 ? "day" : "days"}: ${url} Msg & data rates may apply. Reply STOP to opt out, HELP for help`;
+}
+
+/**
+ * When a new link must expire: 7 days, but at least one day before the deed/season deadline (the
+ * daily cron then switches it off before the deadline). null = less than a full day left. Pure.
+ */
+export function payLaterExpiry(now: number, payableUntil: number): Date | null {
+  const at = Math.min(now + PAY_LATER_LINK_DAYS * DAY_MS, payableUntil - DAY_MS);
+  return at - now >= DAY_MS ? new Date(at) : null;
 }
 
 export type PayLaterError =
@@ -56,37 +69,47 @@ export async function startPayLater(
   const target = await tipTarget(token);
   if (!target.ok) return target;
   const now = Date.now();
-  const expiresAt = new Date(Math.min(now + PAY_LATER_LINK_DAYS * DAY_MS, target.payableUntil));
-  if (expiresAt.getTime() - now < MIN_LINK_MS) return { ok: false, error: "expired" };
+  const expiresAt = payLaterExpiry(now, target.payableUntil);
+  if (!expiresAt) return { ok: false, error: "expired" };
 
   await connectDb();
   const key = phoneKey(phone);
-  if ((await PayLaterRequest.countDocuments({ phoneKey: key, createdAt: trusted({ $gte: new Date(now - DAY_MS) }) })) >= PHONE_DAILY_LIMIT) {
-    return { ok: false, error: "phoneLimit" };
-  }
-  // The consent record first (unique per deed: a second request for this deed fails here).
-  let requestId: unknown;
-  try {
-    const [req] = await PayLaterRequest.create([
-      {
-        deedId: target.deedId,
-        kidId: target.kidId,
-        familyId: target.familyId,
-        phoneE164: phone,
-        phoneKey: key,
-        consentAt: new Date(now),
-        consentVersion: SMS_CONSENT_VERSION,
-        consentLocale: input.locale,
-        amountCents,
-        expiresAt,
-      },
-    ]);
-    requestId = req!._id;
-  } catch (err) {
-    if (isDuplicateKey(err)) return { ok: false, error: "alreadySent" };
-    throw err;
-  }
-  const fail = (error: string) => PayLaterRequest.updateOne({ _id: requestId }, { $set: { status: "failed", error } });
+  const lockName = `paylater-phone:${key}`;
+  await ensureLock(lockName); // outside the transaction (see lock.ts)
+  // Per-number limit + the consent record, atomically per number (parallel requests can't overshoot).
+  type Created = { id: unknown } | { error: "phoneLimit" | "alreadySent" };
+  const created = await withTransaction(async (session): Promise<Created> => {
+    await takeLock(lockName, session);
+    const recent = await PayLaterRequest.countDocuments({ phoneKey: key, createdAt: trusted({ $gte: new Date(now - DAY_MS) }), status: trusted({ $ne: "failed" }) }).session(session);
+    if (recent >= PHONE_DAILY_LIMIT) return { error: "phoneLimit" };
+    try {
+      const [req] = await PayLaterRequest.create(
+        [
+          {
+            deedId: target.deedId,
+            kidId: target.kidId,
+            familyId: target.familyId,
+            phoneE164: phone,
+            phoneKey: key,
+            consentAt: new Date(now),
+            consentVersion: SMS_CONSENT_VERSION,
+            consentLocale: input.locale,
+            amountCents,
+            expiresAt,
+            active: true, // one ACTIVE request per deed (partial unique index)
+          },
+        ],
+        { session },
+      );
+      return { id: req!._id };
+    } catch (err) {
+      if (isDuplicateKey(err)) return { error: "alreadySent" };
+      throw err;
+    }
+  });
+  if ("error" in created) return { ok: false, error: created.error };
+  const requestId = created.id;
+  const free = (error: string) => PayLaterRequest.updateOne({ _id: requestId }, { $set: { status: "failed", error }, $unset: { active: 1 } });
 
   // Single-use Stripe Payment Link: a normal deed tip (the webhook credits it + confirms the deed).
   const metadata = buildPaymentMetadata({ sos_purpose: "tip", sos_kid_id: target.kidId, sos_family_id: target.familyId, sos_deed_id: target.deedId });
@@ -104,57 +127,72 @@ export async function startPayLater(
     });
   } catch (err) {
     console.error("[pay-later] payment link failed:", err instanceof Error ? err.name : "unknown");
-    await fail("stripe");
+    await free("stripe");
     return { ok: false, error: "stripe" };
   }
-  await PayLaterRequest.updateOne({ _id: requestId }, { $set: { paymentLinkId: link.id, paymentLinkUrl: link.url } });
+  // "sending" BEFORE the text: from here on we treat the link as possibly delivered.
+  await PayLaterRequest.updateOne({ _id: requestId }, { $set: { status: "sending", paymentLinkId: link.id, paymentLinkUrl: link.url } });
 
-  // The one text. Days shown = what is actually left (may be < 7 near the deed/season end).
-  const days = Math.max(1, Math.floor((expiresAt.getTime() - now) / DAY_MS));
+  const days = Math.floor((expiresAt.getTime() - now) / DAY_MS); // rounded DOWN, ≥ 1
+  let sid: string;
   try {
-    const { sid } = await sendSms({ to: phone, body: payLaterText(link.url, days) });
-    await PayLaterRequest.updateOne({ _id: requestId }, { $set: { status: "sent", smsSid: sid } });
+    sid = (await sendSms({ to: phone, body: payLaterText(link.url, days) })).sid;
   } catch (err) {
-    // Never leave a live link nobody received: switch it off, record why.
-    await getStripe().paymentLinks.update(link.id, { active: false }).catch(() => undefined);
+    // Not delivered: switch the link off, free the deed for another try.
+    await deactivateLink(link.id);
     const code = err instanceof SmsError ? err.code : 0;
     console.error("[pay-later] text failed:", code || (err instanceof Error ? err.name : "unknown"));
-    await fail(String(code || "sms"));
+    await free(String(code || "sms"));
     const reason = smsFailureFor(code);
     return { ok: false, error: reason === "optedOut" ? "optedOut" : reason === "badNumber" ? "phone" : "sms" };
   }
+  // The text went out. If recording that fails, it stays "sending", which every reader treats as sent.
+  await PayLaterRequest.updateOne({ _id: requestId }, { $set: { status: "sent", smsSid: sid } }).catch((e: unknown) =>
+    console.error("[pay-later] could not record 'sent':", e instanceof Error ? e.name : "unknown"),
+  );
   return { ok: true, masked: maskPhone(phone), expiresAt };
 }
 
-/** Was a pay-later text already sent for this deed? (The deed page shows that instead of the form.) */
-export async function payLaterForDeed(token: unknown): Promise<{ masked: string; expiresAt: Date; status: string } | null> {
-  if (!isDeedToken(token)) return null;
+/** A live pay-later text for this deed (shown instead of the form). Expired ones don't count. */
+export async function payLaterForDeed(deedId: string): Promise<{ masked: string; expiresAt: Date } | null> {
   await connectDb();
-  const deed = await Deed.findOne({ qrTokenHash: hashDeedToken(token) }).select("_id").lean();
-  if (!deed) return null;
-  const r = await PayLaterRequest.findOne({ deedId: deed._id, status: trusted({ $in: ["sent", "paid"] }) }).select("phoneE164 expiresAt status").lean();
-  return r ? { masked: maskPhone(r.phoneE164), expiresAt: r.expiresAt, status: r.status } : null;
+  const r = await PayLaterRequest.findOne({ deedId, active: true, status: trusted({ $in: ["sending", "sent"] }), expiresAt: trusted({ $gt: new Date() }) })
+    .select("phoneE164 expiresAt")
+    .lean();
+  return r ? { masked: maskPhone(r.phoneE164), expiresAt: r.expiresAt } : null;
 }
 
 /**
- * Daily (money cron): switch off links past their expiry; clean up requests stuck in "creating"
- * (e.g. the server stopped mid-request). Returns how many links were switched off.
+ * Daily (money cron, BEFORE the season end): switch off links past their expiry; clean up requests
+ * stuck in "creating" (server stopped mid-request: no text was sent). Each link on its own: one
+ * Stripe error doesn't stop the rest (it's retried next run).
  */
-export async function expirePayLaterLinks(now = new Date()): Promise<{ expired: number; cleaned: number }> {
+export async function expirePayLaterLinks(now = new Date()): Promise<{ expired: number; cleaned: number; failed: number }> {
   await connectDb();
   let expired = 0;
   let cleaned = 0;
-  const due = await PayLaterRequest.find({ status: "sent", expiresAt: trusted({ $lte: now }) }).select("paymentLinkId").limit(500).lean();
+  let failed = 0;
+  const due = await PayLaterRequest.find({ status: trusted({ $in: [...LIVE_PAY_LATER] }), expiresAt: trusted({ $lte: now }) })
+    .select("paymentLinkId")
+    .sort({ expiresAt: 1 })
+    .limit(500)
+    .lean();
   for (const r of due) {
-    if (r.paymentLinkId) await getStripe().paymentLinks.update(r.paymentLinkId, { active: false });
-    const res = await PayLaterRequest.updateOne({ _id: r._id, status: "sent" }, { $set: { status: "expired" } });
+    if (r.paymentLinkId && !(await deactivateLink(r.paymentLinkId))) {
+      failed++;
+      continue;
+    }
+    const res = await PayLaterRequest.updateOne({ _id: r._id, status: trusted({ $in: [...LIVE_PAY_LATER] }) }, { $set: { status: "expired" }, $unset: { active: 1 } });
     expired += res.modifiedCount;
   }
   const stuck = await PayLaterRequest.find({ status: "creating", createdAt: trusted({ $lte: new Date(now.getTime() - 15 * 60_000) }) }).select("paymentLinkId").limit(500).lean();
   for (const r of stuck) {
-    if (r.paymentLinkId) await getStripe().paymentLinks.update(r.paymentLinkId, { active: false });
-    const res = await PayLaterRequest.updateOne({ _id: r._id, status: "creating" }, { $set: { status: "failed", error: "stuck" } });
+    if (r.paymentLinkId && !(await deactivateLink(r.paymentLinkId))) {
+      failed++;
+      continue;
+    }
+    const res = await PayLaterRequest.updateOne({ _id: r._id, status: "creating" }, { $set: { status: "failed", error: "stuck" }, $unset: { active: 1 } });
     cleaned += res.modifiedCount;
   }
-  return { expired, cleaned };
+  return { expired, cleaned, failed };
 }

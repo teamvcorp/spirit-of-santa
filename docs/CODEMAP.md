@@ -452,7 +452,14 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   fails → link switched off. Webhook `onCheckoutSessionPaid` switches the link off + request "paid"; daily cron
   `expirePayLaterLinks`. `@repo/sms` (new): `sendSms` via Twilio REST (fetch), API key or Account SID + Auth Token,
   Messaging Service or From; PRINTS in dev unless TWILIO_DEV_SEND=true; `smsFailureFor` (21610 STOP → optedOut).
-  E2E `browser-family-paylater.ts` (13).
+  E2E `browser-family-paylater.ts` (16). Review fixes: ONE ACTIVE request per deed (partial unique index
+  `deedId_active_unique` on `active: true`; failed/expired/closed free the deed); per-number limit (3/24 h, failed
+  don't count) checked under a per-number Lock; status "sending" before the text (if recording "sent" fails it still
+  counts as sent); link expires ≥ 1 day BEFORE the deed/season deadline (`payLaterExpiry`, unit-tested) and needs
+  ≥ 1 full day; cron runs expiry BEFORE the season end, each link on its own; a deed thanked or paid another way
+  closes its link (`closePayLaterForDeed` in @repo/payments/pay-later-links, called by the webhook + thankDeed);
+  the deed page looks it up only for open deeds by id (`PublicDeed.deedId`, server-side only).
+  **Prod: run `npm run db:sync-indexes` after deploy** (drops the old unique `deedId_1`, adds the partial one).
 - **Daily money cron MOVED to the FAMILY app (2026-11-06):** `apps/family/app/api/cron/money` (+ `apps/family/vercel.json`
   08:00 UTC): split → season end → pay-later expiry → receipts. The store keeps only purge-signups (no Stripe key there;
   don't spread money secrets). CRON_SECRET needed in BOTH family and store projects.

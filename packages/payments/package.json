@@ -12,7 +12,8 @@
     "./receipts": "./src/receipts.ts",
     "./settings": "./src/settings.ts",
     "./split": "./src/split.ts",
-    "./season-end": "./src/season-end.ts"
+    "./season-end": "./src/season-end.ts",
+    "./pay-later-links": "./src/pay-later-links.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

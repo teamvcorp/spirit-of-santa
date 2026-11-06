@@ -22,6 +22,7 @@ import { centsToCentipoints } from "@repo/lib/points";
 import { getSeasonYear } from "@repo/lib/season";
 import { getStripe } from "./client.ts";
 import { parsePaymentMetadata, type PaymentMetadata } from "./metadata.ts";
+import { closePayLaterForDeed } from "./pay-later-links.ts";
 import { ensureDonationReceipt, sendPendingReceipts } from "./receipts.ts";
 
 export type Outcome = { status: "processed" | "ignored"; note: string };
@@ -71,7 +72,13 @@ export async function onPaymentIntentSucceeded(pi: Stripe.PaymentIntent): Promis
     if (!isDuplicateKey(err)) throw err;
     outcome = await creditPaymentIntent(pi);
   }
-  if (outcome.status === "processed" && parsePaymentMetadata(pi.metadata)?.sos_purpose === "donation") await afterDonationRecorded(pi.id);
+  const meta = parsePaymentMetadata(pi.metadata);
+  if (outcome.status === "processed" && meta?.sos_purpose === "donation") await afterDonationRecorded(pi.id);
+  // A deed tipped (pay now OR its texted link): close any OTHER live pay-later link for it, so the
+  // same deed can't be paid twice by mistake. Best-effort, after the money transaction.
+  if (outcome.status === "processed" && meta?.sos_purpose === "tip" && meta.sos_deed_id) {
+    await closePayLaterForDeed(meta.sos_deed_id).catch((e: unknown) => console.error("[pay-later] close after tip failed:", e instanceof Error ? e.name : "unknown"));
+  }
   return outcome;
 }
 
@@ -372,7 +379,7 @@ export async function onCheckoutSessionPaid(cs: Stripe.Checkout.Session): Promis
   // Idempotent (deactivating twice is fine). A failure throws → 500 → Stripe retries.
   await getStripe().paymentLinks.update(linkId, { active: false });
   // The pay-later text request for this link is now paid (Phase 5 slice 4b).
-  await PayLaterRequest.updateOne({ paymentLinkId: linkId, status: trusted({ $in: ["sent", "expired", "creating"] }) }, { $set: { status: "paid" } });
+  await PayLaterRequest.updateOne({ paymentLinkId: linkId, status: trusted({ $in: ["creating", "sending", "sent", "expired", "closed"] }) }, { $set: { status: "paid" }, $unset: { active: 1 } });
   const piId = idOf(cs.payment_intent);
   if (piId) {
     await Payment.updateOne({ stripePaymentIntentId: piId }, { $set: { checkoutSessionId: cs.id, paymentLinkId: linkId } });

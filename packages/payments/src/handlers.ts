@@ -117,6 +117,7 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
             livemode: pi.livemode,
             purpose: meta.sos_purpose,
             status: "succeeded",
+            succeededAt: now,
             seasonYear,
             ...ids,
             amountCents: pi.amount_received,

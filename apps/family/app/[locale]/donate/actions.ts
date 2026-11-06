@@ -1,7 +1,9 @@
 "use server";
 /**
  * Public community-donation action (no account): rate-limited per visitor, Zod-validated; the
- * amount, ZIP and season window are re-checked in @repo/payments/community (and by the webhook).
+ * amount, ZIP and season window are re-checked in @repo/payments/community. The webhook re-checks
+ * the AMOUNT only: money already charged is never refused; a gift landing after the freeze goes
+ * into the next split run (slice 2b).
  */
 import { headers } from "next/headers";
 import { z } from "zod";

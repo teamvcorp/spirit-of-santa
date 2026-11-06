@@ -392,8 +392,17 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   saving settings sends waiting ones; claim = CAS on `attempts` + Resend idempotency key `receipt/<no>`.
   Email renderer: body `white-space:pre-line` (multi-line receipt). E2E `browser-community-donate.ts` (26; saves and
   RESTORES PlatformSettings).
+  Review fixes: receipts only for POOLED gifts (fulfilment held/credited, never review); admin sets **"Receipts cover
+  gifts from"** day (`receiptsFromDay`: when the charity arrangement took effect) and ONLY gifts on/after it are ever
+  sent (earlier ones counted as "made before"); charity details stored on the receipt when sent (`issuer`);
+  receipt date = `Payment.succeededAt` (new); receipt no. = sha256(full PI id) (no case-folding collisions, collision
+  logged); Save sends at most 10, the rest on the cron (2b); fee % formatted in the page language; settings rules
+  live ONLY in `settingsInputSchema` (specific error codes). E2E 29.
+  **2b must add:** daily cron sending pending receipts (+ wire `retryFailedReceipts`), split late gifts (after freeze).
 - **Alert roles:** `tone="error"` → `role="alert"`, info → `role="status"`. E2E success checks must match both.
-- **Dev server gotchas:** new message namespaces may need a dev-server restart. `TaskStop` on `npm run dev` leaves the
+- **Dev server gotchas:** new message namespaces may need a dev-server restart. **Mongoose models are cached across
+  hot reloads (`models.X ?? model(...)`): after a SCHEMA change restart the dev server, or new fields are silently
+  dropped (strict mode).** `TaskStop` on `npm run dev` leaves the
   `next dev` children running (ports stay taken): stop them by PID (Get-NetTCPConnection on 3000–3002).
 - **Stripe CLI forwarder + E2E:** with `stripe listen` running, `stripe-webhook.ts --real-stripe` SKIPS the
   "refund before payment" check (the CLI records the real payment first). Stop the forwarder to run that check.

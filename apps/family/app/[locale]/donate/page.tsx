@@ -22,19 +22,20 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("title"), description: t("intro") };
 }
 
-/** "1250" basis points → "12.5%". */
-const percent = (bps: number) => `${(bps / 100).toLocaleString("en-US", { maximumFractionDigits: 2 })}%`;
+/** 1250 basis points → "12.5%" (en) / "12,5 %" (es). */
+const percent = (bps: number, locale: string) => new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 2 }).format(bps / 10_000);
 
 async function Content() {
   await connection();
   const [settings, win, total, t, locale] = await Promise.all([getPlatformSettings(), donationWindow(), seasonDonationTotal(), getTranslations("Community"), getLocale()]);
   // The freeze moment is Central-Time midnight: show that calendar day in the page language.
-  const shareDay = new Intl.DateTimeFormat(locale === "es" ? "es-US" : "en-US", { month: "long", day: "numeric", timeZone: "America/Chicago" }).format(win.freezeAt);
+  const intlLocale = locale === "es" ? "es-US" : "en-US";
+  const shareDay = new Intl.DateTimeFormat(intlLocale, { month: "long", day: "numeric", timeZone: "America/Chicago" }).format(win.freezeAt);
   const open = win.open && settings.donationFeeBps !== null;
   return (
     <div className="flex flex-col gap-4">
       {settings.donationFeeBps !== null && (
-        <p>{t("how", { day: shareDay, fee: percent(settings.donationFeeBps), rate: formatCents(CENTS_PER_POINT) })}</p>
+        <p>{t("how", { day: shareDay, fee: percent(settings.donationFeeBps, intlLocale), rate: formatCents(CENTS_PER_POINT) })}</p>
       )}
       {settings.receiptsReady && (
         <p className="text-sm text-foreground/70">{t("charity", { orgName: settings.charity.legalName, ein: settings.charity.ein })}</p>

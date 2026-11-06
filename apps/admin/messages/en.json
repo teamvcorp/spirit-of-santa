@@ -437,7 +437,7 @@
     "einHint": "Format 12-3456789.",
     "address": "Mailing address (optional)",
     "receipts": "Send tax receipts by email",
-    "receiptsHelp": "Only switch this on once you've confirmed with the charity (and an accountant) that these donations are received on its behalf. Gifts made before then get their receipt when you switch it on.",
+    "receiptsHelp": "Only switch this on once you've confirmed with the charity (and an accountant) that these donations are received on its behalf.",
     "save": "Save settings",
     "saved": "Saved.",
     "savedSent": "{count, plural, one {Saved. # waiting receipt was emailed.} other {Saved. # waiting receipts were emailed.}}",
@@ -448,7 +448,11 @@
       "invalid": "Something was wrong with the form. Please try again.",
       "fee": "Enter a fee between 0 and 30 (up to two decimals).",
       "ein": "Enter the EIN as 12-3456789.",
-      "receiptsNeedCharity": "To send receipts, fill in the charity's legal name and EIN."
-    }
+      "receiptsNeedCharity": "To send receipts, fill in the charity's legal name and EIN.",
+      "fromDay": "Choose the day receipts start covering gifts."
+    },
+    "fromDay": "Receipts cover gifts from",
+    "fromDayHint": "The day the charity arrangement took effect. Gifts before this day never get a receipt.",
+    "before": "{count, plural, one {# gift was made before {day} and gets no receipt.} other {# gifts were made before {day} and get no receipt.}}"
   }
 }

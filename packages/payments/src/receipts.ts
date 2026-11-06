@@ -7,10 +7,16 @@
  * valid if the 501(c)(3) really receives the gift; see settings.ts). Until then rows stay
  * "pending" and go out when receipts are switched on (admin save) or on the daily cron.
  *
+ * Only gifts ON/AFTER the admin's "receipts cover gifts from" day are ever sent a receipt (that
+ * is when the charity arrangement took effect); earlier ones stay "pending" and are counted apart.
+ * Only POOLED gifts (fulfilment held/credited) get a receipt: one held for review does not.
+ * The charity's details are stored on the receipt when sent (`issuer`), never rewritten later.
+ *
  * No double emails: each send first CLAIMS the row (compare-and-set on `attempts`), and Resend's
  * idempotency key (`receipt/<receiptNo>`, 24 h) stops a duplicate request.
  */
 import "server-only";
+import { createHash } from "node:crypto";
 import { connectDb, DonationReceipt, Payment, trusted } from "@repo/db";
 import { sendEmail } from "@repo/email";
 import { formatCents } from "@repo/lib/format";
@@ -27,8 +33,9 @@ const isDuplicateKey = (err: unknown) => (err as { code?: number }).code === 110
 export async function ensureDonationReceipt(piId: string, link: string): Promise<void> {
   await connectDb();
   if (await DonationReceipt.exists({ stripePaymentIntentId: piId })) return;
-  const pay = await Payment.findOne({ stripePaymentIntentId: piId, purpose: "donation", status: "succeeded" })
-    .select("amountCents seasonYear createdAt")
+  // Only a gift that really went into a pool (not one held for review).
+  const pay = await Payment.findOne({ stripePaymentIntentId: piId, purpose: "donation", status: "succeeded", fulfilment: trusted({ $in: ["held", "credited"] }) })
+    .select("amountCents seasonYear createdAt succeededAt")
     .lean();
   if (!pay) return;
 
@@ -44,14 +51,15 @@ export async function ensureDonationReceipt(piId: string, link: string): Promise
   } catch {
     // e.g. a test event with a made-up id: the row is still created (an admin can see it).
   }
-  const receiptNo = `SOS-${pay.seasonYear}-${piId.replace(/^pi_/, "").slice(-16).toUpperCase()}`;
+  // From a hash of the FULL (case-sensitive) id: no two payments can share a number.
+  const receiptNo = `SOS-${pay.seasonYear}-${createHash("sha256").update(piId).digest("hex").slice(0, 12).toUpperCase()}`;
   try {
     await DonationReceipt.create({
       stripePaymentIntentId: piId,
       receiptNo,
       seasonYear: pay.seasonYear,
       amountCents: pay.amountCents,
-      donatedAt: pay.createdAt ?? new Date(),
+      donatedAt: pay.succeededAt ?? pay.createdAt ?? new Date(),
       email,
       donorName,
       locale,
@@ -59,7 +67,9 @@ export async function ensureDonationReceipt(piId: string, link: string): Promise
       ...(email ? {} : { status: "failed", lastError: "no donor email from Stripe" }),
     });
   } catch (err) {
-    if (!isDuplicateKey(err)) throw err; // another caller created it first: fine
+    if (!isDuplicateKey(err)) throw err;
+    // Normally another caller created THIS payment's receipt first. Anything else is a bug: say so.
+    if (!(await DonationReceipt.exists({ stripePaymentIntentId: piId }))) console.error("[receipts] receipt number collision", receiptNo);
   }
 }
 
@@ -72,8 +82,10 @@ export type SendSummary = { sent: number; failed: number; waiting: number };
 export async function sendPendingReceipts(opts: { onlyPiId?: string; limit?: number } = {}): Promise<SendSummary> {
   await connectDb();
   const settings = await getPlatformSettings();
-  const filter: { status: "pending"; stripePaymentIntentId?: string } = { status: "pending", ...(opts.onlyPiId ? { stripePaymentIntentId: opts.onlyPiId } : {}) };
-  if (!settings.receiptsReady) return { sent: 0, failed: 0, waiting: await DonationReceipt.countDocuments(filter) };
+  const base = { status: "pending" as const, ...(opts.onlyPiId ? { stripePaymentIntentId: opts.onlyPiId } : {}) };
+  if (!settings.receiptsReady || !settings.receiptsFrom) return { sent: 0, failed: 0, waiting: await DonationReceipt.countDocuments(base) };
+  // Only gifts made on/after the day the charity arrangement took effect.
+  const filter = { ...base, donatedAt: trusted({ $gte: settings.receiptsFrom }) };
 
   const rows = await DonationReceipt.find(filter).sort({ createdAt: 1 }).limit(opts.limit ?? 25).lean();
   const summary: SendSummary = { sent: 0, failed: 0, waiting: 0 };
@@ -87,6 +99,7 @@ export async function sendPendingReceipts(opts: { onlyPiId?: string; limit?: num
       continue;
     }
     try {
+      const issuer = { legalName: settings.charity.legalName, ein: settings.charity.ein, address: settings.charity.address };
       const date = new Intl.DateTimeFormat(r.locale === "es" ? "es-US" : "en-US", { dateStyle: "long", timeZone: "America/Chicago" }).format(r.donatedAt);
       await sendEmail({
         to: r.email,
@@ -98,13 +111,13 @@ export async function sendPendingReceipts(opts: { onlyPiId?: string; limit?: num
           amount: formatCents(r.amountCents),
           date,
           donorName: r.donorName || "-",
-          orgName: settings.charity.legalName,
-          ein: settings.charity.ein,
-          orgAddress: settings.charity.address || "-",
+          orgName: issuer.legalName,
+          ein: issuer.ein,
+          orgAddress: issuer.address || "-",
         },
         idempotencyKey: `receipt/${r.receiptNo}`,
       });
-      await DonationReceipt.updateOne({ _id: r._id }, { $set: { status: "sent", sentAt: new Date() }, $unset: { lastError: 1 } });
+      await DonationReceipt.updateOne({ _id: r._id }, { $set: { status: "sent", sentAt: new Date(), issuer: { ...issuer, ...(issuer.address ? {} : { address: undefined }) } }, $unset: { lastError: 1 } });
       summary.sent++;
     } catch (err) {
       const giveUp = r.attempts + 1 >= MAX_ATTEMPTS;
@@ -118,12 +131,16 @@ export async function sendPendingReceipts(opts: { onlyPiId?: string; limit?: num
   return summary;
 }
 
-/** Counts for the admin page. */
-export async function receiptCounts(): Promise<Record<"pending" | "sent" | "failed", number>> {
+/** Counts for the admin page. `before` = pending gifts made before the receipts start day (never sent). */
+export async function receiptCounts(): Promise<Record<"pending" | "sent" | "failed" | "before", number>> {
   await connectDb();
-  const rows = await DonationReceipt.aggregate<{ _id: string; n: number }>([{ $group: { _id: "$status", n: { $sum: 1 } } }]);
+  const [rows, settings] = await Promise.all([
+    DonationReceipt.aggregate<{ _id: string; n: number }>([{ $group: { _id: "$status", n: { $sum: 1 } } }]),
+    getPlatformSettings(),
+  ]);
   const by = Object.fromEntries(rows.map((r) => [r._id, r.n]));
-  return { pending: by.pending ?? 0, sent: by.sent ?? 0, failed: by.failed ?? 0 };
+  const before = settings.receiptsFrom ? await DonationReceipt.countDocuments({ status: "pending", donatedAt: trusted({ $lt: settings.receiptsFrom }) }) : 0;
+  return { pending: (by.pending ?? 0) - before, sent: by.sent ?? 0, failed: by.failed ?? 0, before };
 }
 
 /** Re-queue failed receipts (e.g. after fixing settings); those without an email stay failed. */

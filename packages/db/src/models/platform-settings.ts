@@ -7,6 +7,8 @@
  *    the split refuses to run until an admin has chosen it.
  *  - charity: the 501(c)(3) named on tax receipts (Edynsgate). receiptsEnabled stays OFF until the
  *    admin confirms donations are received on the charity's behalf (a receipt is only valid then).
+ *  - receiptsFromDay: receipts cover gifts made ON/AFTER this calendar day (Central Time): the day
+ *    the charity arrangement took effect. Earlier gifts never get a receipt (review 2026-11-06).
  */
 // Default import: mongoose is CommonJS, so named runtime imports fail under plain Node ESM.
 import mongoose, { type InferSchemaType, type Model } from "mongoose";
@@ -26,6 +28,7 @@ const platformSettingsSchema = new Schema(
       address: { type: String, trim: true, maxlength: 200 },
     },
     receiptsEnabled: { type: Boolean, default: false },
+    receiptsFromDay: { type: String, match: /^\d{4}-\d{2}-\d{2}$/ },
     updatedByUserId: objectId("User", false),
   },
   { timestamps: true, versionKey: false },

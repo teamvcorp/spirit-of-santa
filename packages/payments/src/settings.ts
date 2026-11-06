@@ -7,14 +7,19 @@ import "server-only";
 import { z } from "zod";
 import { AuditLog, connectDb, PlatformSettings, withTransaction } from "@repo/db";
 import { MAX_DONATION_FEE_BPS } from "@repo/lib/limits";
+import { parseIsoDay, startOfDayInZone } from "@repo/lib/season";
 
 export type PlatformSettingsView = {
   /** null = never chosen (the Dec 1 split refuses to run until it is). */
   donationFeeBps: number | null;
   charity: { legalName: string; ein: string; address: string };
   receiptsEnabled: boolean;
-  /** Receipts can actually go out: switched on AND name + EIN filled in. */
+  /** Receipts cover gifts from this calendar day ("" = not set). */
+  receiptsFromDay: string;
+  /** Receipts can actually go out: switched on AND name + EIN + start day filled in. */
   receiptsReady: boolean;
+  /** Start of receiptsFromDay (Central-Time midnight), or null. */
+  receiptsFrom: Date | null;
 };
 
 export async function getPlatformSettings(): Promise<PlatformSettingsView> {
@@ -22,11 +27,14 @@ export async function getPlatformSettings(): Promise<PlatformSettingsView> {
   const s = await PlatformSettings.findOne({ key: "platform" }).lean();
   const charity = { legalName: s?.charity?.legalName ?? "", ein: s?.charity?.ein ?? "", address: s?.charity?.address ?? "" };
   const receiptsEnabled = s?.receiptsEnabled ?? false;
+  const receiptsFromDay = s?.receiptsFromDay ?? "";
   return {
     donationFeeBps: typeof s?.donationFeeBps === "number" ? s.donationFeeBps : null,
     charity,
     receiptsEnabled,
-    receiptsReady: receiptsEnabled && charity.legalName !== "" && charity.ein !== "",
+    receiptsFromDay,
+    receiptsReady: receiptsEnabled && charity.legalName !== "" && charity.ein !== "" && receiptsFromDay !== "",
+    receiptsFrom: receiptsFromDay ? startOfDayInZone(receiptsFromDay) : null,
   };
 }
 
@@ -44,17 +52,23 @@ export const settingsInputSchema = z.object({
   ein: z.union([z.literal(""), z.string().regex(/^\d{2}-\d{7}$/)]),
   address: z.string().trim().max(200),
   receiptsEnabled: z.boolean(),
+  receiptsFromDay: z.union([z.literal(""), z.string().refine((d) => parseIsoDay(d) !== null)]),
 });
 export type SettingsInput = z.infer<typeof settingsInputSchema>;
 
-export type SettingsResult = { ok: true } | { ok: false; error: "invalid" | "receiptsNeedCharity" };
+export type SettingsResult = { ok: true } | { ok: false; error: "invalid" | "fee" | "ein" | "fromDay" | "receiptsNeedCharity" };
 
 /** Save all settings at once (admin). Turning receipts ON needs the charity's name + EIN. */
 export async function updatePlatformSettings(adminUserId: string, raw: SettingsInput): Promise<SettingsResult> {
   const parsed = settingsInputSchema.safeParse(raw);
-  if (!parsed.success) return { ok: false, error: "invalid" };
+  if (!parsed.success) {
+    // Name the field the admin got wrong (the ONE place these rules live).
+    const field = parsed.error.issues[0]?.path[0];
+    return { ok: false, error: field === "donationFeeBps" ? "fee" : field === "ein" ? "ein" : field === "receiptsFromDay" ? "fromDay" : "invalid" };
+  }
   const v = parsed.data;
   if (v.receiptsEnabled && (v.legalName === "" || v.ein === "")) return { ok: false, error: "receiptsNeedCharity" };
+  if (v.receiptsEnabled && v.receiptsFromDay === "") return { ok: false, error: "fromDay" };
   await connectDb();
   await withTransaction(async (session) => {
     const before = await PlatformSettings.findOne({ key: "platform" }).session(session).lean();
@@ -68,8 +82,9 @@ export async function updatePlatformSettings(adminUserId: string, raw: SettingsI
           receiptsEnabled: v.receiptsEnabled,
           updatedByUserId: adminUserId,
           ...(v.ein ? { "charity.ein": v.ein } : {}),
+          ...(v.receiptsFromDay ? { receiptsFromDay: v.receiptsFromDay } : {}),
         },
-        ...(v.ein ? {} : { $unset: { "charity.ein": 1 } }),
+        ...(v.ein && v.receiptsFromDay ? {} : { $unset: { ...(v.ein ? {} : { "charity.ein": 1 }), ...(v.receiptsFromDay ? {} : { receiptsFromDay: 1 }) } }),
       },
       { upsert: true, session, runValidators: true, returnDocument: "after", projection: { _id: 1 } },
     );
@@ -85,6 +100,7 @@ export async function updatePlatformSettings(adminUserId: string, raw: SettingsI
           details: {
             feeBps: { from: before?.donationFeeBps ?? null, to: v.donationFeeBps },
             receiptsEnabled: { from: before?.receiptsEnabled ?? false, to: v.receiptsEnabled },
+            receiptsFromDay: { from: before?.receiptsFromDay ?? null, to: v.receiptsFromDay || null },
             charityChanged:
               (before?.charity?.legalName ?? "") !== v.legalName || (before?.charity?.ein ?? "") !== v.ein || (before?.charity?.address ?? "") !== v.address,
           },

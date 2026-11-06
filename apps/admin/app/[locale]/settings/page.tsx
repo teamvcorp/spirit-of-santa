@@ -11,6 +11,7 @@ import { receiptCounts } from "@repo/payments/receipts";
 import { getPlatformSettings } from "@repo/payments/settings";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
+import { calendarDateIn, isoDay } from "@repo/lib/season";
 import { authOptions } from "@/auth";
 import { SettingsForm } from "./settings-form";
 
@@ -36,12 +37,15 @@ async function Content() {
             ein: s.charity.ein,
             address: s.charity.address,
             receipts: s.receiptsEnabled,
+            // Not chosen yet: suggest today (Central Time), the admin confirms it.
+            fromDay: s.receiptsFromDay || isoDay(calendarDateIn(new Date())),
           }}
         />
       </Card>
       <Card>
         <h2 className="mb-2 text-lg font-semibold">{t("receiptsTitle")}</h2>
         <p data-testid="receipt-counts">{t("counts", { pending: counts.pending, sent: counts.sent, failed: counts.failed })}</p>
+        {counts.before > 0 && <p className="mt-2 text-sm text-foreground/70">{t("before", { count: counts.before, day: s.receiptsFromDay })}</p>}
         {!s.receiptsReady && counts.pending > 0 && <p className="mt-2 text-sm text-foreground/70">{t("waiting")}</p>}
       </Card>
     </div>

@@ -28,6 +28,12 @@ const donationReceiptSchema = new Schema(
     /** The family app's /donate page, set where the receipt was created (a link in the email). */
     link: { type: String, maxlength: 300 },
     status: { type: String, enum: DONATION_RECEIPT_STATUSES, default: "pending" },
+    /** The charity as named on the receipt WHEN SENT (later settings changes don't rewrite it). */
+    issuer: {
+      legalName: { type: String, maxlength: 120 },
+      ein: { type: String, match: /^\d{2}-\d{7}$/ },
+      address: { type: String, maxlength: 200 },
+    },
     attempts: { type: Number, default: 0, min: 0 },
     lastError: { type: String, maxlength: 200 },
     sentAt: Date,

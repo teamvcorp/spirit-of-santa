@@ -12,7 +12,7 @@ import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { saveSettingsAction, type SettingsFormState } from "./actions";
 
-export type SettingsDefaults = { fee: string; legalName: string; ein: string; address: string; receipts: boolean };
+export type SettingsDefaults = { fee: string; legalName: string; ein: string; address: string; receipts: boolean; fromDay: string };
 
 export function SettingsForm({ saved }: { saved: SettingsDefaults }) {
   const t = useTranslations("Settings");
@@ -25,6 +25,7 @@ export function SettingsForm({ saved }: { saved: SettingsDefaults }) {
     ein: v?.ein ?? saved.ein,
     address: v?.address ?? saved.address,
     receipts: v ? v.receipts === "on" : saved.receipts,
+    fromDay: v?.fromDay ?? saved.fromDay,
   };
   return (
     <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-4">
@@ -42,6 +43,7 @@ export function SettingsForm({ saved }: { saved: SettingsDefaults }) {
           <span className="block text-sm text-foreground/70">{t("receiptsHelp")}</span>
         </span>
       </label>
+      <TextField label={t("fromDay")} hint={t("fromDayHint")} name="fromDay" type="date" defaultValue={d.fromDay} />
       <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">
         {t("save")}
       </Button>

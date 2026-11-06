@@ -437,7 +437,7 @@
     "einHint": "Formato 12-3456789.",
     "address": "Dirección postal (opcional)",
     "receipts": "Enviar recibos de impuestos por correo",
-    "receiptsHelp": "Actívalo solo cuando hayas confirmado con la organización (y un contador) que estas donaciones se reciben en su nombre. Los regalos hechos antes recibirán su recibo cuando lo actives.",
+    "receiptsHelp": "Actívalo solo cuando hayas confirmado con la organización (y un contador) que estas donaciones se reciben en su nombre.",
     "save": "Guardar ajustes",
     "saved": "Guardado.",
     "savedSent": "{count, plural, one {Guardado. Se envió # recibo pendiente.} other {Guardado. Se enviaron # recibos pendientes.}}",
@@ -448,7 +448,11 @@
       "invalid": "Algo salió mal con el formulario. Inténtalo de nuevo.",
       "fee": "Escribe una comisión entre 0 y 30 (hasta dos decimales).",
       "ein": "Escribe el EIN como 12-3456789.",
-      "receiptsNeedCharity": "Para enviar recibos, escribe el nombre legal y el EIN de la organización."
-    }
+      "receiptsNeedCharity": "Para enviar recibos, escribe el nombre legal y el EIN de la organización.",
+      "fromDay": "Elige el día desde el que los recibos cubren los regalos."
+    },
+    "fromDay": "Los recibos cubren regalos desde",
+    "fromDayHint": "El día en que empezó el acuerdo con la organización. Los regalos anteriores nunca reciben recibo.",
+    "before": "{count, plural, one {# regalo se hizo antes del {day} y no recibe recibo.} other {# regalos se hicieron antes del {day} y no reciben recibo.}}"
   }
 }

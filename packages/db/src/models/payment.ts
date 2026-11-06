@@ -47,6 +47,8 @@ const paymentSchema = new Schema(
     familyId: objectId("Family", false),
     deedId: objectId("Deed", false),
     wishListItemId: objectId("WishListItem", false),
+    /** When the money arrived (first payment_intent.succeeded we processed). Receipt date. */
+    succeededAt: Date,
     /** Community donation (/donate) aimed at one US ZIP; absent = the "all kids" pool. */
     zip: { type: String, match: /^\d{5}$/ },
 

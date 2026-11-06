@@ -148,15 +148,27 @@ try {
   check("receipt row created exactly once (replayed event)", (await DonationReceipt.countDocuments({ stripePaymentIntentId: paid.piId })) === 1);
   const tooBig = await sendEvent(buildPaymentMetadata({ sos_purpose: "donation" }), 6_000_000);
   check("$60,000 donation (over the cap) → review, not pooled", (await Payment.findOne({ stripePaymentIntentId: tooBig.piId }).lean())?.fulfilment === "review" && tooBig.status === 200);
+  check("a gift held for review gets NO tax receipt", (await DonationReceipt.countDocuments({ stripePaymentIntentId: tooBig.piId })) === 0);
 
-  // 7. A waiting receipt (as if Stripe gave the donor's email) goes out when receipts are switched on.
-  const rid = `pi_e2ecomrcpt${randomBytes(6).toString("hex")}`;
-  piIds.push(rid);
-  await DonationReceipt.create({ stripePaymentIntentId: rid, receiptNo: `SOS-2026-E2E${tag.toUpperCase()}`, seasonYear: 2026, amountCents: 2500, donatedAt: new Date(), email: "delivered+e2ereceipt@resend.dev", donorName: "E2E Donor", locale: "en", link: `${base}/donate` });
-  const msg = await save({ fee: "12.5", legalName: "Edynsgate Test Charity", ein: "12-3456789", address: "1 Test St" }, true);
-  const r = await DonationReceipt.findOne({ stripePaymentIntentId: rid }).lean();
-  check("switching receipts on emails the waiting receipt", msg.includes("waiting receipt was emailed") && r?.status === "sent" && !!r.sentAt, msg);
-  check("admin sees receipt counts", (await text(ap, `${adminBase}/settings`)).includes("Sent:"));
+  // 7. Waiting receipts (as if Stripe gave the donor's email): switching receipts on from TODAY
+  //    sends today's gift, never one from before the start day.
+  const mkReceipt = async (name: string, donatedAt: Date) => {
+    const id = `pi_e2ecom${name}${randomBytes(6).toString("hex")}`;
+    piIds.push(id);
+    await DonationReceipt.create({ stripePaymentIntentId: id, receiptNo: `SOS-2026-E2E${name.toUpperCase()}${tag.toUpperCase()}`, seasonYear: 2026, amountCents: 2500, donatedAt, email: `delivered+e2e${name}@resend.dev`, donorName: "E2E Donor", locale: "en", link: `${base}/donate` });
+    return id;
+  };
+  const today = await mkReceipt("today", new Date());
+  const old = await mkReceipt("old", new Date(Date.now() - 10 * 86_400_000));
+  const fromDay = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago" }).format(new Date()); // YYYY-MM-DD
+  check("receipts ON without a start day refused", (await save({ fee: "12.5", legalName: "Edynsgate Test Charity", ein: "12-3456789", address: "1 Test St", fromDay: "" }, true)).includes("start covering"));
+  const msg = await save({ fee: "12.5", legalName: "Edynsgate Test Charity", ein: "12-3456789", address: "1 Test St", fromDay }, true);
+  const [rt, ro] = await Promise.all([DonationReceipt.findOne({ stripePaymentIntentId: today }).lean(), DonationReceipt.findOne({ stripePaymentIntentId: old }).lean()]);
+  check("switching receipts on emails today's waiting receipt, with the charity stored on it",
+    msg.includes("waiting receipt was emailed") && rt?.status === "sent" && !!rt.sentAt && rt.issuer?.ein === "12-3456789" && rt.issuer.legalName === "Edynsgate Test Charity", msg);
+  check("a gift from BEFORE the start day is never sent a receipt", ro?.status === "pending" && !ro.sentAt);
+  const settingsNow = await text(ap, `${adminBase}/settings`);
+  check("admin sees receipt counts + the gift before the start day", settingsNow.includes("Sent:") && settingsNow.includes("made before"));
 
   // 8. Public page now promises the receipt and names the charity; season total shown.
   const page2 = await text(visitor, `${base}/donate`);

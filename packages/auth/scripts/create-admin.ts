@@ -20,6 +20,7 @@
 import { connectDb, User } from "@repo/db";
 import { emailSchema } from "../src/schemas.ts";
 import { hashSecret, MAX_SECRET_LENGTH } from "../src/password.ts";
+import { resetMfa } from "../src/mfa.ts";
 
 function fail(msg: string): never {
   console.error(`[admin] ${msg}`);
@@ -35,7 +36,7 @@ async function main() {
   if (password.length < 12 || password.length > MAX_SECRET_LENGTH) fail(`set ADMIN_PASSWORD (12–${MAX_SECRET_LENGTH} characters)`);
 
   const conn = await connectDb();
-  const existing = await User.findOne({ email: email.data }).select("role").lean();
+  const existing = await User.findOne({ email: email.data }).select("role mfa.enabled").lean();
   if (existing && existing.role !== "admin") {
     await conn.disconnect();
     fail("that email already belongs to a non-admin account; use a different email");
@@ -45,11 +46,13 @@ async function main() {
     { email: email.data },
     {
       $set: { passwordHash, role: "admin", status: "active", failedLoginCount: 0 },
-      $unset: { lockedUntil: 1, mfa: 1 }, // MFA set up again at next sign-in
+      $unset: { lockedUntil: 1 },
       $inc: { sessionVersion: 1 },
     },
     { upsert: true, runValidators: true, setDefaultsOnInsert: true },
   );
+  // Lost-phone path: turn MFA off through resetMfa() so it's AUDITED (review 2026-11-05).
+  if (existing?.mfa?.enabled) await resetMfa(String(existing._id));
   console.log(`[admin] ${existing ? "password + two-step sign-in reset for" : "created"} admin ${email.data} in database "${conn.connection.name}"`);
   console.log("[admin] at the next sign-in they'll be asked to set up an authenticator app.");
   await conn.disconnect();

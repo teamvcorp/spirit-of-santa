@@ -219,7 +219,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
 
 ## Phase 3 (admin app), agreed 2026-11-05
 
-Order: 1 admin MFA (built; review pending) → 2 season controls → 3 user management (incl. "reset MFA"
+Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls → 3 user management (incl. "reset MFA"
 button) → 4 deed catalog → 5 platform dashboard v1. Deferred until their data exists: content moderation
 (Phase 4), donation settings + pay-later links (Phase 5), announcements (Phase 7).
 
@@ -227,9 +227,17 @@ button) → 4 deed catalog → 5 platform dashboard v1. Deferred until their dat
   → JWT `mfaSetup` → `requireRole` redirects EVERYTHING to `/mfa/setup`; only that page/action uses
   `requireMfaSetupUser`. Pages that read the session directly (admin home) must check `user.mfaSetup` too.
   Sign-in form shows a code field in the admin app only (`<SignInSlot showCode />`). Blank code = no strike,
-  wrong code = strike. `admin:create` re-run = lost-phone reset. New admin env: `MFA_ENCRYPTION_KEY`.
+  wrong code = strike; a correct-but-used code (double submit) = refused, no strike. 10 wrong codes in a row
+  (after a correct password) → 24 h lock + `user.mfa_locked` audit. `admin:create` re-run = lost-phone reset
+  (via `resetMfa`, audited). New admin env: `MFA_ENCRYPTION_KEY`. Enabling MFA emails the admin a security
+  alert (`mfaEnabled`, no "ignore this" line). Admin tokens carry `mfaV`; tokens without it (pre-MFA) are
+  signed out (`ADMIN_TOKEN_VERSION` in options.ts: bump to force all admins to sign in again).
+- **`getSessionUser` hides restricted (MFA-setup) sessions** unless `{ includeRestricted: true }` (account menu,
+  admin home which redirects). `requireUser`/`requireRole` send them to /mfa/setup.
+- **E2E emails in `next start` are REAL:** any flow that emails (now incl. MFA enable) must use
+  `delivered+...@resend.dev` addresses.
 - **Admin E2E now uses its own MFA admin** (`createMfaAdmin` in `scripts/e2e/lib.ts`, needs
-  `--env-file=apps/admin/.env.local`); `SEED_PASSWORD` no longer needed. `browser-admin-mfa.ts`: 27 checks;
+  `--env-file=apps/admin/.env.local`); `SEED_PASSWORD` no longer needed. `browser-admin-mfa.ts`: 31 checks;
   `browser-admin-stores.ts --prod`: 18 checks. dev-admin@ gets a setup-only session until you set MFA up.
 - **npm override:** `@vercel/cli-config` → zod 4.6.7 (its pinned 4.1.11 had a high-severity advisory);
   `npm audit --omit=dev` = 0. Remove the override once @vercel/oidc updates.

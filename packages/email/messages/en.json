@@ -48,6 +48,12 @@
       "body": "You've been invited to help manage {storeName}'s gift items on Spirit O Santa. Choose your name and password to get started.",
       "button": "Accept the invitation",
       "expiry": "This link works once and expires in 7 days."
+    },
+    "mfaEnabled": {
+      "subject": "Two-step sign-in was turned on for your admin account",
+      "heading": "Two-step sign-in is on",
+      "body": "Two-step sign-in (an authenticator app) was just turned on for your Spirit O Santa admin account. If this was you, there's nothing else to do. If it wasn't you, someone knows your password: contact the Spirit O Santa team right away so the account can be locked and reset.",
+      "button": "Go to admin sign-in"
     }
   }
 }

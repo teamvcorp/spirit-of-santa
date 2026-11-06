@@ -22,7 +22,7 @@ import { z } from "zod";
 import { connectDb, User } from "@repo/db";
 import { isRoleAllowedInApp, type AppName, type Role } from "@repo/lib/roles";
 import { nextAuthCookies } from "./cookies.ts";
-import { verifySecondFactor } from "./mfa.ts";
+import { recordMfaFailure, verifySecondFactor } from "./mfa.ts";
 import {
   burnVerifyTime,
   hashSecret,
@@ -63,6 +63,7 @@ declare module "next-auth/jwt" {
     storeId?: string;
     checkedAt?: number; // last DB re-check (ms)
     mfaSetup?: boolean; // restricted admin session (no MFA yet)
+    mfaV?: number; // admin tokens issued by the MFA-aware sign-in carry ADMIN_TOKEN_VERSION
     invalid?: boolean; // set when the user was suspended / sessions revoked
   }
 }
@@ -70,6 +71,12 @@ declare module "next-auth/jwt" {
 export const MAX_FAILED_LOGINS = 5;
 export const LOCKOUT_MINUTES = 15;
 const RECHECK_MS = 5 * 60 * 1000;
+/**
+ * Stamped on every admin token at sign-in. Admin tokens WITHOUT it were issued before admin
+ * MFA existed (they'd carry no mfaSetup flag and skip MFA), so they're treated as signed out.
+ * Bump to force every admin to sign in again after a future change to admin sign-in.
+ */
+const ADMIN_TOKEN_VERSION = 1;
 
 /** Session lifetime per app: shorter where the blast radius is larger. */
 const SESSION_MAX_AGE: Record<AppName, number> = {
@@ -167,10 +174,13 @@ async function verifyCredentials(raw: unknown, app: AppName) {
   const mfaOn = user.mfa?.enabled === true;
   if (mfaOn) {
     if (!code) return GENERIC_FAILURE;
-    if (!(await verifySecondFactor(user._id.toString(), code))) {
+    const second = await verifySecondFactor(user._id.toString(), code);
+    if (second === "wrong") {
       await recordFailedLogin(user._id);
+      await recordMfaFailure(user._id.toString()); // 10 in a row → 24 h lock
       return GENERIC_FAILURE;
     }
+    if (second === "replay") return GENERIC_FAILURE; // a used-up but correct code: no strike
   }
 
   const update: Record<string, unknown> = {
@@ -225,10 +235,14 @@ function authCallbacks(app: AppName): AuthOptions["callbacks"] {
           familyId: user.familyId,
           storeId: user.storeId,
           mfaSetup: user.mfaSetup,
+          ...(app === "admin" ? { mfaV: ADMIN_TOKEN_VERSION } : {}),
           checkedAt: Date.now(),
         };
       }
       if (token.invalid || token.app !== app)
+        return { ...token, invalid: true };
+      // Admin token from before MFA (or an older admin sign-in version): sign in again.
+      if (app === "admin" && token.mfaV !== ADMIN_TOKEN_VERSION)
         return { ...token, invalid: true };
 
       // Periodic revocation check.

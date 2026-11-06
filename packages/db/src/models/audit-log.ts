@@ -40,6 +40,7 @@ export const AUDIT_ACTIONS = [
   "user.mfa_enable",
   "user.mfa_reset",
   "user.mfa_recovery_used",
+  "user.mfa_locked",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 

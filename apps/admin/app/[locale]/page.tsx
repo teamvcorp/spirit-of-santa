@@ -11,7 +11,7 @@ import { Link } from "@/i18n/navigation";
 /** Admin dashboard: what needs attention. Signed-out visitors just see the intro. */
 async function Dashboard() {
   await connection();
-  const user = await getSessionUser(authOptions);
+  const user = await getSessionUser(authOptions, { includeRestricted: true }); // redirected below
   if (user?.role !== "admin") return null;
   if (user.mfaSetup) redirect("/mfa/setup"); // no admin data until MFA is set up
   const [counts, t] = await Promise.all([storeStatusCounts(), getTranslations("HomePage")]);

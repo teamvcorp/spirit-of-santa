@@ -24,6 +24,7 @@ import "server-only";
 import { createCipheriv, createDecipheriv, createHmac, hkdfSync, randomBytes } from "node:crypto";
 import QRCode from "qrcode";
 import { AuditLog, connectDb, trusted, User } from "@repo/db";
+import { sendEmail } from "@repo/email";
 import { hitRateLimit } from "./rate-limit.ts";
 import {
   formatManualKey,
@@ -36,8 +37,16 @@ import {
 
 /** Name shown in the authenticator app next to the admin's email. */
 export const MFA_ISSUER = "Spirit O Santa Admin";
-/** A scanned-but-unconfirmed secret is replaced after this long. */
+/** A pending (scanned-but-unconfirmed) secret can be confirmed for this long... */
 const PENDING_MINUTES = 15;
+/** ...and a reload only shows the SAME QR code while at least 5 minutes are left (review 2026-11-05). */
+const REUSE_MINUTES = 10;
+/**
+ * Wrong codes in a row after a CORRECT password → 24 h lock + audit. The normal 5-tries/15-min
+ * lockout alone would let someone with a stolen password guess ~480 codes a day forever.
+ */
+export const MAX_MFA_FAILURES = 10;
+const MFA_LOCK_HOURS = 24;
 const ENC_VERSION = "v1";
 
 // ── Keys ──────────────────────────────────────────────────────────────────────────────
@@ -68,9 +77,18 @@ export function decryptSecret(stored: string, userId: string): Buffer {
   return Buffer.concat([decipher.update(Buffer.from(ct, "base64url")), decipher.final()]);
 }
 
+/** decryptSecret, or null if it can't be read (key changed, corrupted value). */
+function tryDecrypt(stored: string, userId: string): Buffer | null {
+  try {
+    return decryptSecret(stored, userId);
+  } catch {
+    return null;
+  }
+}
+
 export const hashRecoveryCode = (normalized: string) => createHmac("sha256", recoveryKey()).update(normalized).digest("hex");
 
-async function audit(userId: string, action: "user.mfa_enable" | "user.mfa_reset" | "user.mfa_recovery_used", details: Record<string, unknown> = {}) {
+async function audit(userId: string, action: "user.mfa_enable" | "user.mfa_reset" | "user.mfa_recovery_used" | "user.mfa_locked", details: Record<string, unknown> = {}) {
   await AuditLog.create({ actorUserId: userId, action, targetType: "user", targetId: userId, details });
 }
 
@@ -90,21 +108,25 @@ export async function beginMfaSetup(userId: string): Promise<MfaSetupView | null
     .lean();
   if (!user) return null;
   if (user.mfa?.enabled) return { status: "enabled" };
-  let secret: Buffer | null = null;
-  const fresh = user.mfa?.pendingAt && Date.now() - new Date(user.mfa.pendingAt).getTime() < PENDING_MINUTES * 60_000;
-  if (fresh && user.mfa?.pendingSecretEnc) {
-    try {
-      secret = decryptSecret(user.mfa.pendingSecretEnc, userId);
-    } catch {
-      secret = null; // e.g. the key changed: just start over
-    }
-  }
+  const oldEnc = user.mfa?.pendingSecretEnc;
+  const reusable = (enc: string | null | undefined, at: Date | null | undefined) =>
+    enc && at && Date.now() - new Date(at).getTime() < REUSE_MINUTES * 60_000 ? tryDecrypt(enc, userId) : null;
+  let secret = reusable(oldEnc, user.mfa?.pendingAt);
   if (!secret) {
-    secret = generateTotpSecret();
-    await User.updateOne(
-      { _id: userId, "mfa.enabled": trusted({ $ne: true }) },
-      { $set: { "mfa.pendingSecretEnc": encryptSecret(secret, userId), "mfa.pendingAt": new Date() } },
+    const candidate = generateTotpSecret();
+    // Compare-and-set on the OLD pending value: two tabs rendering at once can't each show a
+    // different QR code with only the last one confirmable (review 2026-11-05).
+    const res = await User.updateOne(
+      { _id: userId, "mfa.enabled": trusted({ $ne: true }), "mfa.pendingSecretEnc": oldEnc ? oldEnc : trusted({ $exists: false }) },
+      { $set: { "mfa.pendingSecretEnc": encryptSecret(candidate, userId), "mfa.pendingAt": new Date() } },
     );
+    if (res.modifiedCount === 1) secret = candidate;
+    else {
+      // Another render won: show ITS secret.
+      const now = await User.findById(userId).select("+mfa.pendingSecretEnc +mfa.pendingAt").lean();
+      secret = reusable(now?.mfa?.pendingSecretEnc, now?.mfa?.pendingAt);
+      if (!secret) return null;
+    }
   }
   const uri = otpauthUri(secret, user.email, MFA_ISSUER);
   // An <img> data URL (not inline SVG markup) so no generated HTML is ever injected into the page.
@@ -120,12 +142,14 @@ export async function confirmMfaSetup(userId: string, code: string): Promise<Con
   // 10 tries per 15 min: a 6-digit code mustn't be guessable here either.
   if (!(await hitRateLimit(`mfa-setup:${userId}`, 10, 900))) return { ok: false, error: "rateLimited" };
   const user = await User.findOne({ _id: userId, role: "admin", status: "active" })
-    .select("mfa.enabled +mfa.pendingSecretEnc +mfa.pendingAt")
+    .select("email locale mfa.enabled +mfa.pendingSecretEnc +mfa.pendingAt")
     .lean();
   if (!user || user.mfa?.enabled) return { ok: false, error: "notFound" };
   const pendingAt = user.mfa?.pendingAt ? new Date(user.mfa.pendingAt).getTime() : 0;
   if (!user.mfa?.pendingSecretEnc || Date.now() - pendingAt > PENDING_MINUTES * 60_000) return { ok: false, error: "expired" };
-  const secret = decryptSecret(user.mfa.pendingSecretEnc, userId);
+  // Unreadable (e.g. MFA_ENCRYPTION_KEY changed while the page was open): "reload for a new QR".
+  const secret = tryDecrypt(user.mfa.pendingSecretEnc, userId);
+  if (!secret) return { ok: false, error: "expired" };
   const step = verifyTotp(secret, code);
   if (step == null) return { ok: false, error: "invalidCode" };
   const recoveryCodes = generateRecoveryCodes();
@@ -146,6 +170,15 @@ export async function confirmMfaSetup(userId: string, code: string): Promise<Con
   );
   if (res.modifiedCount !== 1) return { ok: false, error: "expired" };
   await audit(userId, "user.mfa_enable");
+  // Security alert to the account's own address. Enrolment is "first come, first served": if
+  // someone else used a leaked password to enrol their phone, the real admin hears about it now
+  // (review 2026-11-05). A failed email must not undo the enrolment, so it's only logged.
+  try {
+    const base = process.env.NEXTAUTH_URL;
+    if (base) await sendEmail({ to: user.email, template: "mfaEnabled", values: { link: new URL("/signin", base).toString() }, locale: user.locale });
+  } catch (err) {
+    console.error("[mfa] alert email failed:", err instanceof Error ? err.name : "unknown");
+  }
   return { ok: true, recoveryCodes };
 }
 
@@ -155,32 +188,69 @@ export async function confirmMfaSetup(userId: string, code: string): Promise<Con
  * code: a TOTP step is recorded atomically (no replay), a recovery code is removed atomically.
  * Call ONLY after the password was verified.
  */
-export async function verifySecondFactor(userId: string, input: string): Promise<boolean> {
+/**
+ * "ok"     = accepted (and now used up).
+ * "replay" = a CORRECT code that was already used (double-click, resubmit within 30 s): refused,
+ *            but not a strike against the real admin (review 2026-11-05).
+ * "wrong"  = not a valid code: the caller counts a strike (recordMfaFailure + login lockout).
+ * Throws if the stored secret can't be decrypted (a key problem, not the person's fault: the
+ * sign-in fails without a strike, with a clear server log).
+ */
+export type SecondFactorResult = "ok" | "replay" | "wrong";
+
+export async function verifySecondFactor(userId: string, input: string): Promise<SecondFactorResult> {
   const code = input.trim();
   if (/^\d{6}$/.test(code.replace(/\s/g, ""))) {
     const user = await User.findById(userId).select("mfa.enabled +mfa.secretEnc +mfa.lastStep").lean();
-    if (!user?.mfa?.enabled || !user.mfa.secretEnc) return false;
-    const step = verifyTotp(decryptSecret(user.mfa.secretEnc, userId), code);
-    if (step == null) return false;
+    if (!user?.mfa?.enabled || !user.mfa.secretEnc) return "wrong";
+    const secret = tryDecrypt(user.mfa.secretEnc, userId);
+    if (!secret) {
+      console.error("[mfa] stored secret could not be decrypted: check MFA_ENCRYPTION_KEY (same value as when MFA was set up?)");
+      throw new Error("MFA secret unreadable");
+    }
+    const step = verifyTotp(secret, code);
+    if (step == null) return "wrong";
     // Atomic "only if newer than the last accepted step": the same code twice, or two parallel
     // sign-ins with one code, can only succeed once.
     const res = await User.updateOne(
       { _id: userId, "mfa.enabled": true, $or: [{ "mfa.lastStep": trusted({ $lt: step }) }, { "mfa.lastStep": trusted({ $exists: false }) }] },
-      { $set: { "mfa.lastStep": step } },
+      { $set: { "mfa.lastStep": step, "mfa.failures": 0 } },
     );
-    return res.modifiedCount === 1;
+    return res.modifiedCount === 1 ? "ok" : "replay";
   }
   const normalized = normalizeRecoveryCode(code);
-  if (!normalized) return false;
+  if (!normalized) return "wrong";
   const hash = hashRecoveryCode(normalized);
   const res = await User.updateOne(
     { _id: userId, "mfa.enabled": true, "mfa.recoveryCodeHashes": hash },
-    { $pull: { "mfa.recoveryCodeHashes": hash } },
+    { $pull: { "mfa.recoveryCodeHashes": hash }, $set: { "mfa.failures": 0 } },
   );
-  if (res.modifiedCount !== 1) return false;
+  if (res.modifiedCount !== 1) return "wrong";
   const left = await User.findById(userId).select("+mfa.recoveryCodeHashes").lean();
   await audit(userId, "user.mfa_recovery_used", { remaining: left?.mfa?.recoveryCodeHashes?.length ?? 0 });
-  return true;
+  return "ok";
+}
+
+/**
+ * A wrong code after a correct password. MAX_MFA_FAILURES in a row → locked for 24 h and
+ * audited (whoever is guessing already HAS the password). Atomic counter: parallel guesses
+ * can't slip past the limit.
+ */
+export async function recordMfaFailure(userId: string): Promise<void> {
+  const after = await User.findOneAndUpdate(
+    { _id: userId },
+    { $inc: { "mfa.failures": 1 } },
+    { returnDocument: "after" },
+  )
+    .select("+mfa.failures")
+    .lean();
+  if ((after?.mfa?.failures ?? 0) >= MAX_MFA_FAILURES) {
+    await User.updateOne(
+      { _id: userId },
+      { $set: { lockedUntil: new Date(Date.now() + MFA_LOCK_HOURS * 3_600_000), "mfa.failures": 0, failedLoginCount: 0 } },
+    );
+    await audit(userId, "user.mfa_locked", { hours: MFA_LOCK_HOURS });
+  }
 }
 
 /** Turn MFA off (lost phone): the admin sets it up again at the next sign-in. Ends all sessions. */

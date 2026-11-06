@@ -63,6 +63,8 @@ const userSchema = new Schema(
       /** Last accepted 30 s step: the same code can't be used twice (replay protection). */
       lastStep: { type: Number, select: false },
       recoveryCodeHashes: { type: [String], select: false, default: undefined },
+      /** Wrong codes in a row (after a CORRECT password). 10 → 24 h lock (mfa.ts). */
+      failures: { type: Number, select: false, min: 0 },
     },
 
     /** FCM device tokens for push (Phase 7). */

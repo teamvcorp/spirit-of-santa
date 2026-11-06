@@ -18,7 +18,8 @@ export async function AccountMenu({ authOptions }: { authOptions: AuthOptions })
   // CSRF token, and random values during prerender are an error under Cache Components.
   await connection();
   const [user, t, locale] = await Promise.all([
-    getSessionUser(authOptions),
+    // Restricted (MFA setup) sessions included: the menu shows only the email + Sign out.
+    getSessionUser(authOptions, { includeRestricted: true }),
     getTranslations("Common"),
     getLocale(),
   ]);

@@ -21,7 +21,8 @@ const [base] = process.argv.slice(2);
 if (!base) throw new Error("usage: browser-admin-mfa.ts <adminUrl>");
 const { check, report } = makeChecks();
 const tag = randomBytes(4).toString("hex");
-const email = `e2e-mfa-${tag}@spiritofsanta.test`;
+// Resend's test inbox: enabling MFA sends a REAL alert email under `next start` (fake domains bounce).
+const email = `delivered+mfa${tag}@resend.dev`;
 const PW = `mfa pass ${tag} long`;
 
 const mongoose = await connectDb();
@@ -128,7 +129,9 @@ try {
 
   // 5. Replay: the same code in another browser fails.
   const r = await newPage();
+  const failsBeforeReplay = (await fresh())?.failedLoginCount ?? 0;
   check("the same code can't be used twice (replay)", !(await signInUi(r, good)));
+  check("…and a replayed (correct) code isn't a strike", ((await fresh())?.failedLoginCount ?? 0) === failsBeforeReplay);
 
   // 6. Recovery code: works once, case/dash-insensitive.
   check("a recovery code signs in", await signInUi(r, codes[0]!.toUpperCase().replace("-", " ")));
@@ -136,6 +139,15 @@ try {
   check("the same recovery code doesn't work twice", !(await signInUi(s, codes[0]!)));
   check("9 recovery codes left, use audited",
     (await fresh())?.mfa?.recoveryCodeHashes?.length === 9 && (await AuditLog.countDocuments({ targetId: created._id, action: "user.mfa_recovery_used" })) === 1);
+
+  // 6b. Code guessing with a known password escalates: 10 wrong codes in a row → 24 h lock.
+  await User.updateOne({ _id: uid }, { $set: { "mfa.failures": 9 } });
+  check("10th wrong code in a row fails", !(await signInUi(s, wrong)));
+  const locked = await User.findById(uid).select("+lockedUntil").lean();
+  const hours = locked?.lockedUntil ? (new Date(locked.lockedUntil).getTime() - Date.now()) / 3_600_000 : 0;
+  check("…locks the account for ~24 h and is audited", hours > 23 && hours <= 24 && (await AuditLog.countDocuments({ targetId: created._id, action: "user.mfa_locked" })) === 1, hours.toFixed(2));
+  check("…even a valid code can't get in while locked", !(await signInUi(s, totpCode(secret, Math.max(goodStep + 1, totpStep())))));
+  await User.updateOne({ _id: uid }, { $unset: { lockedUntil: 1 } });
 
   // 7. Lost phone: reset (what `npm run admin:create` does) → setup again at next sign-in.
   await resetMfa(uid);

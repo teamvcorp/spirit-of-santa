@@ -48,6 +48,12 @@
       "body": "Te invitaron a ayudar a administrar los artículos de regalo de {storeName} en Spirit O Santa. Elige tu nombre y contraseña para empezar.",
       "button": "Aceptar la invitación",
       "expiry": "Este enlace funciona una sola vez y vence en 7 días."
+    },
+    "mfaEnabled": {
+      "subject": "Se activó el inicio de sesión en dos pasos en tu cuenta de administración",
+      "heading": "El inicio de sesión en dos pasos está activado",
+      "body": "Se acaba de activar el inicio de sesión en dos pasos (una app de autenticación) en tu cuenta de administración de Spirit O Santa. Si fuiste tú, no tienes que hacer nada más. Si no fuiste tú, alguien conoce tu contraseña: comunícate de inmediato con el equipo de Spirit O Santa para bloquear y restablecer la cuenta.",
+      "button": "Ir al inicio de sesión de administración"
     }
   }
 }

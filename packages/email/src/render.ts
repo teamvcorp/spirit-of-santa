@@ -30,7 +30,12 @@ export type EmailTemplates = {
   storeRejected: { storeName: string; reason: string; link: string };
   /** Only APPROVED (admin-reviewed) stores can send this; storeName is in the body, not the subject. */
   inviteRep: { storeName: string; link: string };
+  /** Security alert to an admin: two-step sign-in was just turned on (catches a hijacked enrolment). */
+  mfaEnabled: { link: string };
 };
+
+/** Security alerts and "you already have an account": "ignore this email" would be wrong advice. */
+const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled"]);
 export type EmailTemplateName = keyof EmailTemplates;
 
 export type RenderedEmail = { subject: string; text: string; html: string };
@@ -69,7 +74,7 @@ export function renderEmail<T extends EmailTemplateName>(
   const body = tt(`${template}.body`, textValues);
   const button = tt(`${template}.button`);
   const expiry = has(`${template}.expiry`) ? tt(`${template}.expiry`) : "";
-  const showIgnore = template !== "accountExists";
+  const showIgnore = !NO_IGNORE_LINE.has(template);
 
   const text = [
     heading,

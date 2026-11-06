@@ -6,9 +6,9 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
-import { bonusWindow } from "@repo/families/bonus";
 import { listKids } from "@repo/families/kids";
 import { formatCents } from "@repo/lib/format";
+import { giftWindow } from "@repo/stores/season";
 import { CENTS_PER_POINT } from "@repo/lib/constants";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 async function Content({ searchParams }: { searchParams: PageProps<"/[locale]/parent/bonus">["searchParams"] }) {
   await connection();
   const parent = await requireUnlockedPage();
-  const [kids, win, sp, t] = await Promise.all([listKids(parent), bonusWindow(), searchParams, getTranslations("Bonus")]);
+  const [kids, win, sp, t] = await Promise.all([listKids(parent), giftWindow(), searchParams, getTranslations("Bonus")]);
   const registered = kids.filter((k) => k.registered).map((k) => ({ id: k.id, firstName: k.firstName }));
   if (registered.length === 0) return <p className="text-foreground/70">{t("noKids")}</p>;
   if (!win.open) return <Alert>{t("errors.seasonClosed")}</Alert>;

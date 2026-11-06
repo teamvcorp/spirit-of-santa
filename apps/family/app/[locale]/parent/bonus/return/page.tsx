@@ -11,7 +11,7 @@ import { bonusStatus } from "@repo/families/bonus";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
-import { requireUnlockedPage } from "@/lib/parent";
+import { requireParent } from "@/lib/parent";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Bonus");
@@ -20,7 +20,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 async function Status({ searchParams }: { searchParams: PageProps<"/[locale]/parent/bonus/return">["searchParams"] }) {
   await connection();
-  const parent = await requireUnlockedPage();
+  // Signed-in parent only, NOT the PIN unlock: the unlock is 15 min + a SameSite=strict cookie, so
+  // the redirect back from Stripe can arrive "locked" and would lose the session id. This page only
+  // shows the status of the family's OWN session (checked against Stripe's metadata).
+  const parent = await requireParent();
   const sid = (await searchParams).session_id;
   const status = typeof sid === "string" ? await bonusStatus(parent, sid) : null;
   const t = await getTranslations("Bonus");

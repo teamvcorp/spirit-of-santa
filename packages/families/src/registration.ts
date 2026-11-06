@@ -15,7 +15,7 @@ import { hitRateLimit } from "@repo/auth/rate-limit";
 import { AuditLog, Kid, Payment, trusted, User, withTransaction } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_KIDS_PER_FAMILY, REGISTRATION_FEE_CENTS } from "@repo/lib/limits";
-import { buildPaymentMetadata, fulfilPaidPaymentIntent, getStripe } from "@repo/payments/checkout";
+import { buildPaymentMetadata, checkoutReturnStatus, getStripe } from "@repo/payments/checkout";
 import { ownFamilyId, type Parent } from "./kids.ts";
 
 /** Case- and space-insensitive promo check. Blank/missing env = promo switched off. */
@@ -104,28 +104,12 @@ export async function startRegistration(parent: Parent, kidIds: string[], promo:
 
 export type ReturnStatus = "registered" | "processing" | "review" | "open" | null;
 
-/**
- * For the return page, never claiming more than is true (review 2026-11-05):
- *  "registered" = our webhook fulfilled the payment; "processing" = Stripe says paid, our webhook
- *  hasn't run yet (seconds); "review" = paid but flagged for an admin; "open" = not paid;
- *  null = not this family's session / unknown.
- */
+/** After paying: what the return page shows (only THIS family's registration sessions). */
 export async function registrationSessionStatus(parent: Parent, sessionId: string): Promise<ReturnStatus> {
-  if (!/^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(sessionId)) return null;
   const fid = await ownFamilyId(parent);
   if (!fid) return null;
-  try {
-    const s = await getStripe().checkout.sessions.retrieve(sessionId);
-    if (s.metadata?.sos_purpose !== "registration" || s.metadata?.sos_family_id !== fid) return null;
-    if (s.status === "open") return "open";
-    if (s.status !== "complete") return null;
-    const piId = typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id;
-    // Paid? Record it now (same idempotent handler as the webhook; see @repo/payments fulfil.ts).
-    if (piId && s.payment_status === "paid") await fulfilPaidPaymentIntent(piId).catch((e: unknown) => console.error("[return] fulfil failed:", e instanceof Error ? e.name : "unknown"));
-    const pay = piId ? await Payment.findOne({ stripePaymentIntentId: piId, familyId: fid }).select("fulfilment").lean() : null;
-    if (!pay) return "processing";
-    return pay.fulfilment === "fulfilled" ? "registered" : "review";
-  } catch {
-    return null;
-  }
+  const r = await checkoutReturnStatus(sessionId, (md) => md.sos_purpose === "registration" && md.sos_family_id === fid);
+  if (!r) return null;
+  if (r.state !== "done") return r.state;
+  return r.fulfilment === "fulfilled" ? "registered" : "review";
 }

@@ -149,12 +149,13 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
       return processed(`held:${meta.sos_purpose}`);
     }
 
-    // tip | bonus → credit points to the kid.
-    const kid = await Kid.findOne({ _id: meta.sos_kid_id, familyId: meta.sos_family_id, archivedAt: null })
+    // tip | bonus → credit points to the kid. Only a REGISTERED kid of that family (consent
+    // verified): every checkout already requires it; this is the second layer (review 2026-11-06).
+    const kid = await Kid.findOne({ _id: meta.sos_kid_id, familyId: meta.sos_family_id, archivedAt: null, "registration.status": "registered" })
       .select({ _id: 1 })
       .session(session)
       .lean();
-    if (!kid) return review("kid_not_found_or_wrong_family");
+    if (!kid) return review("kid_not_found_wrong_family_or_unregistered");
 
     let confirmDeed = false;
     if (meta.sos_purpose === "tip" && meta.sos_deed_id) {

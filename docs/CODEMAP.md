@@ -370,6 +370,15 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   min(season close, 23.5 h), 10 starts/15 min per parent, Stripe sees no child name. Webhook already credits `bonus`
   (ledger `earn_bonus`). Return page fulfils too. `MIN/MAX_CHECKOUT_MS` moved to @repo/lib/limits (families cannot
   import deeds: deeds depends on families). E2E `browser-family-bonus.ts` (12).
+  Review fixes: ONE "gifts accepted now?" rule = `giftWindow()` in @repo/stores/season (tips, donations, bonus);
+  ONE "back from Stripe" helper = `checkoutReturnStatus(sessionId, belongs)` + `creditReturnState` in
+  @repo/payments (registration/tip/donation/bonus status all use it; `belongs` checks Stripe's own metadata).
+  Return pages need only the signed-in parent, NOT the PIN unlock (15 min, SameSite=strict: the redirect back from
+  Stripe can arrive locked). startBonus bounds-checks the amount itself; rate limit counted before any lookup.
+  Webhook credits tips/bonuses only to REGISTERED kids (else review). Tips, donation links and bonuses deliberately
+  share one set of amount limits (TIP_PRESETS/MIN/MAX_TIP_CENTS).
+- **Stripe CLI forwarder + E2E:** with `stripe listen` running, `stripe-webhook.ts --real-stripe` SKIPS the
+  "refund before payment" check (the CLI records the real payment first). Stop the forwarder to run that check.
 - **E2E gotcha (Next 16 Cache Components):** after a client navigation the PREVIOUS page stays in the DOM, hidden
   (instant back). Two `<main>`s exist: scope locators to `main:visible` and filter "is it hydrated" checks with
   `checkVisibility()`, or a check can pass on the hidden page.

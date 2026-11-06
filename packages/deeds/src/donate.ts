@@ -10,12 +10,13 @@
  *    points (CENTS_PER_POINT). Checkout expires at season close or after 23.5 h.
  */
 import "server-only";
-import { AuditLog, connectDb, Family, Kid, Payment, withTransaction } from "@repo/db";
+import { AuditLog, connectDb, Family, Kid, withTransaction } from "@repo/db";
 import { ownFamilyId, type Parent } from "@repo/families/kids";
 import { normalizeObjectId } from "@repo/lib/ids";
-import { buildPaymentMetadata, fulfilPaidPaymentIntent, getStripe } from "@repo/payments/checkout";
+import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, getStripe } from "@repo/payments/checkout";
 import { createHash, timingSafeEqual } from "node:crypto";
-import { MAX_CHECKOUT_MS, MIN_CHECKOUT_MS, publicFamilyAlias, publicSeason } from "./public.ts";
+import { MAX_CHECKOUT_MS, MIN_CHECKOUT_MS } from "@repo/lib/limits";
+import { publicFamilyAlias, publicSeason } from "./public.ts";
 import { donationToken, hashDeedToken, isDeedToken, qrDataUrl } from "./qr.ts";
 
 type KidLite = { _id: unknown; familyId: unknown; displayName: string; registration?: { status?: string | null } | null; donationLinkVersion?: number | null };
@@ -134,25 +135,19 @@ async function wasKidsLink(token: string, rawKidId: unknown): Promise<boolean> {
   return match;
 }
 
-/** After paying: "credited" / "processing" / "review" / "open" / null (only this kid's session). */
+/**
+ * After paying: "credited" / "processing" / "review" / "open" / null (only this kid's deed-less
+ * tip sessions). A donor whose checkout began on an OLDER link (replaced since) still gets an
+ * answer: wasKidsLink checks the token against this kid's earlier link versions.
+ */
 export async function donationStatus(token: unknown, sessionId: string): Promise<"credited" | "processing" | "review" | "open" | null> {
-  if (!/^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(sessionId) || !isDeedToken(token)) return null;
-  const kid = await findKid(token); // current link (fast path); else maybe an older link, checked below
-  try {
-    const s = await getStripe().checkout.sessions.retrieve(sessionId);
-    if (s.metadata?.sos_purpose !== "tip" || s.metadata?.sos_deed_id) return null;
-    if (kid ? s.metadata?.sos_kid_id !== String(kid._id) : !(await wasKidsLink(token, s.metadata?.sos_kid_id))) return null;
-    if (s.status === "open") return "open";
-    if (s.status !== "complete") return null;
-    const piId = typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id;
-    // Paid? Record it now (same idempotent handler as the webhook; see @repo/payments fulfil.ts).
-    if (piId && s.payment_status === "paid") await fulfilPaidPaymentIntent(piId).catch((e: unknown) => console.error("[return] fulfil failed:", e instanceof Error ? e.name : "unknown"));
-    const pay = piId ? await Payment.findOne({ stripePaymentIntentId: piId }).select("fulfilment").lean() : null;
-    if (!pay) return "processing";
-    return pay.fulfilment === "credited" ? "credited" : "review";
-  } catch {
-    return null;
-  }
+  if (!isDeedToken(token)) return null;
+  const kid = await findKid(token); // current link (fast path); else maybe an older link
+  return creditReturnState(
+    await checkoutReturnStatus(sessionId, async (md) =>
+      md.sos_purpose === "tip" && !md.sos_deed_id && (kid ? md.sos_kid_id === String(kid._id) : await wasKidsLink(token, md.sos_kid_id)),
+    ),
+  );
 }
 
 /** QR image (PNG data URL) for a link, shown on the kid's page. */

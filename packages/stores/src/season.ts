@@ -20,6 +20,7 @@ import {
   defaultSeasonDates,
   getSeasonYear,
   resolveSeason,
+  startOfDayInZone,
   validateSeasonDates,
   type SeasonDatesError,
   type SeasonState,
@@ -163,4 +164,14 @@ export async function setSeasonDates(adminId: string, year: number, input: Seaso
   }
   const ok = await changeAudited(adminId, doc, before, { $set: set, ...(Object.keys(unset).length ? { $unset: unset } : {}) }, "season.dates", { year, from: before, to: next });
   return ok ? { ok: true } : { ok: false, error: "changed" };
+}
+
+/**
+ * Gifts (QR tips, donation links, parent bonuses) are accepted while the season is OPEN or FROZEN,
+ * and a checkout must end by season close (Central-Time midnight). Single source of truth: a
+ * bonus/tip after Dec 25 would be wiped by the Jan 1 reset a few days later.
+ */
+export async function giftWindow(now = new Date()): Promise<{ open: boolean; closeAt: Date }> {
+  const s = await getSeasonState(now);
+  return { open: s.phase === "open" || s.phase === "frozen", closeAt: startOfDayInZone(s.dates.close) };
 }

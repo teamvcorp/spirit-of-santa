@@ -6,3 +6,4 @@ import "server-only";
 export { getStripe } from "./client.ts";
 export { buildPaymentMetadata } from "./metadata.ts";
 export { fulfilPaidPaymentIntent } from "./fulfil.ts";
+export { checkoutReturnStatus, creditReturnState, type ReturnResult } from "./return-status.ts";

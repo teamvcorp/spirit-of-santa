@@ -10,12 +10,11 @@
  */
 import "server-only";
 import { clientIp, hitRateLimit, ipKey } from "@repo/auth/rate-limit";
-import { connectDb, Deed, DeedType, Family, Kid, Payment, trusted } from "@repo/db";
+import { connectDb, Deed, DeedType, Family, Kid, trusted } from "@repo/db";
 import { parseDollarsToCents } from "@repo/lib/format";
 import { MAX_CHECKOUT_MS, MAX_TIP_CENTS, MIN_CHECKOUT_MS, MIN_TIP_CENTS, TIP_PRESETS_CENTS } from "@repo/lib/limits";
-import { buildPaymentMetadata, fulfilPaidPaymentIntent, getStripe } from "@repo/payments/checkout";
-import { startOfDayInZone } from "@repo/lib/season";
-import { getSeasonState } from "@repo/stores/season";
+import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, getStripe } from "@repo/payments/checkout";
+import { giftWindow } from "@repo/stores/season";
 import { localized } from "./catalog.ts";
 import { hashDeedToken, isDeedToken } from "./qr.ts";
 
@@ -123,12 +122,10 @@ export function publicFamilyAlias(fam: { alias?: string | null; showAliasPublicl
 
 /** Public thanks/tips/donations run while the season is open or frozen; checkouts end by season close. */
 export async function publicSeason(): Promise<{ seasonOpen: boolean; seasonCloseAt: Date }> {
-  const season = await getSeasonState();
-  return { seasonOpen: season.phase === "open" || season.phase === "frozen", seasonCloseAt: startOfDayInZone(season.dates.close) };
+  const w = await giftWindow(); // shared rule (@repo/stores/season)
+  return { seasonOpen: w.open, seasonCloseAt: w.closeAt };
 }
 
-/** Stripe Checkout lifetime bounds: shared in @repo/lib/limits (re-exported for donate.ts). */
-export { MAX_CHECKOUT_MS, MIN_CHECKOUT_MS };
 
 /**
  * Start a tip: Embedded Checkout for the chosen amount. The QR is NOT used up here (an abandoned
@@ -162,23 +159,9 @@ export async function startTip(token: unknown, amountCents: number | null, origi
     return { ok: false, error: "stripe" };
   }
 }
-/** After paying: "credited" (points added), "processing" (webhook pending), "review", "open", or null. */
+/** After paying: "credited" / "processing" / "review" / "open" / null (only this deed's tip sessions). */
 export async function tipStatus(token: unknown, sessionId: string): Promise<"credited" | "processing" | "review" | "open" | null> {
-  if (!/^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(sessionId)) return null;
   const d = await findDeed(token);
   if (!d) return null;
-  try {
-    const s = await getStripe().checkout.sessions.retrieve(sessionId);
-    if (s.metadata?.sos_purpose !== "tip" || s.metadata?.sos_deed_id !== String(d._id)) return null;
-    if (s.status === "open") return "open";
-    if (s.status !== "complete") return null;
-    const piId = typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id;
-    // Paid? Record it now (same idempotent handler as the webhook; see @repo/payments fulfil.ts).
-    if (piId && s.payment_status === "paid") await fulfilPaidPaymentIntent(piId).catch((e: unknown) => console.error("[return] fulfil failed:", e instanceof Error ? e.name : "unknown"));
-    const pay = piId ? await Payment.findOne({ stripePaymentIntentId: piId }).select("fulfilment").lean() : null;
-    if (!pay) return "processing";
-    return pay.fulfilment === "credited" ? "credited" : "review";
-  } catch {
-    return null;
-  }
+  return creditReturnState(await checkoutReturnStatus(sessionId, (md) => md.sos_purpose === "tip" && md.sos_deed_id === String(d._id)));
 }

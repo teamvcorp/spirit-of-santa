@@ -34,7 +34,8 @@ if (!mongoose.connection.name.endsWith("_dev")) throw new Error("refusing: not a
 
 // ── fixtures ────────────────────────────────────────────────────────────────────────
 const family = await Family.create({ ownerUserId: new mongoose.Types.ObjectId(), familyName: "E2E Webhook Family" });
-const kid = await Kid.create({ familyId: family._id, firstName: "E2E", birthYear: 2018, displayName: "E." });
+const kid = await Kid.create({ familyId: family._id, firstName: "E2E", birthYear: 2018, displayName: "E.", registration: { status: "registered", registeredAt: new Date(), method: "card" } });
+const unregKid = await Kid.create({ familyId: family._id, firstName: "E2E-unreg", birthYear: 2019, displayName: "U." });
 const deed = await Deed.create({
   kidId: kid._id, familyId: family._id, seasonYear: new Date().getFullYear(),
   customDescription: "E2E deed", qrTokenHash: randomBytes(32).toString("hex"),
@@ -129,6 +130,11 @@ try {
   await send(wrongFam.event);
   const wf = await Payment.findOne({ stripePaymentIntentId: wrongFam.piId }).lean();
   check("kid/family mismatch → not credited, flagged for review", (await balance()) === 1333 && wf?.fulfilment === "review" && wf.needsReview === true, wf?.reviewReason ?? "");
+  const unreg = piEvent("payment_intent.succeeded", buildPaymentMetadata({ sos_purpose: "bonus", sos_kid_id: String(unregKid._id), sos_family_id: familyId }), 1000);
+  await send(unreg.event);
+  const ur = await Payment.findOne({ stripePaymentIntentId: unreg.piId }).lean();
+  check("bonus for an UNREGISTERED kid → not credited, flagged for review",
+    (await Kid.findById(unregKid._id).lean())?.availableCentipoints === 0 && ur?.fulfilment === "review" && ur.needsReview === true, ur?.reviewReason ?? "");
   const huge = piEvent("payment_intent.succeeded", buildPaymentMetadata({ sos_purpose: "bonus", sos_kid_id: kidId, sos_family_id: familyId }), 500_000);
   await send(huge.event);
   check("$5,000 bonus (over the $1,000 cap) → review, no points", (await balance()) === 1333 && (await Payment.findOne({ stripePaymentIntentId: huge.piId }).lean())?.fulfilment === "review");
@@ -203,8 +209,12 @@ try {
     const early = `evt_e2e${rid()}`; eventIds.push(early);
     const earlyRefund = { id: early, object: "event", type: "charge.refunded", livemode: false, created: 1,
       data: { object: { id: `ch_e2e${rid()}`, object: "charge", payment_intent: pi.id, amount_refunded: 1000 } } };
+    // If a `stripe listen` forwarder is running, Stripe's own event may already have recorded the
+    // payment (so the refund isn't "early" any more): that's a test-environment race, not a bug.
+    const forwarded = await Payment.exists({ stripePaymentIntentId: pi.id });
     const re1 = await send(earlyRefund);
-    check("refund before its payment is recorded → 500 (Stripe will retry)", re1.status === 500 && (await StripeEvent.findOne({ eventId: early }).lean())?.status === "failed", String(re1.status));
+    if (forwarded) console.log("SKIP  refund-before-payment check: a Stripe CLI forwarder recorded the payment first");
+    else check("refund before its payment is recorded → 500 (Stripe will retry)", re1.status === 500 && (await StripeEvent.findOne({ eventId: early }).lean())?.status === "failed", String(re1.status));
 
     const rr = await send(real); // re-signed with our secret, payload byte-for-byte Stripe's JSON
     check("REAL Stripe test payment ($10) → credited 666 centipoints", rr.status === 200 && (await balance()) === 2199, `${rr.status} ${await balance()} api=${real.api_version}`);
@@ -224,7 +234,7 @@ try {
   await Payment.collection.deleteMany({ stripePaymentIntentId: { $in: piIds } });
   await StripeEvent.collection.deleteMany({ eventId: { $in: eventIds } });
   await Deed.deleteOne({ _id: deed._id });
-  await Kid.deleteOne({ _id: kid._id });
+  await Kid.collection.deleteMany({ _id: { $in: [kid._id, unregKid._id] } });
   await Family.collection.deleteMany({ _id: { $in: [family._id, otherFamily._id] } });
   await mongoose.disconnect();
 }

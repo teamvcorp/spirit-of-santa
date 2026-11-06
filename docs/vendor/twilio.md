@@ -43,3 +43,25 @@ Account SID + Test Auth Token. They never send a real text or charge, but only w
 numbers (From `+15005550006`) and NOT with API keys or Messaging Services. We don't need them: in local
 dev our SMS code prints the text to the server console instead of sending (same as email) unless
 `TWILIO_DEV_SEND=true`. Real texts also need A2P 10DLC approval first.
+
+## A2P 10DLC campaign answers (drafted 2026-11-06; submit only when these URLs are LIVE)
+
+Before submitting: pay-later form live at spiritofsanta.com, /privacy has the SMS section ("mobile numbers
+are not shared with third parties or affiliates for marketing"), /terms exists with SMS terms. Reviewers
+open the links; an unreachable opt-in page is a common rejection reason.
+
+**Opt-in type:** Web form (reached from a QR code).
+
+**Describe opt-in / consent** (paste):
+
+> Recipients are adult members of the public who received a good deed from a child in our program.
+> They scan the deed's QR code, which opens a web page on https://spiritofsanta.com (example:
+> https://spiritofsanta.com/d/<code>). On that page they may choose "Pay later by text", type their own
+> mobile number, and tick an unchecked consent box that reads: "Text me a link to pay this tip later.
+> Spirit O Santa will send 1 text message to this number with a secure payment link that expires in 7
+> days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help. Privacy Policy:
+> https://spiritofsanta.com/privacy Terms: https://spiritofsanta.com/terms". The form cannot be
+> submitted without the box ticked. We record the time of consent with the number. We send exactly one
+> transactional message per request (the payment link); no recurring or marketing messages. Numbers are
+> never bought, rented or shared. Privacy Policy: https://spiritofsanta.com/privacy
+> Terms of Service: https://spiritofsanta.com/terms

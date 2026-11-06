@@ -504,7 +504,7 @@
     "seasonEndTitle": "Cierre de temporada (1 de enero)",
     "seasonEndIntro": "Cada 1 de enero la tarea diaria pone en cero los puntos de todos los niños (con un registro) y guarda como de la plataforma el dinero donado que nunca se repartió.",
     "noResets": "Aún no ha terminado ninguna temporada.",
-    "resetLine": "Temporada {year}: {kids} niños en cero ({points} puntos), {retained} de donaciones no repartidas guardadas ({gifts} regalos).",
-    "resetRunning": "Temporada {year}: en curso ({kids} niños en cero hasta ahora)."
+    "resetLine": "Temporada {year} (terminada {when}): {kids} niños en cero ({points} puntos), {retained} de donaciones no repartidas guardadas ({gifts} regalos).",
+    "resetRunning": "Temporada {year}: en curso desde {when} ({kids} niños en cero hasta ahora). Continúa con la siguiente tarea diaria."
   }
 }

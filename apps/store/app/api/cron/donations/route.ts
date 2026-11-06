@@ -29,9 +29,19 @@ export async function GET(request: Request): Promise<Response> {
   if (!secret || secret.length < 16 || given.length !== expected.length || !timingSafeEqual(given, expected)) {
     return new Response("Unauthorized", { status: 401 });
   }
-  // Independent jobs: one failing must not skip the others. (Split and season end never both act:
-  // one needs the frozen season, the other the off-season.)
-  const [split, seasonEnd, receipts] = await Promise.allSettled([runDonationSplit({ trigger: "cron" }), runSeasonReset(), sendPendingReceipts({ limit: 50 })]);
+  // IN ORDER (review 2026-11-06): the split first, because it also finishes any interrupted run;
+  // only then the season end (which refuses while a split is still crediting kids). One failing
+  // must not skip the others.
+  const settle = async <T>(job: () => Promise<T>): Promise<PromiseSettledResult<T>> => {
+    try {
+      return { status: "fulfilled", value: await job() };
+    } catch (reason) {
+      return { status: "rejected", reason };
+    }
+  };
+  const split = await settle(() => runDonationSplit({ trigger: "cron" }));
+  const seasonEnd = await settle(() => runSeasonReset());
+  const receipts = await settle(() => sendPendingReceipts({ limit: 50 }));
   const result = {
     split: split.status === "fulfilled" ? split.value : "failed",
     seasonEnd: seasonEnd.status === "fulfilled" ? seasonEnd.value : "failed",

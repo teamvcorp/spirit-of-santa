@@ -13,9 +13,10 @@
  */
 import { randomBytes } from "node:crypto";
 import { chromium } from "playwright-core";
-import { connectDb, Family, Kid, Payment, SeasonReset, Transaction, trusted, User } from "@repo/db";
+import { connectDb, DonationSplit, Family, Kid, Payment, SeasonReset, Transaction, trusted, User } from "@repo/db";
 import { getSeasonYear } from "@repo/lib/season";
 import { runSeasonReset } from "@repo/payments/season-end";
+import { getSeasonState } from "@repo/stores/season";
 import { createMfaAdmin, makeChecks } from "./lib.ts";
 
 const [adminBase, storeBase] = process.argv.slice(2);
@@ -30,6 +31,7 @@ const fakeNow = new Date(`${ended + 1}-01-02T18:00:00Z`); // …as if it were Ja
 
 const mongoose = await connectDb();
 if (!mongoose.connection.name.endsWith("_dev")) throw new Error("refusing: not a *_dev database");
+if ((await getSeasonState()).phase === "offseason") throw new Error("refusing: run this test during the season (in the off-season the real reset would run)");
 if (await SeasonReset.exists({ seasonYear: ended })) throw new Error(`refusing: a season-end record for ${ended} already exists`);
 if ((await Payment.countDocuments({ purpose: "donation", fulfilment: "held", seasonYear: ended })) > 0) throw new Error("refusing: real held gifts would be retained");
 
@@ -43,9 +45,12 @@ const reg = { status: "registered", registeredAt: new Date(), method: "card" };
 const k1 = await Kid.create({ familyId: fam._id, firstName: "R1", birthYear: 2017, displayName: "R.", registration: reg, availableCentipoints: 1000 });
 const k2 = await Kid.create({ familyId: fam._id, firstName: "R2", birthYear: 2018, displayName: "R.", registration: reg, availableCentipoints: 250 });
 const k3 = await Kid.create({ familyId: fam._id, firstName: "R3", birthYear: 2019, displayName: "R.", registration: reg }); // 0 points
-const piIds = [`pi_e2ereset${randomBytes(6).toString("hex")}`, `pi_e2ereset${randomBytes(6).toString("hex")}`];
+const piIds = [0, 1, 2].map(() => `pi_e2ereset${randomBytes(6).toString("hex")}`);
 await Payment.create({ stripePaymentIntentId: piIds[0], livemode: false, purpose: "donation", status: "succeeded", seasonYear: ended, amountCents: 2000, currency: "usd", fulfilment: "held", zip: "00703" });
 await Payment.create({ stripePaymentIntentId: piIds[1], livemode: false, purpose: "donation", status: "succeeded", seasonYear: ended, amountCents: 900, currency: "usd", fulfilment: "credited" });
+// Refunded while held: must stay held for an admin, never counted as retained platform money.
+await Payment.create({ stripePaymentIntentId: piIds[2], livemode: false, purpose: "donation", status: "succeeded", seasonYear: ended, amountCents: 4000, currency: "usd", fulfilment: "held", refundedCents: 4000, needsReview: true, reviewReason: "refund (test)" });
+const splitIds: unknown[] = [];
 const admin = await createMfaAdmin(`e2e-reset-admin-${tag}@spiritofsanta.test`);
 const browser = await chromium.launch({ channel: "msedge", headless: true });
 const bal = async (id: unknown) => (await Kid.findById(id).lean())?.availableCentipoints ?? -1;
@@ -58,15 +63,23 @@ try {
   const cronBody = (await cronRes.json()) as { seasonEnd?: { reason?: string } };
   check("daily cron includes the season-end step (not its time yet)", cronRes.status === 200 && cronBody.seasonEnd?.reason === "notOffseason", JSON.stringify(cronBody.seasonEnd));
 
+  // 1b. A donation split still crediting kids: the reset WAITS (else kids get points after being zeroed).
+  const [unfinished] = await DonationSplit.create([{ seasonYear: ended, trigger: "cron", feeBps: 1000, status: "crediting", totalCents: 0, feeCents: 0, creditedCentipoints: 0, kidsCredited: 0 }]);
+  splitIds.push(unfinished!._id);
+  const waits = await runSeasonReset(fakeNow);
+  check("reset waits while a split is unfinished", !waits.ok && waits.reason === "splitUnfinished" && (await bal(k1._id)) === 1000);
+  await DonationSplit.collection.deleteOne({ _id: unfinished!._id });
+
   // 2. Jan 2: points to zero with ledger rows; unshared money retained; credited gifts untouched.
   const r = await runSeasonReset(fakeNow);
-  check("season end ran for the ended season", r.ok && r.seasonYear === ended, JSON.stringify(r));
+  check("season end ran for the ended season and finished", r.ok && r.seasonYear === ended && r.done, JSON.stringify(r));
   check("test kids at 0 points", (await bal(k1._id)) === 0 && (await bal(k2._id)) === 0 && (await bal(k3._id)) === 0);
   const rows = await Transaction.find({ kidId: trusted({ $in: [k1._id, k2._id, k3._id] }), type: "season_reset" }).lean();
   check("one 'season_reset' ledger row per kid that had points, for the exact amount",
     rows.length === 2 && rows.some((t) => String(t.kidId) === String(k1._id) && t.amountCentipoints === 1000) && rows.some((t) => String(t.kidId) === String(k2._id) && t.amountCentipoints === 250) && rows.every((t) => t.seasonYear === ended));
   const [p0, p1] = await Promise.all([Payment.findOne({ stripePaymentIntentId: piIds[0] }).lean(), Payment.findOne({ stripePaymentIntentId: piIds[1] }).lean()]);
   check("unshared gift → retained; an already-shared gift untouched", p0?.fulfilment === "retained" && p1?.fulfilment === "credited");
+  check("a refunded held gift is NOT retained (stays held for an admin)", (await Payment.findOne({ stripePaymentIntentId: piIds[2] }).lean())?.fulfilment === "held");
   const rec = await SeasonReset.findOne({ seasonYear: ended }).lean();
   check("season-end record: done, totals include the test data", rec?.status === "done" && rec.retainedCents === 2000 && rec.retainedCount === 1 && (rec.centipointsReset ?? 0) >= 1250 && (rec.kidsReset ?? 0) >= 2);
 
@@ -100,6 +113,7 @@ try {
     await Transaction.collection.deleteMany({ kidId: s._id as never, type: "season_reset", seasonYear: ended });
   }
   await SeasonReset.collection.deleteOne({ seasonYear: ended });
+  await DonationSplit.collection.deleteMany({ _id: { $in: splitIds as never[] } });
   await Transaction.collection.deleteMany({ kidId: { $in: [k1._id, k2._id, k3._id] } });
   await Payment.collection.deleteMany({ stripePaymentIntentId: { $in: piIds } });
   await Kid.collection.deleteMany({ familyId: fam._id });

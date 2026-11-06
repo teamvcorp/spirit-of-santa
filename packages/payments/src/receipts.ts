@@ -34,7 +34,7 @@ export async function ensureDonationReceipt(piId: string, link: string): Promise
   await connectDb();
   if (await DonationReceipt.exists({ stripePaymentIntentId: piId })) return;
   // Only a gift that really went into a pool (not one held for review).
-  const pay = await Payment.findOne({ stripePaymentIntentId: piId, purpose: "donation", status: "succeeded", fulfilment: trusted({ $in: ["held", "credited"] }) })
+  const pay = await Payment.findOne({ stripePaymentIntentId: piId, purpose: "donation", status: "succeeded", fulfilment: trusted({ $in: ["held", "credited", "retained"] }) })
     .select("amountCents seasonYear createdAt succeededAt")
     .lean();
   if (!pay) return;

@@ -504,7 +504,7 @@
     "seasonEndTitle": "Season end (Jan 1)",
     "seasonEndIntro": "Each Jan 1 the daily job resets every child's points to zero (with a ledger entry) and keeps donation money that was never shared, as the platform's.",
     "noResets": "No season has ended yet.",
-    "resetLine": "Season {year}: {kids} children reset ({points} points), {retained} unshared donation money kept ({gifts} gifts).",
-    "resetRunning": "Season {year}: in progress ({kids} children reset so far)."
+    "resetLine": "Season {year} (finished {when}): {kids} children reset ({points} points), {retained} unshared donation money kept ({gifts} gifts).",
+    "resetRunning": "Season {year}: in progress since {when} ({kids} children reset so far). It continues with the next daily run."
   }
 }

@@ -112,16 +112,23 @@ function planOne(p: HeldPool, kids: KidRef[], feeBps: number): PoolPlan {
  * refunded, disputed or flagged for review are NOT shared (they stay held for an admin): we never
  * hand out points for money we no longer have (review 2026-11-06).
  */
+/**
+ * THE rule for a held community gift that may be shared (split) or retained (season end): paid,
+ * still held, never refunded, not disputed, not flagged. Anything else stays held for an admin.
+ * Single source: used by split.ts AND season-end.ts.
+ */
+export const cleanHeldDonations = (seasonYear: number) => ({
+  purpose: "donation" as const,
+  status: "succeeded" as const,
+  fulfilment: "held" as const,
+  seasonYear,
+  refundedCents: 0,
+  "dispute.stripeDisputeId": null,
+  needsReview: trusted({ $ne: true }),
+});
+
 async function heldPools(seasonYear: number, session?: DbSession): Promise<HeldPool[]> {
-  const rows = await Payment.find({
-    purpose: "donation",
-    status: "succeeded",
-    fulfilment: "held",
-    seasonYear,
-    refundedCents: 0,
-    "dispute.stripeDisputeId": null,
-    needsReview: trusted({ $ne: true }),
-  })
+  const rows = await Payment.find(cleanHeldDonations(seasonYear))
     .select("zip amountCents")
     .session(session ?? null)
     .lean<{ _id: unknown; zip?: string | null; amountCents: number }[]>();

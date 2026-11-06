@@ -81,7 +81,8 @@ export async function communityDonationStatus(sessionId: string): Promise<"recei
   const r = await checkoutReturnStatus(sessionId, (md) => md.sos_purpose === "donation");
   if (!r) return null;
   if (r.state !== "done") return r.state;
-  return r.fulfilment === "held" || r.fulfilment === "credited" ? "received" : "review";
+  // held (in the pool), credited (shared) or retained (season over): all received.
+  return r.fulfilment === "held" || r.fulfilment === "credited" || r.fulfilment === "retained" ? "received" : "review";
 }
 
 /** This season's total given so far (all pools together; no per-zip numbers: small zips could identify kids). */

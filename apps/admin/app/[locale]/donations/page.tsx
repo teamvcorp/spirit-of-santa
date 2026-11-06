@@ -106,6 +106,9 @@ async function Content() {
             {resets.map((r) => (
               <li key={r.seasonYear}>
                 {t(r.status === "done" ? "resetLine" : "resetRunning", {
+                  when: (r.status === "done" ? r.finishedAt : r.startedAt)
+                    ? format.dateTime(new Date((r.status === "done" ? r.finishedAt : r.startedAt)!), { dateStyle: "medium", timeStyle: "short", timeZone: "America/Chicago" })
+                    : "",
                   year: r.seasonYear,
                   kids: r.kidsReset,
                   points: formatPoints(r.centipointsReset),

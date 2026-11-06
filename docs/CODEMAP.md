@@ -425,7 +425,12 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   gifts of that season → fulfilment `retained` (platform), totals recorded; (2) every kid with points → `season_reset`
   ledger row (= balance) + balance 0, 500 per tx, CAS on the balance. Escrow left to Phase 6. Runs inside the daily
   money cron `/api/cron/donations` (split + season end + receipts; Hobby = 2 crons). Admin /donations "Season end" card.
-  E2E `season-reset.ts` (9; injects Jan 2 as `now`; SAVES + RESTORES every other kid's balance).
+  E2E `season-reset.ts` (11; injects Jan 2 as `now`; SAVES + RESTORES every other kid's balance; refuses off-season).
+  Review fixes: cron runs split → season end → receipts IN ORDER (split finishes interrupted runs first) and the reset
+  REFUSES while any DonationSplit is "crediting"; ONE rule `cleanHeldDonations()` (split.ts) for what may be shared or
+  retained (refunded/disputed/flagged stay held, never counted); batches re-read balances ON the session + bulkWrite
+  CAS (conflict → whole batch retried); ledger key per (season, kid); "done" set inside the lock only when no kid has
+  points; "retained" = received on /donate/thanks and still gets a receipt.
 - **Alert roles:** `tone="error"` → `role="alert"`, info → `role="status"`. E2E success checks must match both.
 - **Dev server gotchas:** new message namespaces may need a dev-server restart. **Mongoose models are cached across
   hot reloads (`models.X ?? model(...)`): after a SCHEMA change restart the dev server, or new fields are silently

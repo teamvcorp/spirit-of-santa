@@ -137,7 +137,7 @@
     "payNow": "Total: {amount}",
     "freeDone": "{count, plural, one {# child registered} other {# children registered}} with your promo code. Thank you!",
     "nothingToDo": "All your children are registered.",
-    "paid": "Thank you! Payment received. Your children show as registered within a minute.",
+    "paid": "Thank you! Payment received and your children are registered.",
     "notPaid": "The payment wasn't completed. You haven't been charged.",
     "unknown": "We couldn't find that payment. Check the parent area.",
     "tryAgain": "Try again",
@@ -146,7 +146,10 @@
       "noKids": "Choose at least one child who isn't registered yet.",
       "badPromo": "That promo code isn't valid.",
       "stripe": "Payments aren't available right now. Please try again later.",
-      "locked": "The parent area locked itself (15 minutes). Enter your PIN again."
-    }
+      "locked": "The parent area locked itself (15 minutes). Enter your PIN again.",
+      "rateLimited": "Too many tries. Wait 15 minutes, then try again."
+    },
+    "processing": "Thank you! Payment received. Your children will show as registered within a minute: refresh the parent area.",
+    "review": "Payment received, but something didn't match (for example a child was already registered). Our team will check it and contact you."
   }
 }

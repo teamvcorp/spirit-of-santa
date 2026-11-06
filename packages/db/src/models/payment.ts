@@ -43,7 +43,6 @@ const paymentSchema = new Schema(
     kidId: objectId("Kid", false),
 
     /** Registration payments cover several kids at once. */
-
     kidIds: { type: [objectId("Kid")], default: undefined },
     familyId: objectId("Family", false),
     deedId: objectId("Deed", false),

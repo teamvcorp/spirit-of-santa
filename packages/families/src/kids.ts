@@ -48,8 +48,11 @@ const toRow = (k: Raw): KidRow => ({
   itemCap: k.itemCap ?? 5,
 });
 
-/** The parent's family id, re-checked against the DB (the session's familyId alone isn't trusted). */
-async function ownFamilyId(parent: Parent): Promise<string | null> {
+/**
+ * The parent's family id, re-checked against the DB (the session's familyId alone isn't trusted).
+ * THE ownership check for every family-scoped service (kids, registration): reuse, don't copy.
+ */
+export async function ownFamilyId(parent: Parent): Promise<string | null> {
   const fid = normalizeObjectId(parent.familyId);
   if (!fid) return null;
   await connectDb();

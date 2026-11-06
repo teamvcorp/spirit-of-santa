@@ -128,6 +128,13 @@ try {
   check("paying again for already-registered kids is flagged (double payment), not silently kept",
     (await Payment.findOne({ stripePaymentIntentId: again.piId }).lean())?.fulfilment === "review");
 
+  // 3b. Paid for 2 kids but one was meanwhile registered: the other IS registered, money → review.
+  const k3 = await Kid.create({ familyId: A.family._id, firstName: "Dot", birthYear: 2018, displayName: "D." });
+  const partial = await sendSucceeded(regMd(A, [k3._id, A.kids[0]!._id], "0"), 1000);
+  const pp = await Payment.findOne({ stripePaymentIntentId: partial.piId }).lean();
+  check("paid for 2 but only 1 still awaiting: that one registered by card, payment flagged for review",
+    (await kid(k3._id))?.registration?.method === "card" && pp?.fulfilment === "review" && /1 of 2/.test(pp.reviewReason ?? ""));
+
   // 4. A payment labelled for another family's kid doesn't register it.
   const cross = await sendSucceeded(regMd(A, [B.kids[0]!._id], "0"), 500);
   check("kid of another family isn't registered by this family's payment",
@@ -142,11 +149,17 @@ try {
     cora?.registration?.status === "registered" && cora.registration.method === "promo" &&
       (await AuditLog.countDocuments({ actorUserId: A.user._id, action: "kid.register_promo" })) === 1);
 
+  // 5b. A family whose only "payment" was flagged (never verified consent) can't use the free path.
+  const flaggedPi = `pi_e2eflag${rid()}`;
+  piIds.push(flaggedPi);
+  await Payment.create({ stripePaymentIntentId: flaggedPi, livemode: false, purpose: "registration", status: "succeeded", seasonYear: 2026, familyId: B.family._id, amountCents: 500, currency: "usd", fulfilment: "review" });
+
   // 6. Promo for a family that never paid: ONE $5 covers both kids (consent still card-verified).
   const pb = await signedInUnlocked(B);
   await submitRegister(pb, PROMO);
   await pb.locator('[data-testid="stripe-checkout"] iframe').first().waitFor({ timeout: 30_000 });
-  check("promo for a new family: Stripe form shows $5.00 for 2 kids", (await pb.locator("main").innerText()).includes("$5.00"));
+  check("promo for a family with only a FLAGGED payment still needs a card: Stripe form, $5.00 for 2 kids",
+    (await pb.locator("main").innerText()).includes("$5.00") && (await kid(B.kids[0]!._id))?.registration?.status === "awaiting");
   await sendSucceeded(regMd(B, B.kids.map((k) => k._id), "1"), 500);
   const [b0, b1] = [await kid(B.kids[0]!._id), await kid(B.kids[1]!._id)];
   check("$5 promo payment → first kid 'card', second 'promo'", b0?.registration?.method === "card" && b1?.registration?.method === "promo");

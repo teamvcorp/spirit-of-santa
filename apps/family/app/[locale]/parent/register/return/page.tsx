@@ -25,7 +25,9 @@ async function Status({ searchParams }: { searchParams: PageProps<"/[locale]/par
   const t = await getTranslations("Register");
   return (
     <div className="flex flex-col gap-4">
-      <Alert tone={status === "complete" ? "info" : "error"}>{status === "complete" ? t("paid") : status === "open" ? t("notPaid") : t("unknown")}</Alert>
+      <Alert tone={status === "registered" || status === "processing" ? "info" : "error"}>
+        {status === "registered" ? t("paid") : status === "processing" ? t("processing") : status === "review" ? t("review") : status === "open" ? t("notPaid") : t("unknown")}
+      </Alert>
       <Link href={status === "open" ? "/parent/register" : "/parent"} className="underline underline-offset-4">
         {status === "open" ? t("tryAgain") : t("back")}
       </Link>

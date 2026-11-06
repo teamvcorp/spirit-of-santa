@@ -137,7 +137,7 @@
     "payNow": "Total: {amount}",
     "freeDone": "{count, plural, one {# niño registrado} other {# niños registrados}} con tu código promocional. ¡Gracias!",
     "nothingToDo": "Todos tus hijos están registrados.",
-    "paid": "¡Gracias! Recibimos el pago. Tus hijos aparecerán como registrados en un minuto.",
+    "paid": "¡Gracias! Recibimos el pago y tus hijos están registrados.",
     "notPaid": "El pago no se completó. No se te cobró nada.",
     "unknown": "No encontramos ese pago. Revisa el área de padres.",
     "tryAgain": "Intentar de nuevo",
@@ -146,7 +146,10 @@
       "noKids": "Elige al menos un niño que aún no esté registrado.",
       "badPromo": "Ese código promocional no es válido.",
       "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde.",
-      "locked": "El área de padres se bloqueó sola (15 minutos). Escribe tu PIN otra vez."
-    }
+      "locked": "El área de padres se bloqueó sola (15 minutos). Escribe tu PIN otra vez.",
+      "rateLimited": "Demasiados intentos. Espera 15 minutos e inténtalo de nuevo."
+    },
+    "processing": "¡Gracias! Recibimos el pago. Tus hijos aparecerán como registrados en un minuto: actualiza el área de padres.",
+    "review": "Recibimos el pago, pero algo no coincidió (por ejemplo, un niño ya estaba registrado). Nuestro equipo lo revisará y se comunicará contigo."
   }
 }

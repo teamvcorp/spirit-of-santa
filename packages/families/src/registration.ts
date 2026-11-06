@@ -11,11 +11,12 @@
  *  - Money is platform revenue: no points. No refunds (platform rule).
  */
 import "server-only";
-import { AuditLog, connectDb, Family, Kid, Payment, trusted, User, withTransaction } from "@repo/db";
+import { hitRateLimit } from "@repo/auth/rate-limit";
+import { AuditLog, Kid, Payment, trusted, User, withTransaction } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_KIDS_PER_FAMILY, REGISTRATION_FEE_CENTS } from "@repo/lib/limits";
 import { buildPaymentMetadata, getStripe } from "@repo/payments/checkout";
-import type { Parent } from "./kids.ts";
+import { ownFamilyId, type Parent } from "./kids.ts";
 
 /** Case- and space-insensitive promo check. Blank/missing env = promo switched off. */
 export function promoMatches(input: string | undefined | null): boolean {
@@ -23,58 +24,60 @@ export function promoMatches(input: string | undefined | null): boolean {
   return code.length > 0 && (input ?? "").trim().toLowerCase() === code;
 }
 
-async function ownFamily(parent: Parent) {
-  const fid = normalizeObjectId(parent.familyId);
-  if (!fid) return null;
-  await connectDb();
-  return Family.findOne({ _id: fid, ownerUserId: parent.id }).select("_id").lean();
-}
-
 /** The parent's kids that still need registering, limited to `wanted` (ids from the form). */
 async function awaitingKids(familyId: string, wanted: string[]) {
   const ids = [...new Set(wanted.map(normalizeObjectId).filter((v): v is string => Boolean(v)))].slice(0, MAX_KIDS_PER_FAMILY);
   if (ids.length === 0) return [];
-  return Kid.find({ _id: trusted({ $in: ids }), familyId, "registration.status": "awaiting" }).select("_id").sort({ createdAt: 1 }).lean<{ _id: unknown }[]>();
+  return Kid.find({ _id: trusted({ $in: ids }), familyId, archivedAt: null, "registration.status": "awaiting" }).select("_id").sort({ createdAt: 1 }).lean<{ _id: unknown }[]>();
 }
 
-/** Has this family ever paid a registration by card? (Then the parent is already verified.) */
-const familyHasPaid = (familyId: string) => Payment.exists({ familyId, purpose: "registration", status: "succeeded" });
+/**
+ * Has this family a GOOD card registration on record? Only a payment that was actually fulfilled
+ * and never refunded or disputed counts: a flagged, refunded or charged-back payment must not
+ * unlock free promo registrations (it didn't verify consent; review 2026-11-05).
+ */
+const familyHasPaid = (familyId: string) =>
+  Payment.exists({ familyId, purpose: "registration", status: "succeeded", fulfilment: "fulfilled", refundedCents: 0, "dispute.stripeDisputeId": null });
 
 export type StartResult =
   | { kind: "pay"; clientSecret: string; amountCents: number }
   | { kind: "free"; registered: number }
-  | { kind: "error"; error: "notFound" | "noKids" | "badPromo" | "stripe" };
+  | { kind: "error"; error: "notFound" | "noKids" | "badPromo" | "stripe" | "rateLimited" };
 
 /**
  * Start registering the selected kids. Returns an Embedded Checkout client secret, or registers
  * them straight away (promo + family already verified). `origin` = this app's public URL.
  */
 export async function startRegistration(parent: Parent, kidIds: string[], promo: string, origin: string, localePath: (p: string) => string): Promise<StartResult> {
-  const fam = await ownFamily(parent);
-  if (!fam) return { kind: "error", error: "notFound" };
-  const fid = String(fam._id);
+  const fid = await ownFamilyId(parent);
+  if (!fid) return { kind: "error", error: "notFound" };
+  // 10 starts per 15 min: no promo-code guessing, no flood of Stripe sessions.
+  if (!(await hitRateLimit(`register-start:${parent.id}`, 10, 900))) return { kind: "error", error: "rateLimited" };
   const kids = await awaitingKids(fid, kidIds);
   if (kids.length === 0) return { kind: "error", error: "noKids" };
   const usePromo = promo.trim() !== "";
   if (usePromo && !promoMatches(promo)) return { kind: "error", error: "badPromo" };
 
-  if (usePromo && (await familyHasPaid(fid))) {
+  // Independent lookups in parallel (the email is only needed for the card path, it's cheap).
+  const [hasPaid, user] = await Promise.all([usePromo ? familyHasPaid(fid) : Promise.resolve(null), User.findById(parent.id).select("email").lean()]);
+  if (usePromo && hasPaid) {
     const registered = await withTransaction(async (session) => {
       const res = await Kid.updateMany(
-        { _id: trusted({ $in: kids.map((k) => k._id) }), familyId: fam._id, "registration.status": "awaiting" },
+        { _id: trusted({ $in: kids.map((k) => k._id) }), familyId: fid, archivedAt: null, "registration.status": "awaiting" },
         { $set: { "registration.status": "registered", "registration.registeredAt": new Date(), "registration.method": "promo" } },
         { session },
       );
-      await AuditLog.create([{ actorUserId: parent.id, action: "kid.register_promo", targetType: "family", targetId: String(fam._id), details: { kids: res.modifiedCount } }], { session });
+      // Nothing left to register (another tab got there first): no audit row, say so.
+      if (res.modifiedCount === 0) return 0;
+      await AuditLog.create([{ actorUserId: parent.id, action: "kid.register_promo", targetType: "family", targetId: fid, details: { kids: res.modifiedCount } }], { session });
       return res.modifiedCount;
     });
-    return { kind: "free", registered };
+    return registered === 0 ? { kind: "error", error: "noKids" } : { kind: "free", registered };
   }
 
   const ids = kids.map((k) => String(k._id));
   const quantity = usePromo ? 1 : ids.length;
-  const metadata = buildPaymentMetadata({ sos_purpose: "registration", sos_family_id: String(fam._id), sos_kid_ids: ids.join(","), sos_promo: usePromo ? "1" : "0" });
-  const user = await User.findById(parent.id).select("email").lean();
+  const metadata = buildPaymentMetadata({ sos_purpose: "registration", sos_family_id: fid, sos_kid_ids: ids.join(","), sos_promo: usePromo ? "1" : "0" });
   try {
     const session = await getStripe().checkout.sessions.create({
       ui_mode: "embedded_page",
@@ -99,18 +102,27 @@ export async function startRegistration(parent: Parent, kidIds: string[], promo:
   }
 }
 
+export type ReturnStatus = "registered" | "processing" | "review" | "open" | null;
+
 /**
- * For the return page: "complete" (paid; the webhook registers the kids, usually within
- * seconds), "open" (not paid: try again) or null (not this family's session / unknown).
+ * For the return page, never claiming more than is true (review 2026-11-05):
+ *  "registered" = our webhook fulfilled the payment; "processing" = Stripe says paid, our webhook
+ *  hasn't run yet (seconds); "review" = paid but flagged for an admin; "open" = not paid;
+ *  null = not this family's session / unknown.
  */
-export async function registrationSessionStatus(parent: Parent, sessionId: string): Promise<"complete" | "open" | null> {
+export async function registrationSessionStatus(parent: Parent, sessionId: string): Promise<ReturnStatus> {
   if (!/^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(sessionId)) return null;
-  const fam = await ownFamily(parent);
-  if (!fam) return null;
+  const fid = await ownFamilyId(parent);
+  if (!fid) return null;
   try {
     const s = await getStripe().checkout.sessions.retrieve(sessionId);
-    if (s.metadata?.sos_purpose !== "registration" || s.metadata?.sos_family_id !== String(fam._id)) return null;
-    return s.status === "complete" ? "complete" : s.status === "open" ? "open" : null;
+    if (s.metadata?.sos_purpose !== "registration" || s.metadata?.sos_family_id !== fid) return null;
+    if (s.status === "open") return "open";
+    if (s.status !== "complete") return null;
+    const piId = typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id;
+    const pay = piId ? await Payment.findOne({ stripePaymentIntentId: piId, familyId: fid }).select("fulfilment").lean() : null;
+    if (!pay) return "processing";
+    return pay.fulfilment === "fulfilled" ? "registered" : "review";
   } catch {
     return null;
   }

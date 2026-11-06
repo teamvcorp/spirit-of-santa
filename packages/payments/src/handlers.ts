@@ -118,19 +118,29 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
     // Kids already registered or deleted meanwhile are skipped; if none was left the payment is
     // flagged for an admin (e.g. paid twice by double-clicking). The money is platform revenue.
     if (meta.sos_purpose === "registration") {
-      const kidIds = meta.sos_kid_ids.split(",");
-      const res = await Kid.updateMany(
-        { _id: trusted({ $in: kidIds }), familyId: meta.sos_family_id, "registration.status": "awaiting" },
-        { $set: { "registration.status": "registered", "registration.registeredAt": now, "registration.method": "card" } },
-        { session },
-      );
-      if (res.modifiedCount === 0) return review("registration_no_awaiting_kids");
-      if (meta.sos_promo === "1" && kidIds.length > 1) {
-        // One $5 paid for the first child; the promo covered the rest.
-        await Kid.updateMany({ _id: trusted({ $in: kidIds.slice(1) }), familyId: meta.sos_family_id, "registration.registeredAt": now }, { $set: { "registration.method": "promo" } }, { session });
+      const listed = meta.sos_kid_ids.split(",");
+      // Which listed kids of THIS family are still awaiting (not deleted/archived/registered)?
+      const awaiting = await Kid.find({ _id: trusted({ $in: listed }), familyId: meta.sos_family_id, archivedAt: null, "registration.status": "awaiting" })
+        .select("_id")
+        .session(session)
+        .lean();
+      // Keep the paid-for order: the FIRST kid actually registered is the one the card covered.
+      const ids = listed.filter((id) => awaiting.some((k) => String(k._id) === id));
+      if (ids.length === 0) return review("registration_no_awaiting_kids");
+      const [first, ...rest] = ids;
+      const promo = meta.sos_promo === "1";
+      const reg = (method: "card" | "promo") => ({ $set: { "registration.status": "registered", "registration.registeredAt": now, "registration.method": method } });
+      await Kid.updateOne({ _id: first }, reg("card"), { session });
+      if (rest.length) await Kid.updateMany({ _id: trusted({ $in: rest }) }, reg(promo ? "promo" : "card"), { session });
+      // Paid for more kids than could be registered (e.g. two tabs, a kid deleted meanwhile):
+      // the registered ones stay registered (the card DID verify the parent), but an admin looks
+      // at the extra money. With the promo one $5 is right for any number of kids.
+      if (!promo && ids.length < listed.length) {
+        await record("review", { kidIds: ids, needsReview: true, reviewReason: `Registered ${ids.length} of ${listed.length} kids paid for` });
+        return processed(`review:registration_partial`);
       }
-      await record("fulfilled", { kidIds });
-      return processed(`registered:${res.modifiedCount}`);
+      await record("fulfilled", { kidIds: ids });
+      return processed(`registered:${ids.length}`);
     }
 
     // Donations (pro-rata split) and pay-ups (item lock) are handled in later phases.

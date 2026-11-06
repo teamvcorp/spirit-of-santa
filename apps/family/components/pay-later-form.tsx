@@ -28,11 +28,12 @@ export function PayLaterConsentText() {
   );
 }
 
-export function PayLaterFields({ disabled = false }: { disabled?: boolean }) {
+/** `phone`: what the visitor typed before an error (the consent box is ALWAYS unticked again). */
+export function PayLaterFields({ disabled = false, phone }: { disabled?: boolean; phone?: string }) {
   const t = useTranslations("PayLater");
   return (
     <>
-      <TextField label={t("phone")} name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="(555) 555-0123" maxLength={20} required disabled={disabled} />
+      <TextField label={t("phone")} name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="(555) 555-0123" maxLength={20} required disabled={disabled} defaultValue={phone} />
       <label className="flex items-start gap-3 text-sm leading-relaxed">
         {/* NEVER defaultChecked: consent must be an active choice. */}
         <input type="checkbox" name="consent" value="yes" required disabled={disabled} className="mt-1 size-5 shrink-0" />

@@ -351,7 +351,27 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "button": "Text me the link",
-    "previewNote": "Example: this form appears on each good deed's page after scanning its QR code. Nothing is sent from this page."
+    "previewNote": "Example: this form appears on each good deed's page after scanning its QR code. Nothing is sent from this page.",
+    "intro": "Not ready to pay now? We'll text you one link to pay this tip later.",
+    "amount": "Tip amount",
+    "other": "Other",
+    "otherAmount": "Amount in dollars",
+    "sent": "Done! We texted a payment link to {phone}. It works until {day}.",
+    "errors": {
+      "consent": "Please tick the box to agree to the text.",
+      "phone": "Please enter a valid US mobile number.",
+      "alreadySent": "A pay-later link was already texted for this good deed.",
+      "phoneLimit": "This number has received the most links allowed today. Please try again tomorrow.",
+      "optedOut": "This number has opted out of our texts (it replied STOP). Text START to our number to allow texts again.",
+      "sms": "We couldn't send the text right now. Please try again later or pay now instead.",
+      "stripe": "Payments aren't available right now. Please try again later.",
+      "expired": "This QR code is about to expire, so a pay-later link isn't possible. You can still pay now.",
+      "used": "This good deed has already been thanked.",
+      "invalid": "This QR code isn't valid.",
+      "seasonClosed": "Tips are closed until the next Christmas season.",
+      "rateLimited": "Too many tries. Please wait a few minutes and try again.",
+      "amount": "Choose an amount between {min} and {max}."
+    }
   },
   "TextMessages": {
     "title": "Text messages from Spirit O Santa",

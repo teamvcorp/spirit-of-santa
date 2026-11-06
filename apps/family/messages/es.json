@@ -351,7 +351,27 @@
     "privacy": "Política de privacidad",
     "terms": "Términos del servicio",
     "button": "Envíenme el enlace",
-    "previewNote": "Ejemplo: este formulario aparece en la página de cada buena acción al escanear su código QR. Desde esta página no se envía nada."
+    "previewNote": "Ejemplo: este formulario aparece en la página de cada buena acción al escanear su código QR. Desde esta página no se envía nada.",
+    "intro": "¿No puedes pagar ahora? Te enviaremos un enlace por mensaje de texto para pagar esta propina más tarde.",
+    "amount": "Cantidad de la propina",
+    "other": "Otra",
+    "otherAmount": "Cantidad en dólares",
+    "sent": "¡Listo! Enviamos un enlace de pago a {phone}. Funciona hasta el {day}.",
+    "errors": {
+      "consent": "Marca la casilla para aceptar el mensaje.",
+      "phone": "Escribe un número de celular válido de EE. UU.",
+      "alreadySent": "Ya se envió un enlace para pagar más tarde por esta buena acción.",
+      "phoneLimit": "Este número ya recibió el máximo de enlaces permitido hoy. Inténtalo mañana.",
+      "optedOut": "Este número canceló nuestros mensajes (respondió STOP). Envía START a nuestro número para volver a recibirlos.",
+      "sms": "No pudimos enviar el mensaje ahora. Inténtalo más tarde o paga ahora.",
+      "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde.",
+      "expired": "Este código QR está por vencer, así que no se puede pagar más tarde. Aún puedes pagar ahora.",
+      "used": "Esta buena acción ya fue agradecida.",
+      "invalid": "Este código QR no es válido.",
+      "seasonClosed": "Las propinas están cerradas hasta la próxima temporada de Navidad.",
+      "rateLimited": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
+      "amount": "Elige una cantidad entre {min} y {max}."
+    }
   },
   "TextMessages": {
     "title": "Mensajes de texto de Spirit O Santa",

@@ -16,7 +16,7 @@
  */
 import "server-only";
 import type Stripe from "stripe";
-import { Deed, Kid, Payment, Transaction, trusted, withTransaction } from "@repo/db";
+import { Deed, Kid, PayLaterRequest, Payment, Transaction, trusted, withTransaction } from "@repo/db";
 import { MAX_DONATION_CENTS, MAX_TIP_CENTS, MIN_DONATION_CENTS, MIN_TIP_CENTS, REGISTRATION_FEE_CENTS } from "@repo/lib/limits";
 import { centsToCentipoints } from "@repo/lib/points";
 import { getSeasonYear } from "@repo/lib/season";
@@ -371,6 +371,8 @@ export async function onCheckoutSessionPaid(cs: Stripe.Checkout.Session): Promis
   // Pay-later links are one per deed: switch it off so it can't be paid twice.
   // Idempotent (deactivating twice is fine). A failure throws → 500 → Stripe retries.
   await getStripe().paymentLinks.update(linkId, { active: false });
+  // The pay-later text request for this link is now paid (Phase 5 slice 4b).
+  await PayLaterRequest.updateOne({ paymentLinkId: linkId, status: trusted({ $in: ["sent", "expired", "creating"] }) }, { $set: { status: "paid" } });
   const piId = idOf(cs.payment_intent);
   if (piId) {
     await Payment.updateOne({ stripePaymentIntentId: piId }, { $set: { checkoutSessionId: cs.id, paymentLinkId: linkId } });

@@ -36,6 +36,13 @@ export const donationToken = (kidId: string, version: number) => createHmac("sha
 /** What the database stores / looks up by. */
 export const hashDeedToken = (token: string) => createHash("sha256").update(token).digest("hex");
 
+/**
+ * Keyed hash of a phone number (HMAC with DEED_QR_KEY, label "phone|"): lets us count texts per
+ * number (abuse limit) without a plain lookup key; low-entropy numbers can't be brute-forced
+ * from it without the server key.
+ */
+export const phoneKey = (e164: string) => createHmac("sha256", key()).update(`phone|${e164}`).digest("hex");
+
 /** Looks like one of our tokens? (Cheap check before any DB lookup.) */
 export const isDeedToken = (v: unknown): v is string => typeof v === "string" && /^[A-Za-z0-9_-]{43}$/.test(v);
 

@@ -54,10 +54,14 @@ Generate a secret: `node -e "console.log(require('crypto').randomBytes(32).toStr
   `docs/vendor/stripe.md`. Copy its `whsec_` to the family project.
 - **Resend**: domain `fyht4.com` verified (done). Sending-only API key.
 - **Vercel Blob**: public store. Connect it to the **store** project (all environments).
-- **Vercel Cron**: defined in `apps/store/vercel.json`, both daily: `/api/cron/purge-signups` (unconfirmed
-  sign-ups) and `/api/cron/donations` (08:00 UTC: share community-donation pools once the season is frozen,
-  and email waiting tax receipts). Needs `CRON_SECRET` in the store project. The Vercel Hobby plan allows
-  only 2 cron jobs (once a day each): we use both; a third job needs Pro or merging into an existing route.
+- **Vercel Cron** (2 jobs, the Vercel Hobby maximum):
+  - store: `apps/store/vercel.json` → `/api/cron/purge-signups` (unconfirmed sign-ups).
+  - family: `apps/family/vercel.json` → `/api/cron/money` 08:00 UTC (donation split, Jan 1 season end, pay-later link
+    expiry, waiting tax receipts). Lives in the family app because it has the Stripe/Twilio/email secrets.
+  Both need `CRON_SECRET` (same long random value is fine) in their Vercel project.
+- **Twilio (family project):** `TWILIO_ACCOUNT_SID` (AC…), `TWILIO_AUTH_TOKEN` (or `TWILIO_API_KEY_SID` + `TWILIO_API_KEY_SECRET`),
+  `TWILIO_PHONE_NUMBER` in E.164 (+1…) or `TWILIO_MESSAGING_SERVICE_SID`. Texts only go out once Toll-Free Verification
+  is approved. See docs/vendor/twilio.md.
 - **Before Dec 1 (admin):** set the platform fee in /settings (the split refuses to run without it), and
   for tax receipts the charity name + EIN + "receipts cover gifts from" day.
 - **MongoDB Atlas**: allow Vercel to connect (Network Access). Recommended: one DB user per app

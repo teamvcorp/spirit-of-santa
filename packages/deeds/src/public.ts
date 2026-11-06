@@ -133,22 +133,44 @@ export async function publicSeason(): Promise<{ seasonOpen: boolean; seasonClose
  * arrives. The checkout EXPIRES with the code (or at season close, or after 23.5 h), so it can't
  * be paid after the code stopped working (review 2026-11-05).
  */
-export async function startTip(token: unknown, amountCents: number | null, origin: string, localePath: (p: string) => string): Promise<TipStart> {
-  if (amountCents == null) return { ok: false, error: "amount" };
+export type TipTarget =
+  | { ok: true; deedId: string; kidId: string; familyId: string; kidName: string; payableUntil: number }
+  | { ok: false; error: "invalid" | "used" | "expired" | "seasonClosed" };
+
+/**
+ * THE check for "can this deed take money right now, and until when?" (single source: the tip
+ * checkout AND pay-later texts). Open deed, registered kid, season open or frozen; payable until
+ * the deed's QR expiry or the season close, whichever is first.
+ */
+export async function tipTarget(token: unknown): Promise<TipTarget> {
   const { view: v, deed: d } = await view(token, "en");
   if (!d || v.state !== "open") return { ok: false, error: viewError(v) };
   if (!v.seasonOpen) return { ok: false, error: "seasonClosed" };
+  return {
+    ok: true,
+    deedId: String(d._id),
+    kidId: String(d.kidId),
+    familyId: String(d.familyId),
+    kidName: v.kidName,
+    payableUntil: Math.min(new Date(d.expiresAt!).getTime(), v.seasonCloseAt.getTime()),
+  };
+}
+
+export async function startTip(token: unknown, amountCents: number | null, origin: string, localePath: (p: string) => string): Promise<TipStart> {
+  if (amountCents == null) return { ok: false, error: "amount" };
+  const target = await tipTarget(token);
+  if (!target.ok) return target;
   // Stripe: expires_at must be 30 min .. STRICTLY under 24 h from creation (exactly 24 h is refused).
-  const endsAt = Math.min(new Date(d.expiresAt!).getTime(), v.seasonCloseAt.getTime(), Date.now() + MAX_CHECKOUT_MS);
+  const endsAt = Math.min(target.payableUntil, Date.now() + MAX_CHECKOUT_MS);
   if (endsAt - Date.now() < MIN_CHECKOUT_MS) return { ok: false, error: "expired" };
-  const metadata = buildPaymentMetadata({ sos_purpose: "tip", sos_kid_id: String(d.kidId), sos_family_id: String(d.familyId), sos_deed_id: String(d._id) });
+  const metadata = buildPaymentMetadata({ sos_purpose: "tip", sos_kid_id: target.kidId, sos_family_id: target.familyId, sos_deed_id: target.deedId });
   try {
     const session = await getStripe().checkout.sessions.create({
       ui_mode: "embedded_page",
       mode: "payment",
       submit_type: "donate",
       expires_at: Math.floor(endsAt / 1000),
-      line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: amountCents, product_data: { name: `Thank-you tip for ${v.kidName}` } } }],
+      line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: amountCents, product_data: { name: `Thank-you tip for ${target.kidName}` } } }],
       metadata,
       payment_intent_data: { metadata },
       return_url: new URL(localePath(`/d/${token as string}/thanks`), origin).toString() + "?session_id={CHECKOUT_SESSION_ID}",

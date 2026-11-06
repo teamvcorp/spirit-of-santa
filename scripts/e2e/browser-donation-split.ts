@@ -1,10 +1,10 @@
 /**
  * Real-browser E2E (Edge) for Phase 5 slice 2b: the community-donation split (admin /donations +
- * the store app's daily cron /api/cron/donations).
+ * the family app's daily money cron /api/cron/money).
  *
  *   family/admin/store servers (dev or `next start`; restart dev servers after model changes), then:
  *   node --conditions=react-server --env-file=apps/admin/.env.local --env-file=apps/family/.env.local \
- *        --env-file=apps/store/.env.local scripts/e2e/browser-donation-split.ts http://localhost:3002 http://localhost:3001
+ *        scripts/e2e/browser-donation-split.ts http://localhost:3002 http://localhost:3000
  *
  * SAFETY: credits only kids it creates, in test-only ZIPs (00701/00702), and refuses to run if the
  * dev database already holds donation gifts (a run shares EVERY held pool). Temporarily force-
@@ -16,11 +16,11 @@ import { AuditLog, connectDb, DonationSplit, Family, Kid, Payment, PlatformSetti
 import { getSeasonYear } from "@repo/lib/season";
 import { createMfaAdmin, makeChecks } from "./lib.ts";
 
-const [adminBase, storeBase] = process.argv.slice(2);
-if (!adminBase || !storeBase) throw new Error("usage: browser-donation-split.ts <adminUrl> <storeUrl>");
+const [adminBase, familyBase] = process.argv.slice(2);
+if (!adminBase || !familyBase) throw new Error("usage: browser-donation-split.ts <adminUrl> <familyUrl>");
 // eslint-disable-next-line turbo/no-undeclared-env-vars
 const cronSecret = process.env.CRON_SECRET ?? "";
-if (cronSecret.length < 16) throw new Error("CRON_SECRET missing (pass --env-file=apps/store/.env.local)");
+if (cronSecret.length < 16) throw new Error("CRON_SECRET missing (in apps/family/.env.local)");
 const { check, report } = makeChecks();
 const tag = randomBytes(4).toString("hex");
 const year = getSeasonYear(new Date());
@@ -86,7 +86,7 @@ const splitResult = async (tick: boolean) => {
   await r.waitFor({ timeout: 60_000 });
   return r.innerText();
 };
-const cron = (auth?: string) => fetch(`${storeBase}/api/cron/donations`, auth ? { headers: { authorization: auth } } : {});
+const cron = (auth?: string) => fetch(`${familyBase}/api/cron/money`, auth ? { headers: { authorization: auth } } : {});
 
 try {
   // 1. The cron refuses strangers.

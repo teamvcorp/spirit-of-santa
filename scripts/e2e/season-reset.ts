@@ -5,7 +5,7 @@
  *
  *   admin + store servers, then:
  *   node --conditions=react-server --env-file=apps/admin/.env.local --env-file=apps/family/.env.local \
- *        --env-file=apps/store/.env.local scripts/e2e/season-reset.ts http://localhost:3002 http://localhost:3001
+ *        scripts/e2e/season-reset.ts http://localhost:3002 http://localhost:3000
  *
  * SAFETY: the job zeroes EVERY kid's points, so this test SAVES every other kid's balance first and
  * RESTORES it exactly afterwards (plus removes the ledger rows it made for them). It refuses to run
@@ -19,11 +19,11 @@ import { runSeasonReset } from "@repo/payments/season-end";
 import { getSeasonState } from "@repo/stores/season";
 import { createMfaAdmin, makeChecks } from "./lib.ts";
 
-const [adminBase, storeBase] = process.argv.slice(2);
-if (!adminBase || !storeBase) throw new Error("usage: season-reset.ts <adminUrl> <storeUrl>");
+const [adminBase, familyBase] = process.argv.slice(2);
+if (!adminBase || !familyBase) throw new Error("usage: season-reset.ts <adminUrl> <familyUrl>");
 // eslint-disable-next-line turbo/no-undeclared-env-vars
 const cronSecret = process.env.CRON_SECRET ?? "";
-if (cronSecret.length < 16) throw new Error("CRON_SECRET missing (pass --env-file=apps/store/.env.local)");
+if (cronSecret.length < 16) throw new Error("CRON_SECRET missing (in apps/family/.env.local)");
 const { check, report } = makeChecks();
 const tag = randomBytes(4).toString("hex");
 const ended = getSeasonYear(new Date()); // this season…
@@ -59,7 +59,7 @@ try {
   // 1. Not the off-season (real date, season running): nothing happens.
   const real = await runSeasonReset();
   check("during the season: nothing reset", !real.ok && real.reason === "notOffseason" && (await bal(k1._id)) === 1000);
-  const cronRes = await fetch(`${storeBase}/api/cron/donations`, { headers: { authorization: `Bearer ${cronSecret}` } });
+  const cronRes = await fetch(`${familyBase}/api/cron/money`, { headers: { authorization: `Bearer ${cronSecret}` } });
   const cronBody = (await cronRes.json()) as { seasonEnd?: { reason?: string } };
   check("daily cron includes the season-end step (not its time yet)", cronRes.status === 200 && cronBody.seasonEnd?.reason === "notOffseason", JSON.stringify(cronBody.seasonEnd));
 

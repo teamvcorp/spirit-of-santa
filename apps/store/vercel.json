@@ -4,10 +4,6 @@
     {
       "path": "/api/cron/purge-signups",
       "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/donations",
-      "schedule": "0 8 * * *"
     }
   ]
 }

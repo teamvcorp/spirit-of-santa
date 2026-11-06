@@ -10,7 +10,8 @@
     "./qr": "./src/qr.ts",
     "./public": "./src/public.ts",
     "./moderation": "./src/moderation.ts",
-    "./donate": "./src/donate.ts"
+    "./donate": "./src/donate.ts",
+    "./pay-later": "./src/pay-later.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -23,6 +24,7 @@
     "@repo/families": "*",
     "@repo/lib": "*",
     "@repo/payments": "*",
+    "@repo/sms": "*",
     "@repo/stores": "*",
     "mongoose": "9.11.4",
     "qrcode": "1.5.4",

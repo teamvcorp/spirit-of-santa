@@ -142,3 +142,14 @@ Used for the $5 child registration (Phase 4 slice 2b): Stripe's form inside our 
 - **`expires_at`** (Checkout Session): must be at least 30 minutes and STRICTLY LESS than 24 hours after creation
   (exactly +24 h is refused: "must be less than 24 hours from Checkout Session creation", verified 2026-11-05). We
   cap tips at 23.5 h and at the deed's expiry / season close (`packages/deeds/src/public.ts`).
+
+## Payment Links for pay-later texts (checked in installed SDK types, 2026-11-06)
+
+`paymentLinks.create({ line_items: [{ quantity: 1, price_data: { currency, unit_amount, product_data } }],
+metadata, payment_intent_data: { metadata }, restrictions: { completed_sessions: { limit: 1 } },
+inactive_message, after_completion: { type: "hosted_confirmation", hosted_confirmation: { custom_message } } })`.
+- `price_data` inline is supported (no separate Price object needed).
+- PaymentLink `metadata` is AUTOMATICALLY copied to the Checkout Sessions it creates (SDK doc comment), so
+  `onCheckoutSessionPaid` sees `sos_*` on the session; `payment_intent_data.metadata` reaches the PI (credits).
+- Links never expire by themselves: our daily cron sets `active: false` after `expiresAt` (and the webhook
+  deactivates a single-use link once paid). `inactive_message` is what a visitor sees on a dead link.

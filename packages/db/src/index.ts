@@ -49,6 +49,7 @@ export { PlatformSettings, type PlatformSettingsDoc } from "./models/platform-se
 export { DonationReceipt, DONATION_RECEIPT_STATUSES, type DonationReceiptDoc } from "./models/donation-receipt.ts";
 export { DonationSplit, SPLIT_POOL_STATUSES, type DonationSplitDoc } from "./models/donation-split.ts";
 export { SeasonReset, type SeasonResetDoc } from "./models/season-reset.ts";
+export { PayLaterRequest, PAY_LATER_STATUSES, type PayLaterRequestDoc } from "./models/pay-later-request.ts";
 export { AuditLog, AUDIT_ACTIONS, type AuditAction, type AuditLogDoc } from "./models/audit-log.ts";
 export {
   WishListItem,

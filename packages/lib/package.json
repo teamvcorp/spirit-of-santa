@@ -15,7 +15,8 @@
     "./store": "./src/store.ts",
     "./ids": "./src/ids.ts",
     "./family": "./src/family.ts",
-    "./form": "./src/form.ts"
+    "./form": "./src/form.ts",
+    "./phone": "./src/phone.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

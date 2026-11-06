@@ -7,6 +7,7 @@
 import { headers } from "next/headers";
 import { z } from "zod";
 import { publicLimit, startTip, thankDeed, tipAmountCents, type TipStart } from "@repo/deeds/public";
+import { startPayLater, type PayLaterError } from "@repo/deeds/pay-later";
 import { localizePath } from "@repo/i18n/paths";
 import { amountFormSchema, echoAmount, formFields, publicTokenSchema, type AmountEcho } from "../../../../lib/amount-form";
 
@@ -32,4 +33,22 @@ export async function tipAction(_prev: TipState, fd: FormData): Promise<TipState
   if (!origin) throw new Error("NEXTAUTH_URL is not set");
   const { locale } = parsed.data;
   return { ...(await startTip(parsed.data.token, tipAmountCents(parsed.data.amount, parsed.data.other), origin, (p) => localizePath(p, locale))), ...echo };
+}
+
+/** Pay later by text (Phase 5 slice 4b; registered flow, see @repo/deeds/pay-later). */
+export type PayLaterState = ({ status: "idle" } | { ok: true; masked: string; expiresAt: string } | { ok: false; error: PayLaterError | "rateLimited" | "invalid" }) &
+  AmountEcho & { phone?: string };
+
+const payLaterSchema = amountFormSchema.extend({ phone: z.string().max(25), consent: z.enum(["yes"]).optional() });
+
+export async function payLaterAction(_prev: PayLaterState, fd: FormData): Promise<PayLaterState> {
+  const phoneRaw = fd.get("phone");
+  const echo = { ...echoAmount(fd), phone: typeof phoneRaw === "string" ? phoneRaw.slice(0, 25) : "" };
+  // 5 requests per 15 min per visitor (plus 1 per deed and 3 per number per day in the service).
+  if (!(await publicLimit(await headers(), "paylater", 5))) return { ok: false, error: "rateLimited", ...echo };
+  const parsed = payLaterSchema.safeParse(formFields(fd));
+  if (!parsed.success) return { ok: false, error: "invalid", ...echo };
+  const { token, amount, other, locale, phone, consent } = parsed.data;
+  const r = await startPayLater(token, { phone, consent: consent === "yes", amountCents: tipAmountCents(amount, other), locale });
+  return r.ok ? { ok: true, masked: r.masked, expiresAt: r.expiresAt.toISOString(), ...echo } : { ...r, ...echo };
 }

@@ -409,7 +409,7 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   ONE transaction: `DonationSplit` record + `earn_donation` ledger rows (idempotencyKey per run/pool/kid) + Kid `$inc`
   + Payments held→credited with `splitId` (CAS on held). Fee = floor(cents × bps / 10000); points = server constant;
   rounding leftover + a pool < 1 centipoint each stays (tooSmall = stays held). Empty ZIP → "all kids" (fee once).
-  Eligible = registered, not archived; ZIP pool = family ZIP. Cron `apps/store/app/api/cron/donations` daily 08:00 UTC
+  Eligible = registered, not archived; ZIP pool = family ZIP. Cron (now `apps/family/app/api/cron/money`) daily 08:00 UTC
   (split + send pending receipts, independent; Bearer CRON_SECRET) → late gifts shared next day. Admin `/donations`:
   preview table, "Split now" (tick required, audited `donations.split`), past runs, receipt counts + retry failed.
   Scale note: one transaction credits every kid; fine for thousands; batch it if kids reach tens of thousands.
@@ -442,6 +442,20 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   version unchanged, both shown); names Twilio + visitor retention; Terms rate from CENTS_PER_POINT, refunds "except
   where law/card network requires"; shared `components/legal-sections.tsx` for the three legal pages. Spanish consent
   must also be told to the carriers (docs/vendor/twilio.md).
+- **Slice 4b pay-later texts (DONE):** deed page /d/<token> "Pay later by text" (`d/[token]/pay-later-section.tsx`,
+  `payLaterAction`) → `@repo/deeds/pay-later` `startPayLater`: consent (unticked box, re-checked) + tip amount + US number
+  (`toUsE164` @repo/lib/phone) + `tipTarget` (THE "deed can take money now" rule, shared with startTip) → limits (one
+  per deed = unique deedId; 3 per number per day via HMAC `phoneKey`; 5/15 min per visitor) → `PayLaterRequest`
+  (consent record: number, time, SMS_CONSENT_VERSION, locale; TTL 13 months) → single-use Stripe Payment Link
+  (price_data inline, `restrictions.completed_sessions.limit 1`, NO submit_type so the URL is buy.stripe.com = the
+  registered sample) → ONE text (`payLaterText`, registered wording, English, "expires in N days" rounded DOWN). Text
+  fails → link switched off. Webhook `onCheckoutSessionPaid` switches the link off + request "paid"; daily cron
+  `expirePayLaterLinks`. `@repo/sms` (new): `sendSms` via Twilio REST (fetch), API key or Account SID + Auth Token,
+  Messaging Service or From; PRINTS in dev unless TWILIO_DEV_SEND=true; `smsFailureFor` (21610 STOP → optedOut).
+  E2E `browser-family-paylater.ts` (13).
+- **Daily money cron MOVED to the FAMILY app (2026-11-06):** `apps/family/app/api/cron/money` (+ `apps/family/vercel.json`
+  08:00 UTC): split → season end → pay-later expiry → receipts. The store keeps only purge-signups (no Stripe key there;
+  don't spread money secrets). CRON_SECRET needed in BOTH family and store projects.
 - **Alert roles:** `tone="error"` → `role="alert"`, info → `role="status"`. E2E success checks must match both.
 - **Dev server gotchas:** new message namespaces may need a dev-server restart. **Mongoose models are cached across
   hot reloads (`models.X ?? model(...)`): after a SCHEMA change restart the dev server, or new fields are silently

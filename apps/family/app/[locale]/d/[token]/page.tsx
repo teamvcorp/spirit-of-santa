@@ -8,11 +8,13 @@ import { headers } from "next/headers";
 import { connection } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { payLaterForDeed } from "@repo/deeds/pay-later";
 import { getPublicDeed, publicLimit } from "@repo/deeds/public";
 import { CENTS_PER_POINT } from "@repo/lib/constants";
 import { formatCents } from "@repo/lib/format";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
+import { PayLaterSection } from "./pay-later-section";
 import { QrActions } from "./qr-actions";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -24,7 +26,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/d/[token]">["p
   await connection();
   const [{ token }, t, locale] = await Promise.all([params, getTranslations("Qr"), getLocale()]);
   if (!(await publicLimit(await headers(), "view", 120))) return <Alert tone="error">{t("errors.rateLimited")}</Alert>;
-  const view = await getPublicDeed(token, locale);
+  const [view, payLater] = await Promise.all([getPublicDeed(token, locale), payLaterForDeed(token)]);
   if (view.state === "invalid") return <Alert tone="error">{t("invalid")}</Alert>;
   if (view.state === "used") return <Alert>{view.outcome === "paid" ? t("usedPaid") : t("used")}</Alert>;
   if (view.state === "expired") return <Alert>{t("expired")}</Alert>;
@@ -40,6 +42,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/d/[token]">["p
         </p>
       </div>
       {view.seasonOpen ? <QrActions token={token} kidName={view.kidName} rate={formatCents(CENTS_PER_POINT)} /> : <Alert>{t("errors.seasonClosed")}</Alert>}
+      {view.seasonOpen && <PayLaterSection token={token} sent={payLater ? { masked: payLater.masked, expiresAt: payLater.expiresAt.toISOString() } : null} />}
     </div>
   );
 }

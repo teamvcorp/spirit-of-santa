@@ -27,6 +27,9 @@ export const MAX_KID_AGE_YEARS = 17;
 /** A fully funded item locks (can't be removed) after this many days on the list. */
 export const ITEM_LOCK_DAYS = 30;
 
+/** Adding a wish-list item needs at least this many AVAILABLE centipoints (1 point; roadmap). */
+export const MIN_CENTIPOINTS_TO_ADD_ITEM = 100;
+
 /**
  * Twilio pay-later SMS links expire after this many days. REGISTERED with the carriers as "7 days" in the
  * consent wording (messages PayLater.consent, docs/vendor/twilio.md): changing it means re-registering.

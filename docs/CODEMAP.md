@@ -489,7 +489,13 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   transaction → MongoDB write conflict → retry. Hooks: webhook tip/bonus credit calls `allocateForKid` in the same tx;
   donation split ends with `sweepAllocations`; daily money cron: lock + sweep. NOTE roadmap rule: with eager oldest-first
   allocation, a kid can only add another item once they have spare (available) points.
-  `ownFamilyId`/`Parent` moved to `@repo/auth/family-owner` (families re-exports). E2E `wishlist-engine.ts` (16).
+  `ownFamilyId`/`Parent` live ONLY in `@repo/auth/family-owner` (import from there). E2E `wishlist-engine.ts` (18).
+  Review fixes: points move ONLY while the season is open or frozen and ONLY onto THIS season's items (`fundingSeason`):
+  after Dec 25 nothing moves (available is zeroed Jan 1; last season's items never absorb new points); removal checks
+  the 30-day lock by DATE (not only the cron's status); add/remove re-check the season before commit (freeze mid-request
+  → rolled back, "seasonNotOpen"); sweep starts from kids WITH points; split's sweep is best-effort;
+  `MIN_CENTIPOINTS_TO_ADD_ITEM` in @repo/lib/limits. **Before live use, slice 4 MUST handle escrow still on unfinished
+  items at Dec 25 (→ unfunded, parent pay-up, then zeroed with the Jan 1 reset).**
 
 ## Open items / TODO
 

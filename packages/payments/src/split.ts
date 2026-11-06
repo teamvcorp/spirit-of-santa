@@ -279,7 +279,9 @@ export async function runDonationSplit(opts: { trigger: "cron" | "admin"; adminU
   if ("reason" in planned) return { ok: false, error: planned.reason, resumed };
   if (planned.splitId) await creditSplit(planned.splitId);
   // Phase 6: the shared points flow onto each kid's oldest unfunded wish-list item.
-  if (planned.splitId || resumed > 0) await sweepAllocations();
+  if (planned.splitId || resumed > 0) {
+    await sweepAllocations().catch((e: unknown) => console.error("[split] wish-list sweep failed (daily cron retries):", e instanceof Error ? e.name : "unknown"));
+  }
   return { ok: true, ...planned, resumed };
 }
 

@@ -11,7 +11,7 @@
  */
 import "server-only";
 import { AuditLog, connectDb, Family, Kid, withTransaction } from "@repo/db";
-import { ownFamilyId, type Parent } from "@repo/families/kids";
+import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, getStripe } from "@repo/payments/checkout";
 import { createHash, timingSafeEqual } from "node:crypto";

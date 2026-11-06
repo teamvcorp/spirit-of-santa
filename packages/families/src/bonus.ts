@@ -20,7 +20,7 @@ import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_CHECKOUT_MS, MAX_TIP_CENTS, MIN_CHECKOUT_MS, MIN_TIP_CENTS } from "@repo/lib/limits";
 import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, getStripe } from "@repo/payments/checkout";
 import { giftWindow } from "@repo/stores/season";
-import { ownFamilyId, type Parent } from "./kids.ts";
+import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 
 
 export type BonusStart =

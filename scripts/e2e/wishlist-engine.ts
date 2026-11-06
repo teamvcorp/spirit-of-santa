@@ -79,6 +79,11 @@ try {
   // 1. Sold out → refused.
   check("sold-out item can't be added", JSON.stringify(await addToList(parent, String(kid._id), C)) === JSON.stringify({ ok: false, error: "soldOut" }));
 
+  // 1b. A LAST-season item left unfinished (older than anything) must never absorb this season's points.
+  // (raw insert: the model's seasonYear minimum is 2026, so "last season" can't go through validation)
+  const oldItem = { _id: oid() };
+  await WishListItem.collection.insertOne({ _id: oldItem._id, kidId: kid._id, familyId: fam._id, itemId: oid(), storeId, seasonYear: year - 1, costCentipoints: 5000, fundedCentipoints: 100, status: "active", createdAt: new Date(Date.now() - 300 * 86_400_000), updatedAt: new Date() });
+
   // 2. First item: escrows what the kid has (10 of 25 points).
   const a = await addToList(parent, String(kid._id), A);
   let k = await kidState();
@@ -116,6 +121,9 @@ try {
 
   // 8. 30-day lock: a locked item can't be removed.
   await WishListItem.updateOne({ _id: wb!._id }, { $set: { fullyFundedAt: new Date(Date.now() - 31 * 86_400_000) } });
+  // Even BEFORE the daily lock job runs, 30+ days funded means locked.
+  const early = await removeFromList(parent, String(wb!._id));
+  check("past 30 days → can't be removed even before the lock job runs", !early.ok && early.error === "locked" && (await wl(B))?.status === "fully_funded");
   const locked = await lockFundedItems();
   const rb = await removeFromList(parent, String(wb!._id));
   check("fully funded 30+ days → locked, and can't be removed", locked >= 1 && (await wl(B))?.status === "locked" && !rb.ok && rb.error === "locked");
@@ -130,7 +138,7 @@ try {
 
   // 10. Two adds at once with room for one: exactly one wins (no double-spend past the cap).
   await tip(1500); // 10 points available
-  const onList = await WishListItem.countDocuments({ kidId: kid._id, status: trusted({ $ne: "removed" }) });
+  const onList = await WishListItem.countDocuments({ kidId: kid._id, seasonYear: year, status: trusted({ $ne: "removed" }) }); // the cap counts THIS season only
   await Kid.updateOne({ _id: kid._id }, { $set: { itemCap: onList + 1 } });
   const F = await mkItem("Yo-yo", 300, 3);
   const G = await mkItem("Puzzle", 300, 3);
@@ -139,6 +147,7 @@ try {
 
   // 11. Ledger explains both balances exactly.
   check("ledger adds up: available + escrowed match earn/escrow/release rows", await ledgerAddsUp());
+  check("last season's unfinished item took none of this season's points", (await WishListItem.findById(oldItem._id).lean())?.fundedCentipoints === 100);
 
   // 12. After the Dec 1 freeze: no adds or removes.
   await Season.collection.updateOne({ year }, { $set: { forceFrozen: true } }, { upsert: true });

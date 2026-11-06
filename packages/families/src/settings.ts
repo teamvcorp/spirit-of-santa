@@ -6,7 +6,7 @@
  */
 import "server-only";
 import { AuditLog, Family, withTransaction } from "@repo/db";
-import { ownFamilyId, type Parent } from "./kids.ts";
+import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 
 export async function getFamilySettings(parent: Parent): Promise<{ alias: string; show: boolean; review?: string } | null> {
   const fid = await ownFamilyId(parent);

@@ -17,8 +17,7 @@ import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_KIDS_PER_FAMILY } from "@repo/lib/limits";
 import type { KidInput } from "./schemas.ts";
 
-// The ownership rule lives in @repo/auth/family-owner (single source); re-exported for existing callers.
-export { ownFamilyId, type Parent } from "@repo/auth/family-owner";
+// The ownership rule lives in @repo/auth/family-owner (single source: import it from there).
 import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 
 export type KidRow = {

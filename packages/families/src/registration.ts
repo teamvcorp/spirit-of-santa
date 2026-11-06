@@ -16,7 +16,7 @@ import { AuditLog, Kid, Payment, trusted, User, withTransaction } from "@repo/db
 import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_KIDS_PER_FAMILY, REGISTRATION_FEE_CENTS } from "@repo/lib/limits";
 import { buildPaymentMetadata, checkoutReturnStatus, getStripe } from "@repo/payments/checkout";
-import { ownFamilyId, type Parent } from "./kids.ts";
+import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 
 /** Case- and space-insensitive promo check. Blank/missing env = promo switched off. */
 export function promoMatches(input: string | undefined | null): boolean {

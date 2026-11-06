@@ -15,7 +15,7 @@
  */
 import "server-only";
 import { AuditLog, Deed, DeedType, ensureLock, Kid, takeLock, trusted, withTransaction } from "@repo/db";
-import { ownFamilyId, type Parent } from "@repo/families/kids";
+import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { DEED_QR_DAYS, MAX_DEEDS_PER_KID_PER_DAY } from "@repo/lib/limits";
 import type { Locale } from "@repo/lib/locales";

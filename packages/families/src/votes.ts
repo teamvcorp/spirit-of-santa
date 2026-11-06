@@ -12,7 +12,7 @@ import { AuditLog, Kid, KidVote, trusted, withTransaction } from "@repo/db";
 import type { KidVoteValue } from "@repo/lib/family";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { calendarDateIn, isoDay, santaListStart, santaListYear } from "@repo/lib/season";
-import { ownFamilyId, type Parent } from "./kids.ts";
+import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 
 export type Tally = { nice: number; naughty: number; today?: KidVoteValue; listYear: number };
 

@@ -9,6 +9,7 @@ import { Link } from "@/i18n/navigation";
 import { DashboardNav } from "../dashboard-nav";
 import { loadMember } from "../member";
 import { NoAccess } from "../no-access";
+import { EngagementTiles, FundingMeter } from "./engagement-ui";
 import { InventoryForm } from "./item-ui";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -40,6 +41,8 @@ async function Content() {
       </div>
       <Alert className="mb-4">{data.window.open ? t("windowOpen") : t("windowClosed")}</Alert>
       {!data.editable && <Alert className="mb-4">{t("readOnly")}</Alert>}
+      <h2 className="mb-2 text-lg font-semibold">{t("engagementTitle")}</h2>
+      <EngagementTiles stats={data.summary} className="mb-6" />
       {isOwner && data.discountBps != null && <p className="mb-4 text-sm text-foreground/70">{t("discountNote", { discount: formatDiscount(data.discountBps) })}</p>}
       {active.length === 0 ? (
         <p className="text-foreground/70">{t("empty")}</p>
@@ -53,7 +56,10 @@ async function Content() {
                 {isOwner && <th className="py-2 pr-4">{t("colWholesale")}</th>}
                 <th className="py-2 pr-4">{t("colStock")}</th>
                 <th className="py-2 pr-4">{t("colViews")}</th>
-                <th className="py-2">{t("colAdds")}</th>
+                <th className="py-2 pr-4">{t("colOnLists")}</th>
+                <th className="py-2 pr-4">{t("colFunded")}</th>
+                <th className="py-2 pr-4">{t("colLocked")}</th>
+                <th className="py-2">{t("colFunding")}</th>
               </tr>
             </thead>
             <tbody>
@@ -68,8 +74,13 @@ async function Content() {
                   <td className="py-2 pr-4">{i.priceCents != null ? formatCents(i.priceCents) : t("needsPrice")}</td>
                   {isOwner && <td className="py-2 pr-4">{i.wholesaleCents != null ? formatCents(i.wholesaleCents) : "—"}</td>}
                   <td className="py-2 pr-4">{data.editable ? <InventoryForm itemId={i.id} inventory={i.inventory} label={i.name} /> : i.inventory}</td>
-                  <td className="py-2 pr-4">{i.stats.impressions}</td>
-                  <td className="py-2">{i.stats.wishListAdds}</td>
+                  <td className="py-2 pr-4 tabular-nums">{i.stats.views}</td>
+                  <td className="py-2 pr-4 tabular-nums">{i.stats.onLists}</td>
+                  <td className="py-2 pr-4 tabular-nums">{i.stats.fullyFunded}</td>
+                  <td className="py-2 pr-4 tabular-nums">{i.stats.locked}</td>
+                  <td className="py-2">
+                    <FundingMeter percent={i.stats.fundingPercent} label={t("fundingFor", { name: i.name })} />
+                  </td>
                 </tr>
               ))}
             </tbody>

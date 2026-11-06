@@ -13,6 +13,10 @@ https://mongoosejs.com/docs/api/mongoose.html (read 2026-11-04). Requires Node >
 | `Model.create<T>(…)` generic | no generic; takes `Partial<RawDocType>` |
 | update with aggregation pipeline `[...]` | throws unless `{ updatePipeline: true }`. Keep it OFF (pipelines aren't cast) |
 | `index({…}, { background: true })` | `background` option removed |
+
+**Aggregation pipelines are NOT cast or sanitised** (unlike find/update filters): `{ $match: { itemId: "<hex>" } }`
+matches nothing because the stored value is an ObjectId, and `sanitizeFilter` doesn't apply. Pass DB-sourced ObjectIds
+and never request input (`packages/stores/src/engagement.ts`). Source: Mongoose docs, `Model.aggregate()` does no casting.
 | UUID fields as strings | `bson.UUID` instances |
 | `doc.id` typed `any` | typed `string` |
 

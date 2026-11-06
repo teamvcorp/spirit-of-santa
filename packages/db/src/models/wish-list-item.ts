@@ -61,6 +61,7 @@ const wishListItemSchema = new Schema(
 wishListItemSchema.index({ kidId: 1, seasonYear: 1, status: 1 });
 wishListItemSchema.index({ status: 1, fullyFundedAt: 1 }); // daily lock cron
 wishListItemSchema.index({ storeId: 1, status: 1 }); // store fulfilment queue
+wishListItemSchema.index({ storeId: 1, seasonYear: 1, itemId: 1 }); // store engagement totals per item
 
 export type WishListItemDoc = InferSchemaType<typeof wishListItemSchema>;
 export const WishListItem = (models.WishListItem ??

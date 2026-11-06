@@ -230,7 +230,7 @@ try {
   const ownerA = await User.findOne({ email: mail("a") }).select("_id").lean();
   const actorA = { id: String(ownerA?._id), role: "store_owner", storeId: A };
   // Raw insert: the schema refuses years before the first season (2026), but we need a "past" one.
-  const oldIns = await Item.collection.insertOne({ storeId: new mongoose.Types.ObjectId(A), seasonYear: seasonYear - 1, name: `Old Kite ${tag}`, priceCents: 500, payoutCents: 0, inventory: 1, status: "archived", stats: { impressions: 0, wishListAdds: 0 }, createdAt: new Date(), updatedAt: new Date() });
+  const oldIns = await Item.collection.insertOne({ storeId: new mongoose.Types.ObjectId(A), seasonYear: seasonYear - 1, name: `Old Kite ${tag}`, priceCents: 500, payoutCents: 0, inventory: 1, status: "archived", stats: { views: 0 }, createdAt: new Date(), updatedAt: new Date() });
   const oldItem = { _id: oldIns.insertedId };
   const oldRes = await owner.goto(`${base}/dashboard/items/${oldItem._id}`);
   await owner.waitForTimeout(1000);

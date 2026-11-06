@@ -7,6 +7,8 @@
     "./admin": "./src/admin.ts",
     "./owner": "./src/owner.ts",
     "./items": "./src/items.ts",
+    "./engagement": "./src/engagement.ts",
+    "./engagement-math": "./src/engagement-math.ts",
     "./queries": "./src/queries.ts",
     "./schemas": "./src/schemas.ts",
     "./urls": "./src/urls.ts"

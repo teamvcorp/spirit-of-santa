@@ -10,6 +10,7 @@ import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
 import { loadMember } from "../../member";
 import { NoAccess } from "../../no-access";
+import { EngagementTiles } from "../engagement-ui";
 import { ArchiveButton, InventoryForm, ItemForm, ItemPhoto } from "../item-ui";
 import { initialValues } from "../item-values";
 
@@ -42,6 +43,10 @@ async function Content({ params, searchParams }: { params: PageProps<"/[locale]/
       {data.isOwner && item.wholesaleCents != null && (
         <p className="mb-4 text-sm">{t("wholesaleLine", { price: formatCents(item.priceCents ?? 0), wholesale: formatCents(item.wholesaleCents) })}</p>
       )}
+      <Card className="mb-6">
+        <h2 className="mb-3 text-lg font-semibold">{t("engagementTitle")}</h2>
+        <EngagementTiles stats={item.stats} />
+      </Card>
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <h2 className="mb-4 text-lg font-semibold">{t("details")}</h2>

@@ -60,10 +60,15 @@ const itemSchema = new Schema(
       required: true,
     },
 
-    /** Engagement matrix for store dashboards. */
+    /**
+     * Engagement counters for store dashboards (slice 5, user decisions 2026-11-05).
+     * views = item page opened by a family, counted at most once per visitor per day
+     *         (recordItemView in packages/stores/src/engagement.ts).
+     * Wish-list numbers are NOT counters: they're computed from WishListItem records,
+     * so they can never drift out of sync.
+     */
     stats: {
-      impressions: { type: Number, default: 0, min: 0 },
-      wishListAdds: { type: Number, default: 0, min: 0 },
+      views: { type: Number, default: 0, min: 0 },
     },
   },
   { timestamps: true, versionKey: false },

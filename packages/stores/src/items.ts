@@ -29,6 +29,8 @@ import { isStoreEditable, wholesaleCents } from "@repo/lib/store";
 import { hitRateLimit } from "@repo/auth/rate-limit";
 import { deletePublicImage, ImageUploadError, uploadPublicImage, type ImageUploadErrorCode } from "@repo/storage/images";
 import { memberStore, type StoreActor } from "./owner.ts";
+import { wishListTotals } from "./engagement.ts";
+import { EMPTY_TOTALS, fundingPercent, sumTotals, type WishListTotals } from "./engagement-math.ts";
 import type { ItemInput } from "./schemas.ts";
 
 export type ItemResult =
@@ -87,13 +89,20 @@ export type ItemRow = {
   inventory: number;
   status: "draft" | "active" | "archived";
   photo?: { url: string; pathname: string };
-  stats: { impressions: number; wishListAdds: number };
+  /** Engagement (slice 5): views counter + wish-list totals. Totals only, never who. */
+  stats: ItemStats;
 };
 
-function toRow(item: Record<string, unknown> & { _id: unknown }, isOwner: boolean, discountBps?: number | null): ItemRow {
+export type ItemStats = { views: number; onLists: number; fullyFunded: number; locked: number; fundingPercent: number };
+
+function toStats(views: number, t: WishListTotals = EMPTY_TOTALS): ItemStats {
+  return { views, onLists: t.onLists, fullyFunded: t.fullyFunded, locked: t.locked, fundingPercent: fundingPercent(t) };
+}
+
+function toRow(item: Record<string, unknown> & { _id: unknown }, isOwner: boolean, discountBps: number | null | undefined, lists?: WishListTotals): ItemRow {
   const price = item.priceCents as number | undefined;
   const photo = item.photo as { url: string; pathname: string } | undefined;
-  const stats = (item.stats ?? {}) as { impressions?: number; wishListAdds?: number };
+  const stats = (item.stats ?? {}) as { views?: number };
   return {
     id: String(item._id),
     name: item.name as string,
@@ -104,7 +113,7 @@ function toRow(item: Record<string, unknown> & { _id: unknown }, isOwner: boolea
     inventory: (item.inventory as number) ?? 0,
     status: item.status as ItemRow["status"],
     photo: photo?.url ? { url: photo.url, pathname: photo.pathname } : undefined,
-    stats: { impressions: stats.impressions ?? 0, wishListAdds: stats.wishListAdds ?? 0 },
+    stats: toStats(stats.views ?? 0, lists),
   };
 }
 
@@ -121,18 +130,26 @@ export async function listStoreItems(store: MemberStore, isOwner: boolean) {
   // Listed items (drafts + active, never more than the limit) and archived items are loaded
   // separately, so a long archive history can never push drafts out of view (review 2026-11-05).
   const scope = { storeId: store._id, seasonYear: getSeasonYear(now) };
-  const [win, current, archived, count] = await Promise.all([
+  const [win, current, archived, count, lists] = await Promise.all([
     storeItemWindow(now),
     Item.find({ ...scope, status: NOT_ARCHIVED() }).sort({ createdAt: 1 }).limit(STORE_ITEM_LIMIT + 10).lean(),
     Item.find({ ...scope, status: "archived" }).sort({ updatedAt: -1 }).limit(100).lean(),
     Item.countDocuments({ ...scope, status: NOT_ARCHIVED() }),
+    wishListTotals(scope.storeId, scope.seasonYear),
   ]);
   // Drafts first so the owner sees what needs a price.
   const rows = [...current.filter((i) => i.status === "draft"), ...current.filter((i) => i.status !== "draft"), ...archived].map((i) =>
-    toRow(i as never, isOwner, store.discountBps),
+    toRow(i as never, isOwner, store.discountBps, lists.get(String(i._id))),
+  );
+  // Store-wide summary: every item this season, archived ones included (kids may still have them).
+  const all = sumTotals(lists.values());
+  const summary = toStats(
+    [...current, ...archived].reduce((n, i) => n + ((i.stats as { views?: number } | undefined)?.views ?? 0), 0),
+    all,
   );
   return {
     items: rows,
+    summary,
     count,
     limit: STORE_ITEM_LIMIT,
     window: win,
@@ -151,8 +168,10 @@ export async function getStoreItem(store: MemberStore, isOwner: boolean, itemId:
     Item.findOne({ _id: itemId, storeId: store._id, seasonYear: getSeasonYear(now) }).lean(),
   ]);
   if (!item) return null;
+  // item._id (an ObjectId from the DB), not the URL text: aggregations don't cast types.
+  const lists = await wishListTotals(store._id, item.seasonYear, item._id);
   return {
-    item: toRow(item as never, isOwner, store.discountBps),
+    item: toRow(item as never, isOwner, store.discountBps, lists.get(String(item._id))),
     window: win,
     editable: isStoreEditable(store.status),
     isOwner,

@@ -1,7 +1,7 @@
 # turboSanta CODEMAP
 
 > Read this before exploring. Keep it current when packages/routes are added.
-> Last updated: 2026-11-05 (slice 4 review fixes). Status: **Phase 1: shared packages, i18n, sign-in, image storage, home-screen icons done; placeholder pages otherwise.**
+> Last updated: 2026-11-05 (slice 5 engagement). Status: **Phase 1: shared packages, i18n, sign-in, image storage, home-screen icons done; placeholder pages otherwise.**
 > Rules/constants: [../CLAUDE.md](../CLAUDE.md). Roadmap: [../SpiritOfSanta.md](../SpiritOfSanta.md).
 
 ## Layout
@@ -15,7 +15,7 @@
 | `packages/i18n` | next-intl factories (routing, request, proxy), `Common` messages, `LocaleSwitcher`, `getCommonTranslator` for SMS/push |
 | `packages/db` | `connectDb()`, `withTransaction()` + 12 Mongoose models incl. `Payment` (money records) and `StripeEvent` (webhook log) (server-only) |
 | `packages/email` | **Server-only** `sendEmail()` via Resend + pure `renderEmail()` templates (en/es, escaped, link allow-list). Dev prints instead of sending |
-| `packages/stores` | **Server-only** store business logic: `admin.ts` (approve/reject/suspend/reinstate/discount/invite/resend/cancel: atomic transitions + AuditLog + owner emails), `owner.ts` (profile, photos, reps; ownership re-checked from the DB on every call), `items.ts` (catalog: window, 50 limit, owner-only pricing, photos), `queries.ts` (queue, detail), `schemas.ts` (discount % → bps), `urls.ts` (STORE_APP_URL) |
+| `packages/stores` | **Server-only** store business logic: `engagement.ts` (`recordItemView` for the family app in Phase 6, `wishListTotals`) + pure `engagement-math.ts`, `admin.ts` (approve/reject/suspend/reinstate/discount/invite/resend/cancel: atomic transitions + AuditLog + owner emails), `owner.ts` (profile, photos, reps; ownership re-checked from the DB on every call), `items.ts` (catalog: window, 50 limit, owner-only pricing, photos), `queries.ts` (queue, detail), `schemas.ts` (discount % → bps), `urls.ts` (STORE_APP_URL) |
 | `packages/payments` | **Server-only** Stripe: `client` (`getStripe`, `expectedLivemode`), `metadata` (`sos_*` payment-label contract), `webhook` (verify → dedupe → `handlers`) |
 | `packages/auth` | NextAuth v4 options, guards, argon2id hashing, parent PIN (server-only); UI: `SignInSlot`/`SignInForm`, `AccountMenu`, `SignOutButton`; `safeCallbackPath` (open-redirect guard); `scripts/seed-dev.ts`; account flows (`account-flows.ts`: store sign-up, verify, resend, forgot/reset), `tokens.ts` (hashed single-use links), `rate-limit.ts`, `schemas.ts`, shared forms (`forms.tsx`, `token-slot.tsx`, `form-actions.ts`) |
 | `packages/ui` | Button, TextField, Card, Alert, SiteHeader, `cn`, `theme.css` (brand tokens, `danger`, focus ring), `app-icon` (icon art + manifest factory) |
@@ -134,7 +134,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
   families see a store only once approved.
 - **Pricing:** owners set prices; reps add/edit item details + inventory (rep-created items wait for a price).
 - **Agreement wording is a DRAFT** (`StoreAgreement` messages, version `2026-11-05`): user must review before launch.
-- Slices: 1 accounts+email (DONE, 349c069) · 2 admin approval/invite (DONE, d900b67 + review fixes 44e58aa) · 3 owner dashboard/reps (DONE, ce397ac + 5a9b255) · 4 item catalog (DONE, 4d96799 + review fixes) · 5 engagement stats (next).
+- Slices: 1 accounts+email (DONE, 349c069) · 2 admin approval/invite (DONE, d900b67 + review fixes 44e58aa) · 3 owner dashboard/reps (DONE, ce397ac + 5a9b255) · 4 item catalog (DONE, 4d96799 + b3d07b9) · 5 engagement stats (built; review pending).
 
 ## Phase 2 gotchas (learned 2026-11-05)
 
@@ -200,6 +200,20 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
   may point at production, so they never auto-build indexes; use `npm run db:sync-indexes`.
 - **Item read functions take the loaded store** (`listStoreItems(store, isOwner)`, `getStoreItem(store, isOwner, id)`):
   pass only `loadMember()`'s result for the current request.
+- **Engagement (slice 5, user decisions 2026-11-05):** views = item PAGE opened (not list impressions), once per viewer
+  per item per day, max 300 counted/viewer/day; viewer = signed-in family id or IP network, stored only as an HMAC
+  (NEXTAUTH_SECRET) inside a self-deleting RateLimit key. Wish-list numbers are COMPUTED from WishListItem (no
+  counters to drift): on lists / fully funded / locked / funding % (rounded down). Totals only: stores never see kids.
+  Season totals only (no daily history yet). Owners and reps both see it. Phase 6 TODO: call `recordItemView(itemId,
+  { familyId?, ip: clientIp(headers) })` from the family item page, after deciding to show the item.
+- **Aggregations aren't cast or sanitised:** pass ObjectIds from the DB (e.g. `item._id`), never URL strings, and
+  never request input. (`sanitizeFilter` only covers find/update filters.)
+- **Meter colour:** `bg-meter` token (theme-aware green, validated for both schemes); track `bg-meter/20`.
+- **Store E2E (engagement):** `scripts/e2e/browser-store-engagement.ts` (14 checks; `E2E_SCREENSHOTS=<dir>` adds light/dark
+  screenshots + 2 checks). Inserts fake WishListItems with known numbers.
+- **Windows: stopping `npm run start` / `npx next start` leaves the real `next start` running** (only the wrapper dies).
+  For test servers run `node node_modules/next/dist/bin/next start --port <p>` from the app folder, and use a fresh
+  port + `NEXTAUTH_URL=http://localhost:<p>` if an old server holds 3001.
 - **New env:** store `CRON_SECRET` (Vercel cron auth); admin `STORE_APP_URL` (links in invite/approval emails;
   defaults to http://localhost:3001 in dev, required in production).
 

@@ -22,9 +22,10 @@
  * Every change is audited.
  */
 import "server-only";
-import { AuditLog, connectDb, Item, Season, Store, trusted, withTransaction, type AuditAction, type DbSession } from "@repo/db";
+import { AuditLog, Item, Store, trusted, withTransaction, type AuditAction, type DbSession } from "@repo/db";
 import { STORE_ITEM_LIMIT } from "@repo/lib/limits";
-import { getSeasonYear, isStoreItemWindowOpen } from "@repo/lib/season";
+import { getSeasonYear } from "@repo/lib/season";
+import { getSeasonState } from "./season.ts";
 import { isStoreEditable, wholesaleCents } from "@repo/lib/store";
 import { hitRateLimit } from "@repo/auth/rate-limit";
 import { deletePublicImage, ImageUploadError, uploadPublicImage, type ImageUploadErrorCode } from "@repo/storage/images";
@@ -43,14 +44,10 @@ export type MemberStore = NonNullable<Awaited<ReturnType<typeof memberStore>>>;
 /** `status` filter for listed items. A function: each query gets its own trusted() object. */
 const NOT_ARCHIVED = () => trusted({ $ne: "archived" as const });
 
-/** Is the store item window open now? Season doc override first, then the default calendar. */
+/** Is the store item window open now? (Admin switch on /season first, then Jan 1–Mar 31.) */
 export async function storeItemWindow(now = new Date()): Promise<{ open: boolean; seasonYear: number }> {
-  await connectDb();
-  const seasonYear = getSeasonYear(now);
-  const season = await Season.findOne({ year: seasonYear }).select("storeWindow").lean();
-  const override = season?.storeWindow;
-  const open = override === "open" ? true : override === "closed" ? false : isStoreItemWindowOpen(now);
-  return { open, seasonYear };
+  const s = await getSeasonState(now);
+  return { open: s.storeWindowOpen, seasonYear: s.year };
 }
 
 /** Shared gate for item changes. Membership and the window are looked up in parallel. */

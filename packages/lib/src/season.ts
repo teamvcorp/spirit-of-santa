@@ -88,3 +88,122 @@ export function isStoreItemWindowOpen(at: Date = new Date()): boolean {
 export function getSeasonYear(at: Date = new Date()): number {
   return calendarDateIn(at).year;
 }
+
+// ── Admin overrides (Phase 3 slice 2) ──────────────────────────────────────────────────
+/*
+ * The admin app can change a season's open / freeze / close DATES (only before that season
+ * opens: user decision 2026-11-05), switch the store item window, and force the freeze.
+ * Dates are stored as calendar days "YYYY-MM-DD" in SEASON_TIME_ZONE (not timestamps), exactly
+ * like the defaults above: "Dec 1" means midnight Chicago time, no daylight-saving maths.
+ * resolveSeason() is THE rule book; servers load the Season document and pass it in
+ * (packages/stores/src/season.ts → getSeasonState()).
+ */
+
+export type StoreWindowMode = "auto" | "open" | "closed";
+export type SeasonOverrides = {
+  openDate?: string | null;
+  freezeDate?: string | null;
+  closeDate?: string | null;
+  forceFrozen?: boolean | null;
+  storeWindow?: StoreWindowMode | null;
+};
+
+export type SeasonState = {
+  year: number;
+  phase: SeasonPhase;
+  /** "forced" = the admin force-freeze switch made it frozen. */
+  phaseSource: "calendar" | "custom" | "forced";
+  /** Effective dates (custom or default), "YYYY-MM-DD". */
+  dates: { open: string; freeze: string; close: string };
+  /** True once the season has opened: dates can't change any more. */
+  datesLocked: boolean;
+  forceFrozen: boolean;
+  storeWindowOpen: boolean;
+  storeWindowMode: StoreWindowMode;
+};
+
+const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
+const pad = (n: number) => String(n).padStart(2, "0");
+/** "YYYY-MM-DD" for a calendar date. */
+export const isoDay = (d: CalendarDate) => `${d.year}-${pad(d.month)}-${pad(d.day)}`;
+
+/** Parse "YYYY-MM-DD" (must be a real day: no Feb 30). null if not. */
+export function parseIsoDay(s: string): CalendarDate | null {
+  const m = ISO_DAY.exec(s);
+  if (!m) return null;
+  const [year, month, day] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const probe = new Date(Date.UTC(year, month - 1, day));
+  if (probe.getUTCFullYear() !== year || probe.getUTCMonth() !== month - 1 || probe.getUTCDate() !== day) return null;
+  return { year, month, day };
+}
+
+/** The default dates for a season year. */
+export function defaultSeasonDates(year: number) {
+  const c = SEASON_CALENDAR;
+  return {
+    open: isoDay({ year, ...c.open }),
+    freeze: isoDay({ year, ...c.freeze }),
+    close: isoDay({ year, ...c.close }),
+  };
+}
+
+/** Phase, store window and lock state at `at`, with the admin overrides applied. */
+export function resolveSeason(at: Date = new Date(), o: SeasonOverrides = {}): SeasonState {
+  const today = isoDay(calendarDateIn(at)); // "YYYY-MM-DD" strings compare correctly as text
+  const year = getSeasonYear(at);
+  const def = defaultSeasonDates(year);
+  const dates = { open: o.openDate || def.open, freeze: o.freezeDate || def.freeze, close: o.closeDate || def.close };
+  const custom = Boolean(o.openDate || o.freezeDate || o.closeDate);
+  let phase: SeasonPhase = today >= dates.close ? "closed" : today >= dates.freeze ? "frozen" : today >= dates.open ? "open" : "offseason";
+  let phaseSource: SeasonState["phaseSource"] = custom ? "custom" : "calendar";
+  const forceFrozen = o.forceFrozen === true;
+  // Force-freeze only changes an OPEN season (before it opens there's nothing to freeze; after
+  // the freeze date it's frozen or closed anyway).
+  if (forceFrozen && phase === "open") {
+    phase = "frozen";
+    phaseSource = "forced";
+  }
+  const mode: StoreWindowMode = o.storeWindow === "open" || o.storeWindow === "closed" ? o.storeWindow : "auto";
+  return {
+    year,
+    phase,
+    phaseSource,
+    dates,
+    datesLocked: today >= dates.open,
+    forceFrozen,
+    storeWindowOpen: mode === "open" ? true : mode === "closed" ? false : isStoreItemWindowOpen(at),
+    storeWindowMode: mode,
+  };
+}
+
+export type SeasonDatesError = "invalidDate" | "wrongYear" | "order" | "openInPast" | "locked";
+
+/**
+ * Check an admin's new dates for season `year` (blank = default). Rules:
+ *  - real days inside that year; open < freeze < close;
+ *  - the season mustn't have opened yet (dates lock once open), and the new open date must be
+ *    after today (no opening a season retroactively by typing a past date).
+ */
+export function validateSeasonDates(
+  year: number,
+  input: { openDate?: string | null; freezeDate?: string | null; closeDate?: string | null },
+  current: SeasonOverrides,
+  at: Date = new Date(),
+): SeasonDatesError | null {
+  const def = defaultSeasonDates(year);
+  const today = isoDay(calendarDateIn(at));
+  // Locked if the CURRENTLY effective open date has been reached.
+  if (today >= (current.openDate || def.open)) return "locked";
+  for (const v of [input.openDate, input.freezeDate, input.closeDate]) {
+    if (!v) continue;
+    const d = parseIsoDay(v);
+    if (!d) return "invalidDate";
+    if (d.year !== year) return "wrongYear";
+  }
+  const open = input.openDate || def.open;
+  const freeze = input.freezeDate || def.freeze;
+  const close = input.closeDate || def.close;
+  if (!(open < freeze && freeze < close)) return "order";
+  if (open <= today) return "openInPast";
+  return null;
+}

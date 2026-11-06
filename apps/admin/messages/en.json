@@ -137,5 +137,66 @@
     "signInAgainNeeded": "Two-step sign-in is on. Sign in again with your password and a code from the app.",
     "alreadyOn": "Two-step sign-in is already on for your account.",
     "backHome": "Back to the dashboard"
+  },
+  "Season": {
+    "title": "Season settings",
+    "intro": "Season dates, when stores can edit their item lists, and the emergency freeze. Every change is recorded in the audit log.",
+    "loading": "Loading…",
+    "saved": "Saved.",
+    "nowTitle": "Season {year} right now",
+    "phaseLabel": "Status",
+    "phase": {
+      "offseason": "Not open yet (off-season)",
+      "open": "Open: families earn and build lists",
+      "frozen": "Frozen: wish lists can't change",
+      "closed": "Closed"
+    },
+    "source": {
+      "calendar": "standard calendar",
+      "custom": "custom dates",
+      "forced": "frozen by an admin"
+    },
+    "datesLabel": "Dates",
+    "datesLine": "Opens {open} · freezes {freeze} · closes {close}",
+    "windowLabel": "Store item lists",
+    "windowOpen": "Open for changes",
+    "windowClosed": "Closed for changes",
+    "windowTitle": "Store item window",
+    "windowIntro": "When stores can add, edit and price items. Stock counts can always be updated.",
+    "window": {
+      "auto": "Automatic",
+      "autoHelp": "Open January 1 – March 31, closed the rest of the year.",
+      "open": "Open now",
+      "openHelp": "Stores can change their lists until you switch this back (e.g. to onboard stores early).",
+      "closed": "Closed now",
+      "closedHelp": "No list changes, even during January – March."
+    },
+    "saveWindow": "Save item window",
+    "freezeTitle": "Emergency freeze",
+    "freezeIntro": "Freeze every wish list right now, before the scheduled freeze date. Only matters while the season is open.",
+    "freezeOnIntro": "Wish lists are frozen by an admin. Unfreeze to go back to the normal dates.",
+    "freezeConfirm": "I understand: no family can add or remove wish-list items until this is turned off.",
+    "freezeNow": "Freeze wish lists now",
+    "unfreeze": "Unfreeze",
+    "datesTitle": "Dates for season {year}",
+    "datesIntro": "Leave a date blank to use the standard one. Dates can't change once the season has opened.",
+    "datesLocked": "This season has opened, so its dates are locked. Use the emergency freeze if you need to stop changes.",
+    "dates": {
+      "openDate": "Opens",
+      "freezeDate": "Wish lists freeze",
+      "closeDate": "Closes",
+      "defaultHint": "Standard: {date}",
+      "blankHelp": "Dates start at midnight, Central Time.",
+      "save": "Save dates for {year}"
+    },
+    "errors": {
+      "invalidDate": "One of the dates isn't a real date.",
+      "wrongYear": "Every date must be in that season's year.",
+      "order": "Dates must be in order: opens, then freezes, then closes.",
+      "openInPast": "The opening date must be after today.",
+      "locked": "This season has opened, so its dates are locked.",
+      "changed": "Someone else changed these dates meanwhile. Reload the page and try again.",
+      "confirmRequired": "Tick the box to confirm the freeze."
+    }
   }
 }

@@ -137,5 +137,66 @@
     "signInAgainNeeded": "El inicio de sesión en dos pasos está activado. Inicia sesión de nuevo con tu contraseña y un código de la app.",
     "alreadyOn": "El inicio de sesión en dos pasos ya está activado en tu cuenta.",
     "backHome": "Volver al panel"
+  },
+  "Season": {
+    "title": "Configuración de la temporada",
+    "intro": "Fechas de la temporada, cuándo las tiendas pueden editar sus listas de artículos y la congelación de emergencia. Cada cambio queda en el registro de auditoría.",
+    "loading": "Cargando…",
+    "saved": "Guardado.",
+    "nowTitle": "Temporada {year} ahora",
+    "phaseLabel": "Estado",
+    "phase": {
+      "offseason": "Aún no abierta (fuera de temporada)",
+      "open": "Abierta: las familias ganan puntos y arman listas",
+      "frozen": "Congelada: las listas de deseos no pueden cambiar",
+      "closed": "Cerrada"
+    },
+    "source": {
+      "calendar": "calendario estándar",
+      "custom": "fechas personalizadas",
+      "forced": "congelada por un administrador"
+    },
+    "datesLabel": "Fechas",
+    "datesLine": "Abre el {open} · se congela el {freeze} · cierra el {close}",
+    "windowLabel": "Listas de artículos de las tiendas",
+    "windowOpen": "Abiertas a cambios",
+    "windowClosed": "Cerradas a cambios",
+    "windowTitle": "Periodo de artículos de las tiendas",
+    "windowIntro": "Cuándo las tiendas pueden agregar, editar y poner precio a los artículos. El inventario siempre se puede actualizar.",
+    "window": {
+      "auto": "Automático",
+      "autoHelp": "Abierto del 1 de enero al 31 de marzo, cerrado el resto del año.",
+      "open": "Abierto ahora",
+      "openHelp": "Las tiendas pueden cambiar sus listas hasta que lo cambies de nuevo (p. ej., para incorporar tiendas antes).",
+      "closed": "Cerrado ahora",
+      "closedHelp": "Sin cambios en las listas, incluso de enero a marzo."
+    },
+    "saveWindow": "Guardar periodo de artículos",
+    "freezeTitle": "Congelación de emergencia",
+    "freezeIntro": "Congela todas las listas de deseos ahora, antes de la fecha programada. Solo importa mientras la temporada está abierta.",
+    "freezeOnIntro": "Un administrador congeló las listas de deseos. Descongela para volver a las fechas normales.",
+    "freezeConfirm": "Entiendo: ninguna familia podrá agregar ni quitar artículos de su lista hasta que se desactive.",
+    "freezeNow": "Congelar las listas ahora",
+    "unfreeze": "Descongelar",
+    "datesTitle": "Fechas de la temporada {year}",
+    "datesIntro": "Deja una fecha en blanco para usar la estándar. Las fechas no se pueden cambiar una vez abierta la temporada.",
+    "datesLocked": "Esta temporada ya abrió, así que sus fechas están bloqueadas. Usa la congelación de emergencia si necesitas detener cambios.",
+    "dates": {
+      "openDate": "Abre",
+      "freezeDate": "Las listas se congelan",
+      "closeDate": "Cierra",
+      "defaultHint": "Estándar: {date}",
+      "blankHelp": "Las fechas empiezan a medianoche, hora del Centro.",
+      "save": "Guardar fechas de {year}"
+    },
+    "errors": {
+      "invalidDate": "Una de las fechas no es válida.",
+      "wrongYear": "Todas las fechas deben estar en el año de esa temporada.",
+      "order": "Las fechas deben ir en orden: abre, luego se congela, luego cierra.",
+      "openInPast": "La fecha de apertura debe ser posterior a hoy.",
+      "locked": "Esta temporada ya abrió, así que sus fechas están bloqueadas.",
+      "changed": "Otra persona cambió estas fechas mientras tanto. Recarga la página e inténtalo de nuevo.",
+      "confirmRequired": "Marca la casilla para confirmar la congelación."
+    }
   }
 }

@@ -8,6 +8,7 @@
     "./owner": "./src/owner.ts",
     "./items": "./src/items.ts",
     "./engagement": "./src/engagement.ts",
+    "./season": "./src/season.ts",
     "./engagement-math": "./src/engagement-math.ts",
     "./queries": "./src/queries.ts",
     "./schemas": "./src/schemas.ts",

@@ -79,10 +79,12 @@ Lost phone and recovery codes? Re-run `npm run admin:create` for that email: it 
 and two-step sign-in. (The password is hashed with argon2id and
 never printed; re-running resets it and signs out old sessions.)
 
-## 6. Store item window
+## 6. Store item window and season dates
 
-Stores can add/price items Jan 1 – Mar 31 automatically. To open it earlier for onboarding,
-set the season's `storeWindow` to `"open"` (admin control arrives with Phase 3 season settings).
+Admin app → **Season** (`/season`). Stores can add/price items Jan 1 – Mar 31 automatically; to onboard
+stores earlier, set the store item window to **Open now** (and back to **Automatic** later). Season dates
+(open / freeze / close) can be changed there until that season opens; after that they lock and only the
+**emergency freeze** switch is available. Every change is in the audit log.
 
 ## 7. Before announcing
 

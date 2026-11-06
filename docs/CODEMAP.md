@@ -272,8 +272,9 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
 - Kids: first name + **birth year** only (replace Kid.birthDate). Public pages show only a parent-chosen **display name**
   (default first initial) + family alias if on: never full name, age or town.
 - COPPA consent: verified email + consent checkbox (policy version) + **$5 registration fee per kid by card** (Stripe) as
-  card-based verification; a kid stays "awaiting registration" (nothing public) until paid. Ask the user: fee → points
-  or revenue? hardship option? Lawyer to confirm before launch.
+  card-based verification; a kid stays "awaiting registration" (nothing public) until paid. The $5 is PLATFORM
+  REVENUE (kid starts at 0 points). Promo code `1kidpayall`: only the FIRST kid is paid, additional kids free (keep the code
+  configurable, not in source; audit uses). Lawyer to confirm before launch.
 - **Slice 1 parent sign-up (DONE, 0a029c3 + review fixes):** both sign-ups go through ONE `selfSignUp()` routine (limits,
   honeypot, hash-every-path, existing-email handling: pending → fresh link, active → "account exists", other app → nothing).
   Parents get the `verifyParentEmail` template. `registerParent` (same protections as store sign-up) creates a

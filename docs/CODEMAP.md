@@ -282,6 +282,14 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   `consent.emailVerifiedAt`. Family app `/register`, `/verify`, `/verify/resend`, DRAFT `/privacy` (needs lawyer review;
   bump `PARENT_CONSENT_VERSION` in `@repo/lib/family` on any wording change). Abandoned parent sign-ups are purged by the
   STORE app daily cron (shared DB). `resendVerificationEmail(app, ...)` now takes the app. E2E `browser-family-signup.ts` (13).
+- **Slice 2a kids + PIN (built; review pending):** new package `@repo/families` (`kids.ts` service scoped to the parent's own
+  family, re-checked in the DB; `schemas.ts`). Kid = firstName (private) + birthYear + displayName (public, default initial)
+  + `registration.status` awaiting/registered. Max 10 kids (family lock). Delete = real delete (COPPA). Audit rows never hold
+  a child's name. Parent area `/parent` behind PIN (`apps/family/lib/parent.ts` guards; actions re-check the unlock);
+  setting/changing the PIN needs the ACCOUNT PASSWORD (`setParentPinWithPassword`). Home `/` = kid selector.
+  E2E `browser-family-kids.ts` (17).
+- **Server Actions can't read the locale** (`getLocale()` / next/root-params throw there): forms send a hidden `locale`
+  field and actions redirect with `localizePath()`.
 - Order: 1 parent sign-up → 2 kids + PIN + dashboard shell (+ $5 step) → 3 deed + QR → 4 QR landing/thank-you →
   5 parent controls → 6 donation QR. Pay now/later (Stripe Elements, Twilio) = Phase 5.
 

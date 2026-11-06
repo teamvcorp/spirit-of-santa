@@ -5,7 +5,14 @@
   },
   "HomePage": {
     "title": "Welcome to Spirit O Santa",
-    "intro": "Good deeds earn points. Points make wishes come true."
+    "intro": "Good deeds earn points. Points make wishes come true.",
+    "signUp": "Create a family account",
+    "signIn": "Sign in",
+    "whoIsHere": "Who's doing good deeds today?",
+    "noKidsYet": "No children added yet. A parent can add them in the parent area.",
+    "points": "{points} points",
+    "awaiting": "Awaiting registration",
+    "parentArea": "Parent area (PIN)"
   },
   "SignInPage": {
     "intro": "For parents. Kids don’t need an account.",
@@ -65,6 +72,54 @@
         "title": "Contact",
         "body": "Questions or requests: contact details will be added here before launch."
       }
+    }
+  },
+  "Parent": {
+    "title": "Parent area",
+    "setupTitle": "Set your parent PIN",
+    "unlockTitle": "Enter your parent PIN",
+    "addTitle": "Add a child",
+    "editTitle": "Edit child",
+    "setupIntro": "The PIN keeps the parent area safe when your kids use this device. Choosing or changing it needs your account password.",
+    "unlockIntro": "Kids can use this device; the parent area needs your PIN.",
+    "password": "Your account password",
+    "passwordHint": "So only you can set the PIN.",
+    "newPin": "New PIN (4–6 digits)",
+    "pinHint": "Not your bank PIN or a birthday.",
+    "confirmPin": "Type the PIN again",
+    "savePin": "Save PIN",
+    "pin": "PIN",
+    "unlock": "Unlock",
+    "changePin": "Change PIN",
+    "lock": "Lock (back to kids)",
+    "back": "Parent area",
+    "kidsTitle": "Your children",
+    "addKid": "Add a child",
+    "saveKid": "Save",
+    "noKids": "No children yet.",
+    "kidLine": "Shown publicly as \"{displayName}\" · born {year}",
+    "registered": "Registered",
+    "awaiting": "Awaiting registration",
+    "awaitingNote": "Each child is registered with a $5 card payment that confirms your consent (coming next). Until then nothing about them is shown on any public page.",
+    "firstName": "First name",
+    "firstNameHint": "Private: only your family sees it.",
+    "birthYear": "Birth year",
+    "birthYearHint": "Only the year, never the full birthday.",
+    "displayName": "Public display name",
+    "displayNameHint": "The only name people see when they scan a QR code. Leave blank to use the first initial (like \"M.\").",
+    "deleteKid": "Delete child",
+    "deleteConfirm": "Delete {name} and everything about them. This can't be undone.",
+    "errors": {
+      "pinMismatch": "The two PINs don't match.",
+      "invalidYear": "Children must be under 18: check the year.",
+      "wrongPassword": "That password isn't right.",
+      "rateLimited": "Too many tries. Wait 15 minutes, then try again.",
+      "invalid": "Use 4–6 digits for the PIN.",
+      "wrongPin": "That PIN didn't work. After 5 wrong tries the parent area is locked for 15 minutes.",
+      "locked": "The parent area locked itself (15 minutes). Enter your PIN again.",
+      "notFound": "That child wasn't found. Reload the page.",
+      "limitReached": "A family can have up to 10 children here.",
+      "confirmRequired": "Tick the box to confirm."
     }
   }
 }

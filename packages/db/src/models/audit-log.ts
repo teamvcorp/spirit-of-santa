@@ -54,6 +54,10 @@ export const AUDIT_ACTIONS = [
   "deed_type.deactivate",
   "deed_type.reorder",
   "deed_type.seed",
+  "kid.add",
+  "kid.update",
+  "kid.delete",
+  "family.pin_set",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 
@@ -61,7 +65,7 @@ const auditLogSchema = new Schema(
   {
     actorUserId: objectId("User"),
     action: { type: String, enum: AUDIT_ACTIONS, required: true },
-    targetType: { type: String, enum: ["store", "user", "item", "season", "deed_type"], required: true },
+    targetType: { type: String, enum: ["store", "user", "item", "season", "deed_type", "kid", "family"], required: true },
     targetId: { type: Schema.Types.ObjectId, required: true },
     /** Small JSON of what changed, e.g. { from: "pending", to: "approved", discountBps: 2000 }. */
     details: { type: Schema.Types.Mixed },

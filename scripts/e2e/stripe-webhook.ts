@@ -34,7 +34,7 @@ if (!mongoose.connection.name.endsWith("_dev")) throw new Error("refusing: not a
 
 // ── fixtures ────────────────────────────────────────────────────────────────────────
 const family = await Family.create({ ownerUserId: new mongoose.Types.ObjectId(), familyName: "E2E Webhook Family" });
-const kid = await Kid.create({ familyId: family._id, firstName: "E2E", birthDate: new Date("2018-06-01") });
+const kid = await Kid.create({ familyId: family._id, firstName: "E2E", birthYear: 2018, displayName: "E." });
 const deed = await Deed.create({
   kidId: kid._id, familyId: family._id, seasonYear: new Date().getFullYear(),
   customDescription: "E2E deed", qrTokenHash: randomBytes(32).toString("hex"),

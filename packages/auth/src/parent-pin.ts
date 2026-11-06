@@ -19,7 +19,8 @@
  */
 import "server-only";
 import { cookies } from "next/headers";
-import { connectDb, Family } from "@repo/db";
+import { AuditLog, connectDb, Family, User, withTransaction } from "@repo/db";
+import { hitRateLimit } from "./rate-limit.ts";
 import { baseCookieOptions, cookieName } from "./cookies.ts";
 import { hashSecret, verifySecret } from "./password.ts";
 import { pinSchema } from "./schemas.ts";
@@ -59,6 +60,45 @@ export async function setParentPin(
       $unset: { pinLockedUntil: 1 },
     },
   );
+}
+
+/** Does this family have a PIN yet? (First visit to the parent area sets one.) */
+export async function hasParentPin(user: ParentUser): Promise<boolean> {
+  if (!user.familyId) return false;
+  await connectDb();
+  const fam = await Family.findOne({ _id: user.familyId, ownerUserId: user.id }).select("+parentPinHash").lean();
+  return Boolean(fam?.parentPinHash);
+}
+
+export type SetPinResult = { ok: true } | { ok: false; error: "wrongPassword" | "rateLimited" | "invalid" };
+
+/**
+ * Set or change the parent PIN. Requires the ACCOUNT PASSWORD every time: a child using the
+ * signed-in device could otherwise set (or reset) the PIN before the parent does. 5 tries per
+ * 15 min. On success the dashboard is unlocked right away. Audited (no PIN in the log).
+ */
+export async function setParentPinWithPassword(user: ParentUser, password: unknown, pin: unknown): Promise<SetPinResult> {
+  const parsedPin = pinSchema.safeParse(pin);
+  if (!parsedPin.success || typeof password !== "string" || !password || password.length > 256 || !user.familyId) return { ok: false, error: "invalid" };
+  await connectDb();
+  if (!(await hitRateLimit(`pin-set:${user.id}`, 5, 900))) return { ok: false, error: "rateLimited" };
+  const account = await User.findOne({ _id: user.id, role: "parent", status: "active" }).select("+passwordHash").lean();
+  if (!account || !(await verifySecret(password, account.passwordHash))) return { ok: false, error: "wrongPassword" };
+  const hash = await hashSecret(parsedPin.data);
+  await withTransaction(async (session) => {
+    await Family.updateOne(
+      { _id: user.familyId, ownerUserId: user.id },
+      { $set: { parentPinHash: hash, pinFailedCount: 0 }, $unset: { pinLockedUntil: 1 } },
+      { session },
+    );
+    await AuditLog.create([{ actorUserId: user.id, action: "family.pin_set", targetType: "family", targetId: user.familyId, details: {} }], { session });
+  });
+  (await cookies()).set(UNLOCK_COOKIE(), signUnlockToken({ familyId: user.familyId, userId: user.id }, requireSecret()), {
+    ...baseCookieOptions(),
+    sameSite: "strict",
+    maxAge: PIN_UNLOCK_SECONDS,
+  });
+  return { ok: true };
 }
 
 /** Verify the PIN; on success set the unlock cookie. Returns false on any failure. */

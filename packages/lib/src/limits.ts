@@ -7,6 +7,11 @@
 /** Max items a store may list per season. */
 export const STORE_ITEM_LIMIT = 50;
 
+/** Kids per family (a sanity cap: also bounds the $5 registrations one card pays for). */
+export const MAX_KIDS_PER_FAMILY = 10;
+/** Kids are under 18: birth year between (this year - 17) and this year. */
+export const MAX_KID_AGE_YEARS = 17;
+
 /** A fully funded item locks (can't be removed) after this many days on the list. */
 export const ITEM_LOCK_DAYS = 30;
 

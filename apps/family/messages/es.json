@@ -5,7 +5,14 @@
   },
   "HomePage": {
     "title": "Bienvenidos a Spirit O Santa",
-    "intro": "Las buenas acciones ganan puntos. Los puntos hacen realidad los deseos."
+    "intro": "Las buenas acciones ganan puntos. Los puntos hacen realidad los deseos.",
+    "signUp": "Crear una cuenta familiar",
+    "signIn": "Iniciar sesión",
+    "whoIsHere": "¿Quién hace buenas acciones hoy?",
+    "noKidsYet": "Aún no hay niños. Un padre o madre puede agregarlos en el área de padres.",
+    "points": "{points} puntos",
+    "awaiting": "Registro pendiente",
+    "parentArea": "Área de padres (PIN)"
   },
   "SignInPage": {
     "intro": "Para padres. Los niños no necesitan una cuenta.",
@@ -65,6 +72,54 @@
         "title": "Contacto",
         "body": "Preguntas o solicitudes: los datos de contacto se agregarán aquí antes del lanzamiento."
       }
+    }
+  },
+  "Parent": {
+    "title": "Área de padres",
+    "setupTitle": "Elige tu PIN de padres",
+    "unlockTitle": "Escribe tu PIN de padres",
+    "addTitle": "Agregar un niño",
+    "editTitle": "Editar niño",
+    "setupIntro": "El PIN protege el área de padres cuando tus hijos usan este dispositivo. Elegirlo o cambiarlo requiere la contraseña de tu cuenta.",
+    "unlockIntro": "Los niños pueden usar este dispositivo; el área de padres necesita tu PIN.",
+    "password": "La contraseña de tu cuenta",
+    "passwordHint": "Para que solo tú puedas elegir el PIN.",
+    "newPin": "PIN nuevo (4–6 dígitos)",
+    "pinHint": "No uses el PIN del banco ni una fecha de cumpleaños.",
+    "confirmPin": "Escribe el PIN otra vez",
+    "savePin": "Guardar PIN",
+    "pin": "PIN",
+    "unlock": "Desbloquear",
+    "changePin": "Cambiar PIN",
+    "lock": "Bloquear (volver a los niños)",
+    "back": "Área de padres",
+    "kidsTitle": "Tus hijos",
+    "addKid": "Agregar un niño",
+    "saveKid": "Guardar",
+    "noKids": "Aún no hay niños.",
+    "kidLine": "Se muestra públicamente como \"{displayName}\" · nació en {year}",
+    "registered": "Registrado",
+    "awaiting": "Registro pendiente",
+    "awaitingNote": "Cada niño se registra con un pago de $5 con tarjeta que confirma tu consentimiento (próximamente). Mientras tanto, nada sobre ellos aparece en ninguna página pública.",
+    "firstName": "Nombre",
+    "firstNameHint": "Privado: solo tu familia lo ve.",
+    "birthYear": "Año de nacimiento",
+    "birthYearHint": "Solo el año, nunca la fecha completa.",
+    "displayName": "Nombre público",
+    "displayNameHint": "El único nombre que ven las personas al escanear un código QR. Déjalo en blanco para usar la inicial (como \"M.\").",
+    "deleteKid": "Eliminar niño",
+    "deleteConfirm": "Eliminar a {name} y todo lo relacionado. No se puede deshacer.",
+    "errors": {
+      "pinMismatch": "Los dos PIN no coinciden.",
+      "invalidYear": "Los niños deben ser menores de 18 años: revisa el año.",
+      "wrongPassword": "Esa contraseña no es correcta.",
+      "rateLimited": "Demasiados intentos. Espera 15 minutos e inténtalo de nuevo.",
+      "invalid": "Usa de 4 a 6 dígitos para el PIN.",
+      "wrongPin": "Ese PIN no funcionó. Después de 5 intentos fallidos, el área de padres se bloquea 15 minutos.",
+      "locked": "El área de padres se bloqueó sola (15 minutos). Escribe tu PIN otra vez.",
+      "notFound": "No se encontró a ese niño. Recarga la página.",
+      "limitReached": "Una familia puede tener hasta 10 niños aquí.",
+      "confirmRequired": "Marca la casilla para confirmar."
     }
   }
 }

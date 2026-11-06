@@ -1,0 +1,125 @@
+/**
+ * Kids of a family (parent area of the family app). SERVER-ONLY.
+ *
+ * Callers MUST pass the signed-in parent (requireRole "parent") AND check the PIN unlock
+ * (isParentUnlocked) before any change: kids use the same signed-in device. Every query is
+ * scoped to the parent's own family (ownerUserId re-checked in the DB), so a kid id from
+ * another family simply isn't found.
+ * Audit rows hold ids only, never a child's name (COPPA: no extra copies of personal data).
+ * Deleting a kid really deletes the record (COPPA right to deletion). TODO(Phase 5/8): when
+ * deeds/ledger rows exist, delete or anonymise them in the same transaction.
+ */
+import "server-only";
+import { AuditLog, connectDb, ensureLock, Family, Kid, takeLock, withTransaction } from "@repo/db";
+import { normalizeObjectId } from "@repo/lib/ids";
+import { MAX_KIDS_PER_FAMILY } from "@repo/lib/limits";
+import type { KidInput } from "./schemas.ts";
+
+export type Parent = { id: string; familyId?: string };
+
+export type KidRow = {
+  id: string;
+  firstName: string;
+  birthYear: number;
+  displayName: string;
+  registered: boolean;
+  availableCentipoints: number;
+  itemCap: number;
+};
+
+type Raw = {
+  _id: unknown;
+  firstName: string;
+  birthYear: number;
+  displayName: string;
+  registration?: { status?: string | null } | null;
+  availableCentipoints?: number | null;
+  itemCap?: number | null;
+};
+const toRow = (k: Raw): KidRow => ({
+  id: String(k._id),
+  firstName: k.firstName,
+  birthYear: k.birthYear,
+  displayName: k.displayName,
+  registered: k.registration?.status === "registered",
+  availableCentipoints: k.availableCentipoints ?? 0,
+  itemCap: k.itemCap ?? 5,
+});
+
+/** The parent's family id, re-checked against the DB (the session's familyId alone isn't trusted). */
+async function ownFamilyId(parent: Parent): Promise<string | null> {
+  const fid = normalizeObjectId(parent.familyId);
+  if (!fid) return null;
+  await connectDb();
+  const fam = await Family.exists({ _id: fid, ownerUserId: parent.id });
+  return fam ? fid : null;
+}
+
+/** Oldest first (stable order on the kid selector). Archived kids are hidden. */
+export async function listKids(parent: Parent): Promise<KidRow[]> {
+  const fid = await ownFamilyId(parent);
+  if (!fid) return [];
+  const kids = await Kid.find({ familyId: fid, archivedAt: null }).sort({ createdAt: 1 }).limit(MAX_KIDS_PER_FAMILY).lean<Raw[]>();
+  return kids.map(toRow);
+}
+
+export async function getKid(parent: Parent, rawId: string): Promise<KidRow | null> {
+  const id = normalizeObjectId(rawId);
+  const fid = await ownFamilyId(parent);
+  if (!id || !fid) return null;
+  const k = await Kid.findOne({ _id: id, familyId: fid, archivedAt: null }).lean<Raw>();
+  return k ? toRow(k) : null;
+}
+
+export type KidResult = { ok: true; id?: string } | { ok: false; error: "notFound" | "limitReached" };
+
+async function audit(parentId: string, action: "kid.add" | "kid.update" | "kid.delete", kidId: unknown, session: Parameters<Parameters<typeof withTransaction>[0]>[0]) {
+  await AuditLog.create([{ actorUserId: parentId, action, targetType: "kid", targetId: String(kidId), details: {} }], { session });
+}
+
+/**
+ * Add a kid (starts "awaiting registration"). The per-family limit is checked under a family
+ * lock, so two adds at once can't pass it (same pattern as the store item limit).
+ */
+export async function addKid(parent: Parent, input: KidInput): Promise<KidResult> {
+  const fid = await ownFamilyId(parent);
+  if (!fid) return { ok: false, error: "notFound" };
+  const lock = `family-kids:${fid}`;
+  await ensureLock(lock);
+  return withTransaction(async (session) => {
+    await takeLock(lock, session);
+    if ((await Kid.countDocuments({ familyId: fid, archivedAt: null }).session(session)) >= MAX_KIDS_PER_FAMILY) return { ok: false, error: "limitReached" } as const;
+    const [kid] = await Kid.create([{ familyId: fid, firstName: input.firstName, birthYear: input.birthYear, displayName: input.displayName }], { session });
+    await audit(parent.id, "kid.add", kid!._id, session);
+    return { ok: true, id: String(kid!._id) } as const;
+  });
+}
+
+export async function updateKid(parent: Parent, rawId: string, input: KidInput): Promise<KidResult> {
+  const id = normalizeObjectId(rawId);
+  const fid = await ownFamilyId(parent);
+  if (!id || !fid) return { ok: false, error: "notFound" };
+  return withTransaction(async (session) => {
+    const res = await Kid.updateOne(
+      { _id: id, familyId: fid, archivedAt: null },
+      { $set: { firstName: input.firstName, birthYear: input.birthYear, displayName: input.displayName } },
+      { session, runValidators: true },
+    );
+    if (res.matchedCount !== 1) return { ok: false, error: "notFound" } as const;
+    await audit(parent.id, "kid.update", id, session);
+    return { ok: true, id } as const;
+  });
+}
+
+/** Really delete the kid's record (COPPA deletion right). */
+export async function deleteKid(parent: Parent, rawId: string): Promise<KidResult> {
+  const id = normalizeObjectId(rawId);
+  const fid = await ownFamilyId(parent);
+  if (!id || !fid) return { ok: false, error: "notFound" };
+  return withTransaction(async (session) => {
+    const res = await Kid.deleteOne({ _id: id, familyId: fid }, { session });
+    if (res.deletedCount !== 1) return { ok: false, error: "notFound" } as const;
+    await audit(parent.id, "kid.delete", id, session);
+    return { ok: true } as const;
+  });
+}

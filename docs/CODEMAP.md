@@ -535,7 +535,10 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   (FAMILY_APP_URL, admin + family projects) next to `storeAppOrigin()` in @repo/stores/urls. Family labels: shipped
   = "Being prepared", delivered = "On its way!" (user: family hears only when Spirit O Santa sends it).
   No family delivery address is stored (privacy): admin arranges delivery with the parent by email (open question).
-  E2E `browser-admin-fulfilment.ts` (13).
+  E2E `browser-admin-fulfilment.ts` (16). Review fixes: parent emails batched (bulk lookups), paced (600 ms) with a
+  60 s budget; familyNotifiedAt ONLY when an email really went out; child/family deleted → familyNoticeSkippedAt;
+  inactive parent = failed (retried); cron alerts on failed notices; admin lists show REAL totals (oldest 300 shown,
+  "showing the oldest N of M"); parent-email state emailed/pending/failed(after 14 days: contact them)/none.
 
 ## Open items / TODO
 

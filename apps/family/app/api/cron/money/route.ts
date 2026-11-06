@@ -69,7 +69,8 @@ export async function GET(request: Request): Promise<Response> {
   };
   // A digest that ran but couldn't email some stores also counts as failed (it never throws per store).
   const digestFailed = storeOrders.status === "fulfilled" && storeOrders.value.failed > 0;
-  const failed = digestFailed || [split, seasonEnd, payLater, wishLists, storeOrders, familyNotices, receipts].some((r) => r.status === "rejected");
+  const noticesFailed = familyNotices.status === "fulfilled" && familyNotices.value.failed > 0;
+  const failed = digestFailed || noticesFailed || [split, seasonEnd, payLater, wishLists, storeOrders, familyNotices, receipts].some((r) => r.status === "rejected");
   if (failed) {
     console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, receipts: receipts.status }));
     return Response.json(result, { status: 500, headers: { "Cache-Control": "no-store" } });

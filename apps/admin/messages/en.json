@@ -535,12 +535,17 @@
     "markSent": "Sent to family",
     "deliveredTitle": "Sent to families (last 30 days)",
     "sentOn": "Sent {date}",
-    "emailed": "parent emailed",
-    "emailPending": "parent email pending (retried daily)",
     "errors": {
       "notFound": "That gift wasn't found. Reload the page.",
       "changed": "That gift already moved on (someone else may have done this). Reload the page.",
       "note": "Write what was agreed (3 to 300 characters)."
+    },
+    "capped": "Showing the oldest {shown} of {total}: work through these first.",
+    "notice": {
+      "emailed": "parent emailed",
+      "pending": "parent email pending (retried daily for 14 days)",
+      "failed": "parent email NOT sent: please contact the parent",
+      "none": "no email (child or family deleted)"
     }
   }
 }

@@ -112,6 +112,20 @@ try {
   // 7. Daily retry of a missed parent email.
   const n = await sendFamilyNotices();
   check("daily job emails a parent whose 'on its way' email was missed", n.sent >= 1 && !!(await get(retry))?.familyNotifiedAt);
+  // 8. Parent account not active → NOT marked emailed (retried); child deleted → "no email", never retried.
+  await User.updateOne({ _id: parent._id }, { $set: { status: "suspended" } });
+  const r1 = await wish({ status: "delivered", shippedAt: new Date(), receivedAt: new Date(), deliveredAt: new Date() });
+  all.push(r1);
+  const n2 = await sendFamilyNotices();
+  check("inactive parent: not marked emailed, counted failed (cron alerts)", !(await get(r1))?.familyNotifiedAt && n2.failed >= 1);
+  await User.updateOne({ _id: parent._id }, { $set: { status: "active" } });
+  await WishListItem.collection.updateOne({ _id: new mongoose.Types.ObjectId(r1) }, { $set: { kidId: oid() } }); // its child is gone
+  const n3 = await sendFamilyNotices();
+  const g = await get(r1);
+  check("child deleted: no email, marked skipped (not 'emailed'), never retried", !g?.familyNotifiedAt && !!g?.familyNoticeSkippedAt && n3.none >= 1);
+  await page.reload();
+  await section("delivered").waitFor({ timeout: 60_000 });
+  check("delivered list shows each parent-email state", (await row("delivered", received).locator("[data-notice]").getAttribute("data-notice")) === "emailed" && (await row("delivered", r1).locator("[data-notice]").getAttribute("data-notice")) === "none");
 
   check("no browser errors", errors.length === 0);
   if (errors.length) console.log(errors);

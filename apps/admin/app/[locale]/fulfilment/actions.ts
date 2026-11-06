@@ -11,7 +11,7 @@ import { OBJECT_ID_RE } from "@repo/lib/ids";
 import { arrangeSubstitute, markReceived, markSentToFamily } from "@repo/wishlists/fulfilment";
 import { authOptions } from "@/auth";
 
-export type StepState = { status: "idle" | "done" | "error"; error?: "notFound" | "changed" | "note"; emailed?: boolean; nonce?: string };
+export type StepState = { status: "idle" | "done" | "error"; error?: "notFound" | "changed" | "note"; nonce?: string };
 
 const idSchema = z.string().regex(OBJECT_ID_RE);
 // Normalise Windows line breaks first so the length check matches what's stored.
@@ -47,5 +47,5 @@ export async function sentAction(_prev: StepState, fd: FormData): Promise<StepSt
   const r = await markSentToFamily(admin.id, id.data);
   if (!r.ok) return fail(r.error);
   refresh();
-  return { status: "done", emailed: r.emailed, nonce: randomUUID() };
+  return { status: "done", nonce: randomUUID() };
 }

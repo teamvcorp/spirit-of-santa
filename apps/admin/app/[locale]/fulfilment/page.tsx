@@ -33,16 +33,18 @@ async function Content() {
   );
   const who = (r: AdminFulfilmentRow) => <p className="text-sm">{t("forWhom", { kid: r.kidName ?? "", family: r.familyName ?? "", email: r.parentEmail ?? "" })}</p>;
   const empty = <p className="text-foreground/70">{t("none")}</p>;
+  const capped = (total: number) => (total > f.limit ? <p className="mb-3 text-sm font-semibold">{t("capped", { shown: f.limit, total })}</p> : null);
   return (
     <div className="flex flex-col gap-6">
       <Card data-testid="substitutes">
-        <h2 className="mb-1 text-lg font-semibold">{t("subTitle", { count: f.substitutes.length })}</h2>
+        <h2 className="mb-1 text-lg font-semibold">{t("subTitle", { count: f.substitutes.total })}</h2>
         <p className="mb-3 text-sm text-foreground/70">{t("subIntro")}</p>
-        {f.substitutes.length === 0
+        {capped(f.substitutes.total)}
+        {f.substitutes.rows.length === 0
           ? empty
           : (
             <ul className="flex flex-col divide-y divide-foreground/10">
-              {f.substitutes.map((r) => (
+              {f.substitutes.rows.map((r) => (
                 <li key={r.id} className="flex flex-col gap-2 py-3" data-ref={r.ref}>
                   {head(r)}
                   <p className="text-sm text-foreground/70">{t("storeContact", { email: r.storeEmail })} · {t("fundedOn", { date: day(r.fullyFundedAt) })}</p>
@@ -54,13 +56,14 @@ async function Content() {
       </Card>
 
       <Card data-testid="in-transit">
-        <h2 className="mb-1 text-lg font-semibold">{t("transitTitle", { count: f.inTransit.length })}</h2>
+        <h2 className="mb-1 text-lg font-semibold">{t("transitTitle", { count: f.inTransit.total })}</h2>
         <p className="mb-3 text-sm text-foreground/70">{t("transitIntro")}</p>
-        {f.inTransit.length === 0
+        {capped(f.inTransit.total)}
+        {f.inTransit.rows.length === 0
           ? empty
           : (
             <ul className="flex flex-col divide-y divide-foreground/10">
-              {f.inTransit.map((r) => (
+              {f.inTransit.rows.map((r) => (
                 <li key={r.id} className="flex flex-col gap-2 py-3" data-ref={r.ref}>
                   {head(r)}
                   <p className="text-sm text-foreground/70">
@@ -75,13 +78,14 @@ async function Content() {
       </Card>
 
       <Card data-testid="to-send">
-        <h2 className="mb-1 text-lg font-semibold">{t("sendTitle", { count: f.toSend.length })}</h2>
+        <h2 className="mb-1 text-lg font-semibold">{t("sendTitle", { count: f.toSend.total })}</h2>
         <p className="mb-3 text-sm text-foreground/70">{t("sendIntro")}</p>
-        {f.toSend.length === 0
+        {capped(f.toSend.total)}
+        {f.toSend.rows.length === 0
           ? empty
           : (
             <ul className="flex flex-col divide-y divide-foreground/10">
-              {f.toSend.map((r) => (
+              {f.toSend.rows.map((r) => (
                 <li key={r.id} className="flex flex-col gap-2 py-3" data-ref={r.ref}>
                   {head(r)}
                   {who(r)}
@@ -95,16 +99,17 @@ async function Content() {
 
       <Card data-testid="delivered">
         <h2 className="mb-3 text-lg font-semibold">{t("deliveredTitle")}</h2>
-        {f.delivered.length === 0
+        {capped(f.delivered.total)}
+        {f.delivered.rows.length === 0
           ? empty
           : (
             <ul className="flex flex-col divide-y divide-foreground/10">
-              {f.delivered.map((r) => (
+              {f.delivered.rows.map((r) => (
                 <li key={r.id} className="py-3" data-ref={r.ref}>
                   {head(r)}
                   {who(r)}
                   <p className="text-sm text-foreground/70">
-                    {t("sentOn", { date: day(r.deliveredAt) })} · {t(r.familyNotified ? "emailed" : "emailPending")}
+                    {t("sentOn", { date: day(r.deliveredAt) })} · <span data-notice={r.familyNotice}>{t(`notice.${r.familyNotice ?? "pending"}`)}</span>
                   </p>
                 </li>
               ))}

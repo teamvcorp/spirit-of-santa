@@ -78,7 +78,9 @@ const wishListItemSchema = new Schema(
     receivedByUserId: objectId("User", false),
     deliveredAt: Date, // sent on to the family (parent emailed)
     deliveredByUserId: objectId("User", false),
-    familyNotifiedAt: Date,
+    familyNotifiedAt: Date, // the parent's "on its way" email really went out
+    /** Child or family deleted before the email: nobody to tell (never retried). */
+    familyNoticeSkippedAt: Date,
   },
   { timestamps: true, versionKey: false },
 );

@@ -294,6 +294,16 @@ export async function sendStoreDigests(now = new Date()): Promise<DigestResult> 
 // trust the caller's role, but still check every state transition (compare-and-set) and audit it.
 // Admins see who a gift is for (child's first name, family, parent email): they deliver it.
 
+/** Missed "on its way" emails are retried by the daily job for this long after delivery. */
+export const FAMILY_NOTICE_RETRY_DAYS = 14;
+
+/**
+ * Parent email state of a delivered gift (admin page):
+ * emailed · pending (retried daily) · failed (retries over: contact the parent) · none (child or
+ * family deleted, nobody to tell).
+ */
+export type FamilyNotice = "emailed" | "pending" | "failed" | "none";
+
 export type AdminFulfilmentRow = {
   id: string;
   ref: string;
@@ -310,48 +320,81 @@ export type AdminFulfilmentRow = {
   kidName?: string;
   familyName?: string;
   parentEmail?: string;
-  familyNotified?: boolean;
+  familyNotice?: FamilyNotice;
 };
+/** Each list is the OLDEST `ADMIN_LIMIT` rows (work in order); `total` is the real count. */
+export type AdminList = { rows: AdminFulfilmentRow[]; total: number };
 export type AdminFulfilment = {
   /** Funded, store had none left: arrange a substitute with the store. */
-  substitutes: AdminFulfilmentRow[];
+  substitutes: AdminList;
   /** Store shipped, not received yet. */
-  inTransit: AdminFulfilmentRow[];
+  inTransit: AdminList;
   /** Received, to send on to the family. */
-  toSend: AdminFulfilmentRow[];
-  /** Sent to families in the last 30 days. */
-  delivered: AdminFulfilmentRow[];
+  toSend: AdminList;
+  /** Sent to families in the last 30 days (newest first). */
+  delivered: AdminList;
+  limit: number;
 };
 
-type AdminRaw = RawWish & { storeId: unknown; kidId: unknown; familyId: unknown; receivedAt?: Date | null; deliveredAt?: Date | null; familyNotifiedAt?: Date | null };
-const ADMIN_LIMIT = 300;
+type AdminRaw = RawWish & {
+  storeId: unknown;
+  kidId: unknown;
+  familyId: unknown;
+  receivedAt?: Date | null;
+  deliveredAt?: Date | null;
+  familyNotifiedAt?: Date | null;
+  familyNoticeSkippedAt?: Date | null;
+};
+export const ADMIN_LIMIT = 300;
+
+/** Who a gift is for, loaded in bulk (a handful of queries for any number of gifts). */
+async function recipients(rows: { kidId: unknown; familyId: unknown }[]) {
+  const [kids, families] = await Promise.all([
+    Kid.find({ _id: trusted({ $in: [...new Set(rows.map((r) => String(r.kidId)))] }) }).select("firstName").lean<{ _id: unknown; firstName: string }[]>(),
+    Family.find({ _id: trusted({ $in: [...new Set(rows.map((r) => String(r.familyId)))] }) }).select("familyName ownerUserId").lean<{ _id: unknown; familyName: string; ownerUserId: unknown }[]>(),
+  ]);
+  const owners = await User.find({ _id: trusted({ $in: families.map((f) => String(f.ownerUserId)) }) })
+    .select("email locale status")
+    .lean<{ _id: unknown; email: string; locale?: string; status: string }[]>();
+  const kidBy = new Map(kids.map((k) => [String(k._id), k.firstName]));
+  const famBy = new Map(families.map((f) => [String(f._id), f]));
+  const ownerBy = new Map(owners.map((u) => [String(u._id), u]));
+  return (r: { kidId: unknown; familyId: unknown }) => {
+    const fam = famBy.get(String(r.familyId));
+    return { kidName: kidBy.get(String(r.kidId)), familyName: fam?.familyName, parent: fam ? ownerBy.get(String(fam.ownerUserId)) : undefined };
+  };
+}
 
 export async function adminFulfilment(now = new Date()): Promise<AdminFulfilment> {
   await connectDb();
-  const fields = "itemId storeId kidId familyId status needsSubstitute fullyFundedAt shippedAt trackingNote receivedAt deliveredAt familyNotifiedAt";
-  const q = (filter: Record<string, unknown>, sort: Record<string, 1 | -1>) => WishListItem.find(filter).select(fields).sort(sort).limit(ADMIN_LIMIT).lean<AdminRaw[]>();
+  const fields = "itemId storeId kidId familyId status needsSubstitute fullyFundedAt shippedAt trackingNote receivedAt deliveredAt familyNotifiedAt familyNoticeSkippedAt";
+  const filters = {
+    substitutes: { needsSubstitute: true, status: trusted({ $in: ["fully_funded", "locked"] }) },
+    inTransit: { status: "shipped", receivedAt: null },
+    toSend: { status: "shipped", receivedAt: trusted({ $ne: null }) },
+    delivered: { status: "delivered", deliveredAt: trusted({ $gte: new Date(now.getTime() - 30 * DAY_MS) }) },
+  };
+  const q = (filter: Record<string, unknown>, sort: Record<string, 1 | -1>) =>
+    Promise.all([WishListItem.find(filter).select(fields).sort(sort).limit(ADMIN_LIMIT).lean<AdminRaw[]>(), WishListItem.countDocuments(filter)]);
   const [substitutes, inTransit, toSend, delivered] = await Promise.all([
-    q({ needsSubstitute: true, status: trusted({ $in: ["fully_funded", "locked"] }) }, { fullyFundedAt: 1, _id: 1 }),
-    q({ status: "shipped", receivedAt: null }, { shippedAt: 1, _id: 1 }),
-    q({ status: "shipped", receivedAt: trusted({ $ne: null }) }, { receivedAt: 1, _id: 1 }),
-    q({ status: "delivered", deliveredAt: trusted({ $gte: new Date(now.getTime() - 30 * DAY_MS) }) }, { deliveredAt: -1, _id: 1 }),
+    q(filters.substitutes, { fullyFundedAt: 1, _id: 1 }),
+    q(filters.inTransit, { shippedAt: 1, _id: 1 }),
+    q(filters.toSend, { receivedAt: 1, _id: 1 }),
+    q(filters.delivered, { deliveredAt: -1, _id: 1 }),
   ]);
-  const all = [...substitutes, ...inTransit, ...toSend, ...delivered];
-  const withFamily = [...toSend, ...delivered];
-  const [names, stores, kids, families] = await Promise.all([
+  const all = [...substitutes[0], ...inTransit[0], ...toSend[0], ...delivered[0]];
+  const [names, stores, whoFor] = await Promise.all([
     itemNames(all.map((r) => r.itemId)),
     Store.find({ _id: trusted({ $in: [...new Set(all.map((r) => String(r.storeId)))] }) }).select("name contact.email").lean<{ _id: unknown; name: string; contact?: { email?: string } }[]>(),
-    Kid.find({ _id: trusted({ $in: [...new Set(withFamily.map((r) => String(r.kidId)))] }) }).select("firstName").lean<{ _id: unknown; firstName: string }[]>(),
-    Family.find({ _id: trusted({ $in: [...new Set(withFamily.map((r) => String(r.familyId)))] }) }).select("familyName ownerUserId").lean<{ _id: unknown; familyName: string; ownerUserId: unknown }[]>(),
+    recipients([...toSend[0], ...delivered[0]]),
   ]);
-  const owners = await User.find({ _id: trusted({ $in: families.map((f) => String(f.ownerUserId)) }) }).select("email").lean<{ _id: unknown; email: string }[]>();
   const storeBy = new Map(stores.map((x) => [String(x._id), x]));
-  const kidBy = new Map(kids.map((k) => [String(k._id), k.firstName]));
-  const famBy = new Map(families.map((f) => [String(f._id), f]));
-  const emailBy = new Map(owners.map((u) => [String(u._id), u.email]));
+  const retryUntil = (d: Date | null | undefined) => (d ? new Date(d).getTime() + FAMILY_NOTICE_RETRY_DAYS * DAY_MS : 0);
+  const notice = (r: AdminRaw): FamilyNotice =>
+    r.familyNotifiedAt ? "emailed" : r.familyNoticeSkippedAt ? "none" : retryUntil(r.deliveredAt) > now.getTime() ? "pending" : "failed";
   const toRow = (r: AdminRaw, who: boolean): AdminFulfilmentRow => {
     const st = storeBy.get(String(r.storeId));
-    const fam = famBy.get(String(r.familyId));
+    const w = who ? whoFor(r) : null;
     return {
       id: String(r._id),
       ref: orderRef(String(r._id)),
@@ -364,33 +407,25 @@ export async function adminFulfilment(now = new Date()): Promise<AdminFulfilment
       trackingNote: r.trackingNote ?? "",
       receivedAt: r.receivedAt ?? null,
       deliveredAt: r.deliveredAt ?? null,
-      ...(who
-        ? { kidName: kidBy.get(String(r.kidId)) ?? "", familyName: fam?.familyName ?? "", parentEmail: fam ? (emailBy.get(String(fam.ownerUserId)) ?? "") : "", familyNotified: Boolean(r.familyNotifiedAt) }
-        : {}),
+      ...(w ? { kidName: w.kidName ?? "", familyName: w.familyName ?? "", parentEmail: w.parent?.email ?? "", familyNotice: notice(r) } : {}),
     };
   };
-  return {
-    substitutes: substitutes.map((r) => toRow(r, false)),
-    inTransit: inTransit.map((r) => toRow(r, false)),
-    toSend: toSend.map((r) => toRow(r, true)),
-    delivered: delivered.map((r) => toRow(r, true)),
-  };
+  const list = ([rows, total]: [AdminRaw[], number], who: boolean): AdminList => ({ rows: rows.map((r) => toRow(r, who)), total });
+  return { substitutes: list(substitutes, false), inTransit: list(inTransit, false), toSend: list(toSend, true), delivered: list(delivered, true), limit: ADMIN_LIMIT };
 }
 
 export type AdminStepResult = { ok: true } | { ok: false; error: "notFound" | "changed" };
 
-/** One audited compare-and-set step. `from` = the state it must be in; anything else = "changed". */
+/** One audited compare-and-set step on an ALREADY-normalised id. Anything not in `from` = "changed". */
 async function adminStep(
   adminId: string,
-  rawId: string,
+  id: string,
   from: Record<string, unknown>,
   set: Record<string, unknown>,
   unset: Record<string, 1>,
   action: "wish.substitute" | "wish.receive" | "wish.deliver",
   details: Record<string, unknown>,
 ): Promise<AdminStepResult> {
-  const id = normalizeObjectId(rawId);
-  if (!id) return { ok: false, error: "notFound" };
   await connectDb();
   return withTransaction(async (session): Promise<AdminStepResult> => {
     const res = await WishListItem.updateOne({ _id: id, ...from }, { $set: set, ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { session, runValidators: true });
@@ -399,15 +434,18 @@ async function adminStep(
     return { ok: true };
   });
 }
+const notFound: AdminStepResult = { ok: false, error: "notFound" };
 
 /**
  * The admin agreed a substitute with the store (note says what, e.g. "red bike instead of blue").
  * Clears needsSubstitute, so the gift returns to the store's Orders page and the next daily email.
  */
 export function arrangeSubstitute(adminId: string, rawId: string, note: string, now = new Date()): Promise<AdminStepResult> {
+  const id = normalizeObjectId(rawId);
+  if (!id) return Promise.resolve(notFound);
   return adminStep(
     adminId,
-    rawId,
+    id,
     { needsSubstitute: true, status: trusted({ $in: ["fully_funded", "locked"] }) },
     { substituteArrangedAt: now, substituteNote: note, setAsideNotifiedAt: null, readyNotifiedAt: null },
     { needsSubstitute: 1 },
@@ -418,65 +456,90 @@ export function arrangeSubstitute(adminId: string, rawId: string, note: string, 
 
 /** Spirit O Santa received the store's package. */
 export function markReceived(adminId: string, rawId: string, now = new Date()): Promise<AdminStepResult> {
-  return adminStep(adminId, rawId, { status: "shipped", receivedAt: null }, { receivedAt: now, receivedByUserId: adminId }, {}, "wish.receive", {});
+  const id = normalizeObjectId(rawId);
+  if (!id) return Promise.resolve(notFound);
+  return adminStep(adminId, id, { status: "shipped", receivedAt: null }, { receivedAt: now, receivedByUserId: adminId }, {}, "wish.receive", {});
 }
 
 /**
  * Sent on to the family → "delivered", then the parent is emailed right away (best effort: a
- * failed email is retried by the daily job via sendFamilyNotices; the delivery itself stands).
+ * failed email is retried by the daily job; the delivery itself stands either way).
  */
-export async function markSentToFamily(adminId: string, rawId: string, now = new Date()): Promise<AdminStepResult & { emailed?: boolean }> {
-  const r = await adminStep(
-    adminId,
-    rawId,
-    { status: "shipped", receivedAt: trusted({ $ne: null }) },
-    { status: "delivered", deliveredAt: now, deliveredByUserId: adminId },
-    {},
-    "wish.deliver",
-    {},
-  );
-  if (!r.ok) return r;
-  return { ok: true, emailed: await notifyFamily(String(normalizeObjectId(rawId))) };
+export async function markSentToFamily(adminId: string, rawId: string, now = new Date()): Promise<AdminStepResult> {
+  const id = normalizeObjectId(rawId);
+  if (!id) return notFound;
+  const r = await adminStep(adminId, id, { status: "shipped", receivedAt: trusted({ $ne: null }) }, { status: "delivered", deliveredAt: now, deliveredByUserId: adminId }, {}, "wish.deliver", {});
+  if (r.ok) await notifyFamilies([id]);
+  return r;
 }
 
-/** Email the parent that the gift is on its way; marks familyNotifiedAt. Never throws. */
-async function notifyFamily(wishId: string): Promise<boolean> {
-  try {
-    const w = await WishListItem.findOne({ _id: wishId, status: "delivered", familyNotifiedAt: null }).select("kidId familyId itemId").lean<{ kidId: unknown; familyId: unknown; itemId: unknown }>();
-    if (!w) return false;
-    const [kid, fam, item] = await Promise.all([
-      Kid.findById(String(w.kidId)).select("firstName").lean<{ firstName: string }>(),
-      Family.findById(String(w.familyId)).select("ownerUserId").lean<{ ownerUserId: unknown }>(),
-      Item.findById(String(w.itemId)).select("name").lean<{ name: string }>(),
-    ]);
-    // Kid deleted (COPPA deletion) or family gone: nobody to tell; mark it so we don't retry forever.
-    const parent = fam ? await User.findById(String(fam.ownerUserId)).select("email locale status").lean<{ email: string; locale?: string; status: string }>() : null;
-    if (kid && parent && parent.status === "active") {
-      const locale = isLocale(parent.locale) ? parent.locale : DEFAULT_LOCALE;
+type NoticeTotals = { sent: number; failed: number; none: number };
+
+/**
+ * Email parents that these delivered gifts are on their way (paced under Resend's limit; all
+ * lookups in bulk). familyNotifiedAt is set ONLY when an email really went out. Child or family
+ * deleted (COPPA deletion) = nobody to tell → familyNoticeSkippedAt (never retried). A parent
+ * account that isn't active right now counts as failed: retried while the retry window lasts.
+ * Never throws for one gift; `budgetMs` stops early (the rest waits for the next run).
+ */
+async function notifyFamilies(ids: string[], budgetMs = Infinity): Promise<NoticeTotals> {
+  const started = Date.now();
+  const totals: NoticeTotals = { sent: 0, failed: 0, none: 0 };
+  const rows = await WishListItem.find({ _id: trusted({ $in: ids }), status: "delivered", familyNotifiedAt: null, familyNoticeSkippedAt: null })
+    .select("kidId familyId itemId")
+    .lean<{ _id: unknown; kidId: unknown; familyId: unknown; itemId: unknown }[]>();
+  if (rows.length === 0) return totals;
+  const [names, whoFor] = await Promise.all([itemNames(rows.map((r) => r.itemId)), recipients(rows)]);
+  for (const [i, r] of rows.entries()) {
+    if (Date.now() - started > budgetMs) break;
+    const wishId = String(r._id);
+    const w = whoFor(r);
+    try {
+      if (!w.kidName || !w.familyName) {
+        await WishListItem.updateOne({ _id: wishId, familyNotifiedAt: null }, { $set: { familyNoticeSkippedAt: new Date() } });
+        totals.none += 1;
+        continue;
+      }
+      if (!w.parent || w.parent.status !== "active") {
+        totals.failed += 1; // retried tomorrow (the account may be re-activated)
+        continue;
+      }
+      if (i > 0) await sleep(SEND_GAP_MS);
+      const locale = isLocale(w.parent.locale) ? w.parent.locale : DEFAULT_LOCALE;
       await sendEmail({
-        to: parent.email,
+        to: w.parent.email,
         locale,
         template: "giftOnItsWay",
-        values: { link: `${familyAppOrigin()}${localizePath(`/kids/${String(w.kidId)}`, locale)}`, kidName: kid.firstName, itemName: item?.name ?? "" },
+        values: { link: `${familyAppOrigin()}${localizePath(`/kids/${String(r.kidId)}`, locale)}`, kidName: w.kidName, itemName: names.get(String(r.itemId)) ?? "" },
         idempotencyKey: `gift-on-its-way/${wishId}`,
       });
+      await WishListItem.updateOne({ _id: wishId, familyNotifiedAt: null }, { $set: { familyNotifiedAt: new Date() } });
+      totals.sent += 1;
+    } catch (err) {
+      totals.failed += 1;
+      console.error("[fulfilment] family notice failed (daily job retries):", err instanceof Error ? err.name : "unknown");
     }
-    await WishListItem.updateOne({ _id: wishId, familyNotifiedAt: null }, { $set: { familyNotifiedAt: new Date() } });
-    return Boolean(kid && parent && parent.status === "active");
-  } catch (err) {
-    console.error("[fulfilment] family notice failed (daily job retries):", err instanceof Error ? err.name : "unknown");
-    return false;
   }
+  return totals;
 }
 
-/** Daily retry for "on its way" emails that failed (delivered in the last 14 days, not yet told). */
-export async function sendFamilyNotices(now = new Date()): Promise<{ sent: number; pending: number }> {
+const FAMILY_NOTICE_BUDGET_MS = 60_000;
+
+/**
+ * Daily retry (money cron) for "on its way" emails that didn't go out, for FAMILY_NOTICE_RETRY_DAYS
+ * after delivery. `failed` > 0 makes the cron report a partial failure (so someone is alerted).
+ */
+export async function sendFamilyNotices(now = new Date()): Promise<NoticeTotals> {
   await connectDb();
-  const rows = await WishListItem.find({ status: "delivered", familyNotifiedAt: null, deliveredAt: trusted({ $gte: new Date(now.getTime() - 14 * DAY_MS) }) })
+  const rows = await WishListItem.find({
+    status: "delivered",
+    familyNotifiedAt: null,
+    familyNoticeSkippedAt: null,
+    deliveredAt: trusted({ $gte: new Date(now.getTime() - FAMILY_NOTICE_RETRY_DAYS * DAY_MS) }),
+  })
     .select("_id")
+    .sort({ deliveredAt: 1 })
     .limit(100)
     .lean<{ _id: unknown }[]>();
-  let sent = 0;
-  for (const r of rows) if (await notifyFamily(String(r._id))) sent += 1;
-  return { sent, pending: rows.length - sent };
+  return notifyFamilies(rows.map((r) => String(r._id)), FAMILY_NOTICE_BUDGET_MS);
 }

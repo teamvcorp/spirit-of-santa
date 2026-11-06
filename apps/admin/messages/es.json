@@ -535,12 +535,17 @@
     "markSent": "Enviado a la familia",
     "deliveredTitle": "Enviados a las familias (últimos 30 días)",
     "sentOn": "Enviado el {date}",
-    "emailed": "correo enviado al padre/madre",
-    "emailPending": "correo al padre/madre pendiente (se reintenta cada día)",
     "errors": {
       "notFound": "No se encontró ese regalo. Vuelve a cargar la página.",
       "changed": "Ese regalo ya avanzó (quizás alguien más lo hizo). Vuelve a cargar la página.",
       "note": "Escribe lo acordado (de 3 a 300 caracteres)."
+    },
+    "capped": "Se muestran los {shown} más antiguos de {total}: atiéndelos primero.",
+    "notice": {
+      "emailed": "correo enviado al padre/madre",
+      "pending": "correo al padre/madre pendiente (se reintenta cada día durante 14 días)",
+      "failed": "correo NO enviado: contacta al padre o la madre",
+      "none": "sin correo (niño o familia eliminados)"
     }
   }
 }

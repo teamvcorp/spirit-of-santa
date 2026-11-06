@@ -69,3 +69,15 @@ open the links; an unreachable opt-in page is a common rejection reason.
 **Short version (706 characters, for the <1000 limit):**
 
 > Adults who received a good deed from a child in our program scan the deed's QR code, which opens a web page on https://spiritofsanta.com. There they may choose "Pay later by text", enter their own mobile number and tick an unchecked box: "Text me a link to pay this tip later. Spirit O Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help." The form can't be sent without the box ticked; we record the consent time. We send one transactional message per request, never marketing, and never buy, rent or share numbers. Privacy Policy: https://spiritofsanta.com/privacy Terms: https://spiritofsanta.com/terms
+
+
+**Gotcha (2026-11-06):** the description box rejects a link followed by punctuation ("https://spiritofsanta.com." with a
+full stop) with "The url you entered is invalid". Never put a full stop or comma right after a link.
+
+**Version A (728 chars, links at the end):**
+
+> Adults who received a good deed from a child in our program scan the deed's QR code, which opens a page on our website spiritofsanta dot com. There they may choose "Pay later by text", enter their own mobile number and tick an unchecked box: "Text me a link to pay this tip later. Spirit O Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help." The form can't be sent without the box ticked; we record the consent time. We send one transactional message per request, never marketing, and never buy, rent or share numbers. Privacy Policy and Terms of Service: https://spiritofsanta.com/privacy and https://spiritofsanta.com/terms
+
+**Version B (664 chars, no links: if the box also checks that links load, use this until the site is live):**
+
+> Adults who received a good deed from a child in our program scan the deed's QR code, which opens a page on our website. There they may choose "Pay later by text", enter their own mobile number and tick an unchecked box: "Text me a link to pay this tip later. Spirit O Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help." The form can't be sent without the box ticked; we record the consent time. We send one transactional message per request, never marketing, and never buy, rent or share numbers. Our Privacy Policy and Terms of Service are linked on that page.

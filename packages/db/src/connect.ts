@@ -34,6 +34,25 @@ const globalForMongoose = globalThis as typeof globalThis & {
 };
 const cache = (globalForMongoose.__mongoose ??= { promise: null });
 
+/**
+ * Which database to use. MONGODB_DB (optional) wins; otherwise the name in the URI path
+ * ("…mongodb.net/spiritofsanta?…"). With NEITHER, MongoDB silently uses "test": that hid a
+ * production sign-in bug (2026-11-06: the Vercel Atlas integration's URI had no database name,
+ * so the site read "test" while the admin was in "spiritofsanta"). So no name = refuse to start.
+ * Pure (exported for tests).
+ */
+export function resolveDbName(uri: string, override: string | undefined): string {
+  const fromEnv = override?.trim();
+  if (fromEnv) {
+    if (!/^[A-Za-z0-9_-]{1,64}$/.test(fromEnv)) throw new Error("MONGODB_DB must be a plain database name (letters, digits, _ or -)");
+    return fromEnv;
+  }
+  const path = uri.replace(/^mongodb(\+srv)?:\/\/[^/]*/, "").split("?")[0] ?? "";
+  const name = decodeURIComponent(path.replace(/^\//, ""));
+  if (!name) throw new Error("MONGODB_URI has no database name (…mongodb.net/<name>?…): add it, or set MONGODB_DB (e.g. spiritofsanta)");
+  return name;
+}
+
 export function connectDb(): Promise<typeof mongoose> {
   if (!cache.promise) {
     const uri = process.env.MONGODB_URI;
@@ -43,8 +62,11 @@ export function connectDb(): Promise<typeof mongoose> {
         "MONGODB_URI is not set. Copy .env.example to .env.local.",
       );
     }
+    // Throws with a clear message (no URI in it) when no database name is given anywhere.
+    const dbName = resolveDbName(uri, process.env.MONGODB_DB);
     cache.promise = mongoose
       .connect(uri, {
+        dbName,
         maxPoolSize: 10, // small pools: many concurrent serverless instances share Atlas limits
         serverSelectionTimeoutMS: 5_000, // fail fast instead of hanging a request
         bufferCommands: false, // queries before connect() throw instead of queueing silently

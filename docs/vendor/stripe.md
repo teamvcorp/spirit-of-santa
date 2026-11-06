@@ -103,3 +103,21 @@
 - **Production needs `syncIndexes`** (autoIndex is off in prod): the unique indexes on
   `transactions.idempotencyKey`, `payments.stripePaymentIntentId` and `stripeevents.eventId`
   are what make duplicates impossible.
+
+## Embedded Checkout (saved 2026-11-05, docs.stripe.com/checkout/embedded/quickstart + installed types)
+
+Used for the $5 child registration (Phase 4 slice 2b): Stripe's form inside our page, no redirect.
+
+- **Server** (secret key only): `stripe.checkout.sessions.create({ ui_mode: "embedded_page", mode: "payment",
+  line_items, return_url: ".../return?session_id={CHECKOUT_SESSION_ID}", metadata, payment_intent_data: { metadata } })`
+  → pass `session.client_secret` to the page. NOTE: in API `2026-09-30.endive` the value is **`embedded_page`**
+  (older docs/training data say `"embedded"`). UiMode = `elements | embedded_page | form | hosted_page`.
+- **Client**: `@stripe/stripe-js` **10.2.1** + `@stripe/react-stripe-js` **7.0.1** (peer: stripe-js >=10 <11, React <20):
+  `const stripePromise = loadStripe(NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)` (module scope; loads from js.stripe.com,
+  required for PCI) → `<EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>` (or
+  `fetchClientSecret: () => Promise<string>`) `<EmbeddedCheckout /></EmbeddedCheckoutProvider>`.
+  Vanilla JS equivalent: `stripe.createEmbeddedCheckoutPage({ fetchClientSecret })`. Don't nest in another iframe.
+- **Return page**: `stripe.checkout.sessions.retrieve(session_id)` server-side: `status` `complete` (paid) or `open`
+  (failed/cancelled: show checkout again). Show status only; FULFIL from the webhook (`payment_intent.succeeded`,
+  our rule: credit/fulfil only there).
+- Test cards: 4242 4242 4242 4242 (ok), 4000 0025 0000 3155 (3-D Secure), 4000 0000 0000 9995 (declined).

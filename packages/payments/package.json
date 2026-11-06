@@ -6,7 +6,8 @@
   "exports": {
     "./webhook": "./src/webhook.ts",
     "./metadata": "./src/metadata.ts",
-    "./client": "./src/client.ts"
+    "./client": "./src/client.ts",
+    "./checkout": "./src/checkout.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

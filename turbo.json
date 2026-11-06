@@ -24,7 +24,8 @@
         "RESEND_REPLY_TO",
         "CRON_SECRET",
         "STORE_APP_URL",
-        "MFA_ENCRYPTION_KEY"
+        "MFA_ENCRYPTION_KEY",
+        "FAMILY_PROMO_CODE"
       ],
       "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"]
     },

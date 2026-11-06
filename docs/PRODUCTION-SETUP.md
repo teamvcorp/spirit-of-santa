@@ -31,6 +31,7 @@ Node.js version: 24.x (Project → Settings → General).
 | `STRIPE_SECRET_KEY` | ✓ | – | – | Stripe live secret key |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | ✓ | – | – | Stripe live publishable key |
 | `STRIPE_WEBHOOK_SECRET` | ✓ | – | – | `whsec_` of the endpoint below |
+| `FAMILY_PROMO_CODE` | ✓ | – | – | Optional. Families who enter it pay the $5 child registration once (first child). Blank = promo off |
 
 Later phases (leave unset for now): `TWILIO_*` (pay-later SMS), `FCM_*` / `NEXT_PUBLIC_FCM_*` (push).
 

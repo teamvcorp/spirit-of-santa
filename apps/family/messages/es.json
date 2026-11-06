@@ -100,7 +100,7 @@
     "kidLine": "Se muestra públicamente como \"{displayName}\" · nació en {year}",
     "registered": "Registrado",
     "awaiting": "Registro pendiente",
-    "awaitingNote": "Cada niño se registra con un pago de $5 con tarjeta que confirma tu consentimiento (próximamente). Mientras tanto, nada sobre ellos aparece en ninguna página pública.",
+    "awaitingNote": "Cada niño se registra con un pago de $5 con tarjeta que confirma tu consentimiento. Mientras tanto, nada sobre ellos aparece en ninguna página pública.",
     "firstName": "Nombre",
     "firstNameHint": "Privado: solo tu familia lo ve.",
     "birthYear": "Año de nacimiento",
@@ -122,6 +122,31 @@
       "invalidPin": "Usa de 4 a 6 dígitos para el PIN.",
       "passwordRequired": "Escribe la contraseña de tu cuenta.",
       "noFamily": "No se encontró tu cuenta familiar. Cierra sesión y vuelve a entrar."
+    },
+    "registerKids": "Registrar niños ($5 cada uno)"
+  },
+  "Register": {
+    "title": "Registra a tus hijos",
+    "back": "Área de padres",
+    "intro": "Cada niño se registra con un pago de $5 con tarjeta. Confirma que un padre, madre o tutor acepta el Aviso de privacidad infantil. Mientras tanto, nada sobre ellos aparece en ninguna página pública.",
+    "whichKids": "¿A quién registras? ({fee} cada uno)",
+    "promo": "Código promocional (opcional)",
+    "promoHint": "Con un código familiar pagas solo por el primer niño.",
+    "continue": "Continuar al pago",
+    "why": "Stripe procesa los pagos. Nunca vemos el número de tu tarjeta. Las cuotas de registro no son reembolsables.",
+    "payNow": "Total: {amount}",
+    "freeDone": "{count, plural, one {# niño registrado} other {# niños registrados}} con tu código promocional. ¡Gracias!",
+    "nothingToDo": "Todos tus hijos están registrados.",
+    "paid": "¡Gracias! Recibimos el pago. Tus hijos aparecerán como registrados en un minuto.",
+    "notPaid": "El pago no se completó. No se te cobró nada.",
+    "unknown": "No encontramos ese pago. Revisa el área de padres.",
+    "tryAgain": "Intentar de nuevo",
+    "errors": {
+      "notFound": "No se encontró tu cuenta familiar. Cierra sesión y vuelve a entrar.",
+      "noKids": "Elige al menos un niño que aún no esté registrado.",
+      "badPromo": "Ese código promocional no es válido.",
+      "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde.",
+      "locked": "El área de padres se bloqueó sola (15 minutos). Escribe tu PIN otra vez."
     }
   }
 }

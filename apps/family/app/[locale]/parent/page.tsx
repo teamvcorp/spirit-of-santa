@@ -61,6 +61,11 @@ async function Content() {
           </ul>
         )}
         <p className="mt-4 text-sm text-foreground/70">{t("awaitingNote")}</p>
+        {kids.some((k) => !k.registered) && (
+          <Link href="/parent/register" className="mt-3 inline-block rounded-lg bg-brand-red px-4 py-2 font-semibold text-white hover:bg-brand-red-dark">
+            {t("registerKids")}
+          </Link>
+        )}
       </Card>
     </>
   );

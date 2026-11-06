@@ -46,6 +46,15 @@ export const paymentMetadataSchema = z.discriminatedUnion("sos_purpose", [
     sos_purpose: z.literal("donation"),
     sos_zip: z.string().regex(/^\d{5}$/).optional(),
   }),
+  // $5 child registration (parental-consent card check). Up to 10 kids, comma-separated ids.
+  // sos_promo "1" = family promo code: one $5 covers every listed kid.
+  z.object({
+    sos_v: version,
+    sos_purpose: z.literal("registration"),
+    sos_family_id: objectId,
+    sos_kid_ids: z.string().regex(/^[a-f0-9]{24}(,[a-f0-9]{24}){0,9}$/),
+    sos_promo: z.enum(["0", "1"]),
+  }),
   // Parent pay-up covering an item's funding gap (Phase 5/6 locks the item).
   z.object({
     sos_v: version,

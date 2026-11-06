@@ -7,6 +7,13 @@
 /** Max items a store may list per season. */
 export const STORE_ITEM_LIMIT = 50;
 
+/**
+ * Per-child registration fee ($5, in cents): the card payment that verifies parental consent
+ * (COPPA, user decision 2026-11-05). Platform revenue, not points. With the family promo code the
+ * family pays it once (first child) and further children are free.
+ */
+export const REGISTRATION_FEE_CENTS = 500;
+
 /** Kids per family (a sanity cap: also bounds the $5 registrations one card pays for). */
 export const MAX_KIDS_PER_FAMILY = 10;
 /** Kids are under 18: birth year between (this year - 17) and this year. */

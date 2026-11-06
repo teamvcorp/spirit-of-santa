@@ -20,7 +20,7 @@ const { Schema, model, models } = mongoose;
 import { centipointsField, centsField, objectId, seasonYearField } from "./_shared.ts";
 
 /** What the money was for. Set by OUR server in PaymentIntent metadata, never by the payer. */
-export const PAYMENT_PURPOSES = ["tip", "bonus", "donation", "payup"] as const;
+export const PAYMENT_PURPOSES = ["tip", "bonus", "donation", "payup", "registration"] as const;
 export const PAYMENT_STATUSES = ["succeeded", "failed", "canceled"] as const;
 /**
  * credited = points added to the kid's ledger.
@@ -28,8 +28,9 @@ export const PAYMENT_STATUSES = ["succeeded", "failed", "canceled"] as const;
  *            built in Phases 5–6; they'll pick up "held" payments).
  * review   = something didn't add up (kid missing, wrong family, odd amount): an admin decides.
  * none     = no points involved (failed/canceled payments).
+ * fulfilled = done, no points involved (child registrations: the kids were marked registered).
  */
-export const PAYMENT_FULFILMENTS = ["credited", "held", "review", "none"] as const;
+export const PAYMENT_FULFILMENTS = ["credited", "held", "review", "none", "fulfilled"] as const;
 
 const paymentSchema = new Schema(
   {
@@ -40,6 +41,10 @@ const paymentSchema = new Schema(
     seasonYear: seasonYearField,
 
     kidId: objectId("Kid", false),
+
+    /** Registration payments cover several kids at once. */
+
+    kidIds: { type: [objectId("Kid")], default: undefined },
     familyId: objectId("Family", false),
     deedId: objectId("Deed", false),
     wishListItemId: objectId("WishListItem", false),

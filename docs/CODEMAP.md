@@ -291,6 +291,14 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   Birth years: under 18 THIS season-zone year (min = year - 18); the current year is always accepted on edit.
   PIN setup: password check honours + feeds the sign-in lockout (`recordFailedLogin` exported); CHANGING a PIN needs
   the unlock. Shared helpers: `LocaleField` (@repo/auth/forms), `formString` (@repo/lib/form). E2E `browser-family-kids.ts` (17).
+- **Slice 2b $5 registration (built; review pending):** `@repo/families/registration` (`startRegistration`: SERVER sets the
+  amount, $5 × kids or one $5 with `FAMILY_PROMO_CODE` (env, blank = off); promo after an earlier card payment = free,
+  immediate, audited `kid.register_promo`). Stripe **Embedded Checkout** (`ui_mode: "embedded_page"`, see
+  docs/vendor/stripe.md) on `/parent/register`; return page only SHOWS status. Webhook purpose `registration` (metadata
+  `sos_kid_ids`, `sos_promo`) checks the amount and marks the family's awaiting kids registered (card / promo), Payment
+  fulfilment `fulfilled`; nothing left to register → `review` (e.g. double payment). Money = platform revenue, no points.
+  `@repo/payments/checkout` exports getStripe + buildPaymentMetadata for other packages. No CSP yet: when adding one
+  (Phase 8) allow js.stripe.com (script + frame). E2E `browser-family-register.ts` (13).
 - **Server Actions can't read the locale** (`getLocale()` / next/root-params throw there): forms send a hidden `locale`
   field and actions redirect with `localizePath()`.
 - Order: 1 parent sign-up → 2 kids + PIN + dashboard shell (+ $5 step) → 3 deed + QR → 4 QR landing/thank-you →

@@ -100,7 +100,7 @@
     "kidLine": "Shown publicly as \"{displayName}\" · born {year}",
     "registered": "Registered",
     "awaiting": "Awaiting registration",
-    "awaitingNote": "Each child is registered with a $5 card payment that confirms your consent (coming next). Until then nothing about them is shown on any public page.",
+    "awaitingNote": "Each child is registered with a $5 card payment that confirms your consent. Until then nothing about them is shown on any public page.",
     "firstName": "First name",
     "firstNameHint": "Private: only your family sees it.",
     "birthYear": "Birth year",
@@ -122,6 +122,31 @@
       "invalidPin": "Use 4–6 digits for the PIN.",
       "passwordRequired": "Type your account password.",
       "noFamily": "Your family account wasn't found. Sign out and in again."
+    },
+    "registerKids": "Register children ($5 each)"
+  },
+  "Register": {
+    "title": "Register your children",
+    "back": "Parent area",
+    "intro": "Each child is registered with a $5 card payment. It confirms that a parent or guardian agrees to the Children's Privacy Notice. Until then nothing about them appears on any public page.",
+    "whichKids": "Who should be registered? ({fee} each)",
+    "promo": "Promo code (optional)",
+    "promoHint": "With a family promo code you pay for the first child only.",
+    "continue": "Continue to payment",
+    "why": "Payments are handled by Stripe. We never see your card number. Registration fees are not refundable.",
+    "payNow": "Total: {amount}",
+    "freeDone": "{count, plural, one {# child registered} other {# children registered}} with your promo code. Thank you!",
+    "nothingToDo": "All your children are registered.",
+    "paid": "Thank you! Payment received. Your children show as registered within a minute.",
+    "notPaid": "The payment wasn't completed. You haven't been charged.",
+    "unknown": "We couldn't find that payment. Check the parent area.",
+    "tryAgain": "Try again",
+    "errors": {
+      "notFound": "Your family account wasn't found. Sign out and in again.",
+      "noKids": "Choose at least one child who isn't registered yet.",
+      "badPromo": "That promo code isn't valid.",
+      "stripe": "Payments aren't available right now. Please try again later.",
+      "locked": "The parent area locked itself (15 minutes). Enter your PIN again."
     }
   }
 }

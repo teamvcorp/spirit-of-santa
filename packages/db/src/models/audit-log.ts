@@ -58,6 +58,7 @@ export const AUDIT_ACTIONS = [
   "kid.update",
   "kid.delete",
   "family.pin_set",
+  "kid.register_promo",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 

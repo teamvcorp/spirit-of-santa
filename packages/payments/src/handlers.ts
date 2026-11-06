@@ -17,7 +17,7 @@
 import "server-only";
 import type Stripe from "stripe";
 import { Deed, Kid, Payment, Transaction, trusted, withTransaction } from "@repo/db";
-import { MAX_TIP_CENTS, MIN_TIP_CENTS } from "@repo/lib/limits";
+import { MAX_TIP_CENTS, MIN_TIP_CENTS, REGISTRATION_FEE_CENTS } from "@repo/lib/limits";
 import { centsToCentipoints } from "@repo/lib/points";
 import { getSeasonYear } from "@repo/lib/season";
 import { getStripe } from "./client.ts";
@@ -41,6 +41,12 @@ function moneyProblem(pi: Stripe.PaymentIntent, meta: PaymentMetadata): string |
     (pi.amount_received < MIN_TIP_CENTS || pi.amount_received > MAX_TIP_CENTS)
   ) {
     return "amount_out_of_bounds"; // creation code should have blocked this: a human checks
+  }
+  if (meta.sos_purpose === "registration") {
+    // The amount we asked for: $5 x kids, or one $5 with the promo code.
+    const kids = meta.sos_kid_ids.split(",").length;
+    const expected = meta.sos_promo === "1" ? REGISTRATION_FEE_CENTS : REGISTRATION_FEE_CENTS * kids;
+    if (pi.amount_received !== expected) return "registration_amount_mismatch";
   }
   return null;
 }
@@ -81,7 +87,7 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
     const existing = await Payment.findOne({ stripePaymentIntentId: pi.id }).session(session).lean();
     if (existing?.status === "succeeded") return processed("already_recorded");
 
-    const record = async (fulfilment: "credited" | "held" | "review", extra: object = {}) => {
+    const record = async (fulfilment: "credited" | "held" | "review" | "fulfilled", extra: object = {}) => {
       await Payment.findOneAndUpdate(
         { stripePaymentIntentId: pi.id },
         {
@@ -107,6 +113,25 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
 
     const problem = moneyProblem(pi, meta);
     if (problem) return review(problem);
+
+    // Child registration: mark the listed kids of THIS family "registered" (consent verified).
+    // Kids already registered or deleted meanwhile are skipped; if none was left the payment is
+    // flagged for an admin (e.g. paid twice by double-clicking). The money is platform revenue.
+    if (meta.sos_purpose === "registration") {
+      const kidIds = meta.sos_kid_ids.split(",");
+      const res = await Kid.updateMany(
+        { _id: trusted({ $in: kidIds }), familyId: meta.sos_family_id, "registration.status": "awaiting" },
+        { $set: { "registration.status": "registered", "registration.registeredAt": now, "registration.method": "card" } },
+        { session },
+      );
+      if (res.modifiedCount === 0) return review("registration_no_awaiting_kids");
+      if (meta.sos_promo === "1" && kidIds.length > 1) {
+        // One $5 paid for the first child; the promo covered the rest.
+        await Kid.updateMany({ _id: trusted({ $in: kidIds.slice(1) }), familyId: meta.sos_family_id, "registration.registeredAt": now }, { $set: { "registration.method": "promo" } }, { session });
+      }
+      await record("fulfilled", { kidIds });
+      return processed(`registered:${res.modifiedCount}`);
+    }
 
     // Donations (pro-rata split) and pay-ups (item lock) are handled in later phases.
     if (meta.sos_purpose === "donation" || meta.sos_purpose === "payup") {

@@ -101,3 +101,16 @@ registered exactly 1 text per request), so this is the one message itself:
 
 (197 chars = 2 SMS segments. No child's name in texts. Link = a Stripe Payment Link on buy.stripe.com, never a
 public URL shortener (carriers block those). Slice 4 must send exactly this wording, with the real link.)
+
+## Where to find each value (Twilio Console, console.twilio.com) — 2026-11-06
+
+1. `TWILIO_ACCOUNT_SID` (AC…): Console home → "Account Info" panel → Account SID.
+2. `TWILIO_API_KEY_SID` (SK…) + `TWILIO_API_KEY_SECRET`: account/Admin menu (top right) → "API keys & tokens" →
+   "Create API key" → name `spiritofsanta-family`, type **Standard** → copy the SID and the Secret (the secret is
+   shown ONCE). If unsure which secret belongs to an existing key, make a new key and revoke the old one.
+3. `TWILIO_MESSAGING_SERVICE_SID` (MG…): Messaging → Services → the service linked to the A2P campaign
+   (create one, e.g. "Spirit O Santa pay-later", if needed) → Service SID. Add the phone number to its Sender Pool.
+4. `TWILIO_PHONE_NUMBER` (+1…): Phone Numbers → Manage → Active numbers. Only needed without a Messaging Service.
+
+Put them in `apps/family/.env.local` (local) and the Vercel **family** project (production). Remove the old
+`TWILIO_AUTH_TOKEN` / `TWILIO_SID` lines once the API key works. Never paste values in chat or git.

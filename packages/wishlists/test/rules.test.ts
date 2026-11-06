@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { isRemovable, lockAt, ON_LIST } from "../src/rules.ts";
+import { CAP_STATUSES, countsTowardCap, isRemovable, lockAt } from "../src/rules.ts";
 
 const DAY = 86_400_000;
 const now = new Date("2026-11-20T12:00:00Z");
@@ -24,7 +24,8 @@ test("locked, shipped, delivered, removed and unfunded items are never removable
   for (const s of ["locked", "shipped", "delivered", "removed", "unfunded"]) assert.equal(isRemovable(s, null, now), false, s);
 });
 
-test("unfunded and removed don't count as on the list", () => {
-  assert.ok(!(ON_LIST as readonly string[]).includes("removed"));
-  assert.ok(!(ON_LIST as readonly string[]).includes("unfunded"));
+test("unfunded and removed don't count toward the cap", () => {
+  assert.equal(countsTowardCap("removed"), false);
+  assert.equal(countsTowardCap("unfunded"), false);
+  for (const s of CAP_STATUSES) assert.equal(countsTowardCap(s), true, s);
 });

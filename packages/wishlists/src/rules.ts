@@ -7,8 +7,15 @@ import { ITEM_LOCK_DAYS } from "@repo/lib/limits";
 
 const DAY_MS = 86_400_000;
 
-/** Statuses that count as "on the list" (item cap, no duplicates). */
-export const ON_LIST = ["active", "fully_funded", "locked", "shipped", "delivered"] as const;
+/** Does a row with this status count toward the cap? */
+export const countsTowardCap = (status: string) => (CAP_STATUSES as readonly string[]).includes(status);
+
+/**
+ * Statuses that count toward the kid's item CAP (and block adding the same gift twice).
+ * NOT the same list as ON_LIST_STATUSES in @repo/stores/engagement-math (store dashboard totals,
+ * which also count "unfunded"): "unfunded" only exists after Dec 25, when nothing can be added.
+ */
+export const CAP_STATUSES = ["active", "fully_funded", "locked", "shipped", "delivered"] as const;
 
 /** When a fully funded item locks (30 days after full funding), or null if not funded yet. */
 export function lockAt(fullyFundedAt: Date | null | undefined): Date | null {

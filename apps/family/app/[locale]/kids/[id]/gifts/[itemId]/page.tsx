@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { connection } from "next/server";
+import { after, connection } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { clientIp } from "@repo/auth/rate-limit";
@@ -18,7 +18,7 @@ import { formatPoints } from "@repo/lib/format";
 import { MIN_CENTIPOINTS_TO_ADD_ITEM } from "@repo/lib/limits";
 import { recordItemView } from "@repo/stores/engagement";
 import { giftDetail, kidWishList } from "@repo/wishlists/catalog";
-import { ON_LIST } from "@repo/wishlists/rules";
+import { countsTowardCap } from "@repo/wishlists/rules";
 import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
 import { requireParent } from "@/lib/parent";
@@ -39,19 +39,19 @@ async function Content({ params }: Pick<Props, "params">) {
   if (!kid || !list) notFound();
   if (!gift) notFound(); // inactive item / store not approved / other season: same as missing
 
-  await recordItemView(gift.id, { familyId: parent.familyId ?? undefined, ip: clientIp(await headers()) });
+  const viewer = { familyId: parent.familyId ?? undefined, ip: clientIp(await headers()) };
+  after(() => recordItemView(gift.id, viewer)); // after the page is sent: never slows it down
 
   // Same order as the engine checks them, so the hint matches what pressing would say.
-  const onList = list.rows.filter((r) => (ON_LIST as readonly string[]).includes(r.status));
   const blocked = !list.seasonOpen
     ? "seasonNotOpen"
     : !kid.registered
       ? "notRegistered"
       : gift.soldOut
         ? "soldOut"
-        : onList.some((r) => r.itemId === gift.id)
-          ? "onList"
-          : onList.length >= kid.itemCap
+        : list.rows.some((r) => r.itemId === gift.id && countsTowardCap(r.status))
+          ? "alreadyListed"
+          : list.onList >= kid.itemCap
             ? "cap"
             : kid.availableCentipoints < MIN_CENTIPOINTS_TO_ADD_ITEM
               ? "noPoints"

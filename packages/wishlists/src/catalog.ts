@@ -20,7 +20,7 @@ import { connectDb, Item, Kid, toObjectId, WishListItem } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { itemPriceCentsToCentipoints } from "@repo/lib/points";
 import { getSeasonState } from "@repo/stores/season";
-import { isRemovable, lockAt } from "./rules.ts";
+import { countsTowardCap, isRemovable, lockAt } from "./rules.ts";
 
 export const GIFT_SORTS = ["price_asc", "price_desc", "name", "store"] as const;
 export type GiftSort = (typeof GIFT_SORTS)[number];
@@ -102,6 +102,15 @@ export type GiftPage = { items: GiftCard[]; total: number; page: number; pages: 
 export async function browseGifts(query: GiftQuery, now = new Date()): Promise<GiftPage> {
   await connectDb();
   const { year } = await getSeasonState(now);
+  // Independent queries: run together (one round-trip of latency, not two).
+  const [first, categories] = await Promise.all([giftPage(query, year), giftCategories(year)]);
+  const pages = Math.max(1, Math.ceil(first.total / GIFTS_PER_PAGE));
+  // A page past the end (old or edited link) shows the LAST page instead of "no gifts".
+  const result = query.page > pages && first.total > 0 ? await giftPage({ ...query, page: pages }, year) : first;
+  return { items: result.items, total: result.total, page: Math.min(query.page, pages), pages, categories };
+}
+
+async function giftPage(query: GiftQuery, year: number): Promise<{ items: GiftCard[]; total: number }> {
   // $text must be in the FIRST $match (uses the name+description text index from the Item model).
   const match: Record<string, unknown> = { seasonYear: year, status: "active", priceCents: { $gt: 0 } };
   if (query.q) match.$text = { $search: query.q };
@@ -122,14 +131,7 @@ export async function browseGifts(query: GiftQuery, now = new Date()): Promise<G
       },
     },
   ]);
-  const total = result?.total[0]?.n ?? 0;
-  return {
-    items: (result?.rows ?? []).map(toCard),
-    total,
-    page: query.page,
-    pages: Math.max(1, Math.ceil(total / GIFTS_PER_PAGE)),
-    categories: await giftCategories(year),
-  };
+  return { items: (result?.rows ?? []).map(toCard), total: result?.total[0]?.n ?? 0 };
 }
 
 /** Categories that have at least one visible gift this season (for the filter list). */
@@ -171,6 +173,8 @@ export type WishRow = {
   needsSubstitute: boolean;
   /** Parent may remove it now (status, 30-day lock date AND season open). The engine re-checks. */
   removable: boolean;
+  /** The gift page still opens (item active, store approved): otherwise show the name without a link. */
+  viewable: boolean;
 };
 
 export type KidWishList = { rows: WishRow[]; seasonOpen: boolean; onList: number };
@@ -195,14 +199,14 @@ export async function kidWishList(parent: Parent, rawKidId: string, now = new Da
     status: string;
     fullyFundedAt?: Date | null;
     needsSubstitute?: boolean;
-    item?: { name: string; photo?: { url?: string } | null };
-    store?: { name: string };
+    item?: { name: string; status?: string; photo?: { url?: string } | null };
+    store?: { name: string; status?: string };
   }>([
     { $match: { kidId: toObjectId(kidId), seasonYear: season.year, status: { $ne: "removed" } } },
     { $sort: { createdAt: 1, _id: 1 } },
     { $limit: 100 },
-    { $lookup: { from: "items", localField: "itemId", foreignField: "_id", as: "item", pipeline: [{ $project: { _id: 0, name: 1, "photo.url": 1 } }] } },
-    { $lookup: { from: "stores", localField: "storeId", foreignField: "_id", as: "store", pipeline: [{ $project: { _id: 0, name: 1 } }] } },
+    { $lookup: { from: "items", localField: "itemId", foreignField: "_id", as: "item", pipeline: [{ $project: { _id: 0, name: 1, status: 1, "photo.url": 1 } }] } },
+    { $lookup: { from: "stores", localField: "storeId", foreignField: "_id", as: "store", pipeline: [{ $project: { _id: 0, name: 1, status: 1 } }] } },
     { $set: { item: { $first: "$item" }, store: { $first: "$store" } } },
   ]);
   const list = rows.map(
@@ -218,7 +222,8 @@ export async function kidWishList(parent: Parent, rawKidId: string, now = new Da
       lockAt: lockAt(w.fullyFundedAt),
       needsSubstitute: Boolean(w.needsSubstitute),
       removable: seasonOpen && isRemovable(w.status, w.fullyFundedAt, now),
+      viewable: w.item?.status === "active" && w.store?.status === "approved",
     }),
   );
-  return { rows: list, seasonOpen, onList: list.filter((r) => r.status !== "unfunded").length };
+  return { rows: list, seasonOpen, onList: list.filter((r) => countsTowardCap(r.status)).length };
 }

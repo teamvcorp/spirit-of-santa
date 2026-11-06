@@ -27,5 +27,5 @@ export async function removeGiftAction(_prev: RemoveGiftState, fd: FormData): Pr
   if (!r.ok) return fail(r.error);
   const raw = fd.get("locale");
   const locale = isLocale(raw) ? raw : DEFAULT_LOCALE;
-  redirect(localizePath(`/kids/${parsed.data.kidId}#wishlist`, locale));
+  redirect(localizePath(`/kids/${r.kidId}#wishlist`, locale)); // the engine's kid, not the form's
 }

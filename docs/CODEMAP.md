@@ -506,8 +506,8 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   `/kids/[id]/wishlist/[wid]/remove` (added to `safeNext`). Share = the existing donation link (hint text).
   Reads: `@repo/wishlists/catalog` (`browseGifts`/`giftDetail`/`kidWishList`; aggregation with $lookup of
   APPROVED stores; $text search on the Item text index = whole words). Pure rules `@repo/wishlists/rules`
-  (`ON_LIST`, `lockAt`, `isRemovable`) shared by engine + UI (tests). `toObjectId` in @repo/db: aggregate() does
-  NOT cast string ids (a string $match silently matches nothing). E2E `browser-family-wishlist.ts` (19).
+  (`CAP_STATUSES`/`countsTowardCap` ≠ the store dashboard's ON_LIST_STATUSES, `lockAt`, `isRemovable`) shared by engine + UI (tests). Review fixes: one error vocabulary (UI uses engine codes, e.g. `alreadyListed`), view counted in `after()`, browse queries in parallel, page past the end → last page, rows of hidden gifts not linked (`viewable`), remove redirects to the engine's kid id. `toObjectId` in @repo/db: aggregate() does
+  NOT cast string ids (a string $match silently matches nothing). E2E `browser-family-wishlist.ts` (23).
   Gotcha: notFound() inside Suspense streams with HTTP 200: E2E checks the "Page not found" text, not the status.
 
 ## Open items / TODO

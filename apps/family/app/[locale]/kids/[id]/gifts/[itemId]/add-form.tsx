@@ -27,7 +27,7 @@ export function AddGiftForm({ kidId, itemId, blocked, cap }: { kidId: string; it
   }
   const reason = state.status === "error" ? state.error : blocked;
   // Typed keys: only "cap" takes a value; the others are plain strings.
-  const message = !reason ? null : reason === "cap" ? t("why.cap", { cap }) : t(`why.${reason}` as "why.onList");
+  const message = !reason ? null : reason === "cap" ? t("why.cap", { cap }) : t(`why.${reason}` as "why.alreadyListed");
   return (
     <form action={action} className="flex flex-col gap-3">
       {message && <Alert tone={state.status === "error" ? "error" : undefined}>{message}</Alert>}

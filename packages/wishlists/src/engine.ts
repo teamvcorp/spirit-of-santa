@@ -34,7 +34,7 @@ import { ITEM_LOCK_DAYS, MIN_CENTIPOINTS_TO_ADD_ITEM } from "@repo/lib/limits";
 import { itemPriceCentsToCentipoints } from "@repo/lib/points";
 import { getSeasonState } from "@repo/stores/season";
 import { planAllocation } from "./plan.ts";
-import { isRemovable, ON_LIST } from "./rules.ts";
+import { CAP_STATUSES, isRemovable } from "./rules.ts";
 
 const DAY_MS = 86_400_000;
 
@@ -223,14 +223,14 @@ export async function addToList(
           kidId,
           itemId,
           seasonYear: season.year,
-          status: trusted({ $in: [...ON_LIST] }),
+          status: trusted({ $in: [...CAP_STATUSES] }),
         }).session(session)
       )
         return { ok: false, error: "alreadyListed" };
       const onList = await WishListItem.countDocuments({
         kidId,
         seasonYear: season.year,
-        status: trusted({ $in: [...ON_LIST] }),
+        status: trusted({ $in: [...CAP_STATUSES] }),
       }).session(session);
       if (onList >= (kid.itemCap ?? 5)) return { ok: false, error: "cap" };
       if (kid.availableCentipoints < MIN_CENTIPOINTS_TO_ADD_ITEM)
@@ -272,7 +272,7 @@ export async function addToList(
 }
 
 export type RemoveResult =
-  | { ok: true; releasedCentipoints: number }
+  | { ok: true; releasedCentipoints: number; kidId: string }
   | { ok: false; error: "notFound" | "seasonNotOpen" | "locked" };
 
 /** Parent removes an item (caller checks the PIN). Only before the item locks, while the season is open. */
@@ -362,7 +362,7 @@ export async function removeFromList(
       await allocateForKid(kidId, session, now); // released points flow to the next oldest item
       if ((await getSeasonState(new Date())).phase !== "open")
         throw new SeasonChanged(); // freeze landed mid-request: undo
-      return { ok: true, releasedCentipoints: w.fundedCentipoints };
+      return { ok: true, releasedCentipoints: w.fundedCentipoints, kidId };
     });
   } catch (err) {
     if (err instanceof SeasonChanged)

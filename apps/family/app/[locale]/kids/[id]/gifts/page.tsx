@@ -61,7 +61,7 @@ async function Content({ params, searchParams }: Pick<Props, "params" | "searchP
           {t("category")}
           <select name="category" defaultValue={query.category} className="rounded-lg border border-foreground/20 bg-background px-3 py-2">
             <option value="">{t("allCategories")}</option>
-            {result.categories.map((c) => (
+            {(query.category && !result.categories.includes(query.category) ? [query.category, ...result.categories] : result.categories).map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>

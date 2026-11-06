@@ -257,7 +257,7 @@
     "added": "Added to the wish list!",
     "seeList": "See my wish list",
     "why": {
-      "onList": "This gift is already on the wish list.",
+      "alreadyListed": "This gift is already on the wish list.",
       "cap": "The wish list is full ({cap} gifts). A parent can change the limit.",
       "noPoints": "You need at least 1 spare point to add a gift. Good deeds earn more!",
       "soldOut": "Sold out: this store has none left.",

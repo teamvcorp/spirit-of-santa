@@ -257,7 +257,7 @@
     "added": "¡Agregado a la lista de deseos!",
     "seeList": "Ver mi lista de deseos",
     "why": {
-      "onList": "Este regalo ya está en la lista de deseos.",
+      "alreadyListed": "Este regalo ya está en la lista de deseos.",
       "cap": "La lista de deseos está llena ({cap} regalos). Un padre o madre puede cambiar el límite.",
       "noPoints": "Necesitas al menos 1 punto libre para agregar un regalo. ¡Las buenas acciones dan más!",
       "soldOut": "Agotado: a esta tienda no le quedan.",

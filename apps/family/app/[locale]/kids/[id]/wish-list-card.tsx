@@ -39,9 +39,13 @@ export async function WishListCard({ kidId, registered, cap, list }: { kidId: st
                 <div className="aspect-[4/3] h-18 w-24 shrink-0 rounded bg-foreground/5" aria-hidden="true" />
               )}
               <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <Link href={`/kids/${kidId}/gifts/${w.itemId}`} className="font-semibold underline-offset-4 hover:underline">
-                  {w.name}
-                </Link>
+                {w.viewable ? (
+                  <Link href={`/kids/${kidId}/gifts/${w.itemId}`} className="font-semibold underline-offset-4 hover:underline">
+                    {w.name}
+                  </Link>
+                ) : (
+                  <p className="font-semibold">{w.name}</p>
+                )}
                 <p className="text-sm text-foreground/70">
                   {t("fromStore", { store: w.storeName })} · {t(`status.${w.status}` as never)}
                 </p>

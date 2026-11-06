@@ -103,6 +103,8 @@ try {
   check("category filter + price high-to-low (Bike, Kite)", names.join("|") === [`Bike ${tag}`, `Kite ${tag}`].join("|"));
   await open(`/kids/${K}/gifts?q=${tag}&sort=nonsense&page=-4`);
   check("bad sort/page values fall back to defaults (no error page)", (await gridNames()).length === 3);
+  await open(`/kids/${K}/gifts?q=${tag}&page=7`);
+  check("a page past the end shows the last page (not 'no gifts')", (await gridNames()).length === 3);
 
   // 3. Hidden things are "not found": pending store's item, another family's kid.
   // (Streamed pages send status 200 before notFound() runs inside Suspense, so check the page itself.)
@@ -123,7 +125,16 @@ try {
   const w = await WishListItem.findOne({ kidId: kid._id, itemId: bike, status: "active" }).lean();
   const k1 = await Kid.findById(kid._id).lean();
   check("Add (no PIN): Bike on the list with 10 of 25 points; kid's points moved to escrow", w?.fundedCentipoints === 1000 && k1?.availableCentipoints === 0 && k1?.escrowedCentipoints === 1000);
-  check("opening the gift page counted one store view", (await Item.findById(bike).lean())?.stats?.views === 1);
+  // The view is counted AFTER the response (after()), so give it a moment.
+  let views = 0;
+  for (let i = 0; i < 20 && views !== 1; i++) {
+    views = (await Item.findById(bike).lean())?.stats?.views ?? 0;
+    if (views !== 1) await new Promise((r) => setTimeout(r, 250));
+  }
+  check("opening the gift page counted one store view", views === 1);
+  await open(`/kids/${K}/gifts/${bike}`);
+  check("gift already on the list: says so, Add disabled",
+    (await page.locator("main:visible").innerText()).includes("already on the wish list") && (await page.locator("main:visible button[type=submit]").isDisabled()));
 
   // 5. Book: no spare points → the page explains and the button is disabled.
   await open(`/kids/${K}/gifts/${book}`);
@@ -141,6 +152,15 @@ try {
   const cardText = await card.innerText();
   check("kid page lists the Bike with progress '10 of 25 points' and 'Collecting points'", cardText.includes(`Bike ${tag}`) && cardText.includes("10 of 25 points") && cardText.includes("Collecting points"));
   check("count shows '1 of 2 gifts' (the parent's cap)", (await page.locator('main:visible [data-testid="wish-count"]').innerText()).includes("1 of 2"));
+  check("gift name links to its page", (await card.locator(`a[href$="/gifts/${bike}"]`).count()) === 1);
+  await Store.collection.updateOne({ _id: approved }, { $set: { status: "suspended" } });
+  await open(`/kids/${K}`);
+  await card.waitFor({ timeout: 60_000 });
+  check("store suspended: gift stays on the list but its name is no longer a (404) link",
+    (await card.innerText()).includes(`Bike ${tag}`) && (await card.locator(`a[href$="/gifts/${bike}"]`).count()) === 0);
+  await Store.collection.updateOne({ _id: approved }, { $set: { status: "approved" } });
+  await open(`/kids/${K}`);
+  await card.waitFor({ timeout: 60_000 });
 
   // 7. Remove (parent): locked → PIN page → back to the remove page → confirm → points back.
   await card.getByRole("link", { name: "Remove (parent)" }).click();

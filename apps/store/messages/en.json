@@ -76,7 +76,8 @@
       "overview": "Overview",
       "profile": "Store profile",
       "reps": "Reps",
-      "items": "Items"
+      "items": "Items",
+      "orders": "Orders"
     },
     "statusHelp": {
       "pending": "We're reviewing your store. You can set up your profile, photos and team now. Families will see your store once it's approved.",
@@ -108,7 +109,8 @@
       "windowClosed": "Item lists are closed for changes right now (they're normally open January 1 – March 31).",
       "limitReached": "You've reached the item limit. Archive an item to add another.",
       "priceRequired": "Please enter a price."
-    }
+    },
+    "ordersAlert": "{ready, plural, =0 {} one {# gift is ready to ship.} other {# gifts are ready to ship.}} {setAside, plural, =0 {} one {# gift to set aside.} other {# gifts to set aside.}}"
   },
   "Profile": {
     "title": "Store profile",
@@ -234,5 +236,30 @@
     "stockSaved": "Saved",
     "stockInvalid": "Enter 0–9999",
     "photoReplaced": "Photo replaced."
+  },
+  "Orders": {
+    "title": "Gift orders",
+    "intro": "Gifts children have fully funded at your store. We never share anything about the children: use the reference code to match each package.",
+    "readyTitle": "Ready to ship ({count})",
+    "readyIntro": "These gifts are locked in. Please ship each one to Spirit O Santa, write its reference code on the package, then mark it shipped.",
+    "shipTo": "Ship to:",
+    "noAddress": "Spirit O Santa hasn't set its shipping address yet. Please wait before shipping; we'll email you.",
+    "setAsideTitle": "Set aside ({count})",
+    "setAsideIntro": "Fully funded, but the family can still change the list. Please keep one aside for each and don't ship yet: they move to \"Ready to ship\" when they lock in (30 days, or December 1).",
+    "outTitle": "Out of stock ({count})",
+    "outIntro": "These were funded when you had none left. Spirit O Santa will contact you about a substitute.",
+    "shippedTitle": "Shipped (last 60 days)",
+    "none": "Nothing here right now.",
+    "fundedOn": "Fully funded {date}",
+    "shippedOn": "Shipped {date}",
+    "tracking": "Carrier and tracking number (optional)",
+    "trackingPlaceholder": "e.g. UPS 1Z999…",
+    "trackingFor": "Tracking for {ref}",
+    "markShipped": "Mark shipped",
+    "errors": {
+      "notFound": "That order wasn't found. Reload the page.",
+      "notReady": "That gift can't be shipped right now (it may have been shipped already). Reload the page.",
+      "tracking": "Keep the tracking note under 100 characters."
+    }
   }
 }

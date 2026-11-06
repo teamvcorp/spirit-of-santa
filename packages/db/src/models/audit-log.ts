@@ -17,6 +17,10 @@ const { Schema, model, models } = mongoose;
 import { objectId } from "./_shared.ts";
 
 export const AUDIT_ACTIONS = [
+  "wish.ship",
+  "wish.receive",
+  "wish.deliver",
+  "wish.substitute",
   "store.approve",
   "store.reject",
   "store.suspend",
@@ -74,7 +78,7 @@ const auditLogSchema = new Schema(
   {
     actorUserId: objectId("User"),
     action: { type: String, enum: AUDIT_ACTIONS, required: true },
-    targetType: { type: String, enum: ["store", "user", "item", "season", "deed_type", "kid", "family", "deed", "settings", "donation_split"], required: true },
+    targetType: { type: String, enum: ["store", "user", "item", "season", "deed_type", "kid", "family", "deed", "settings", "donation_split", "wish_list_item"], required: true },
     targetId: { type: Schema.Types.ObjectId, required: true },
     /** Small JSON of what changed, e.g. { from: "pending", to: "approved", discountBps: 2000 }. */
     details: { type: Schema.Types.Mixed },

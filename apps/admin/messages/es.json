@@ -449,11 +449,16 @@
       "fee": "Escribe una comisión entre 0 y 30 (hasta dos decimales).",
       "ein": "Escribe el EIN como 12-3456789.",
       "receiptsNeedCharity": "Para enviar recibos, escribe el nombre legal y el EIN de la organización.",
-      "fromDay": "Elige el día desde el que los recibos cubren los regalos."
+      "fromDay": "Elige el día desde el que los recibos cubren los regalos.",
+      "shippingAddress": "Escribe la dirección en hasta 6 líneas (300 caracteres)."
     },
     "fromDay": "Los recibos cubren regalos desde",
     "fromDayHint": "El día en que empezó el acuerdo con la organización. Los regalos anteriores nunca reciben recibo.",
-    "before": "{count, plural, one {# regalo se hizo antes del {day} y no recibe recibo.} other {# regalos se hicieron antes del {day} y no reciben recibo.}}"
+    "before": "{count, plural, one {# regalo se hizo antes del {day} y no recibe recibo.} other {# regalos se hicieron antes del {day} y no reciben recibo.}}",
+    "shippingTitle": "Envío de regalos (listas de deseos)",
+    "shippingAddress": "Dirección de envío de Spirit O Santa",
+    "shippingHint": "Las tiendas envían aquí los regalos completos. Aparece en los correos a las tiendas y en su página de Pedidos. Hasta 6 líneas.",
+    "shippingMissing": "Falta la dirección de envío: las tiendas no reciben aviso de regalos completos hasta que la guardes."
   },
   "Donations": {
     "title": "Donaciones de la comunidad",

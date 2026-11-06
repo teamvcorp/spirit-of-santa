@@ -39,10 +39,16 @@ export type EmailTemplates = {
    * Stripe Checkout; org details typed by an admin. Body is multi-line (rendered with line breaks).
    */
   donationReceipt: { link: string; receiptNo: string; amount: string; date: string; donorName: string; orgName: string; ein: string; orgAddress: string };
+  /**
+   * Daily store digest (Phase 6 slice 3): gifts to SET ASIDE and gifts READY TO SHIP. Lists are
+   * pre-built lines "2 × Bike (refs AB12CD, EF34GH)"; item names were typed by the store itself,
+   * the address by an admin. Nothing about the children, ever.
+   */
+  storeOrders: { link: string; storeName: string; setAside: string; readyToShip: string; address: string };
 };
 
 /** Security alerts and "you already have an account": "ignore this email" would be wrong advice. */
-const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled", "donationReceipt"]);
+const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled", "donationReceipt", "storeOrders"]);
 export type EmailTemplateName = keyof EmailTemplates;
 
 export type RenderedEmail = { subject: string; text: string; html: string };

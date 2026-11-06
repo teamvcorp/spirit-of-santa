@@ -449,11 +449,16 @@
       "fee": "Enter a fee between 0 and 30 (up to two decimals).",
       "ein": "Enter the EIN as 12-3456789.",
       "receiptsNeedCharity": "To send receipts, fill in the charity's legal name and EIN.",
-      "fromDay": "Choose the day receipts start covering gifts."
+      "fromDay": "Choose the day receipts start covering gifts.",
+      "shippingAddress": "Enter the address in up to 6 lines (300 characters)."
     },
     "fromDay": "Receipts cover gifts from",
     "fromDayHint": "The day the charity arrangement took effect. Gifts before this day never get a receipt.",
-    "before": "{count, plural, one {# gift was made before {day} and gets no receipt.} other {# gifts were made before {day} and get no receipt.}}"
+    "before": "{count, plural, one {# gift was made before {day} and gets no receipt.} other {# gifts were made before {day} and get no receipt.}}",
+    "shippingTitle": "Gift shipping (wish lists)",
+    "shippingAddress": "Spirit O Santa shipping address",
+    "shippingHint": "Stores ship fully funded gifts here. Shown in store emails and on the store's Orders page. Up to 6 lines.",
+    "shippingMissing": "The shipping address isn't set: stores aren't told about funded gifts until you save one."
   },
   "Donations": {
     "title": "Community donations",

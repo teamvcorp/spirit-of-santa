@@ -20,6 +20,8 @@ export type PlatformSettingsView = {
   receiptsReady: boolean;
   /** Start of receiptsFromDay (Central-Time midnight), or null. */
   receiptsFrom: Date | null;
+  /** Where stores ship funded gifts ("" = not set: store emails wait until it is). Multi-line. */
+  shippingAddress: string;
 };
 
 export async function getPlatformSettings(): Promise<PlatformSettingsView> {
@@ -35,6 +37,7 @@ export async function getPlatformSettings(): Promise<PlatformSettingsView> {
     receiptsFromDay,
     receiptsReady: receiptsEnabled && charity.legalName !== "" && charity.ein !== "" && receiptsFromDay !== "",
     receiptsFrom: receiptsFromDay ? startOfDayInZone(receiptsFromDay) : null,
+    shippingAddress: s?.shippingAddress ?? "",
   };
 }
 
@@ -53,10 +56,15 @@ export const settingsInputSchema = z.object({
   address: z.string().trim().max(200),
   receiptsEnabled: z.boolean(),
   receiptsFromDay: z.union([z.literal(""), z.string().refine((d) => parseIsoDay(d) !== null)]),
+  /** Line breaks normalised to \n (browsers send \r\n); max 6 lines. */
+  shippingAddress: z
+    .string()
+    .transform((v) => v.replace(/\r\n?/g, "\n").split("\n").map((l) => l.trim()).filter(Boolean).join("\n"))
+    .pipe(z.string().max(300).refine((v) => v.split("\n").length <= 6)),
 });
 export type SettingsInput = z.infer<typeof settingsInputSchema>;
 
-export type SettingsResult = { ok: true } | { ok: false; error: "invalid" | "fee" | "ein" | "fromDay" | "receiptsNeedCharity" };
+export type SettingsResult = { ok: true } | { ok: false; error: "invalid" | "fee" | "ein" | "fromDay" | "receiptsNeedCharity" | "shippingAddress" };
 
 /** Save all settings at once (admin). Turning receipts ON needs the charity's name + EIN. */
 export async function updatePlatformSettings(adminUserId: string, raw: SettingsInput): Promise<SettingsResult> {
@@ -64,7 +72,7 @@ export async function updatePlatformSettings(adminUserId: string, raw: SettingsI
   if (!parsed.success) {
     // Name the field the admin got wrong (the ONE place these rules live).
     const field = parsed.error.issues[0]?.path[0];
-    return { ok: false, error: field === "donationFeeBps" ? "fee" : field === "ein" ? "ein" : field === "receiptsFromDay" ? "fromDay" : "invalid" };
+    return { ok: false, error: field === "donationFeeBps" ? "fee" : field === "ein" ? "ein" : field === "receiptsFromDay" ? "fromDay" : field === "shippingAddress" ? "shippingAddress" : "invalid" };
   }
   const v = parsed.data;
   if (v.receiptsEnabled && (v.legalName === "" || v.ein === "")) return { ok: false, error: "receiptsNeedCharity" };
@@ -80,6 +88,7 @@ export async function updatePlatformSettings(adminUserId: string, raw: SettingsI
           "charity.legalName": v.legalName,
           "charity.address": v.address,
           receiptsEnabled: v.receiptsEnabled,
+          shippingAddress: v.shippingAddress,
           updatedByUserId: adminUserId,
           ...(v.ein ? { "charity.ein": v.ein } : {}),
           ...(v.receiptsFromDay ? { receiptsFromDay: v.receiptsFromDay } : {}),
@@ -101,6 +110,7 @@ export async function updatePlatformSettings(adminUserId: string, raw: SettingsI
             feeBps: { from: before?.donationFeeBps ?? null, to: v.donationFeeBps },
             receiptsEnabled: { from: before?.receiptsEnabled ?? false, to: v.receiptsEnabled },
             receiptsFromDay: { from: before?.receiptsFromDay ?? null, to: v.receiptsFromDay || null },
+            shippingAddressChanged: (before?.shippingAddress ?? "") !== v.shippingAddress,
             charityChanged:
               (before?.charity?.legalName ?? "") !== v.legalName || (before?.charity?.ein ?? "") !== v.ein || (before?.charity?.address ?? "") !== v.address,
           },

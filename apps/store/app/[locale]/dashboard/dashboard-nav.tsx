@@ -2,11 +2,12 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 
 /** Dashboard sub-navigation. Owners see Profile + Reps; reps see what they can use. */
-export async function DashboardNav({ isOwner, current }: { isOwner: boolean; current: "overview" | "items" | "profile" | "reps" }) {
+export async function DashboardNav({ isOwner, current }: { isOwner: boolean; current: "overview" | "items" | "orders" | "profile" | "reps" }) {
   const t = await getTranslations("Dashboard.nav");
   const items = [
     { key: "overview", href: "/dashboard", show: true },
     { key: "items", href: "/dashboard/items", show: true },
+    { key: "orders", href: "/dashboard/orders", show: true },
     { key: "profile", href: "/dashboard/profile", show: isOwner },
     { key: "reps", href: "/dashboard/reps", show: isOwner },
   ] as const;

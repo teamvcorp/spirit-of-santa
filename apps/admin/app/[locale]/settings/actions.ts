@@ -21,8 +21,9 @@ export type SettingsFormState = {
   nonce?: string;
 };
 
-const FIELDS = ["fee", "legalName", "ein", "address", "receipts", "fromDay"] as const;
-const str = (fd: FormData, k: string) => (typeof fd.get(k) === "string" ? String(fd.get(k)).slice(0, 200) : "");
+const FIELDS = ["fee", "legalName", "ein", "address", "receipts", "fromDay", "shippingAddress"] as const;
+// Capped echo copies (the service's Zod schema is the real length check).
+const str = (fd: FormData, k: string) => (typeof fd.get(k) === "string" ? String(fd.get(k)).slice(0, 400) : "");
 
 export async function saveSettingsAction(_prev: SettingsFormState, fd: FormData): Promise<SettingsFormState> {
   const admin = await requireRole(authOptions, "admin");
@@ -37,6 +38,7 @@ export async function saveSettingsAction(_prev: SettingsFormState, fd: FormData)
     address: values.address.trim(),
     receiptsEnabled: values.receipts === "on",
     receiptsFromDay: values.fromDay.trim(),
+    shippingAddress: values.shippingAddress,
   });
   if (!r.ok) return fail(r.error);
   // A SMALL batch now (keeps Save fast); sendPendingReceipts checks the settings itself.

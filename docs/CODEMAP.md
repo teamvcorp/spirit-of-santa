@@ -509,6 +509,18 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   (`CAP_STATUSES`/`countsTowardCap` ≠ the store dashboard's ON_LIST_STATUSES, `lockAt`, `isRemovable`) shared by engine + UI (tests). Review fixes: one error vocabulary (UI uses engine codes, e.g. `alreadyListed`), view counted in `after()`, browse queries in parallel, page past the end → last page, rows of hidden gifts not linked (`viewable`), remove redirects to the engine's kid id. `toObjectId` in @repo/db: aggregate() does
   NOT cast string ids (a string $match silently matches nothing). E2E `browser-family-wishlist.ts` (23).
   Gotcha: notFound() inside Suspense streams with HTTP 200: E2E checks the "Page not found" text, not the status.
+- **Slice 3a fulfilment: stores (2026-11-06).** User decisions: store told to SET ASIDE at full funding, ships only at
+  LOCK-IN (30 days or the freeze, whichever first; `lockFundedItems` locks ALL this season's fully funded gifts once
+  frozen/closed); family emailed only when the admin sends it on (3b). `@repo/wishlists/fulfilment`: `storeOrders`
+  (set aside / ready / out of stock / shipped 60 days), `markShipped` (own store, LOCKED, no substitute pending,
+  compare-and-set, audit "wish.ship"), `sendStoreDigests` (daily, from /api/cron/money after locking: one email per
+  store member = owner + active reps, template `storeOrders`, lines "2 × Bike (refs AB12CD, …)", waits until the
+  admin saves Settings → shipping address; marks setAsideNotifiedAt/readyNotifiedAt only AFTER sending; idempotency
+  key = hash of the gift ids), `orderRef` (last 6 hex). Stores NEVER see anything about the child. Store app
+  `/dashboard/orders` + overview alert; admin Settings "shipping address" (PlatformSettings.shippingAddress, read by
+  fulfilment directly: payments imports wishlists, so no cycle). New WishListItem fields: set-aside/ready notified,
+  substitute arranged/note, shippedBy/trackingNote, receivedAt/By, deliveredBy, familyNotifiedAt. Family project now
+  needs `STORE_APP_URL`. E2E `browser-store-orders.ts` (17).
 
 ## Open items / TODO
 

@@ -6,6 +6,12 @@
  *     │                              │                                        │
  *     └──removed (escrow released)◀──┘ (only before lock)          shipped ─▶ delivered
  *   Dec 25 with funded < cost ──▶ unfunded (parent may pay up)
+ *
+ * Fulfilment (slice 3, user decisions 2026-11-06): the store is told to SET ASIDE the item at full
+ * funding, but ships only once it's LOCKED (30 days, or at the Dec 1 freeze, when nothing can be
+ * removed any more) → "shipped" (store → Spirit O Santa) → admin marks it received (receivedAt) →
+ * admin sends it to the family → "delivered" + the parent is emailed. The store never sees
+ * anything about the child: only the item, a reference code and Spirit O Santa's address.
  */
 // Default import: mongoose is CommonJS, so named runtime imports fail under plain Node ESM.
 import mongoose, { type InferSchemaType, type Model } from "mongoose";
@@ -56,8 +62,23 @@ const wishListItemSchema = new Schema(
     needsSubstitute: { type: Boolean },
     lockedAt: Date,
     removedAt: Date,
-    shippedAt: Date,
-    deliveredAt: Date,
+
+    /** Daily store digest: when the store was told to set it aside / that it's ready to ship. */
+    setAsideNotifiedAt: Date,
+    readyNotifiedAt: Date,
+    /** Admin arranged a substitute with the store (clears needsSubstitute; note is admin-typed). */
+    substituteArrangedAt: Date,
+    substituteNote: { type: String, trim: true, maxlength: 300 },
+
+    shippedAt: Date, // store → Spirit O Santa
+    shippedByUserId: objectId("User", false),
+    /** Carrier + tracking number as typed by the store (optional). */
+    trackingNote: { type: String, trim: true, maxlength: 100 },
+    receivedAt: Date, // Spirit O Santa has it
+    receivedByUserId: objectId("User", false),
+    deliveredAt: Date, // sent on to the family (parent emailed)
+    deliveredByUserId: objectId("User", false),
+    familyNotifiedAt: Date,
   },
   { timestamps: true, versionKey: false },
 );
@@ -65,6 +86,7 @@ const wishListItemSchema = new Schema(
 wishListItemSchema.index({ kidId: 1, seasonYear: 1, status: 1 });
 wishListItemSchema.index({ status: 1, fullyFundedAt: 1 }); // daily lock cron
 wishListItemSchema.index({ storeId: 1, status: 1 }); // store fulfilment queue
+wishListItemSchema.index({ status: 1, receivedAt: 1 }); // admin fulfilment queue
 wishListItemSchema.index({ storeId: 1, seasonYear: 1, itemId: 1 }); // store engagement totals per item
 wishListItemSchema.index({ seasonYear: 1, status: 1 }); // admin dashboard season totals
 

@@ -12,7 +12,7 @@ import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { saveSettingsAction, type SettingsFormState } from "./actions";
 
-export type SettingsDefaults = { fee: string; legalName: string; ein: string; address: string; receipts: boolean; fromDay: string };
+export type SettingsDefaults = { fee: string; legalName: string; ein: string; address: string; receipts: boolean; fromDay: string; shippingAddress: string };
 
 export function SettingsForm({ saved }: { saved: SettingsDefaults }) {
   const t = useTranslations("Settings");
@@ -26,6 +26,7 @@ export function SettingsForm({ saved }: { saved: SettingsDefaults }) {
     address: v?.address ?? saved.address,
     receipts: v ? v.receipts === "on" : saved.receipts,
     fromDay: v?.fromDay ?? saved.fromDay,
+    shippingAddress: v?.shippingAddress ?? saved.shippingAddress,
   };
   return (
     <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-4">
@@ -44,6 +45,12 @@ export function SettingsForm({ saved }: { saved: SettingsDefaults }) {
         </span>
       </label>
       <TextField label={t("fromDay")} hint={t("fromDayHint")} name="fromDay" type="date" defaultValue={d.fromDay} />
+      <h3 className="mt-2 font-semibold">{t("shippingTitle")}</h3>
+      <label className="flex flex-col gap-1">
+        <span className="font-medium">{t("shippingAddress")}</span>
+        <textarea name="shippingAddress" rows={4} maxLength={300} defaultValue={d.shippingAddress} className="rounded-lg border border-foreground/20 bg-background px-3 py-2" aria-describedby="shipping-hint" />
+        <span id="shipping-hint" className="text-sm text-foreground/70">{t("shippingHint")}</span>
+      </label>
       <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">
         {t("save")}
       </Button>

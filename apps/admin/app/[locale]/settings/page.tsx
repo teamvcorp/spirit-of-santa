@@ -27,6 +27,7 @@ async function Content() {
   return (
     <div className="flex flex-col gap-6">
       {s.donationFeeBps === null && <Alert tone="error">{t("feeMissing")}</Alert>}
+      {!s.shippingAddress && <Alert tone="error">{t("shippingMissing")}</Alert>}
       <Card>
         <h2 className="mb-1 text-lg font-semibold">{t("donationsTitle")}</h2>
         <p className="mb-4 text-sm text-foreground/70">{t("donationsIntro")}</p>
@@ -39,6 +40,7 @@ async function Content() {
             receipts: s.receiptsEnabled,
             // Not chosen yet: suggest today (Central Time), the admin confirms it.
             fromDay: s.receiptsFromDay || isoDay(calendarDateIn(new Date())),
+            shippingAddress: s.shippingAddress,
           }}
         />
       </Card>

@@ -371,16 +371,20 @@ export async function removeFromList(
   }
 }
 
-/** Daily: fully funded for ITEM_LOCK_DAYS → locked (can't be removed any more). */
+/**
+ * Daily: fully funded items → LOCKED (can't be removed; the store may now ship them).
+ *  - after ITEM_LOCK_DAYS (30) fully funded, any time; and
+ *  - from the Dec 1 FREEZE on (frozen or closed), every fully funded item of that season at once:
+ *    lists can't change any more, so waiting out the 30 days would only delay shipping
+ *    (user decision 2026-11-06: "ship at lock-in: 30 days or the freeze, whichever first").
+ */
 export async function lockFundedItems(now = new Date()): Promise<number> {
   await connectDb();
+  const season = await getSeasonState(now);
+  const byAge = { fullyFundedAt: trusted({ $lte: new Date(now.getTime() - ITEM_LOCK_DAYS * DAY_MS) }) };
+  const frozen = season.phase === "frozen" || season.phase === "closed";
   const res = await WishListItem.updateMany(
-    {
-      status: "fully_funded",
-      fullyFundedAt: trusted({
-        $lte: new Date(now.getTime() - ITEM_LOCK_DAYS * DAY_MS),
-      }),
-    },
+    frozen ? { status: "fully_funded", $or: [byAge, { seasonYear: season.year }] } : { status: "fully_funded", ...byAge },
     { $set: { status: "locked", lockedAt: now } },
   );
   return res.modifiedCount;

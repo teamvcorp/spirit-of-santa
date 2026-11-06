@@ -67,6 +67,12 @@
       "heading": "Thank you for your gift",
       "body": "Thank you for supporting children through Spirit O Santa, a program of {orgName}.\n\nReceipt number: {receiptNo}\nDate: {date}\nAmount: {amount}\nDonor: {donorName}\n\n{orgName}, EIN {ein}\n{orgAddress}\n\nNo goods or services were provided in exchange for this contribution. {orgName} is a tax-exempt organization under section 501(c)(3) of the Internal Revenue Code. Please keep this receipt for your tax records.",
       "button": "Visit Spirit O Santa"
+    },
+    "storeOrders": {
+      "subject": "Spirit O Santa gift orders for {storeName}",
+      "heading": "Gift orders",
+      "body": "Hi {storeName}! Here's today's update on gifts children have funded.\n\nSET ASIDE (fully funded: please keep these for us, don't ship yet):\n{setAside}\n\nREADY TO SHIP (locked in: please ship now and mark them shipped on your Orders page):\n{readyToShip}\n\nShip to:\n{address}\n\nPlease write each reference code on the package.",
+      "button": "Open my orders"
     }
   }
 }

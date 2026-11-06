@@ -76,7 +76,8 @@
       "overview": "Resumen",
       "profile": "Perfil de la tienda",
       "reps": "Representantes",
-      "items": "Artículos"
+      "items": "Artículos",
+      "orders": "Pedidos"
     },
     "statusHelp": {
       "pending": "Estamos revisando tu tienda. Ya puedes preparar tu perfil, fotos y equipo. Las familias verán tu tienda cuando sea aprobada.",
@@ -108,7 +109,8 @@
       "windowClosed": "Las listas de artículos están cerradas a cambios en este momento (normalmente se abren del 1 de enero al 31 de marzo).",
       "limitReached": "Llegaste al límite de artículos. Archiva un artículo para agregar otro.",
       "priceRequired": "Escribe un precio."
-    }
+    },
+    "ordersAlert": "{ready, plural, =0 {} one {# regalo está listo para enviar.} other {# regalos están listos para enviar.}} {setAside, plural, =0 {} one {# regalo para apartar.} other {# regalos para apartar.}}"
   },
   "Profile": {
     "title": "Perfil de la tienda",
@@ -234,5 +236,30 @@
     "stockSaved": "Guardado",
     "stockInvalid": "Escribe 0–9999",
     "photoReplaced": "Foto cambiada."
+  },
+  "Orders": {
+    "title": "Pedidos de regalos",
+    "intro": "Regalos que los niños completaron en tu tienda. Nunca compartimos nada sobre los niños: usa el código de referencia para identificar cada paquete.",
+    "readyTitle": "Listos para enviar ({count})",
+    "readyIntro": "Estos regalos están asegurados. Envía cada uno a Spirit O Santa, escribe su código de referencia en el paquete y márcalo como enviado.",
+    "shipTo": "Enviar a:",
+    "noAddress": "Spirit O Santa todavía no tiene dirección de envío. Espera antes de enviar; te avisaremos por correo.",
+    "setAsideTitle": "Apartar ({count})",
+    "setAsideIntro": "Completos, pero la familia todavía puede cambiar la lista. Aparta uno de cada uno y no los envíes todavía: pasan a \"Listos para enviar\" cuando se aseguran (30 días o el 1 de diciembre).",
+    "outTitle": "Agotados ({count})",
+    "outIntro": "Se completaron cuando ya no te quedaban. Spirit O Santa te contactará sobre un sustituto.",
+    "shippedTitle": "Enviados (últimos 60 días)",
+    "none": "No hay nada aquí por ahora.",
+    "fundedOn": "Completo el {date}",
+    "shippedOn": "Enviado el {date}",
+    "tracking": "Transportista y número de rastreo (opcional)",
+    "trackingPlaceholder": "p. ej., UPS 1Z999…",
+    "trackingFor": "Rastreo de {ref}",
+    "markShipped": "Marcar como enviado",
+    "errors": {
+      "notFound": "No se encontró ese pedido. Vuelve a cargar la página.",
+      "notReady": "Ese regalo no se puede enviar ahora (quizás ya se envió). Vuelve a cargar la página.",
+      "tracking": "La nota de rastreo debe tener menos de 100 caracteres."
+    }
   }
 }

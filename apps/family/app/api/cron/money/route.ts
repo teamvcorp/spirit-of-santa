@@ -6,7 +6,8 @@
  * Each part checks the season itself and does nothing when it isn't its time, IN ORDER:
  *  1. Split held donation pools (only while frozen, fee set). Daily runs share late gifts too.
  *  2. Switch off expired pay-later text links (Phase 5 slice 4b), BEFORE the season end.
- *     Then wish lists (Phase 6): lock items fully funded 30+ days ago; sweep unallocated points.
+ *     Then wish lists (Phase 6): lock items (30 days funded, or all at the freeze); sweep unallocated
+ *     points; then email each store its new gifts to set aside / ready to ship (needs STORE_APP_URL).
  *  3. Season end (only in the off-season, once per ended season): unshared donation money
  *     retained, every kid's points reset to 0 with a ledger row.
  *  4. Email tax receipts still waiting (receipts switched on, gift on/after the start day).
@@ -19,6 +20,7 @@ import { expirePayLaterLinks } from "@repo/deeds/pay-later";
 import { runSeasonReset } from "@repo/payments/season-end";
 import { runDonationSplit } from "@repo/payments/split";
 import { lockFundedItems, sweepAllocations } from "@repo/wishlists/engine";
+import { sendStoreDigests } from "@repo/wishlists/fulfilment";
 
 /**
  * Up to 5 minutes (Vercel Fluid compute; check the project's plan limit). The split credits kids in
@@ -49,6 +51,8 @@ export async function GET(request: Request): Promise<Response> {
   const payLater = await settle(() => expirePayLaterLinks());
   // Wish lists (Phase 6): fully funded 30+ days → locked; then a safety sweep of unallocated points.
   const wishLists = await settle(async () => ({ locked: await lockFundedItems(), sweep: await sweepAllocations() }));
+  // After locking, so gifts locked today are in today's "ready to ship" email.
+  const storeOrders = await settle(() => sendStoreDigests());
   const seasonEnd = await settle(() => runSeasonReset());
   const receipts = await settle(() => sendPendingReceipts({ limit: 50 }));
   const result = {
@@ -56,11 +60,12 @@ export async function GET(request: Request): Promise<Response> {
     seasonEnd: seasonEnd.status === "fulfilled" ? seasonEnd.value : "failed",
     payLater: payLater.status === "fulfilled" ? payLater.value : "failed",
     wishLists: wishLists.status === "fulfilled" ? wishLists.value : "failed",
+    storeOrders: storeOrders.status === "fulfilled" ? storeOrders.value : "failed",
     receipts: receipts.status === "fulfilled" ? receipts.value : "failed",
   };
-  const failed = [split, seasonEnd, payLater, wishLists, receipts].some((r) => r.status === "rejected");
+  const failed = [split, seasonEnd, payLater, wishLists, storeOrders, receipts].some((r) => r.status === "rejected");
   if (failed) {
-    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, payLater: payLater.status, wishLists: wishLists.status, receipts: receipts.status }));
+    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, receipts: receipts.status }));
     return Response.json(result, { status: 500, headers: { "Cache-Control": "no-store" } });
   }
   console.info("[cron] donations", JSON.stringify(result)); // totals/counts only, no personal data

@@ -48,14 +48,17 @@ const a2 = await Kid.create({ familyId: F1.f._id, firstName: "A2", birthYear: 20
 const a3 = await Kid.create({ familyId: F1.f._id, firstName: "A3", birthYear: 2019, displayName: "A." }); // awaiting: gets nothing
 const b1 = await Kid.create({ familyId: F2.f._id, firstName: "B1", birthYear: 2016, displayName: "B.", registration: reg });
 const piIds: string[] = [];
-const held = async (zip: string, cents: number) => {
+const held = async (zip: string, cents: number, extra: object = {}) => {
   const id = `pi_e2esplit${randomBytes(6).toString("hex")}`;
   piIds.push(id);
-  await Payment.create({ stripePaymentIntentId: id, livemode: false, purpose: "donation", status: "succeeded", seasonYear: year, amountCents: cents, currency: "usd", fulfilment: "held", zip, succeededAt: new Date() });
+  await Payment.create({ stripePaymentIntentId: id, livemode: false, purpose: "donation", status: "succeeded", seasonYear: year, amountCents: cents, currency: "usd", fulfilment: "held", zip, succeededAt: new Date(), ...extra });
+  return id;
 };
 await held("00701", 3000);
 await held("00701", 1500); // 00701 pool: $45
 await held("00702", 1000); // 00702 pool: $10
+// Refunded before the split (flagged): must NEVER become points.
+const refundedId = await held("00701", 5000, { refundedCents: 5000, needsReview: true, reviewReason: "refund (test)" });
 const admin = await createMfaAdmin(`e2e-split-admin-${tag}@spiritofsanta.test`);
 
 const browser = await chromium.launch({ channel: "msedge", headless: true });
@@ -112,9 +115,11 @@ try {
     (await balance(a1._id)) === 1350 && (await balance(a2._id)) === 1350 && (await balance(b1._id)) === 600 && (await balance(a3._id)) === 0);
   const tx = await Transaction.find({ kidId: trusted({ $in: [a1._id, a2._id, b1._id, a3._id] }) }).lean();
   check("3 ledger rows 'earn_donation' with idempotency keys", tx.length === 3 && tx.every((t) => t.type === "earn_donation" && /^donation-split:/.test(t.idempotencyKey ?? "")));
-  const pays = await Payment.find({ stripePaymentIntentId: trusted({ $in: piIds }) }).lean();
+  const pays = await Payment.find({ stripePaymentIntentId: trusted({ $in: piIds.filter((id) => id !== refundedId) }) }).lean();
   const splitIds = [...new Set(pays.map((p) => String(p.splitId)))];
-  check("all 3 gifts settled (credited) by one run", pays.every((p) => p.fulfilment === "credited" && p.splitId) && splitIds.length === 1);
+  check("all 3 gifts settled (credited) by one run", pays.length === 3 && pays.every((p) => p.fulfilment === "credited" && p.splitId) && splitIds.length === 1);
+  const refunded = await Payment.findOne({ stripePaymentIntentId: refundedId }).lean();
+  check("the refunded gift was NOT shared (still held, no run)", refunded?.fulfilment === "held" && !refunded.splitId);
   const run = await DonationSplit.findById(splitIds[0]).lean();
   check("run recorded: $55, fee $5.50, 3 kids, by admin; audited",
     run?.totalCents === 5500 && run.feeCents === 550 && run.kidsCredited === 3 && run.trigger === "admin" &&
@@ -124,6 +129,16 @@ try {
   await open();
   check("nothing left: the split button is disabled", await page.locator("main:visible").getByRole("button", { name: "Split now" }).isDisabled());
   check("past run listed", (await page.locator('main:visible [data-testid="runs"] li').count()) >= 1);
+
+  // 4b. An interrupted run (e.g. a timeout after crediting A1 but not A2) is FINISHED by the next
+  //     run, crediting only the kid that was missed.
+  await DonationSplit.collection.updateOne({ _id: new mongoose.Types.ObjectId(splitIds[0]) }, { $set: { status: "crediting" } });
+  await Transaction.collection.deleteOne({ kidId: a2._id, type: "earn_donation" });
+  await Kid.collection.updateOne({ _id: a2._id }, { $inc: { availableCentipoints: -1350 } });
+  const resume = (await (await cron(`Bearer ${cronSecret}`)).json()) as { split?: { resumed?: number } };
+  check("interrupted run finished: only A2 credited again (A1 not doubled), run marked done",
+    resume.split?.resumed === 1 && (await balance(a2._id)) === 1350 && (await balance(a1._id)) === 1350 &&
+      (await DonationSplit.findById(splitIds[0]).lean())?.status === "done", JSON.stringify(resume));
 
   // 5. A late gift is shared by the next daily cron.
   await held("00702", 1500);
@@ -141,7 +156,7 @@ try {
     (await Payment.findOne({ stripePaymentIntentId: piIds.at(-1) }).lean())?.fulfilment === "held");
   await open();
   check("admin page explains why and disables the button",
-    (await page.locator("main:visible").innerText()).includes("once the season is frozen") && (await page.locator("main:visible").getByRole("button", { name: "Split now" }).isDisabled()));
+    (await page.locator("main:visible").innerText()).includes("while the season is frozen") && (await page.locator("main:visible").getByRole("button", { name: "Split now" }).isDisabled()));
   check("no browser errors", errors.length === 0, errors.slice(0, 3).join(" || "));
 } catch (err) {
   report();

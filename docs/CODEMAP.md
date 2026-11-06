@@ -413,8 +413,13 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   (split + send pending receipts, independent; Bearer CRON_SECRET) → late gifts shared next day. Admin `/donations`:
   preview table, "Split now" (tick required, audited `donations.split`), past runs, receipt counts + retry failed.
   Scale note: one transaction credits every kid; fine for thousands; batch it if kids reach tens of thousands.
-  E2E `browser-donation-split.ts` (17): test-only ZIPs, REFUSES if the dev DB already has held gifts, restores
+  E2E `browser-donation-split.ts` (19): test-only ZIPs, REFUSES if the dev DB already has held gifts, restores
   season + settings.
+  Review fixes: split ONLY while FROZEN (Dec 1-25; points after the close are wiped Jan 1, like bonuses) → **slice 3
+  (Jan 1 job) must settle gifts still held after the close as retained/platform, visibly**; refunded/disputed/
+  needsReview gifts never shared; plan+settle = one short tx (fee/phase read AFTER the lock), kids credited in
+  BATCHES of 500 per tx, `DonationSplit.status` crediting→done + stored `recipients`, interrupted runs resumed first
+  (`resumed` in the result); no parallel ops on one tx session; preview shows "—" with no fee; cron maxDuration 300.
 - **Alert roles:** `tone="error"` → `role="alert"`, info → `role="status"`. E2E success checks must match both.
 - **Dev server gotchas:** new message namespaces may need a dev-server restart. **Mongoose models are cached across
   hot reloads (`models.X ?? model(...)`): after a SCHEMA change restart the dev server, or new fields are silently

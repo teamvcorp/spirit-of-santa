@@ -474,10 +474,11 @@
       "tooSmall": "Muy pequeño para repartir (se queda)"
     },
     "runTitle": "Repartir los fondos",
-    "runIntro": "Esto se hace solo cada día desde el congelamiento de la temporada (1 de diciembre). Usa el botón para hacerlo ahora.",
+    "runIntro": "Esto se hace solo cada día mientras la temporada está congelada (del 1 al 25 de diciembre). Usa el botón para hacerlo ahora.",
     "reason": {
-      "notYet": "Los fondos se reparten cuando la temporada está congelada (1 de diciembre).",
-      "feeMissing": "Primero define la comisión en Ajustes."
+      "notYet": "Los fondos se reparten mientras la temporada está congelada (del 1 al 25 de diciembre).",
+      "feeMissing": "Primero define la comisión en Ajustes.",
+      "seasonOver": "La temporada terminó: los fondos ya no se reparten (los puntos se reinician el 1 de enero). Los regalos restantes se manejan al cierre de la temporada."
     },
     "confirm": "Entiendo que esto acredita los puntos de los niños ahora y no se puede deshacer.",
     "splitNow": "Repartir ahora",
@@ -496,8 +497,9 @@
     "retried": "{requeued} en cola de nuevo, {sent} enviados ahora (el resto sale con la tarea diaria).",
     "errors": {
       "confirmRequired": "Marca la casilla para confirmar.",
-      "notYet": "Los fondos se reparten cuando la temporada está congelada (1 de diciembre).",
-      "feeMissing": "Primero define la comisión en Ajustes."
+      "notYet": "Los fondos se reparten mientras la temporada está congelada (del 1 al 25 de diciembre).",
+      "feeMissing": "Primero define la comisión en Ajustes.",
+      "seasonOver": "La temporada terminó: los fondos ya no se reparten (los puntos se reinician el 1 de enero). Los regalos restantes se manejan al cierre de la temporada."
     }
   }
 }

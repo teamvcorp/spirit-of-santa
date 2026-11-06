@@ -474,10 +474,11 @@
       "tooSmall": "Too small to share yet (stays)"
     },
     "runTitle": "Share the pools",
-    "runIntro": "This happens automatically every day from the season freeze (Dec 1). Use the button to run it now.",
+    "runIntro": "This happens automatically every day while the season is frozen (Dec 1 to Dec 25). Use the button to run it now.",
     "reason": {
-      "notYet": "Pools can be shared once the season is frozen (Dec 1).",
-      "feeMissing": "Set the platform fee in Settings first."
+      "notYet": "Pools are shared while the season is frozen (Dec 1 to Dec 25).",
+      "feeMissing": "Set the platform fee in Settings first.",
+      "seasonOver": "The season is over: pools are no longer shared (points would be reset on Jan 1). Remaining gifts are handled at the season end."
     },
     "confirm": "I understand this credits the children's points now and can't be undone.",
     "splitNow": "Split now",
@@ -496,8 +497,9 @@
     "retried": "{requeued} queued again, {sent} sent now (the rest go out with the daily job).",
     "errors": {
       "confirmRequired": "Tick the box to confirm.",
-      "notYet": "Pools can be shared once the season is frozen (Dec 1).",
-      "feeMissing": "Set the platform fee in Settings first."
+      "notYet": "Pools are shared while the season is frozen (Dec 1 to Dec 25).",
+      "feeMissing": "Set the platform fee in Settings first.",
+      "seasonOver": "The season is over: pools are no longer shared (points would be reset on Jan 1). Remaining gifts are handled at the season end."
     }
   }
 }

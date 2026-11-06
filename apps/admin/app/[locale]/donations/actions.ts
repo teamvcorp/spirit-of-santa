@@ -6,6 +6,7 @@
  */
 import { randomUUID } from "node:crypto";
 import { refresh } from "next/cache";
+import { z } from "zod";
 import { requireRole } from "@repo/auth";
 import { retryFailedReceipts, sendPendingReceipts } from "@repo/payments/receipts";
 import { runDonationSplit } from "@repo/payments/split";
@@ -19,10 +20,12 @@ export type DonationsFormState = {
   nonce?: string;
 };
 
+const splitForm = z.object({ confirm: z.literal("yes") });
+
 export async function runSplitAction(_prev: DonationsFormState, fd: FormData): Promise<DonationsFormState> {
   const admin = await requireRole(authOptions, "admin");
   // Sharing money is irreversible: the form requires an explicit tick.
-  if (fd.get("confirm") !== "yes") return { status: "error", error: "confirmRequired", nonce: randomUUID() };
+  if (!splitForm.safeParse({ confirm: fd.get("confirm") }).success) return { status: "error", error: "confirmRequired", nonce: randomUUID() };
   const r = await runDonationSplit({ trigger: "admin", adminUserId: admin.id });
   if (!r.ok) return { status: "error", error: r.error, nonce: randomUUID() };
   refresh();

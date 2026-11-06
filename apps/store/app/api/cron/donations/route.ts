@@ -11,6 +11,12 @@ import { timingSafeEqual } from "node:crypto";
 import { sendPendingReceipts } from "@repo/payments/receipts";
 import { runDonationSplit } from "@repo/payments/split";
 
+/**
+ * Up to 5 minutes (Vercel Fluid compute; check the project's plan limit). The split credits kids in
+ * resumable batches, so even a timeout only delays the rest to the next run or an admin "Split now".
+ */
+export const maxDuration = 300;
+
 export async function GET(request: Request): Promise<Response> {
   const secret = process.env.CRON_SECRET;
   const given = Buffer.from(request.headers.get("authorization") ?? "");
@@ -20,7 +26,7 @@ export async function GET(request: Request): Promise<Response> {
     return new Response("Unauthorized", { status: 401 });
   }
   // Independent jobs: one failing must not skip the other.
-  const [split, receipts] = await Promise.allSettled([runDonationSplit({ trigger: "cron" }), sendPendingReceipts({ limit: 100 })]);
+  const [split, receipts] = await Promise.allSettled([runDonationSplit({ trigger: "cron" }), sendPendingReceipts({ limit: 50 })]);
   const result = {
     split: split.status === "fulfilled" ? split.value : "failed",
     receipts: receipts.status === "fulfilled" ? receipts.value : "failed",

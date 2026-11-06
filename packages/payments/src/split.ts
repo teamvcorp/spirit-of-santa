@@ -10,10 +10,10 @@
  *    from the freeze to the end of the season, so late gifts are never stranded.
  *
  * Safety:
- *  - Runs only once the season is frozen or closed, and only after an admin chose the fee.
+ *  - Runs only while the season is FROZEN (Dec 1-25), and only after an admin chose the fee.
  *  - A Lock document serializes runs (cron + an admin click at the same moment can't both split
- *    the same money). Everything (kid balances, ledger rows, Payments, the DonationSplit record)
- *    changes in ONE transaction: all or nothing.
+ *    the same money). Planning + settling the gifts is ONE short transaction; kids are then
+ *    credited in batches of 500 (each its own transaction), resumable if interrupted.
  *  - Ledger rows carry an idempotency key per (run, pool, kid): a retried write can't double-credit.
  *  - Only the server decides amounts: nothing here comes from a browser.
  */
@@ -107,9 +107,21 @@ function planOne(p: HeldPool, kids: KidRef[], feeBps: number): PoolPlan {
   };
 }
 
-/** Held community donations of a season, grouped by ZIP (null = "all kids"). */
+/**
+ * Held community donations of a season, grouped by ZIP (null = "all kids"). Gifts that were
+ * refunded, disputed or flagged for review are NOT shared (they stay held for an admin): we never
+ * hand out points for money we no longer have (review 2026-11-06).
+ */
 async function heldPools(seasonYear: number, session?: DbSession): Promise<HeldPool[]> {
-  const rows = await Payment.find({ purpose: "donation", status: "succeeded", fulfilment: "held", seasonYear })
+  const rows = await Payment.find({
+    purpose: "donation",
+    status: "succeeded",
+    fulfilment: "held",
+    seasonYear,
+    refundedCents: 0,
+    "dispute.stripeDisputeId": null,
+    needsReview: trusted({ $ne: true }),
+  })
     .select("zip amountCents")
     .session(session ?? null)
     .lean<{ _id: unknown; zip?: string | null; amountCents: number }[]>();
@@ -124,7 +136,7 @@ async function heldPools(seasonYear: number, session?: DbSession): Promise<HeldP
   return [...byZip.values()];
 }
 
-/** Registered (consent-verified), non-deleted kids, also grouped by their family's ZIP. */
+/** Registered (consent-verified), non-deleted kids, also grouped by their family's ZIP. Sequential reads (one session). */
 async function eligibleKids(session?: DbSession): Promise<{ all: KidRef[]; byZip: Map<string, KidRef[]> }> {
   const kids = await Kid.find({ archivedAt: null, "registration.status": "registered" })
     .select("_id familyId")
@@ -141,25 +153,39 @@ async function eligibleKids(session?: DbSession): Promise<{ all: KidRef[]; byZip
   for (const k of all) {
     const zip = zipOf.get(k.familyId);
     if (!zip) continue;
-    byZip.set(zip, [...(byZip.get(zip) ?? []), k]);
+    const list = byZip.get(zip);
+    if (list) list.push(k);
+    else byZip.set(zip, [k]);
   }
   return { all, byZip };
+}
+
+/**
+ * Why a split can't run now. Only while the season is FROZEN (Dec 1 → Dec 25): points credited
+ * after the close would be wiped by the Jan 1 reset days later (same rule as bonuses). Gifts still
+ * held after the close are handled by the season-end job (roadmap: unclaimed pooled funds retained).
+ */
+function blockedReason(phase: string, feeBps: number | null): "notYet" | "seasonOver" | "feeMissing" | undefined {
+  if (phase === "closed") return "seasonOver";
+  if (phase !== "frozen") return "notYet";
+  if (feeBps === null) return "feeMissing";
+  return undefined;
 }
 
 export type SplitPreview = {
   seasonYear: number;
   canRun: boolean;
-  reason?: "notYet" | "feeMissing";
+  reason?: "notYet" | "seasonOver" | "feeMissing";
   feeBps: number | null;
   pools: PoolSummary[];
 };
 
-/** What a run would do right now (admin page). No writes. */
+/** What a run would do right now (admin page). No writes. With no fee set yet, fee/points are not meaningful (page shows "—"). */
 export async function previewDonationSplit(): Promise<SplitPreview> {
   await connectDb();
   const [season, settings] = await Promise.all([getSeasonState(), getPlatformSettings()]);
-  const reason = season.phase !== "frozen" && season.phase !== "closed" ? "notYet" : settings.donationFeeBps === null ? "feeMissing" : undefined;
-  const [pools, kids] = await Promise.all([heldPools(season.year), eligibleKids()]);
+  const reason = blockedReason(season.phase, settings.donationFeeBps);
+  const [pools, kids] = await Promise.all([heldPools(season.year), eligibleKids()]); // no session: parallel is fine
   const plans = planSplit(pools, kids.byZip, kids.all, settings.donationFeeBps ?? 0);
   return {
     seasonYear: season.year,
@@ -171,24 +197,41 @@ export async function previewDonationSplit(): Promise<SplitPreview> {
 }
 
 export type SplitResult =
-  | { ok: true; splitId: string | null; kidsCredited: number; creditedCentipoints: number; totalCents: number; feeCents: number }
-  | { ok: false; error: "notYet" | "feeMissing" };
+  | { ok: true; splitId: string | null; kidsCredited: number; creditedCentipoints: number; totalCents: number; feeCents: number; resumed: number }
+  | { ok: false; error: "notYet" | "seasonOver" | "feeMissing"; resumed: number };
 
-/** Share every held pool of the current season. Safe to call daily: nothing held = nothing done. */
+/** Kids credited per transaction: small enough to stay well inside MongoDB/Vercel time limits. */
+const BATCH = 500;
+
+/**
+ * Share every held pool of the current season. Safe to call daily and to retry:
+ *  1. FIRST finish any run that was interrupted (e.g. a timeout) — see creditSplit.
+ *  2. Plan + settle in ONE short transaction behind the lock: the DonationSplit record (with the
+ *     exact recipient list, so a resumed run credits the same kids), the gifts marked credited,
+ *     the audit row. Season phase + fee are read AFTER taking the lock (never stale).
+ *  3. Credit the kids in batches (creditSplit).
+ */
 export async function runDonationSplit(opts: { trigger: "cron" | "admin"; adminUserId?: string }): Promise<SplitResult> {
   await connectDb();
-  const [season, settings] = await Promise.all([getSeasonState(), getPlatformSettings()]);
-  if (season.phase !== "frozen" && season.phase !== "closed") return { ok: false, error: "notYet" };
-  const feeBps = settings.donationFeeBps;
-  if (feeBps === null) return { ok: false, error: "feeMissing" };
   await ensureLock(LOCK); // outside the transaction (see lock.ts)
+  let resumed = 0;
+  for (const s of await DonationSplit.find({ status: "crediting" }).select("_id").lean()) resumed += await creditSplit(String(s._id));
 
-  return withTransaction(async (session) => {
+  type Planned =
+    | { reason: "notYet" | "seasonOver" | "feeMissing" }
+    | { splitId: string | null; kidsCredited: number; creditedCentipoints: number; totalCents: number; feeCents: number };
+  const planned = await withTransaction(async (session): Promise<Planned> => {
     await takeLock(LOCK, session); // one run at a time
-    const [pools, kids] = await Promise.all([heldPools(season.year, session), eligibleKids(session)]);
+    const [season, settings] = await Promise.all([getSeasonState(), getPlatformSettings()]); // own reads, not on the session
+    const reason = blockedReason(season.phase, settings.donationFeeBps);
+    if (reason) return { reason };
+    const feeBps = settings.donationFeeBps!;
+    // Sequential: a transaction session must not run operations in parallel.
+    const pools = await heldPools(season.year, session);
+    const kids = await eligibleKids(session);
     const plans = planSplit(pools, kids.byZip, kids.all, feeBps);
     const shared = plans.filter((p) => p.status === "split");
-    if (shared.length === 0) return { ok: true, splitId: null, kidsCredited: 0, creditedCentipoints: 0, totalCents: 0, feeCents: 0 };
+    if (shared.length === 0) return { splitId: null, kidsCredited: 0, creditedCentipoints: 0, totalCents: 0, feeCents: 0 };
 
     const totalCents = shared.reduce((s, p) => s + p.totalCents, 0);
     const feeCents = shared.reduce((s, p) => s + p.feeCents, 0);
@@ -201,7 +244,8 @@ export async function runDonationSplit(opts: { trigger: "cron" | "admin"; adminU
           trigger: opts.trigger,
           adminUserId: opts.adminUserId,
           feeBps,
-          pools: plans.map(summary),
+          status: "crediting",
+          pools: plans.map((p) => ({ ...summary(p), recipients: p.recipients.map((k) => ({ k: k.id, f: k.familyId })) })),
           totalCents,
           feeCents,
           creditedCentipoints,
@@ -211,24 +255,7 @@ export async function runDonationSplit(opts: { trigger: "cron" | "admin"; adminU
       { session },
     );
     const splitId = String(split!._id);
-
     for (const p of shared) {
-      const poolKey = p.zip ?? "all";
-      await Transaction.insertMany(
-        p.recipients.map((k) => ({
-          kidId: k.id,
-          familyId: k.familyId,
-          seasonYear: season.year,
-          type: "earn_donation",
-          amountCentipoints: p.perKidCentipoints,
-          idempotencyKey: `donation-split:${splitId}:${poolKey}:${k.id}`,
-        })),
-        { session },
-      );
-      await Kid.bulkWrite(
-        p.recipients.map((k) => ({ updateOne: { filter: { _id: k.id }, update: { $inc: { availableCentipoints: p.perKidCentipoints } } } })),
-        { session },
-      );
       // Settle exactly the payments planned (still "held": compare-and-set inside the lock).
       await Payment.updateMany({ _id: trusted({ $in: p.paymentIds }), fulfilment: "held" }, { $set: { fulfilment: "credited", splitId } }, { session });
     }
@@ -238,14 +265,66 @@ export async function runDonationSplit(opts: { trigger: "cron" | "admin"; adminU
         { session },
       );
     }
-    return { ok: true, splitId, kidsCredited, creditedCentipoints, totalCents, feeCents };
+    return { splitId, kidsCredited, creditedCentipoints, totalCents, feeCents };
   });
+
+  if ("reason" in planned) return { ok: false, error: planned.reason, resumed };
+  if (planned.splitId) await creditSplit(planned.splitId);
+  return { ok: true, ...planned, resumed };
+}
+
+/**
+ * Credit a planned run's kids, BATCH at a time, each batch its own transaction (lock taken so
+ * runs/resumes never overlap). Idempotent: a ledger row's unique key (run, pool, kid) says a kid
+ * was already credited, so an interrupted run can be finished any number of times without
+ * doubling. Returns how many kids were credited now.
+ */
+async function creditSplit(splitId: string): Promise<number> {
+  type Pool = { zip?: string | null; status: string; perKidCentipoints: number; recipients?: { k: unknown; f: unknown }[] };
+  const split = await DonationSplit.findById(splitId).select("seasonYear status pools").lean<{ seasonYear: number; status?: string; pools: Pool[] }>();
+  if (!split || split.status !== "crediting") return 0;
+  let credited = 0;
+  for (const pool of split.pools.filter((p) => p.status === "split")) {
+    const key = (kidId: string) => `donation-split:${splitId}:${pool.zip ?? "all"}:${kidId}`;
+    const recipients = (pool.recipients ?? []).map((r) => ({ kidId: String(r.k), familyId: String(r.f) }));
+    for (let i = 0; i < recipients.length; i += BATCH) {
+      const chunk = recipients.slice(i, i + BATCH);
+      credited += await withTransaction(async (session) => {
+        await takeLock(LOCK, session);
+        const keys = chunk.map((r) => key(r.kidId));
+        const done = new Set(
+          (await Transaction.find({ idempotencyKey: trusted({ $in: keys }) }).select("idempotencyKey").session(session).lean()).map((t) => t.idempotencyKey),
+        );
+        const todo = chunk.filter((r) => !done.has(key(r.kidId)));
+        if (todo.length === 0) return 0;
+        await Transaction.insertMany(
+          todo.map((r) => ({
+            kidId: r.kidId,
+            familyId: r.familyId,
+            seasonYear: split.seasonYear,
+            type: "earn_donation",
+            amountCentipoints: pool.perKidCentipoints,
+            idempotencyKey: key(r.kidId),
+          })),
+          { session },
+        );
+        await Kid.bulkWrite(
+          todo.map((r) => ({ updateOne: { filter: { _id: r.kidId }, update: { $inc: { availableCentipoints: pool.perKidCentipoints } } } })),
+          { session },
+        );
+        return todo.length;
+      });
+    }
+  }
+  await DonationSplit.updateOne({ _id: splitId, status: "crediting" }, { $set: { status: "done" } });
+  return credited;
 }
 
 /** Past runs for the admin page (newest first). */
 export async function listDonationSplits(limit = 20) {
   await connectDb();
-  const rows = await DonationSplit.find({}).sort({ createdAt: -1 }).limit(limit).lean();
+  // Without the recipient lists (can be thousands of kids per run).
+  const rows = await DonationSplit.find({}).select("-pools.recipients").sort({ createdAt: -1 }).limit(limit).lean();
   return rows.map((r) => ({
     id: String(r._id),
     at: r.createdAt,

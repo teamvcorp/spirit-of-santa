@@ -55,9 +55,10 @@ async function Content() {
                     <td className="py-2 pr-3">{p.zip ?? t("allKids")}</td>
                     <td className="py-2 pr-3">{p.paymentCount}</td>
                     <td className="py-2 pr-3">{formatCents(p.totalCents)}</td>
-                    <td className="py-2 pr-3">{formatCents(p.feeCents)}</td>
+                    {/* No fee chosen yet: fee/points would be misleading, show "—". */}
+                    <td className="py-2 pr-3">{preview.feeBps === null ? "—" : formatCents(p.feeCents)}</td>
                     <td className="py-2 pr-3">{p.kids}</td>
-                    <td className="py-2 pr-3">{formatPoints(p.perKidCentipoints)}</td>
+                    <td className="py-2 pr-3">{preview.feeBps === null ? "—" : formatPoints(p.perKidCentipoints)}</td>
                     <td className="py-2">{t(`status.${p.status}`)}</td>
                   </tr>
                 ))}

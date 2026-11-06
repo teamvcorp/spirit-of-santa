@@ -93,3 +93,11 @@ screenshot and the wording above** (one text, 7-day link, STOP/HELP, privacy + t
   opt-in form + wording; Spanish /es/text-messages). Real per-deed form: /d/<code> (single-use).
 - Privacy Policy: https://spiritofsanta.com/privacy (needs the SMS section: numbers not shared for marketing)
 - Terms of Service: https://spiritofsanta.com/terms (to build, with SMS terms)
+
+**Opt-in message (optional box), submitted 2026-11-06.** Our flow has NO separate confirmation text (we
+registered exactly 1 text per request), so this is the one message itself:
+
+> Spirit O Santa: here is your link to pay the tip for the good deed you received. It expires in 7 days: https://buy.stripe.com/abc123 Msg & data rates may apply. Reply STOP to opt out, HELP for help
+
+(197 chars = 2 SMS segments. No child's name in texts. Link = a Stripe Payment Link on buy.stripe.com, never a
+public URL shortener (carriers block those). Slice 4 must send exactly this wording, with the real link.)

@@ -43,6 +43,12 @@ const hydrated = (p: Page) =>
     return b.length > 0 && b.every((x) => !(x as HTMLButtonElement).disabled);
   });
 const alert = (text: string) => page.locator('main [role="alert"]').filter({ hasText: text }).first().waitFor({ timeout: 15_000 });
+/** On /parent with the dashboard showing, and still there 2 s later (a bounce back to the PIN page fails this). */
+const staysOnParent = async () => {
+  await page.waitForURL((u) => u.pathname.endsWith("/parent"), { timeout: 15_000 });
+  await page.waitForTimeout(2000);
+  return new URL(page.url()).pathname.endsWith("/parent") && (await page.locator("main h1").first().innerText()) === "Parent area";
+};
 const kidsOfA = () => Kid.find({ familyId: A.family._id }).sort({ createdAt: 1 }).lean();
 const audits = (action: string) => AuditLog.find({ actorUserId: A.user._id, action }).lean();
 
@@ -68,7 +74,9 @@ try {
   await page.goto(`${base}/`);
   await page.locator("main").getByText("No children added yet").waitFor({ timeout: 15_000 });
   check("home shows the (empty) kid selector for a signed-in parent", true);
-  await page.goto(`${base}/parent`);
+  // Click the home-page link like a person (not page.goto): a client-side navigation is what
+  // exposed the "first correct PIN bounces back" bug (router replayed the cached locked redirect).
+  await page.locator('main a[href$="/parent"]').first().click();
   await page.waitForURL(/\/parent\/pin\/setup/, { timeout: 15_000 });
   check("no PIN yet → parent area sends you to set one", true);
 
@@ -94,7 +102,7 @@ try {
   await page.fill('[name="pin"]', PIN);
   await page.fill('[name="pinConfirm"]', PIN);
   await page.locator("main button[type=submit]").click();
-  await page.waitForURL((u) => u.pathname.endsWith("/parent"), { timeout: 15_000 });
+  check("PIN set on the FIRST try lands in the parent area and stays there", await staysOnParent());
   const fam = await Family.findById(A.family._id).select("+parentPinHash").lean();
   check("PIN set (hashed, not stored as typed), parent area unlocked, audited",
     !!fam?.parentPinHash && !fam.parentPinHash.includes(PIN) && (await audits("family.pin_set")).length === 1);
@@ -143,8 +151,9 @@ try {
   await alert("locked itself");
   check("adding a kid without the PIN unlock is refused by the server", (await kidsOfA()).length === 2);
 
-  // 8. Locked: /parent asks for the PIN; wrong PIN refused; right PIN unlocks.
-  await page.goto(`${base}/parent`);
+  // 8. Locked: /parent asks for the PIN (reached by clicking, see step 1); wrong PIN refused; right PIN unlocks.
+  await page.goto(`${base}/`);
+  await page.locator('main a[href$="/parent"]').first().click();
   await page.waitForURL(/\/parent\/pin$/, { timeout: 15_000 });
   await hydrated(page);
   await page.fill('[name="pin"]', "0000");
@@ -153,8 +162,17 @@ try {
   await hydrated(page);
   await page.fill('[name="pin"]', PIN);
   await page.locator("main button[type=submit]").click();
-  await page.waitForURL((u) => u.pathname.endsWith("/parent"), { timeout: 15_000 });
-  check("wrong PIN refused, right PIN unlocks", true);
+  check("wrong PIN refused, ONE right PIN unlocks and stays unlocked", await staysOnParent());
+  await hydrated(page);
+  await page.locator("main").getByRole("button", { name: "Lock (back to kids)", exact: true }).click();
+  await page.waitForURL((u) => !u.pathname.includes("/parent"), { timeout: 15_000 });
+  await page.locator('main a[href$="/parent"]').first().click();
+  await page.waitForURL(/\/parent\/pin$/, { timeout: 15_000 });
+  check("Lock → home; the parent area asks for the PIN again (no cached unlocked page)", true);
+  await hydrated(page);
+  await page.fill('[name="pin"]', PIN);
+  await page.locator("main button[type=submit]").click();
+  check("…and unlocks again with one PIN", await staysOnParent());
 
   // 9. Delete (needs the tick) = really gone with their deeds + wish-list rows, audited.
   const oid = () => new mongoose.Types.ObjectId();

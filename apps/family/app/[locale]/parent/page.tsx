@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { Card } from "@repo/ui/card";
 import { listKids } from "@repo/families/kids";
 import { Link } from "@/i18n/navigation";
 import { requireUnlockedPage } from "@/lib/parent";
-import { lockAction } from "./actions";
-import { AliasForm, DeleteKidForm, VoteButtons } from "./parent-forms";
+import { AliasForm, DeleteKidForm, LockButton, VoteButtons } from "./parent-forms";
 import { getFamilySettings } from "@repo/families/settings";
 import { familyTallies } from "@repo/families/votes";
 
@@ -20,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 async function Content() {
   await connection();
   const parent = await requireUnlockedPage();
-  const [kids, t, locale, tallies, settings] = await Promise.all([listKids(parent), getTranslations("Parent"), getLocale(), familyTallies(parent), getFamilySettings(parent)]);
+  const [kids, t, tallies, settings] = await Promise.all([listKids(parent), getTranslations("Parent"), familyTallies(parent), getFamilySettings(parent)]);
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -29,12 +28,7 @@ async function Content() {
           <Link href="/parent/pin/setup" className="rounded-lg border border-current px-4 py-2 font-semibold">
             {t("changePin")}
           </Link>
-          <form action={lockAction}>
-            <input type="hidden" name="locale" value={locale} />
-            <button type="submit" className="rounded-lg border border-current px-4 py-2 font-semibold">
-              {t("lock")}
-            </button>
-          </form>
+          <LockButton label={t("lock")} />
         </div>
       </div>
       <Card>

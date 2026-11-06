@@ -1,13 +1,13 @@
 "use client";
 /** Parent-area forms. Every rule is re-checked on the server (actions.ts + @repo/families). */
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { LocaleField, useFieldError } from "@repo/auth/forms";
 import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
-import { aliasAction, deleteKidAction, saveKidAction, setPinAction, unlockAction, voteAction, type ParentFormState } from "./actions";
+import { aliasAction, deleteKidAction, lockAction, saveKidAction, setPinAction, unlockAction, voteAction, type ParentFormState } from "./actions";
 
 const INITIAL: ParentFormState = { status: "idle" };
 
@@ -21,11 +21,22 @@ function useErr(state: ParentFormState) {
   };
 }
 
+/**
+ * Full page load after the PIN lock state changed (see reloadTo in actions.ts). Only a same-site
+ * path is followed ("/x", never "//host" or "https://…"), even though the server sets it.
+ */
+function useFullReload(state: ParentFormState) {
+  useEffect(() => {
+    if (state.status === "done" && state.to && /^\/(?![\/\\])/.test(state.to)) window.location.replace(state.to);
+  }, [state]);
+}
+
 export function PinSetupForm() {
   const t = useTranslations("Parent");
   const [state, action, pending] = useActionState(setPinAction, INITIAL);
   const hydrated = useHydrated();
   const err = useErr(state);
+  useFullReload(state);
   return (
     <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-4">
       <LocaleField />
@@ -44,6 +55,7 @@ export function UnlockForm() {
   const t = useTranslations("Parent");
   const [state, action, pending] = useActionState(unlockAction, INITIAL);
   const hydrated = useHydrated();
+  useFullReload(state);
   return (
     <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-4">
       <LocaleField />
@@ -52,6 +64,19 @@ export function UnlockForm() {
       <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">
         {t("unlock")}
       </Button>
+    </form>
+  );
+}
+
+/** "Lock" button on the parent dashboard (the server redirects home; see lockAction). */
+export function LockButton({ label }: { label: string }) {
+  const [, action, pending] = useActionState(lockAction, INITIAL);
+  return (
+    <form action={action}>
+      <LocaleField />
+      <button type="submit" disabled={pending} className="rounded-lg border border-current px-4 py-2 font-semibold">
+        {label}
+      </button>
     </form>
   );
 }

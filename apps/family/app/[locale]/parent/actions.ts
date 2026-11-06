@@ -23,6 +23,8 @@ export type ParentFormState = {
   fieldErrors?: Record<string, string>;
   values?: Record<string, string>;
   nonce?: string;
+  /** Set when the PIN lock state changed: the form does a FULL page load to this path (see reloadTo). */
+  to?: string;
 };
 
 const str = formString;
@@ -37,6 +39,18 @@ const go = (href: string, fd: FormData): never => {
   redirect(localizePath(href, isLocale(raw) ? raw : DEFAULT_LOCALE));
 };
 
+/**
+ * After the PIN LOCK STATE changes (set PIN / unlock / lock) we don't use a router redirect: the
+ * browser's router remembers pages from before the change (e.g. "/parent → /parent/pin" while
+ * locked, which made the FIRST correct PIN look like it failed; or an UNLOCKED parent page after
+ * locking). Instead the action returns the path and the form does a full page load (useFullReload),
+ * which throws all of that away. Bug found 2026-11-06 clicking through on the dev server.
+ */
+const reloadTo = (href: string, fd: FormData): ParentFormState => {
+  const raw = fd.get("locale");
+  return { status: "done", to: localizePath(href, isLocale(raw) ? raw : DEFAULT_LOCALE) };
+};
+
 /** First PIN or a new one: needs the account password (see setParentPinWithPassword). */
 export async function setPinAction(_prev: ParentFormState, fd: FormData): Promise<ParentFormState> {
   const parent = await requireParent();
@@ -44,20 +58,25 @@ export async function setPinAction(_prev: ParentFormState, fd: FormData): Promis
   if (pin !== str(fd, "pinConfirm")) return { status: "error", fieldErrors: { pinConfirm: "pinMismatch" }, nonce: randomUUID() };
   const r = await setParentPinWithPassword(parent, str(fd, "password"), pin);
   if (!r.ok) return err(r.error);
-  return go("/parent", fd);
+  return reloadTo("/parent", fd);
 }
 
 export async function unlockAction(_prev: ParentFormState, fd: FormData): Promise<ParentFormState> {
   const parent = await requireParent();
   // Same answer for wrong PIN and lockout (the lockout is what makes guessing impractical).
   if (!(await unlockParentDashboard(parent, str(fd, "pin")))) return err("wrongPin");
-  return go("/parent", fd);
+  return reloadTo("/parent", fd);
 }
 
-export async function lockAction(fd: FormData): Promise<void> {
+/**
+ * Lock: a plain redirect home. (A returned path + full reload does NOT work here: Next re-renders
+ * the current page after an action that changes cookies, and the now-locked /parent redirects to
+ * the PIN page first.) The E2E checks no unlocked page is served from the browser cache afterwards.
+ */
+export async function lockAction(_prev: ParentFormState, fd: FormData): Promise<ParentFormState> {
   await requireParent();
   await lockParentDashboard();
-  go("/", fd);
+  return go("/", fd);
 }
 
 const KID_FIELDS = ["firstName", "birthYear", "displayName", "itemCap"] as const;

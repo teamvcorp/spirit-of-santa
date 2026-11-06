@@ -54,8 +54,11 @@ async function Content() {
                     {t("capLine", { cap: k.itemCap })}
                   </p>
                   {k.registered && (
-                    <div className="mt-2">
+                    <div className="mt-2 flex flex-wrap items-center gap-3">
                       <VoteButtons kidId={k.id} name={k.firstName} today={tallies.get(k.id)?.today} />
+                      <Link href={`/parent/bonus?kid=${k.id}`} className="text-sm underline underline-offset-4">
+                        {t("giveBonus")}
+                      </Link>
                     </div>
                   )}
                   <span className="mt-1 inline-block rounded-full border border-foreground/30 px-2 text-xs">{k.registered ? t("registered") : t("awaiting")}</span>

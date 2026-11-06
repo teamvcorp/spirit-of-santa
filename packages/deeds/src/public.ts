@@ -12,7 +12,7 @@ import "server-only";
 import { clientIp, hitRateLimit, ipKey } from "@repo/auth/rate-limit";
 import { connectDb, Deed, DeedType, Family, Kid, Payment, trusted } from "@repo/db";
 import { parseDollarsToCents } from "@repo/lib/format";
-import { MAX_TIP_CENTS, MIN_TIP_CENTS, TIP_PRESETS_CENTS } from "@repo/lib/limits";
+import { MAX_CHECKOUT_MS, MAX_TIP_CENTS, MIN_CHECKOUT_MS, MIN_TIP_CENTS, TIP_PRESETS_CENTS } from "@repo/lib/limits";
 import { buildPaymentMetadata, fulfilPaidPaymentIntent, getStripe } from "@repo/payments/checkout";
 import { startOfDayInZone } from "@repo/lib/season";
 import { getSeasonState } from "@repo/stores/season";
@@ -127,10 +127,8 @@ export async function publicSeason(): Promise<{ seasonOpen: boolean; seasonClose
   return { seasonOpen: season.phase === "open" || season.phase === "frozen", seasonCloseAt: startOfDayInZone(season.dates.close) };
 }
 
-/** Stripe's minimum Checkout lifetime is 30 minutes: a code expiring sooner can't take a tip. */
-export const MIN_CHECKOUT_MS = 31 * 60_000;
-/** ...and at most just under 24 hours (we use 23.5 h). */
-export const MAX_CHECKOUT_MS = 23.5 * 3_600_000;
+/** Stripe Checkout lifetime bounds: shared in @repo/lib/limits (re-exported for donate.ts). */
+export { MAX_CHECKOUT_MS, MIN_CHECKOUT_MS };
 
 /**
  * Start a tip: Embedded Checkout for the chosen amount. The QR is NOT used up here (an abandoned

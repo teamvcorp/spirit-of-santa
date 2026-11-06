@@ -357,6 +357,23 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
 - Order: 1 parent sign-up → 2 kids + PIN + dashboard shell (+ $5 step) → 3 deed + QR → 4 QR landing/thank-you →
   5 parent controls → 6 donation QR. Pay now/later (Stripe Elements, Twilio) = Phase 5.
 
+## Phase 5 (payments) decisions (user, 2026-11-06)
+
+- **/donate (slice 2):** community/corporate gifts to "all kids" or one zip POOL and are split ONCE on Dec 1, in EQUAL
+  shares among eligible (registered) kids. Admin-set platform fee % taken off the top at the split (platform revenue),
+  stated plainly on the page. Tax receipt email for EVERY gift via Edynsgate (501(c)(3); legal name + EIN in admin).
+- Order: 1 parent bonus → 2 /donate → 3 Jan 1 reset → 4 pay-later SMS (needs Twilio A2P approval). Dec 25 pay-up and
+  store payouts/profit tracking moved to Phase 6 (need wish lists + fulfilment).
+- **Slice 1 parent bonus (DONE):** `/parent/bonus` (PIN unlock; `?kid=` preselects; dashboard link per REGISTERED kid).
+  `@repo/families/bonus` (startBonus, bonusStatus, bonusWindow): own registered kid only, amount via tipAmountCents
+  (re-checked by webhook), season open/frozen only (a bonus after Dec 25 would be wiped Jan 1), checkout expires at
+  min(season close, 23.5 h), 10 starts/15 min per parent, Stripe sees no child name. Webhook already credits `bonus`
+  (ledger `earn_bonus`). Return page fulfils too. `MIN/MAX_CHECKOUT_MS` moved to @repo/lib/limits (families cannot
+  import deeds: deeds depends on families). E2E `browser-family-bonus.ts` (12).
+- **E2E gotcha (Next 16 Cache Components):** after a client navigation the PREVIOUS page stays in the DOM, hidden
+  (instant back). Two `<main>`s exist: scope locators to `main:visible` and filter "is it hydrated" checks with
+  `checkVisibility()`, or a check can pass on the hidden page.
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.

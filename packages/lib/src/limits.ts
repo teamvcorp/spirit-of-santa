@@ -40,5 +40,12 @@ export const TIP_PRESETS_CENTS = [500, 1000, 2500] as const;
 export const MIN_TIP_CENTS = 100;
 export const MAX_TIP_CENTS = 100_000;
 
+/**
+ * Stripe Checkout lifetime bounds (expires_at): at least 30 minutes (we use 31 so a session about
+ * to expire is refused) and strictly under 24 hours (we use 23.5). Shared by tips, donations, bonus.
+ */
+export const MIN_CHECKOUT_MS = 31 * 60_000;
+export const MAX_CHECKOUT_MS = 23.5 * 3_600_000;
+
 /** Send the "full funding needed" push when an item reaches this funding percentage. */
 export const FULL_FUNDING_ALERT_PERCENT = 90;

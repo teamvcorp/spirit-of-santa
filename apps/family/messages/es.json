@@ -143,7 +143,8 @@
     "aliasSave": "Guardar",
     "aliasSaved": "Guardado.",
     "aliasPending": "Esperando una revisión rápida de nuestro equipo antes de mostrarse públicamente.",
-    "aliasRejected": "Nuestro equipo no aprobó este apodo. Elige otro (sin nombres reales)."
+    "aliasRejected": "Nuestro equipo no aprobó este apodo. Elige otro (sin nombres reales).",
+    "giveBonus": "Dar magia extra"
   },
   "Register": {
     "title": "Registra a tus hijos",
@@ -270,6 +271,34 @@
       "invalid": "Este enlace no es válido.",
       "seasonClosed": "Se puede regalar mientras la temporada de Navidad está abierta (desde el 1 de octubre).",
       "amount": "Elige una cantidad entre {min} y {max}.",
+      "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde."
+    }
+  },
+  "Bonus": {
+    "title": "Magia extra",
+    "intro": "Dale puntos extra a uno de tus hijos. Tu pago se convierte en puntos ({rate} = 1 punto) que puede usar para regalos de Navidad.",
+    "whichKid": "¿Para qué hijo?",
+    "noKids": "La magia extra es para niños registrados. Primero registra a un niño.",
+    "amount": "Cantidad",
+    "other": "Otra",
+    "otherAmount": "Cantidad en dólares",
+    "button": "Continuar al pago",
+    "final": "Todos los pagos son definitivos. Los pagos los procesa Stripe; nunca vemos el número de tu tarjeta.",
+    "total": "Magia extra: {amount}",
+    "back": "Área de padres",
+    "credited": "¡Gracias! Los puntos extra ya se agregaron.",
+    "processing": "¡Gracias! Estamos confirmando tu pago; los puntos aparecerán en breve.",
+    "review": "Recibimos tu pago. Nuestro equipo lo revisará antes de agregar los puntos.",
+    "notPaid": "El pago no se completó. No se te cobró nada.",
+    "unknown": "No encontramos ese pago.",
+    "tryAgain": "Intentar de nuevo",
+    "errors": {
+      "amount": "Elige una cantidad entre {min} y {max}.",
+      "invalid": "Algo salió mal con el formulario. Inténtalo de nuevo.",
+      "notFound": "Elige a uno de tus hijos registrados.",
+      "locked": "Primero escribe el PIN de padres (área de padres) e inténtalo de nuevo.",
+      "rateLimited": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
+      "seasonClosed": "La magia extra solo está disponible mientras la temporada de Navidad está abierta.",
       "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde."
     }
   }

@@ -143,7 +143,8 @@
     "aliasSave": "Save",
     "aliasSaved": "Saved.",
     "aliasPending": "Waiting for a quick check by our team before it's shown publicly.",
-    "aliasRejected": "Our team didn't approve this nickname. Please choose another (no real names)."
+    "aliasRejected": "Our team didn't approve this nickname. Please choose another (no real names).",
+    "giveBonus": "Give bonus magic"
   },
   "Register": {
     "title": "Register your children",
@@ -270,6 +271,34 @@
       "invalid": "This link isn't valid.",
       "seasonClosed": "Gifts can be given while the Christmas season is open (from October 1).",
       "amount": "Choose an amount between {min} and {max}.",
+      "stripe": "Payments aren't available right now. Please try again later."
+    }
+  },
+  "Bonus": {
+    "title": "Bonus magic",
+    "intro": "Give one of your children extra points. Your payment becomes points ({rate} = 1 point) they can put toward Christmas gifts.",
+    "whichKid": "Which child?",
+    "noKids": "Bonus magic is for registered children. Register a child first.",
+    "amount": "Amount",
+    "other": "Other",
+    "otherAmount": "Amount in dollars",
+    "button": "Continue to payment",
+    "final": "All payments are final. Payments are handled by Stripe; we never see your card number.",
+    "total": "Bonus: {amount}",
+    "back": "Parent area",
+    "credited": "Thank you! The bonus points have been added.",
+    "processing": "Thank you! Your payment is being confirmed; the points will appear shortly.",
+    "review": "We got your payment. Our team will check it before the points are added.",
+    "notPaid": "The payment wasn't completed. You haven't been charged.",
+    "unknown": "We couldn't find that payment.",
+    "tryAgain": "Try again",
+    "errors": {
+      "amount": "Choose an amount between {min} and {max}.",
+      "invalid": "Something was wrong with the form. Please try again.",
+      "notFound": "Choose one of your registered children.",
+      "locked": "Enter the parent PIN first (parent area), then try again.",
+      "rateLimited": "Too many tries. Please wait a few minutes and try again.",
+      "seasonClosed": "Bonus magic is only available while the Christmas season is open.",
       "stripe": "Payments aren't available right now. Please try again later."
     }
   }

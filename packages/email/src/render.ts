@@ -45,10 +45,15 @@ export type EmailTemplates = {
    * the address by an admin. Nothing about the children, ever.
    */
   storeOrders: { link: string; storeName: string; setAside: string; readyToShip: string; address: string };
+  /**
+   * To the PARENT when Spirit O Santa sends a gift on to the family (Phase 6 slice 3b). kidName =
+   * the child's first name as the parent typed it; itemName typed by the store. Link = the kid's page.
+   */
+  giftOnItsWay: { link: string; kidName: string; itemName: string };
 };
 
 /** Security alerts and "you already have an account": "ignore this email" would be wrong advice. */
-const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled", "donationReceipt", "storeOrders"]);
+const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled", "donationReceipt", "storeOrders", "giftOnItsWay"]);
 export type EmailTemplateName = keyof EmailTemplates;
 
 export type RenderedEmail = { subject: string; text: string; html: string };

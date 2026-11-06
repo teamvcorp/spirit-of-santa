@@ -276,8 +276,8 @@
       "active": "Reuniendo puntos",
       "fully_funded": "¡Completo!",
       "locked": "Asegurado",
-      "shipped": "En camino",
-      "delivered": "Entregado",
+      "shipped": "En preparación",
+      "delivered": "¡Va en camino!",
       "unfunded": "Sin completar"
     },
     "lockOn": "Se asegura el {date}",

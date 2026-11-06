@@ -91,7 +91,8 @@
       "deeds": "Deeds",
       "moderation": "Review",
       "settings": "Settings",
-      "donations": "Donations"
+      "donations": "Donations",
+      "fulfilment": "Fulfilment"
     },
     "storeStatus": {
       "invited": "Invited",

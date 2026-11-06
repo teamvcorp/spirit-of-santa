@@ -526,6 +526,16 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   600 ms between sends (Resend 2/s), 150 s budget (rest "deferred" to next run), store with no active member = failed;
   cron reports digest failures as a partial failure (500 + log). Overview uses cheap `orderCounts(storeId)`; open
   orders and shipped history capped separately. `DAY_MS` single source in `@repo/lib/time`.
+- **Slice 3b fulfilment: admin + family (2026-11-06).** Admin `/fulfilment` (nav "Fulfilment"): needs a substitute
+  (`arrangeSubstitute`: note 3–300, clears the flag + notified stamps so the store is told again) → in transit
+  (`markReceived`) → to send (shows child first name, family, parent email: admins deliver) → `markSentToFamily`
+  (status delivered, then the parent's `giftOnItsWay` email in their language, link to the kid page;
+  familyNotifiedAt). All compare-and-set + audited ("wish.substitute/receive/deliver"; targetType wish_list_item).
+  Failed parent emails retried by `sendFamilyNotices` in /api/cron/money (14 days). `familyAppOrigin()`
+  (FAMILY_APP_URL, admin + family projects) next to `storeAppOrigin()` in @repo/stores/urls. Family labels: shipped
+  = "Being prepared", delivered = "On its way!" (user: family hears only when Spirit O Santa sends it).
+  No family delivery address is stored (privacy): admin arranges delivery with the parent by email (open question).
+  E2E `browser-admin-fulfilment.ts` (13).
 
 ## Open items / TODO
 

@@ -73,6 +73,12 @@
       "heading": "Pedidos de regalos",
       "body": "¡Hola, {storeName}! Esta es la actualización de hoy sobre los regalos que los niños han completado.\n\nAPARTAR (completos: guárdalos para nosotros, todavía no los envíes):\n{setAside}\n\nLISTOS PARA ENVIAR (asegurados: envíalos ahora y márcalos como enviados en tu página de Pedidos):\n{readyToShip}\n\nEnviar a:\n{address}\n\nEscribe cada código de referencia en el paquete.",
       "button": "Abrir mis pedidos"
+    },
+    "giftOnItsWay": {
+      "subject": "¡Un regalo va en camino!",
+      "heading": "Un regalo va en camino",
+      "body": "¡Buenas noticias! El regalo de {kidName}, {itemName}, va en camino desde Spirit O Santa.\n\nGracias por ayudar a {kidName} a ganarlo con buenas acciones.",
+      "button": "Ver la lista de deseos"
     }
   }
 }

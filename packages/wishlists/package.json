@@ -19,6 +19,7 @@
     "@repo/auth": "*",
     "@repo/db": "*",
     "@repo/email": "*",
+    "@repo/i18n": "*",
     "@repo/lib": "*",
     "@repo/stores": "*",
     "server-only": "0.0.1",

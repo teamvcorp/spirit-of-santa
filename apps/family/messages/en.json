@@ -276,8 +276,8 @@
       "active": "Collecting points",
       "fully_funded": "Fully funded!",
       "locked": "Locked in",
-      "shipped": "On its way",
-      "delivered": "Delivered",
+      "shipped": "Being prepared",
+      "delivered": "On its way!",
       "unfunded": "Not funded"
     },
     "lockOn": "Locks in on {date}",

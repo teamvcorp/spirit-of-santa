@@ -511,5 +511,36 @@
     "noResets": "Aún no ha terminado ninguna temporada.",
     "resetLine": "Temporada {year} (terminada {when}): {kids} niños en cero ({points} puntos), {retained} de donaciones no repartidas guardadas ({gifts} regalos).",
     "resetRunning": "Temporada {year}: en curso desde {when} ({kids} niños en cero hasta ahora). Continúa con la siguiente tarea diaria."
+  },
+  "Fulfilment": {
+    "title": "Entrega de regalos",
+    "intro": "Regalos completos en camino de las tiendas a las familias. Identifica los paquetes por el código de referencia escrito en ellos.",
+    "from": "de {store}",
+    "none": "No hay nada aquí por ahora.",
+    "subTitle": "Necesita un sustituto ({count})",
+    "subIntro": "Se completaron cuando a la tienda ya no le quedaban. Acuerda un sustituto con la tienda, escribe lo acordado y márcalo como resuelto: el regalo vuelve a los pedidos de la tienda.",
+    "storeContact": "Tienda: {email}",
+    "fundedOn": "completo el {date}",
+    "note": "Lo acordado con la tienda",
+    "noteFor": "Nota del sustituto de {ref}",
+    "substituteDone": "Sustituto acordado",
+    "transitTitle": "En camino desde las tiendas ({count})",
+    "transitIntro": "La tienda los marcó como enviados. Marca cada uno como recibido cuando llegue su paquete.",
+    "shippedOn": "Enviado el {date}",
+    "markReceived": "Recibido",
+    "sendTitle": "Para enviar a las familias ({count})",
+    "sendIntro": "Ya los tenemos. Marca cada uno como enviado cuando salga hacia la familia: el padre o la madre recibe un correo de \"va en camino\".",
+    "forWhom": "Para {kid} (familia {family}) · padre/madre: {email}",
+    "receivedOn": "Recibido el {date}",
+    "markSent": "Enviado a la familia",
+    "deliveredTitle": "Enviados a las familias (últimos 30 días)",
+    "sentOn": "Enviado el {date}",
+    "emailed": "correo enviado al padre/madre",
+    "emailPending": "correo al padre/madre pendiente (se reintenta cada día)",
+    "errors": {
+      "notFound": "No se encontró ese regalo. Vuelve a cargar la página.",
+      "changed": "Ese regalo ya avanzó (quizás alguien más lo hizo). Vuelve a cargar la página.",
+      "note": "Escribe lo acordado (de 3 a 300 caracteres)."
+    }
   }
 }

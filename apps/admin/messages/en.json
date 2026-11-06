@@ -511,5 +511,36 @@
     "noResets": "No season has ended yet.",
     "resetLine": "Season {year} (finished {when}): {kids} children reset ({points} points), {retained} unshared donation money kept ({gifts} gifts).",
     "resetRunning": "Season {year}: in progress since {when} ({kids} children reset so far). It continues with the next daily run."
+  },
+  "Fulfilment": {
+    "title": "Gift fulfilment",
+    "intro": "Funded gifts on their way from stores to families. Match packages by the reference code written on them.",
+    "from": "from {store}",
+    "none": "Nothing here right now.",
+    "subTitle": "Needs a substitute ({count})",
+    "subIntro": "Funded when the store had none left. Agree a substitute with the store, write what you agreed, then mark it arranged: the gift goes back to the store's orders.",
+    "storeContact": "Store: {email}",
+    "fundedOn": "funded {date}",
+    "note": "What was agreed with the store",
+    "noteFor": "Substitute note for {ref}",
+    "substituteDone": "Substitute arranged",
+    "transitTitle": "In transit from stores ({count})",
+    "transitIntro": "The store marked these shipped. Mark each one received when its package arrives.",
+    "shippedOn": "Shipped {date}",
+    "markReceived": "Received",
+    "sendTitle": "To send to families ({count})",
+    "sendIntro": "We have these. Mark each one sent when it goes to the family: the parent gets an \"on its way\" email.",
+    "forWhom": "For {kid} ({family} family) · parent: {email}",
+    "receivedOn": "Received {date}",
+    "markSent": "Sent to family",
+    "deliveredTitle": "Sent to families (last 30 days)",
+    "sentOn": "Sent {date}",
+    "emailed": "parent emailed",
+    "emailPending": "parent email pending (retried daily)",
+    "errors": {
+      "notFound": "That gift wasn't found. Reload the page.",
+      "changed": "That gift already moved on (someone else may have done this). Reload the page.",
+      "note": "Write what was agreed (3 to 300 characters)."
+    }
   }
 }

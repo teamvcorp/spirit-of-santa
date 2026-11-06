@@ -26,6 +26,7 @@ Node.js version: 24.x (Project → Settings → General).
 | `BLOB_STORE_ID` | ✓ | auto | ✓ | not secret; store project gets it by connecting the Blob store |
 | `BLOB_READ_WRITE_TOKEN` | – | auto/✓ | – | connect the Blob store to the **store** project only (OIDC); token only if not using OIDC |
 | `CRON_SECRET` | ✓ | ✓ | – | long random string (protects the daily jobs: store sign-up cleanup; family money job) |
+| `FAMILY_APP_URL` | ✓ | – | ✓ | `https://www.spiritofsanta.com` (link in the parent's "gift on its way" email, Phase 6) |
 | `STORE_APP_URL` | ✓ | – | ✓ | `https://store.spiritofsanta.com` (links in store emails: admin invites/approvals; the family app's daily store-orders email, Phase 6) |
 | `MFA_ENCRYPTION_KEY` | – | – | ✓ | NEW random value (command below). Encrypts admin authenticator secrets. Keep a copy somewhere safe: if it's lost, every admin re-runs setup |
 | `STRIPE_SECRET_KEY` | ✓ | – | – | Stripe live secret key |

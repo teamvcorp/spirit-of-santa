@@ -73,6 +73,12 @@
       "heading": "Gift orders",
       "body": "Hi {storeName}! Here's today's update on gifts children have funded.\n\nSET ASIDE (fully funded: please keep these for us, don't ship yet):\n{setAside}\n\nREADY TO SHIP (locked in: please ship now and mark them shipped on your Orders page):\n{readyToShip}\n\nShip to:\n{address}\n\nPlease write each reference code on the package.",
       "button": "Open my orders"
+    },
+    "giftOnItsWay": {
+      "subject": "A gift is on its way!",
+      "heading": "A gift is on its way",
+      "body": "Good news! {kidName}'s gift, {itemName}, is on its way from Spirit O Santa.\n\nThank you for helping {kidName} earn it with good deeds.",
+      "button": "See the wish list"
     }
   }
 }

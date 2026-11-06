@@ -32,6 +32,13 @@ const kidSchema = new Schema(
     /** Parent-set max number of items on this kid's wish list. */
     itemCap: { type: Number, default: 5, min: 0, max: 50 },
 
+    /**
+     * Shareable donation link (Phase 4 slice 6): token = HMAC(DEED_QR_KEY, "donate|kidId|version");
+     * only its SHA-256 is stored. "Make a new link" bumps the version: the old link stops working.
+     */
+    donationTokenHash: { type: String, select: false, match: /^[a-f0-9]{64}$/ },
+    donationLinkVersion: { type: Number, default: 1, min: 1 },
+
     availableCentipoints: { ...centipointsField(), default: 0 },
     escrowedCentipoints: { ...centipointsField(), default: 0 },
 
@@ -39,6 +46,9 @@ const kidSchema = new Schema(
   },
   { timestamps: true, versionKey: false },
 );
+
+// Lookup when a donation link is opened (sparse: kids without a link yet aren't indexed).
+kidSchema.index({ donationTokenHash: 1 }, { unique: true, sparse: true });
 
 export type KidDoc = InferSchemaType<typeof kidSchema>;
 export const Kid = (models.Kid ?? model("Kid", kidSchema)) as Model<KidDoc>;

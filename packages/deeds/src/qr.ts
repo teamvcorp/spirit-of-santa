@@ -29,6 +29,9 @@ function key(): Buffer {
 /** The secret part of the QR link (43 URL-safe characters). */
 export const deedToken = (deedId: string) => createHmac("sha256", key()).update(deedId).digest("base64url");
 
+/** A kid's shareable donation-link token (version: bumped by "make a new link"). */
+export const donationToken = (kidId: string, version: number) => createHmac("sha256", key()).update(`donate|${kidId}|${version}`).digest("base64url");
+
 /** What the database stores / looks up by. */
 export const hashDeedToken = (token: string) => createHash("sha256").update(token).digest("hex");
 

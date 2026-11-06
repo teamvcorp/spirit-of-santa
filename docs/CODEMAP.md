@@ -329,6 +329,17 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   `@repo/families/votes` (castVote, familyTallies), `settings.ts` (family nickname + on/off, audited without text). Kid form
   has `itemCap` (0–50, enforced in Phase 6). Dashboard: tally + Nice/Naughty buttons (aria-pressed) + nickname card;
   kid page shows the tally. E2E `browser-family-controls.ts` (13).
+- **Slice 6 donation QR (DONE):** each REGISTERED kid has a shareable link `/k/<token>` (+ QR on the kid page) for family
+  friends to give with NO deed. Token = HMAC(DEED_QR_KEY, "donate|kidId|version"); only its SHA-256 on the Kid
+  (`donationTokenHash`, select:false, sparse unique). "Make a new link" (PIN unlock needed) bumps `donationLinkVersion` →
+  old link dies at once; audited `kid.donation_link_reset`. Public page: display name + APPROVED nickname only. Money =
+  Stripe Embedded Checkout, purpose `tip` WITHOUT `sos_deed_id` (existing webhook credits points); expires at
+  min(season close, 23.5 h). `@repo/deeds/donate`; per-visitor limit `donate` 10/15 min. E2E `browser-family-donate.ts` (14).
+- **Amount pickers (tip /d + donate /k) = shared `apps/family/components/amount-picker.tsx`.** React 19 RESETS a form
+  after its action runs; a controlled "which radio" state then drifts from the DOM (empty required "Other" box silently
+  blocked the next submit). Fix pattern (same as the deed form): action echoes `values` + `nonce`
+  (`apps/family/lib/amount-echo.ts`), `<form key={nonce}>`, radios use `defaultChecked`. **Use this for any radio/
+  conditional-field form driven by useActionState.**
 - **Server Actions can't read the locale** (`getLocale()` / next/root-params throw there): forms send a hidden `locale`
   field and actions redirect with `localizePath()`.
 - Order: 1 parent sign-up → 2 kids + PIN + dashboard shell (+ $5 step) → 3 deed + QR → 4 QR landing/thank-you →

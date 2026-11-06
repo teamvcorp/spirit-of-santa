@@ -8,10 +8,11 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { publicLimit, startTip, thankDeed, tipAmountCents, type TipStart } from "@repo/deeds/public";
 import { localizePath } from "@repo/i18n/paths";
+import { echoAmount, type AmountEcho } from "../../../../lib/amount-echo";
 import { DEFAULT_LOCALE, LOCALES } from "@repo/lib/locales";
 
 export type ThankState = { status: "idle" | "done" | "error"; error?: string };
-export type TipState = { status: "idle" } | TipStart | { ok: false; error: "rateLimited" | "invalid" };
+export type TipState = ({ status: "idle" } | TipStart | { ok: false; error: "rateLimited" | "invalid" }) & AmountEcho;
 
 const token = z.string().regex(/^[A-Za-z0-9_-]{43}$/);
 const thankSchema = z.object({ token });
@@ -32,11 +33,12 @@ export async function thankAction(_prev: ThankState, fd: FormData): Promise<Than
 }
 
 export async function tipAction(_prev: TipState, fd: FormData): Promise<TipState> {
-  if (!(await publicLimit(await headers(), "tip", 10))) return { ok: false, error: "rateLimited" };
+  const echo = echoAmount(fd); // lets the form remount with what was typed (see amount-echo.ts)
+  if (!(await publicLimit(await headers(), "tip", 10))) return { ok: false, error: "rateLimited", ...echo };
   const parsed = tipSchema.safeParse(fields(fd));
-  if (!parsed.success) return { ok: false, error: "invalid" };
+  if (!parsed.success) return { ok: false, error: "invalid", ...echo };
   const origin = process.env.NEXTAUTH_URL;
   if (!origin) throw new Error("NEXTAUTH_URL is not set");
   const { locale } = parsed.data;
-  return startTip(parsed.data.token, tipAmountCents(parsed.data.amount, parsed.data.other), origin, (p) => localizePath(p, locale));
+  return { ...(await startTip(parsed.data.token, tipAmountCents(parsed.data.amount, parsed.data.other), origin, (p) => localizePath(p, locale))), ...echo };
 }

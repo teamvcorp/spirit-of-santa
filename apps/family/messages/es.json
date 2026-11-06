@@ -207,7 +207,14 @@
       "deedUnavailable": "Esa acción ya no está disponible. Elige otra.",
       "dailyLimit": "Son 10 acciones hoy para este niño. ¡Inténtalo mañana!"
     },
-    "tally": "La lista de Santa para la Navidad {year}: {nice, plural, one {# día bueno} other {# días buenos}}, {naughty} traviesos"
+    "tally": "La lista de Santa para la Navidad {year}: {nice, plural, one {# día bueno} other {# días buenos}}, {naughty} traviesos",
+    "donateTitle": "Enlace para donar",
+    "donateIntro": "Compártelo con familiares y amigos: pueden regalar a la lista de este niño sin una buena acción. Solo se muestra el nombre público.",
+    "donateQrAlt": "Código QR de la página para donar a este niño",
+    "newLink": "Crear un enlace nuevo",
+    "newLinkHelp": "El enlace anterior deja de funcionar de inmediato (requiere el PIN de padres).",
+    "linkReset": "Enlace nuevo creado. El anterior ya no funciona.",
+    "linkLocked": "Primero escribe el PIN de padres (área de padres) e inténtalo de nuevo."
   },
   "Qr": {
     "title": "Una buena acción",
@@ -240,6 +247,30 @@
       "seasonClosed": "La temporada de Navidad está cerrada, así que ahora no se pueden agradecer acciones.",
       "amount": "Elige una cantidad entre {min} y {max}.",
       "stripe": "Los pagos no están disponibles ahora. Aún puedes dar las gracias."
+    }
+  },
+  "Donate": {
+    "title": "Un regalo de Navidad",
+    "heading": "Regala a la lista de deseos de {name}",
+    "family": "De la familia {family}",
+    "intro": "Tu regalo se convierte en puntos ({rate} = 1 punto) que {name} usa en regalos de tiendas locales en Navidad.",
+    "amount": "Cantidad",
+    "other": "Otra",
+    "otherAmount": "Cantidad en dólares",
+    "button": "Continuar al pago",
+    "total": "Regalo: {amount}",
+    "final": "Todos los regalos son definitivos. Stripe procesa los pagos; nunca vemos el número de tu tarjeta.",
+    "invalid": "Este enlace no es válido (quizás fue reemplazado). Pide a la familia su enlace actual.",
+    "credited": "¡Gracias! Recibimos tu regalo y se convirtió en puntos.",
+    "processing": "¡Gracias! Recibimos tu regalo; los puntos aparecen en un minuto.",
+    "review": "¡Gracias! Recibimos tu pago y nuestro equipo lo está revisando.",
+    "notPaid": "El pago no se completó. No se te cobró nada.",
+    "errors": {
+      "rateLimited": "Demasiados intentos. Espera unos minutos.",
+      "invalid": "Este enlace no es válido.",
+      "seasonClosed": "Se puede regalar mientras la temporada de Navidad está abierta (desde el 1 de octubre).",
+      "amount": "Elige una cantidad entre {min} y {max}.",
+      "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde."
     }
   }
 }

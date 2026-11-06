@@ -12,6 +12,8 @@ import { getKid } from "@repo/families/kids";
 import { kidTally } from "@repo/families/votes";
 import { localized } from "@repo/deeds/catalog";
 import { listKidDeeds } from "@repo/deeds/deeds";
+import { donationLink, qrImage } from "@repo/deeds/donate";
+import { ResetLinkForm } from "./donation-card";
 import { formatPoints } from "@repo/lib/format";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
@@ -31,6 +33,8 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
   if (!origin) throw new Error("NEXTAUTH_URL is not set");
   const [kid, deeds, t, format, locale, tallies] = await Promise.all([getKid(parent, id), listKidDeeds(parent, id, origin), getTranslations("Kid"), getFormatter(), getLocale(), kidTally(parent, id)]);
   if (!kid || !deeds) notFound(); // other families' kids look the same as missing ones
+  const link = kid.registered ? await donationLink(parent, id, origin) : null;
+  const donate = link ? { url: link, image: await qrImage(link) } : null;
   const day = (d?: Date) => (d ? format.dateTime(new Date(d), { month: "short", day: "numeric" }) : "");
   const title = (d: (typeof deeds)[number]) => d.custom || localized(d.title, locale) || t("aDeed");
   return (
@@ -48,6 +52,20 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
         )}
       </div>
       {!kid.registered && <Alert className="mb-6">{t("notRegistered")}</Alert>}
+      {donate && (
+        <Card className="mb-6">
+          <h2 className="mb-1 text-lg font-semibold">{t("donateTitle")}</h2>
+          <p className="mb-3 text-sm text-foreground/70">{t("donateIntro")}</p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+            {/* eslint-disable-next-line @next/next/no-img-element -- a data: URL; next/image adds nothing */}
+            <img src={donate.image} alt={t("donateQrAlt")} width={220} height={220} className="rounded-lg bg-white p-2" data-donate-url={donate.url} />
+            <div className="flex flex-col gap-3">
+              <p className="break-all text-sm">{donate.url}</p>
+              <ResetLinkForm kidId={kid.id} />
+            </div>
+          </div>
+        </Card>
+      )}
       <Card>
         <h2 className="mb-3 text-lg font-semibold">{t("deedsTitle")}</h2>
         {deeds.length === 0 ? (

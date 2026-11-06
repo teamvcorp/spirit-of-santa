@@ -207,7 +207,14 @@
       "deedUnavailable": "That deed isn't available any more. Choose another.",
       "dailyLimit": "That's 10 deeds today for this child. Try again tomorrow!"
     },
-    "tally": "Santa's list for Christmas {year}: {nice, plural, one {# nice day} other {# nice days}}, {naughty} naughty"
+    "tally": "Santa's list for Christmas {year}: {nice, plural, one {# nice day} other {# nice days}}, {naughty} naughty",
+    "donateTitle": "Donation link",
+    "donateIntro": "Share this with family and friends: they can give to this child's wish list without a good deed. Only the display name is shown.",
+    "donateQrAlt": "QR code for this child's donation page",
+    "newLink": "Make a new link",
+    "newLinkHelp": "The old link stops working right away (needs the parent PIN).",
+    "linkReset": "New link made. The old one no longer works.",
+    "linkLocked": "Enter the parent PIN first (parent area), then try again."
   },
   "Qr": {
     "title": "A good deed",
@@ -240,6 +247,30 @@
       "seasonClosed": "The Christmas season is closed, so deeds can't be thanked right now.",
       "amount": "Choose an amount between {min} and {max}.",
       "stripe": "Payments aren't available right now. You can still say thank you."
+    }
+  },
+  "Donate": {
+    "title": "A Christmas gift",
+    "heading": "Give to {name}'s Christmas wish list",
+    "family": "From the {family} family",
+    "intro": "Your gift becomes points ({rate} = 1 point) that {name} spends on gifts from local stores at Christmas.",
+    "amount": "Amount",
+    "other": "Other",
+    "otherAmount": "Amount in dollars",
+    "button": "Continue to payment",
+    "total": "Gift: {amount}",
+    "final": "All gifts are final. Payments are handled by Stripe; we never see your card number.",
+    "invalid": "This link isn't valid (it may have been replaced). Ask the family for their current link.",
+    "credited": "Thank you! Your gift was received and turned into points.",
+    "processing": "Thank you! Your gift was received; the points appear within a minute.",
+    "review": "Thank you! Your payment was received and our team is checking it.",
+    "notPaid": "The payment wasn't completed. You haven't been charged.",
+    "errors": {
+      "rateLimited": "Too many tries. Please wait a few minutes.",
+      "invalid": "This link isn't valid.",
+      "seasonClosed": "Gifts can be given while the Christmas season is open (from October 1).",
+      "amount": "Choose an amount between {min} and {max}.",
+      "stripe": "Payments aren't available right now. Please try again later."
     }
   }
 }

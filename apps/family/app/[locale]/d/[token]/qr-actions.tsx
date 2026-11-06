@@ -3,7 +3,7 @@
  * "Say thank you" and "Leave a tip" on the public deed page. The tip amount is re-checked on the
  * server; Stripe's form opens IN the page (card details go straight to Stripe).
  */
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
@@ -12,8 +12,8 @@ import { formatCents } from "@repo/lib/format";
 import { MAX_TIP_CENTS, MIN_TIP_CENTS, TIP_PRESETS_CENTS } from "@repo/lib/limits";
 import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
-import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
+import { AmountPicker } from "../../../../components/amount-picker";
 import { thankAction, tipAction, type ThankState, type TipState } from "./actions";
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -24,7 +24,6 @@ export function QrActions({ token, kidName, rate }: { token: string; kidName: st
   const t = useTranslations("Qr");
   const [thank, thankFormAction, thanking] = useActionState(thankAction, { status: "idle" } as ThankState);
   const [tip, tipFormAction, tipping] = useActionState(tipAction, { status: "idle" } as TipState);
-  const [amount, setAmount] = useState(String(TIP_PRESETS_CENTS[0]));
   const hydrated = useHydrated();
 
   if (thank.status === "done") return <Alert>{t("thanked", { name: kidName })}</Alert>;
@@ -52,7 +51,7 @@ export function QrActions({ token, kidName, rate }: { token: string; kidName: st
         </Button>
         <p className="text-sm text-foreground/70">{t("sayThanksHelp")}</p>
       </form>
-      <form action={tipFormAction} className="flex flex-col gap-3 border-t border-foreground/15 pt-6">
+      <form key={tip.nonce ?? "initial"} action={tipFormAction} className="flex flex-col gap-3 border-t border-foreground/15 pt-6">
         <h2 className="text-lg font-semibold">{t("tipTitle")}</h2>
         <p className="text-sm text-foreground/70">{t("tipHelp", { rate })}</p>
         {tipError && (
@@ -62,20 +61,7 @@ export function QrActions({ token, kidName, rate }: { token: string; kidName: st
         )}
         <LocaleField />
         <input type="hidden" name="token" value={token} />
-        <fieldset className="flex flex-wrap gap-3">
-          <legend className="sr-only">{t("tipTitle")}</legend>
-          {TIP_PRESETS_CENTS.map((c) => (
-            <label key={c} className="flex items-center gap-2 rounded-lg border border-foreground/20 px-4 py-2">
-              <input type="radio" name="amount" value={String(c)} checked={amount === String(c)} onChange={() => setAmount(String(c))} />
-              {formatCents(c)}
-            </label>
-          ))}
-          <label className="flex items-center gap-2 rounded-lg border border-foreground/20 px-4 py-2">
-            <input type="radio" name="amount" value="other" checked={amount === "other"} onChange={() => setAmount("other")} />
-            {t("other")}
-          </label>
-        </fieldset>
-        {amount === "other" && <TextField label={t("otherAmount")} name="other" inputMode="decimal" required maxLength={10} />}
+        <AmountPicker values={tip.values} initial={TIP_PRESETS_CENTS[0]} legend={t("tipTitle")} otherLabel={t("other")} otherAmountLabel={t("otherAmount")} />
         <Button type="submit" variant="secondary" pending={tipping} disabled={!hydrated} className="self-start">
           {t("tipButton")}
         </Button>

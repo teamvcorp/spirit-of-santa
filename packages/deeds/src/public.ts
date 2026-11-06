@@ -119,9 +119,9 @@ export function tipAmountCents(choice: string, otherDollars: string): number | n
 export type TipStart = { ok: true; clientSecret: string; amountCents: number } | { ok: false; error: "invalid" | "used" | "expired" | "seasonClosed" | "amount" | "stripe" };
 
 /** Stripe's minimum Checkout lifetime is 30 minutes: a code expiring sooner can't take a tip. */
-const MIN_CHECKOUT_MS = 31 * 60_000;
+export const MIN_CHECKOUT_MS = 31 * 60_000;
 /** ...and at most just under 24 hours (we use 23.5 h). */
-const MAX_CHECKOUT_MS = 23.5 * 3_600_000;
+export const MAX_CHECKOUT_MS = 23.5 * 3_600_000;
 
 /**
  * Start a tip: Embedded Checkout for the chosen amount. The QR is NOT used up here (an abandoned

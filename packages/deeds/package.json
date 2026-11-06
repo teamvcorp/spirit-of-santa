@@ -9,7 +9,8 @@
     "./deeds": "./src/deeds.ts",
     "./qr": "./src/qr.ts",
     "./public": "./src/public.ts",
-    "./moderation": "./src/moderation.ts"
+    "./moderation": "./src/moderation.ts",
+    "./donate": "./src/donate.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

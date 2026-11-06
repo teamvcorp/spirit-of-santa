@@ -12,12 +12,14 @@
  * stay (with an id that no longer points at anyone).
  */
 import "server-only";
-import { AuditLog, connectDb, Deed, ensureLock, Family, Kid, KidVote, takeLock, WishListItem, withTransaction } from "@repo/db";
+import { AuditLog, Deed, ensureLock, Kid, KidVote, takeLock, WishListItem, withTransaction } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_KIDS_PER_FAMILY } from "@repo/lib/limits";
 import type { KidInput } from "./schemas.ts";
 
-export type Parent = { id: string; familyId?: string };
+// The ownership rule lives in @repo/auth/family-owner (single source); re-exported for existing callers.
+export { ownFamilyId, type Parent } from "@repo/auth/family-owner";
+import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 
 export type KidRow = {
   id: string;
@@ -48,17 +50,6 @@ const toRow = (k: Raw): KidRow => ({
   itemCap: k.itemCap ?? 5,
 });
 
-/**
- * The parent's family id, re-checked against the DB (the session's familyId alone isn't trusted).
- * THE ownership check for every family-scoped service (kids, registration): reuse, don't copy.
- */
-export async function ownFamilyId(parent: Parent): Promise<string | null> {
-  const fid = normalizeObjectId(parent.familyId);
-  if (!fid) return null;
-  await connectDb();
-  const fam = await Family.exists({ _id: fid, ownerUserId: parent.id });
-  return fam ? fid : null;
-}
 
 /** Oldest first (stable order on the kid selector). Archived kids are hidden. */
 export async function listKids(parent: Parent): Promise<KidRow[]> {

@@ -21,6 +21,7 @@ import "server-only";
 import { AuditLog, connectDb, DonationSplit, ensureLock, Family, Kid, Payment, takeLock, Transaction, trusted, withTransaction, type DbSession } from "@repo/db";
 import { centsToCentipoints } from "@repo/lib/points";
 import { getSeasonState } from "@repo/stores/season";
+import { sweepAllocations } from "@repo/wishlists/engine";
 import { getPlatformSettings } from "./settings.ts";
 
 const LOCK = "donation-split";
@@ -277,6 +278,8 @@ export async function runDonationSplit(opts: { trigger: "cron" | "admin"; adminU
 
   if ("reason" in planned) return { ok: false, error: planned.reason, resumed };
   if (planned.splitId) await creditSplit(planned.splitId);
+  // Phase 6: the shared points flow onto each kid's oldest unfunded wish-list item.
+  if (planned.splitId || resumed > 0) await sweepAllocations();
   return { ok: true, ...planned, resumed };
 }
 

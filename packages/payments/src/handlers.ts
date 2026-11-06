@@ -22,6 +22,7 @@ import { centsToCentipoints } from "@repo/lib/points";
 import { getSeasonYear } from "@repo/lib/season";
 import { getStripe } from "./client.ts";
 import { parsePaymentMetadata, type PaymentMetadata } from "./metadata.ts";
+import { allocateForKid } from "@repo/wishlists/engine";
 import { closePayLaterForDeed } from "./pay-later-links.ts";
 import { ensureDonationReceipt, sendPendingReceipts } from "./receipts.ts";
 
@@ -228,6 +229,8 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
       { session },
     );
     await Kid.updateOne({ _id: meta.sos_kid_id }, { $inc: { availableCentipoints: centipoints } }, { session });
+    // Phase 6: new points fill the kid's oldest unfunded wish-list item first (same transaction).
+    await allocateForKid(meta.sos_kid_id, session, now);
 
     if (confirmDeed) {
       // Paying IS the recipient confirming the deed ("pay now" outcome on the QR page).

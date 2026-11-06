@@ -474,6 +474,23 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   (instant back). Two `<main>`s exist: scope locators to `main:visible` and filter "is it hydrated" checks with
   `checkVisibility()`, or a check can pass on the hidden page.
 
+## Phase 6 (wish lists + fulfilment) decisions (user, 2026-11-06)
+
+- New points fill the kid's OLDEST unfunded item first; kid ADDS (no PIN, item cap), parent REMOVES (PIN); store stock
+  reserved at FULL FUNDING (none left → `needsSubstitute`); item share links = the kid's donation link. Slices: 1 engine
+  → 2 browser + list UI → 3 fulfilment → 4 Dec 25 unfunded + pay-up, Jan 1 escrow → 5 store payouts + profit.
+- **Slice 1 points engine (DONE):** new `@repo/wishlists` (deps: auth, db, lib, stores; NOT payments: payments imports
+  it). `plan.ts` `planAllocation` PURE (tests). `engine.ts`: `allocateForKid(kidId, session)` (oldest first, CAS on
+  item funded + kid available, ledger `escrow` rows, full funding → `fully_funded` + `fullyFundedAt` + reserve 1 unit
+  or `needsSubstitute`), `addToList` (season OPEN, registered kid of own family, active item of an APPROVED store this
+  season, in stock, not listed, under itemCap, ≥ 1 available point), `removeFromList` (caller checks PIN; only
+  active/fully_funded while OPEN; ledger `release`; reserved unit back; released points re-allocated),
+  `lockFundedItems` (30 days), `sweepAllocations` (safety net). Concurrency: every change writes the Kid doc inside a
+  transaction → MongoDB write conflict → retry. Hooks: webhook tip/bonus credit calls `allocateForKid` in the same tx;
+  donation split ends with `sweepAllocations`; daily money cron: lock + sweep. NOTE roadmap rule: with eager oldest-first
+  allocation, a kid can only add another item once they have spare (available) points.
+  `ownFamilyId`/`Parent` moved to `@repo/auth/family-owner` (families re-exports). E2E `wishlist-engine.ts` (16).
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.

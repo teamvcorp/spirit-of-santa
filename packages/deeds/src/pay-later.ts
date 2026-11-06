@@ -26,7 +26,7 @@ import { sendSms, SmsError, smsFailureFor } from "@repo/sms";
 import { tipTarget } from "./public.ts";
 import { phoneKey } from "./qr.ts";
 
-const DAY_MS = 86_400_000;
+import { DAY_MS } from "@repo/lib/time";
 /** Texts per phone number per 24 h (abuse limit: nobody can flood a number through many QR codes). */
 const PHONE_DAILY_LIMIT = 3;
 

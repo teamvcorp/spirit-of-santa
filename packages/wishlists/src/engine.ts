@@ -36,7 +36,8 @@ import { getSeasonState } from "@repo/stores/season";
 import { planAllocation } from "./plan.ts";
 import { CAP_STATUSES, isRemovable } from "./rules.ts";
 
-const DAY_MS = 86_400_000;
+import { DAY_MS } from "@repo/lib/time";
+import { startOfDayInZone } from "@repo/lib/season";
 
 /**
  * Points move onto items only while the season is OPEN or FROZEN (December tips + the Dec 1
@@ -374,15 +375,17 @@ export async function removeFromList(
 /**
  * Daily: fully funded items → LOCKED (can't be removed; the store may now ship them).
  *  - after ITEM_LOCK_DAYS (30) fully funded, any time; and
- *  - from the Dec 1 FREEZE on (frozen or closed), every fully funded item of that season at once:
- *    lists can't change any more, so waiting out the 30 days would only delay shipping
- *    (user decision 2026-11-06: "ship at lock-in: 30 days or the freeze, whichever first").
+ *  - from the Dec 1 FREEZE DATE on, every fully funded item of that season at once: lists can't
+ *    change any more, so waiting out the 30 days would only delay shipping (user decision
+ *    2026-11-06: "ship at lock-in: 30 days or the freeze, whichever first").
+ * The freeze DATE (admin-set dates included), NOT the admin's emergency "force freeze" switch:
+ * that switch can be turned off again, but locking can't be undone (review 2026-11-06).
  */
 export async function lockFundedItems(now = new Date()): Promise<number> {
   await connectDb();
   const season = await getSeasonState(now);
   const byAge = { fullyFundedAt: trusted({ $lte: new Date(now.getTime() - ITEM_LOCK_DAYS * DAY_MS) }) };
-  const frozen = season.phase === "frozen" || season.phase === "closed";
+  const frozen = (season.phase === "frozen" || season.phase === "closed") && now.getTime() >= startOfDayInZone(season.dates.freeze).getTime();
   const res = await WishListItem.updateMany(
     frozen ? { status: "fully_funded", $or: [byAge, { seasonYear: season.year }] } : { status: "fully_funded", ...byAge },
     { $set: { status: "locked", lockedAt: now } },

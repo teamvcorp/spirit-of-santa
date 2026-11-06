@@ -17,6 +17,7 @@ import "server-only";
 import { AuditLog, Deed, DeedType, ensureLock, Kid, takeLock, trusted, withTransaction } from "@repo/db";
 import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 import { normalizeObjectId } from "@repo/lib/ids";
+import { DAY_MS } from "@repo/lib/time";
 import { DEED_QR_DAYS, MAX_DEEDS_PER_KID_PER_DAY } from "@repo/lib/limits";
 import type { Locale } from "@repo/lib/locales";
 import { calendarDateIn, isoDay, startOfDayInZone } from "@repo/lib/season";
@@ -51,7 +52,7 @@ export async function recordDeed(parent: Parent, rawKidId: string, input: Record
   const now = new Date();
   const todayStart = startOfDayInZone(isoDay(calendarDateIn(now)));
   // Never valid past the season's close (midnight starting the close day, Chicago time).
-  const expiresAt = new Date(Math.min(now.getTime() + DEED_QR_DAYS * 86_400_000, startOfDayInZone(season.dates.close).getTime()));
+  const expiresAt = new Date(Math.min(now.getTime() + DEED_QR_DAYS * DAY_MS, startOfDayInZone(season.dates.close).getTime()));
 
   // The id is chosen first so the QR token (HMAC of the id) can be hashed into the same insert.
   const _id = new mongoose.Types.ObjectId();

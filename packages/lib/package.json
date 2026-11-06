@@ -16,7 +16,8 @@
     "./ids": "./src/ids.ts",
     "./family": "./src/family.ts",
     "./form": "./src/form.ts",
-    "./phone": "./src/phone.ts"
+    "./phone": "./src/phone.ts",
+    "./time": "./src/time.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

@@ -23,6 +23,8 @@ import { AuditLog, connectDb, Item, PlatformSettings, Store, trusted, User, Wish
 import { sendEmail } from "@repo/email";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { DEFAULT_LOCALE } from "@repo/lib/locales";
+import { DAY_MS } from "@repo/lib/time";
+import { getSeasonState } from "@repo/stores/season";
 import { memberStore, type StoreActor } from "@repo/stores/owner";
 import { storeAppOrigin } from "@repo/stores/urls";
 
@@ -63,7 +65,9 @@ export type StoreOrders = {
 };
 
 const SHIPPED_HISTORY_DAYS = 60;
-const MAX_ROWS = 500;
+/** Open orders (set aside / ready / out of stock) and shipped history are capped SEPARATELY. */
+const MAX_OPEN_ROWS = 1000;
+const MAX_SHIPPED_ROWS = 200;
 
 type RawWish = {
   _id: unknown;
@@ -88,15 +92,22 @@ async function itemNames(ids: unknown[]): Promise<Map<string, string>> {
 export async function storeOrders(actor: StoreActor, now = new Date()): Promise<StoreOrders | null> {
   const store = await memberStore(actor);
   if (!store) return null;
-  const since = new Date(now.getTime() - SHIPPED_HISTORY_DAYS * 86_400_000);
-  const rows = await WishListItem.find({
-    storeId: store._id,
-    $or: [{ status: trusted({ $in: ["fully_funded", "locked"] }) }, { status: "shipped", shippedAt: trusted({ $gte: since }) }],
-  })
-    .select("itemId status needsSubstitute fullyFundedAt lockedAt shippedAt trackingNote")
-    .sort({ fullyFundedAt: 1, _id: 1 })
-    .limit(MAX_ROWS)
-    .lean<RawWish[]>();
+  const since = new Date(now.getTime() - SHIPPED_HISTORY_DAYS * DAY_MS);
+  const fields = "itemId status needsSubstitute fullyFundedAt lockedAt shippedAt trackingNote";
+  // Two queries so a long shipped history can never push open orders off the page.
+  const [open, shipped] = await Promise.all([
+    WishListItem.find({ storeId: store._id, status: trusted({ $in: ["fully_funded", "locked"] }) })
+      .select(fields)
+      .sort({ fullyFundedAt: 1, _id: 1 })
+      .limit(MAX_OPEN_ROWS)
+      .lean<RawWish[]>(),
+    WishListItem.find({ storeId: store._id, status: "shipped", shippedAt: trusted({ $gte: since }) })
+      .select(fields)
+      .sort({ shippedAt: -1, _id: 1 })
+      .limit(MAX_SHIPPED_ROWS)
+      .lean<RawWish[]>(),
+  ]);
+  const rows = [...open, ...shipped];
   const names = await itemNames(rows.map((r) => r.itemId));
   const toRow = (r: RawWish): OrderRow => ({
     id: String(r._id),
@@ -114,8 +125,21 @@ export async function storeOrders(actor: StoreActor, now = new Date()): Promise<
     else if (r.status === "locked") out.ready.push(toRow(r));
     else out.setAside.push(toRow(r));
   }
-  out.shipped.sort((a, b) => (b.shippedAt?.getTime() ?? 0) - (a.shippedAt?.getTime() ?? 0));
   return out;
+}
+
+/**
+ * Just the two numbers for the dashboard overview alert (cheap counts).
+ * `storeId` MUST come from memberStore() (the caller's own store), never from user input.
+ */
+export async function orderCounts(storeId: unknown): Promise<{ ready: number; setAside: number }> {
+  await connectDb();
+  const base = { storeId: String(storeId), needsSubstitute: trusted({ $ne: true }) };
+  const [ready, setAside] = await Promise.all([
+    WishListItem.countDocuments({ ...base, status: "locked" }),
+    WishListItem.countDocuments({ ...base, status: "fully_funded" }),
+  ]);
+  return { ready, setAside };
 }
 
 export type ShipResult = { ok: true } | { ok: false; error: "notFound" | "notReady" };
@@ -158,7 +182,23 @@ function listLines(rows: DigestWish[], names: Map<string, string>): string {
   return [...byItem.entries()].map(([itemId, refs]) => `${refs.length} × ${names.get(itemId) ?? "?"} (${refs.join(", ")})`).join("\n");
 }
 
-export type DigestResult = { stores: number; emails: number; failed: number; skipped?: "noAddress" };
+export type DigestResult = {
+  stores: number;
+  emails: number;
+  /** Stores whose email couldn't go out at all (retried next run). */
+  failed: number;
+  /** Single recipients that failed while others of the same store got it (not retried). */
+  failedRecipients: number;
+  /** Stores left for the next run because this run's time budget ran out. */
+  deferred: number;
+  skipped?: "noAddress";
+};
+
+/** Resend's default limit is 2 requests/second: stay under it. */
+const SEND_GAP_MS = 600;
+/** Leave the rest of the daily job (5 min max) its time: unsent stores go out on the next run. */
+const DIGEST_BUDGET_MS = 150_000;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * Email each store its NEW gifts to set aside and gifts now ready to ship (owner + active reps).
@@ -166,11 +206,16 @@ export type DigestResult = { stores: number; emails: number; failed: number; ski
  * Gifts waiting for a substitute are left out (the admin deals with them; once a substitute is
  * arranged they appear in the next digest).
  */
-export async function sendStoreDigests(): Promise<DigestResult> {
+export async function sendStoreDigests(now = new Date()): Promise<DigestResult> {
+  const started = Date.now();
   await connectDb();
+  const empty = { stores: 0, emails: 0, failed: 0, failedRecipients: 0, deferred: 0 };
   const address = await shippingAddress();
-  if (!address) return { stores: 0, emails: 0, failed: 0, skipped: "noAddress" };
+  if (!address) return { ...empty, skipped: "noAddress" };
+  // THIS season only: older seasons' gifts (e.g. before this feature existed) are never re-announced.
+  const { year } = await getSeasonState(now);
   const pending = await WishListItem.find({
+    seasonYear: year,
     needsSubstitute: trusted({ $ne: true }),
     $or: [
       { status: "fully_funded", setAsideNotifiedAt: null },
@@ -180,43 +225,64 @@ export async function sendStoreDigests(): Promise<DigestResult> {
     .select("storeId itemId status")
     .limit(5000)
     .lean<DigestWish[]>();
-  if (pending.length === 0) return { stores: 0, emails: 0, failed: 0 };
+  if (pending.length === 0) return empty;
   const names = await itemNames(pending.map((p) => p.itemId));
   const byStore = new Map<string, DigestWish[]>();
   for (const p of pending) byStore.set(String(p.storeId), [...(byStore.get(String(p.storeId)) ?? []), p]);
   const link = `${storeAppOrigin()}/dashboard/orders`;
 
-  let emails = 0;
-  let failed = 0;
+  const r: DigestResult = { ...empty, stores: byStore.size };
   for (const [storeId, rows] of byStore) {
+    if (Date.now() - started > DIGEST_BUDGET_MS) {
+      r.deferred += 1; // stays pending: next run
+      continue;
+    }
     try {
       const store = await Store.findById(storeId).select("name ownerUserId repUserIds").lean<{ name: string; ownerUserId?: unknown; repUserIds?: unknown[] }>();
-      if (!store) continue;
-      const memberIds = [store.ownerUserId, ...(store.repUserIds ?? [])].filter(Boolean).map(String);
-      const people = await User.find({ _id: trusted({ $in: memberIds }), status: "active" }).select("email locale").lean<{ _id: unknown; email: string; locale?: string }[]>();
-      if (people.length === 0) continue; // nobody to tell yet: stays pending, retried tomorrow
-      const setAside = rows.filter((r) => r.status === "fully_funded");
-      const ready = rows.filter((r) => r.status === "locked");
-      // Same set of gifts = same key: a re-run (or a retry) never emails the same news twice.
-      const batch = createHash("sha256").update(rows.map((r) => String(r._id)).sort().join(",")).digest("base64url").slice(0, 16);
-      for (const person of people) {
-        await sendEmail({
-          to: person.email,
-          locale: person.locale ?? DEFAULT_LOCALE,
-          template: "storeOrders",
-          values: { link, storeName: store.name, setAside: listLines(setAside, names), readyToShip: listLines(ready, names), address },
-          idempotencyKey: `store-orders/${storeId}/${batch}/${String(person._id)}`,
-        });
-        emails += 1;
+      const memberIds = store ? [store.ownerUserId, ...(store.repUserIds ?? [])].filter(Boolean).map(String) : [];
+      const people = memberIds.length ? await User.find({ _id: trusted({ $in: memberIds }), status: "active" }).select("email locale").lean<{ _id: unknown; email: string; locale?: string }[]>() : [];
+      if (!store || people.length === 0) {
+        // Gifts are owed but nobody can be told: count it so the job reports a failure (admin follows up).
+        r.failed += 1;
+        console.error("[fulfilment] store has funded gifts but no active owner/rep to email:", storeId);
+        continue;
       }
-      const now = new Date();
+      const setAside = rows.filter((w) => w.status === "fully_funded");
+      const ready = rows.filter((w) => w.status === "locked");
+      const values = { link, storeName: store.name, setAside: listLines(setAside, names), readyToShip: listLines(ready, names), address };
+      // Key = the exact email CONTENT (gift ids + statuses + address): same news is never sent twice,
+      // different news never collides with an old key (review 2026-11-06).
+      const batch = createHash("sha256")
+        .update(rows.map((w) => `${String(w._id)}:${w.status}`).sort().join(","))
+        .update(`|${address}`)
+        .digest("base64url")
+        .slice(0, 16);
+      let sent = 0;
+      for (const person of people) {
+        try {
+          await sendEmail({ to: person.email, locale: person.locale ?? DEFAULT_LOCALE, template: "storeOrders", values, idempotencyKey: `store-orders/${storeId}/${batch}/${String(person._id)}` });
+          sent += 1;
+          r.emails += 1;
+        } catch (err) {
+          r.failedRecipients += 1;
+          console.error("[fulfilment] store digest recipient failed:", err instanceof Error ? err.name : "unknown");
+        }
+        await sleep(SEND_GAP_MS);
+      }
+      // Nobody got it → retry next run. At least one person got it → done (no daily repeats for
+      // the others because of one bad address; the Orders page always shows everything).
+      if (sent === 0) {
+        r.failed += 1;
+        continue;
+      }
+      const at = new Date();
       // Ready-to-ship also counts as "told to set aside" (a gift locked at the freeze skips that step).
-      await WishListItem.updateMany({ _id: trusted({ $in: setAside.map((r) => r._id) }) }, { $set: { setAsideNotifiedAt: now } });
-      await WishListItem.updateMany({ _id: trusted({ $in: ready.map((r) => r._id) }) }, { $set: { readyNotifiedAt: now, setAsideNotifiedAt: now } });
+      await WishListItem.updateMany({ _id: trusted({ $in: setAside.map((w) => w._id) }) }, { $set: { setAsideNotifiedAt: at } });
+      await WishListItem.updateMany({ _id: trusted({ $in: ready.map((w) => w._id) }) }, { $set: { readyNotifiedAt: at, setAsideNotifiedAt: at } });
     } catch (err) {
-      failed += 1;
+      r.failed += 1;
       console.error("[fulfilment] store digest failed:", err instanceof Error ? err.name : "unknown");
     }
   }
-  return { stores: byStore.size, emails, failed };
+  return r;
 }

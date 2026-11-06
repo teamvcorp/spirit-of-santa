@@ -14,7 +14,8 @@ import { AuditLog, connectDb, Item, PlatformSettings, Season, Store, trusted, Us
 import { hashSecret } from "@repo/auth/password";
 import { getSeasonYear } from "@repo/lib/season";
 import { lockFundedItems } from "@repo/wishlists/engine";
-import { markShipped, sendStoreDigests } from "@repo/wishlists/fulfilment";
+import { markShipped, orderRef as ref, sendStoreDigests } from "@repo/wishlists/fulfilment";
+import { calendarDateIn, isoDay } from "@repo/lib/season";
 import { makeChecks } from "./lib.ts";
 
 const [base] = process.argv.slice(2);
@@ -98,7 +99,6 @@ try {
     Object.assign(console, orig);
   }
   const out = printed.join("\n");
-  const ref = (id: string) => id.slice(-6).toUpperCase();
   // Other dev data may be pending too: check OUR stores' part.
   check("digest emailed store A's owner + rep and store B's owner", out.includes(mail("a")) && out.includes(mail("rep")) && out.includes(mail("b")) && (d1?.emails ?? 0) >= 3);
   check("email lists set-aside + ready gifts with refs and the address", out.includes(`1 × Bike ${tag} (${ref(old)})`) && out.includes(ref(fresh)) && out.includes("North Pole Way"));
@@ -151,10 +151,14 @@ try {
   check("server: set-aside / out-of-stock / already-shipped → notReady; other store's → notFound",
     !r1.ok && r1.error === "notReady" && !r2.ok && r2.error === "notReady" && !r3.ok && r3.error === "notReady" && !r4.ok && r4.error === "notFound");
 
-  // 7. Freeze → every fully funded gift of this season locks at once (no 30-day wait).
+  // 7. The admin's force-freeze switch must NOT lock anything for good (it can be switched off again).
   await Season.collection.updateOne({ year }, { $set: { forceFrozen: true } }, { upsert: true });
   await lockFundedItems();
-  check("at the freeze: all fully funded gifts lock (even 1-day-old ones)", (await status(fresh)) === "locked" && (await status(freezeOnly)) === "locked");
+  check("force-freeze switch (reversible) locks nothing early", (await status(fresh)) === "fully_funded" && (await status(freezeOnly)) === "fully_funded");
+  // 8. The freeze DATE reached (here: today) → every fully funded gift of this season locks at once.
+  await Season.collection.updateOne({ year }, { $set: { forceFrozen: false, freezeDate: isoDay(calendarDateIn(new Date())) } });
+  await lockFundedItems();
+  check("on the freeze date: all fully funded gifts lock (even 1-day-old ones)", (await status(fresh)) === "locked" && (await status(freezeOnly)) === "locked");
 
   check("no browser errors", errors.length === 0);
   if (errors.length) console.log(errors);

@@ -520,7 +520,12 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   `/dashboard/orders` + overview alert; admin Settings "shipping address" (PlatformSettings.shippingAddress, read by
   fulfilment directly: payments imports wishlists, so no cycle). New WishListItem fields: set-aside/ready notified,
   substitute arranged/note, shippedBy/trackingNote, receivedAt/By, deliveredBy, familyNotifiedAt. Family project now
-  needs `STORE_APP_URL`. E2E `browser-store-orders.ts` (17).
+  needs `STORE_APP_URL`. E2E `browser-store-orders.ts` (18).
+  Review fixes: lock-at-freeze uses the freeze DATE, never the reversible admin force-freeze switch; digest = THIS
+  season only, key = hash of ids+statuses+address, stamped once ≥1 member got it (bad rep address ≠ daily repeats),
+  600 ms between sends (Resend 2/s), 150 s budget (rest "deferred" to next run), store with no active member = failed;
+  cron reports digest failures as a partial failure (500 + log). Overview uses cheap `orderCounts(storeId)`; open
+  orders and shipped history capped separately. `DAY_MS` single source in `@repo/lib/time`.
 
 ## Open items / TODO
 

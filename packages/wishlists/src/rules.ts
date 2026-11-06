@@ -4,8 +4,7 @@
  * buttons to show, and every action re-checks inside its transaction.
  */
 import { ITEM_LOCK_DAYS } from "@repo/lib/limits";
-
-const DAY_MS = 86_400_000;
+import { DAY_MS } from "@repo/lib/time";
 
 /** Does a row with this status count toward the cap? */
 export const countsTowardCap = (status: string) => (CAP_STATUSES as readonly string[]).includes(status);

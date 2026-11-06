@@ -30,6 +30,10 @@ export const APP_ROLES = {
   admin: ["admin"],
 } as const satisfies Record<AppName, readonly Role[]>;
 
+/** Roles that create their own account (and get a confirm-email link): store owners, parents. */
+export const SELF_SIGNUP_ROLES = ["store_owner", "parent"] as const satisfies readonly Role[];
+export const isSelfSignupRole = (role: string) => (SELF_SIGNUP_ROLES as readonly string[]).includes(role);
+
 export function isRoleAllowedInApp(role: Role, app: AppName): boolean {
   return (APP_ROLES[app] as readonly Role[]).includes(role);
 }

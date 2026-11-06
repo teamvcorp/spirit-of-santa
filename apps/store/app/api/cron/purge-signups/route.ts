@@ -16,7 +16,16 @@ export async function GET(request: Request): Promise<Response> {
   if (!secret || secret.length < 16 || given.length !== expected.length || !timingSafeEqual(given, expected)) {
     return new Response("Unauthorized", { status: 401 });
   }
-  const result = { stores: await purgeUnverifiedStoreSignups(), parents: await purgeUnverifiedParentSignups() };
+  // Independent jobs: one failing must not skip the other (review 2026-11-05).
+  const [stores, parents] = await Promise.allSettled([purgeUnverifiedStoreSignups(), purgeUnverifiedParentSignups()]);
+  const result = {
+    stores: stores.status === "fulfilled" ? stores.value : "failed",
+    parents: parents.status === "fulfilled" ? parents.value : "failed",
+  };
+  if (stores.status === "rejected" || parents.status === "rejected") {
+    console.error("[cron] purge-signups partly failed", result);
+    return Response.json(result, { status: 500, headers: { "Cache-Control": "no-store" } });
+  }
   console.info("[cron] purge-signups", result); // counts only
   return Response.json(result, { headers: { "Cache-Control": "no-store" } });
 }

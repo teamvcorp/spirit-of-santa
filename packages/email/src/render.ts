@@ -21,6 +21,8 @@ const MESSAGES: Record<Locale, typeof en> = { en, es };
 export type EmailTemplates = {
   /** No user-typed text: this goes to an address nobody has verified yet (anti-spam-relay). */
   verifyEmail: { link: string };
+  /** Parent sign-up confirmation (family app). Also no user-typed text. */
+  verifyParentEmail: { link: string };
   accountExists: { link: string };
   resetPassword: { link: string };
   /** storeName typed by an admin. */

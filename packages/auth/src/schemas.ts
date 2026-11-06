@@ -104,7 +104,7 @@ export const parentRegistrationSchema = z.object({
   email: emailSchema,
   password: newPasswordSchema,
   familyName: z.string().trim().min(1, "required").max(80, "tooLong"),
-  zip: z.union([z.literal(""), z.string().trim().regex(/^\d{5}$/, "invalid")]).optional(),
+  zip: z.string().trim().regex(/^(\d{5})?$/, "invalid").optional(),
   consent: z.literal("on", "mustAgree"),
   /** Honeypot (see storeRegistrationSchema). */
   company_url: z.string().max(500).optional(),

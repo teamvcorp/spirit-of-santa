@@ -22,7 +22,7 @@ import { ActionToken, AuditLog, connectDb, Family, Store, trusted, User, withTra
 import { sendEmail } from "@repo/email";
 import { localizePath } from "@repo/i18n/paths";
 import type { Locale } from "@repo/lib/locales";
-import { isRoleAllowedInApp, type AppName } from "@repo/lib/roles";
+import { isRoleAllowedInApp, isSelfSignupRole, type AppName } from "@repo/lib/roles";
 import { PARENT_CONSENT_VERSION } from "@repo/lib/family";
 import { STORE_AGREEMENT_VERSION } from "@repo/lib/store";
 import { burnVerifyTime, hashSecret } from "./password.ts";
@@ -88,125 +88,161 @@ async function checkLimits(
 
 const randomSuffix = () => Math.random().toString(36).slice(2, 6);
 
-// ── Store sign-up ────────────────────────────────────────────────────────────────────
-export async function registerStoreOwner(input: StoreRegistrationInput, ctx: FlowContext): Promise<FlowResult> {
+// ── Self sign-up (shared by stores and parents) ───────────────────────────────────────
+/** Which confirm email fits the account (parents get family wording, store owners store wording). */
+const verifyTemplate = (role: string) => (role === "parent" ? "verifyParentEmail" : "verifyEmail");
+
+async function sendVerifyLink(email: string, userId: NonNullable<Parameters<typeof createActionToken>[1]["userId"]>, role: string, ctx: FlowContext) {
+  const { raw } = await createActionToken("verify_email", { email, userId });
+  const link = appLink(ctx, "/verify", raw);
+  await sendLater(() => sendEmail({ to: email, locale: ctx.locale, template: verifyTemplate(role), values: { link } }), "verifyEmail");
+}
+
+/**
+ * The security-critical part of BOTH sign-up flows in one place (review 2026-11-05), so a fix
+ * can't land in one and be missed in the other:
+ *  - visible per-IP / site-wide limits, silent per-email limit; honeypot → fake success;
+ *  - the password is hashed on EVERY path (same cost whether or not the email exists);
+ *  - an email that already exists gets the SAME answer, and by email:
+ *      still unconfirmed in this app → a fresh confirm link (their old one may have expired),
+ *      confirmed in this app          → "you already have an account" (sign-in link),
+ *      an account of the OTHER app    → nothing (a link to a site where they can't sign in would
+ *                                       only confuse; the answer on screen is identical).
+ * `create` makes the user (+ store/family) in a transaction and returns its id, or null when
+ * the same email was created a moment ago (unique index): also the same answer.
+ */
+async function selfSignUp(spec: {
+  scope: string;
+  limits: { perIp: number; perEmail: number; global?: number };
+  app: AppName;
+  role: "store_owner" | "parent";
+  email: string;
+  password: string;
+  honeypot?: string;
+  ctx: FlowContext;
+  create: (passwordHash: string) => Promise<string | null>;
+}): Promise<FlowResult> {
   await connectDb();
-  // Site-wide cap: a backstop if someone rotates through many IPs (sign-up spam relay).
-  const limit = await checkLimits("register", ctx, input.email, { perIp: 5, perEmail: 3, global: 100 });
+  const limit = await checkLimits(spec.scope, spec.ctx, spec.email, spec.limits);
   if (limit === "blocked") return { ok: false, error: "rateLimited" };
   if (limit === "skipSend") return { ok: true }; // silently: same answer, nothing created or sent
+  if (spec.honeypot) return { ok: true }; // honeypot filled → a bot. Pretend success, do nothing.
 
-  // Honeypot filled → a bot. Pretend success, do nothing.
-  if (input.company_url) return { ok: true };
-
-  // Hash on EVERY path (same cost whether or not the email exists).
-  const passwordHash = await hashSecret(input.password);
-  const existing = await User.exists({ email: input.email });
+  const passwordHash = await hashSecret(spec.password); // every path: same cost
+  const existing = await User.findOne({ email: spec.email }).select("_id role status").lean();
   if (existing) {
-    const link = appLink(ctx, "/signin");
-    await sendLater(() => sendEmail({ to: input.email, locale: ctx.locale, template: "accountExists", values: { link } }), "accountExists");
+    if (!isRoleAllowedInApp(existing.role, spec.app)) return { ok: true };
+    if (existing.status === "pending" && isSelfSignupRole(existing.role)) {
+      await sendVerifyLink(spec.email, existing._id, existing.role, spec.ctx);
+    } else if (existing.status === "active") {
+      const link = appLink(spec.ctx, "/signin");
+      await sendLater(() => sendEmail({ to: spec.email, locale: spec.ctx.locale, template: "accountExists", values: { link } }), "accountExists");
+    }
     return { ok: true };
   }
-
-  let created: { userId: string } | null = null;
-  let slug = slugify(input.storeName);
-  for (let attempt = 0; attempt < 4 && !created; attempt++) {
-    try {
-      created = await withTransaction(async (session) => {
-        const [user] = await User.create(
-          [{ email: input.email, passwordHash, role: "store_owner", name: input.ownerName, status: "pending", locale: ctx.locale }],
-          { session },
-        );
-        const [store] = await Store.create(
-          [
-            {
-              name: input.storeName,
-              slug,
-              category: input.category,
-              description: input.description,
-              contact: {
-                email: input.email,
-                phone: input.phone,
-                website: input.website,
-                address: { line1: input.line1, city: input.city, state: input.state, zip: input.zip },
-              },
-              status: "pending",
-              ownerUserId: user!._id,
-              discountAgreement: { version: STORE_AGREEMENT_VERSION, acceptedAt: new Date(), acceptedByUserId: user!._id },
-            },
-          ],
-          { session },
-        );
-        await User.updateOne({ _id: user!._id }, { $set: { storeId: store!._id } }, { session });
-        return { userId: String(user!._id) };
-      });
-    } catch (err) {
-      const e = err as { code?: number; keyPattern?: Record<string, unknown> };
-      if (e.code !== 11000) throw err;
-      if (e.keyPattern?.email) return { ok: true }; // same email signed up a moment ago
-      slug = `${slugify(input.storeName).slice(0, 45)}-${randomSuffix()}`; // slug taken: try another
-    }
-  }
-  if (!created) throw new Error("could not allocate a store slug");
-
-  const { raw } = await createActionToken("verify_email", { email: input.email, userId: created.userId });
-  const link = appLink(ctx, "/verify", raw);
-  await sendLater(
-    () => sendEmail({ to: input.email, locale: ctx.locale, template: "verifyEmail", values: { link } }),
-    "verifyEmail",
-  );
+  const userId = await spec.create(passwordHash);
+  if (userId) await sendVerifyLink(spec.email, userId, spec.role, spec.ctx);
   return { ok: true };
+}
+
+// ── Store sign-up ────────────────────────────────────────────────────────────────────
+export async function registerStoreOwner(input: StoreRegistrationInput, ctx: FlowContext): Promise<FlowResult> {
+  return selfSignUp({
+    scope: "register",
+    // Site-wide cap: a backstop if someone rotates through many IPs (sign-up spam relay).
+    limits: { perIp: 5, perEmail: 3, global: 100 },
+    app: "store",
+    role: "store_owner",
+    email: input.email,
+    password: input.password,
+    honeypot: input.company_url,
+    ctx,
+    async create(passwordHash) {
+      let slug = slugify(input.storeName);
+      for (let attempt = 0; attempt < 4; attempt++) {
+        try {
+          return await withTransaction(async (session) => {
+            const [user] = await User.create(
+              [{ email: input.email, passwordHash, role: "store_owner", name: input.ownerName, status: "pending", locale: ctx.locale }],
+              { session },
+            );
+            const [store] = await Store.create(
+              [
+                {
+                  name: input.storeName,
+                  slug,
+                  category: input.category,
+                  description: input.description,
+                  contact: {
+                    email: input.email,
+                    phone: input.phone,
+                    website: input.website,
+                    address: { line1: input.line1, city: input.city, state: input.state, zip: input.zip },
+                  },
+                  status: "pending",
+                  ownerUserId: user!._id,
+                  discountAgreement: { version: STORE_AGREEMENT_VERSION, acceptedAt: new Date(), acceptedByUserId: user!._id },
+                },
+              ],
+              { session },
+            );
+            await User.updateOne({ _id: user!._id }, { $set: { storeId: store!._id } }, { session });
+            return String(user!._id);
+          });
+        } catch (err) {
+          const e = err as { code?: number; keyPattern?: Record<string, unknown> };
+          if (e.code !== 11000) throw err;
+          if (e.keyPattern?.email) return null; // same email signed up a moment ago
+          slug = `${slugify(input.storeName).slice(0, 45)}-${randomSuffix()}`; // slug taken: try another
+        }
+      }
+      throw new Error("could not allocate a store slug");
+    },
+  });
 }
 
 // ── Parent sign-up (family app) ──────────────────────────────────────────────────────
 /**
- * Same protections as store sign-up (no enumeration, rate limits, honeypot, verify link).
  * Creates a PENDING parent + their Family with the consent record (policy version, time).
- * Confirming the email activates the account and stamps consent.emailVerifiedAt.
+ * Confirming the email activates the account and stamps consent.emailVerifiedAt (verifyEmail).
  */
 export async function registerParent(input: ParentRegistrationInput, ctx: FlowContext): Promise<FlowResult> {
-  await connectDb();
-  const limit = await checkLimits("register-parent", ctx, input.email, { perIp: 5, perEmail: 3, global: 200 });
-  if (limit === "blocked") return { ok: false, error: "rateLimited" };
-  if (limit === "skipSend") return { ok: true };
-  if (input.company_url) return { ok: true }; // honeypot: a bot
-
-  const passwordHash = await hashSecret(input.password); // every path: same cost
-  if (await User.exists({ email: input.email })) {
-    const link = appLink(ctx, "/signin");
-    await sendLater(() => sendEmail({ to: input.email, locale: ctx.locale, template: "accountExists", values: { link } }), "accountExists");
-    return { ok: true };
-  }
-  let userId: string;
-  try {
-    userId = await withTransaction(async (session) => {
-      const [user] = await User.create(
-        [{ email: input.email, passwordHash, role: "parent", name: input.parentName, status: "pending", locale: ctx.locale }],
-        { session },
-      );
-      const [family] = await Family.create(
-        [
-          {
-            ownerUserId: user!._id,
-            familyName: input.familyName,
-            ...(input.zip ? { zip: input.zip } : {}),
-            consent: { version: PARENT_CONSENT_VERSION, acceptedAt: new Date() },
-          },
-        ],
-        { session },
-      );
-      await User.updateOne({ _id: user!._id }, { $set: { familyId: family!._id } }, { session });
-      return String(user!._id);
-    });
-  } catch (err) {
-    // Same email signed up a moment ago (unique index): same answer as success.
-    if ((err as { code?: number }).code === 11000) return { ok: true };
-    throw err;
-  }
-  const { raw } = await createActionToken("verify_email", { email: input.email, userId });
-  const link = appLink(ctx, "/verify", raw);
-  await sendLater(() => sendEmail({ to: input.email, locale: ctx.locale, template: "verifyEmail", values: { link } }), "verifyEmail");
-  return { ok: true };
+  return selfSignUp({
+    scope: "register-parent",
+    limits: { perIp: 5, perEmail: 3, global: 200 },
+    app: "family",
+    role: "parent",
+    email: input.email,
+    password: input.password,
+    honeypot: input.company_url,
+    ctx,
+    async create(passwordHash) {
+      try {
+        return await withTransaction(async (session) => {
+          const [user] = await User.create(
+            [{ email: input.email, passwordHash, role: "parent", name: input.parentName, status: "pending", locale: ctx.locale }],
+            { session },
+          );
+          const [family] = await Family.create(
+            [
+              {
+                ownerUserId: user!._id,
+                familyName: input.familyName,
+                ...(input.zip ? { zip: input.zip } : {}),
+                consent: { version: PARENT_CONSENT_VERSION, acceptedAt: new Date() },
+              },
+            ],
+            { session },
+          );
+          await User.updateOne({ _id: user!._id }, { $set: { familyId: family!._id } }, { session });
+          return String(user!._id);
+        });
+      } catch (err) {
+        if ((err as { code?: number }).code === 11000) return null; // same email a moment ago
+        throw err;
+      }
+    },
+  });
 }
 
 // ── Verify email ─────────────────────────────────────────────────────────────────────
@@ -214,30 +250,28 @@ export async function verifyEmail(raw: unknown): Promise<FlowResult> {
   await connectDb();
   const token = await consumeActionToken(raw, "verify_email");
   if (!token?.userId) return { ok: false, error: "invalidLink" };
-  // Only pending → active. Never re-activates a suspended account.
-  const res = await User.updateOne({ _id: token.userId, status: "pending" }, { $set: { status: "active" } });
-  // Parents: the confirmed email is part of the consent record (COPPA). First confirmation only.
-  if (res.modifiedCount === 1) {
-    await Family.updateOne({ ownerUserId: token.userId, "consent.emailVerifiedAt": null }, { $set: { "consent.emailVerifiedAt": new Date() } });
-  }
+  // Only pending → active (never re-activates a suspended account). For parents the confirmed
+  // email is part of the COPPA consent record: both writes in ONE transaction, so an account is
+  // never active without its consent stamp (review 2026-11-05).
+  await withTransaction(async (session) => {
+    const res = await User.updateOne({ _id: token.userId, status: "pending" }, { $set: { status: "active" } }, { session });
+    if (res.modifiedCount === 1) {
+      await Family.updateOne({ ownerUserId: token.userId, "consent.emailVerifiedAt": null }, { $set: { "consent.emailVerifiedAt": new Date() } }, { session });
+    }
+  });
   return { ok: true };
 }
 
 /** Resend the confirm link, for accounts of this app's roles only (store owners / parents). */
-export async function resendVerification(email: string, ctx: FlowContext, app: AppName = "store"): Promise<FlowResult> {
+export async function resendVerification(email: string, ctx: FlowContext, app: AppName): Promise<FlowResult> {
   await connectDb();
   const limit = await checkLimits("resend", ctx, email, { perIp: 10, perEmail: 3 });
   if (limit === "blocked") return { ok: false, error: "rateLimited" };
   if (limit === "skipSend") return { ok: true };
   const user = await User.findOne({ email, status: "pending" }).select("_id role").lean();
-  // Only roles that sign up through this app: a parent can't trigger a store email and vice versa.
-  if (user && (user.role === "store_owner" || user.role === "parent") && isRoleAllowedInApp(user.role, app)) {
-    const { raw } = await createActionToken("verify_email", { email, userId: user._id });
-    const link = appLink(ctx, "/verify", raw);
-    await sendLater(
-      () => sendEmail({ to: email, locale: ctx.locale, template: "verifyEmail", values: { link } }),
-      "verifyEmail",
-    );
+  // Only self-sign-up roles of THIS app: a parent can't trigger a store email and vice versa.
+  if (user && isSelfSignupRole(user.role) && isRoleAllowedInApp(user.role, app)) {
+    await sendVerifyLink(email, user._id, user.role, ctx);
   }
   return { ok: true }; // same answer either way
 }
@@ -317,11 +351,20 @@ export async function purgeUnverifiedParentSignups(olderThanHours = 48): Promise
   const cutoff = new Date(Date.now() - olderThanHours * 3_600_000);
   const users = await User.find({ status: "pending", role: "parent", createdAt: trusted({ $lt: cutoff }) }).select("_id").limit(1000).lean();
   if (users.length === 0) return { users: 0, families: 0 };
-  const ids = users.map((u) => u._id);
-  const families = await Family.deleteMany({ ownerUserId: trusted({ $in: ids }) });
-  await ActionToken.deleteMany({ userId: trusted({ $in: ids }) });
-  const deleted = await User.deleteMany({ _id: trusted({ $in: ids }), status: "pending" });
-  return { users: deleted.deletedCount, families: families.deletedCount };
+  // Re-check "still pending" INSIDE a transaction and delete only those users' families: a parent
+  // who confirms while this runs keeps their family (review 2026-11-05).
+  return withTransaction(async (session) => {
+    const still = await User.find({ _id: trusted({ $in: users.map((u) => u._id) }), status: "pending", role: "parent" })
+      .select("_id")
+      .session(session)
+      .lean();
+    const ids = still.map((u) => u._id);
+    if (ids.length === 0) return { users: 0, families: 0 };
+    const families = await Family.deleteMany({ ownerUserId: trusted({ $in: ids }) }, { session });
+    await ActionToken.deleteMany({ userId: trusted({ $in: ids }) }, { session });
+    const deleted = await User.deleteMany({ _id: trusted({ $in: ids }) }, { session });
+    return { users: deleted.deletedCount, families: families.deletedCount };
+  });
 }
 
 // ── Store invite (admin invited the store; owner accepts) ────────────────────────────

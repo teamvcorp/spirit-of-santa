@@ -49,6 +49,14 @@ async function atLeast<T>(work: Promise<T>, ms = MIN_RESPONSE_MS): Promise<T> {
   return result;
 }
 
+/** What the user typed, for re-filling the form after an error. NEVER secrets (password). */
+const SECRET_FIELDS = new Set(["password", "currentPassword", "pin"]);
+function echoValues(fd: FormData, max: number): Record<string, string> {
+  const values: Record<string, string> = {};
+  for (const [k, v] of fd) if (typeof v === "string" && !SECRET_FIELDS.has(k) && !k.startsWith("$")) values[k] = v.slice(0, max);
+  return values;
+}
+
 const str = (fd: FormData, k: string) => {
   const v = fd.get(k);
   return typeof v === "string" ? v : "";
@@ -91,8 +99,7 @@ export async function confirmEmailWithToken(_prev: FormState, fd: FormData): Pro
 export async function registerStore(_prev: FormState, fd: FormData): Promise<FormState> {
   const parsed = storeRegistrationSchema.safeParse(Object.fromEntries(fd));
   // Echo back what the user typed (never the password) so a failed submit doesn't wipe it.
-  const values: Record<string, string> = {};
-  for (const [k, v] of fd) if (typeof v === "string" && k !== "password" && !k.startsWith("$")) values[k] = v.slice(0, 2000);
+  const values = echoValues(fd, 2000);
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), values, nonce: randomUUID() };
   const r = await atLeast(registerStoreOwner(parsed.data, await context(fd)));
   return r.ok ? { status: "sent" } : { status: "error", error: r.error, values, nonce: randomUUID() };
@@ -101,8 +108,7 @@ export async function registerStore(_prev: FormState, fd: FormData): Promise<For
 /** Parent sign-up (family app). Echoes what was typed (never the password) on error. */
 export async function registerParentForm(_prev: FormState, fd: FormData): Promise<FormState> {
   const parsed = parentRegistrationSchema.safeParse(Object.fromEntries(fd));
-  const values: Record<string, string> = {};
-  for (const [k, v] of fd) if (typeof v === "string" && k !== "password" && !k.startsWith("$")) values[k] = v.slice(0, 500);
+  const values = echoValues(fd, 500);
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), values, nonce: randomUUID() };
   const r = await atLeast(registerParent(parsed.data, await context(fd)));
   return r.ok ? { status: "sent" } : { status: "error", error: r.error, values, nonce: randomUUID() };

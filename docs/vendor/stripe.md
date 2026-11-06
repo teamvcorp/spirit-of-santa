@@ -31,6 +31,12 @@
   a real test payment and replays Stripe's actual event.
   With the CLI: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`, and put the
   `whsec_` it prints in apps/family/.env.local `STRIPE_WEBHOOK_SECRET` (it's per machine).
+  **Installed 2026-11-06** (`winget install Stripe.StripeCli`; exe under
+  `%LOCALAPPDATA%\Microsoft\WinGet\Packages\Stripe.StripeCli_*\stripe.exe`, new shells have `stripe`).
+  No `stripe login` needed: set `STRIPE_API_KEY` (= the TEST secret key) in that shell. This CLI
+  version REQUIRES `--events`; use the same 10 as the production endpoint:
+  `stripe listen --forward-to localhost:3000/api/webhooks/stripe --events payment_intent.succeeded,payment_intent.payment_failed,payment_intent.canceled,checkout.session.completed,checkout.session.expired,checkout.session.async_payment_succeeded,checkout.session.async_payment_failed,charge.refunded,charge.dispute.created,charge.dispute.closed`
+  `stripe listen --print-secret` prints the machine's `whsec_` (stable; already in .env.local).
 
 ## Fulfil on the return page too (added 2026-11-06)
 

@@ -8,7 +8,9 @@ import { PARENT_CONSENT_VERSION } from "@repo/lib/family";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 
-const SECTIONS = ["collect", "public", "share", "consent", "rights", "keep", "contact"] as const;
+// "visitors" + "texts" (2026-11-06): people who tip/donate, and pay-later text messages (carrier requirement:
+// mobile numbers are not shared for marketing). Registered with the carriers: keep /privacy public.
+const SECTIONS = ["collect", "public", "share", "visitors", "texts", "consent", "rights", "keep", "contact"] as const;
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Privacy");
@@ -26,7 +28,7 @@ export default async function PrivacyPage() {
         <p className="mb-6">{t("intro")}</p>
         {SECTIONS.map((s) => (
           <section key={s} className="mb-6">
-            <h2 className="mb-2 text-lg font-semibold">{t(`sections.${s}.title`)}</h2>
+            <h2 id={s} className="mb-2 text-lg font-semibold">{t(`sections.${s}.title`)}</h2>
             <p className="whitespace-pre-line">{t(`sections.${s}.body`)}</p>
           </section>
         ))}

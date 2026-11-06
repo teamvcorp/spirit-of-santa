@@ -431,6 +431,12 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   retained (refunded/disputed/flagged stay held, never counted); batches re-read balances ON the session + bulkWrite
   CAS (conflict → whole batch retried); ledger key per (season, kid); "done" set inside the lock only when no kid has
   points; "retained" = received on /donate/thanks and still gets a receipt.
+- **Slice 4a carrier pages (DONE):** public `/text-messages` (+/es), `/terms` (DRAFT, `TERMS_VERSION`), `/privacy`
+  + "visitors" & "texts" sections (PARENT_CONSENT_VERSION → 2026-11-06-draft), footer on every family page linking all
+  three. These URLs are REGISTERED with the carriers (Toll-Free Verification): keep them public. The opt-in form =
+  `apps/family/components/pay-later-form.tsx` (`PayLaterFields`, `PayLaterConsentText`, `PayLaterPreview`); the
+  registered sentence lives ONLY in messages `PayLater.consent` (version `SMS_CONSENT_VERSION`); "7 days" must equal
+  `PAY_LATER_LINK_DAYS`. E2E `browser-text-pages.ts` (12) compares the page to the registered sentence.
 - **Alert roles:** `tone="error"` → `role="alert"`, info → `role="status"`. E2E success checks must match both.
 - **Dev server gotchas:** new message namespaces may need a dev-server restart. **Mongoose models are cached across
   hot reloads (`models.X ?? model(...)`): after a SCHEMA change restart the dev server, or new fields are silently

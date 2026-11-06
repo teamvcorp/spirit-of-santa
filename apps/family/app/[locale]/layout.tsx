@@ -34,6 +34,7 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
   if (!isLocale(locale)) notFound(); // the proxy normally guarantees a valid locale
   const common = await getTranslations("Common");
   const community = await getTranslations("Community");
+  const footer = await getTranslations("Footer");
 
   return (
     <html
@@ -65,6 +66,19 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
             }
           />
           {children}
+          <footer className="mt-auto border-t border-foreground/10 px-6 py-4 text-center text-sm text-foreground/70">
+            <Link href="/privacy" className="underline-offset-4 hover:underline">
+              {footer("privacy")}
+            </Link>
+            {" · "}
+            <Link href="/terms" className="underline-offset-4 hover:underline">
+              {footer("terms")}
+            </Link>
+            {" · "}
+            <Link href="/text-messages" className="underline-offset-4 hover:underline">
+              {footer("texts")}
+            </Link>
+          </footer>
         </NextIntlClientProvider>
       </body>
     </html>

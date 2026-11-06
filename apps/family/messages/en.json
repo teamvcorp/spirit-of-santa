@@ -71,6 +71,14 @@
       "contact": {
         "title": "Contact",
         "body": "Questions or requests: contact details will be added here before launch."
+      },
+      "visitors": {
+        "title": "Tips and donations from visitors",
+        "body": "If you scan a QR code to thank a child or give a tip or donation, card payments are handled by Stripe; we never see your card number. For donations we keep the name and email you type in Stripe's form so we can send your receipt."
+      },
+      "texts": {
+        "title": "Text messages",
+        "body": "If you choose \"Pay later by text\", we use the mobile number you type to send you one text message with a payment link for the tip you chose. We send only that message for that request, never marketing. Message and data rates may apply. Reply STOP to opt out, HELP for help. Texts are delivered by our messaging provider (Twilio) only to send your message. Your mobile number and consent are not shared with third parties or affiliates for marketing or promotional purposes. We keep the number and the time you agreed for up to 13 months as a record of your consent, then delete it."
       }
     }
   },
@@ -335,5 +343,91 @@
       "rateLimited": "Too many tries. Please wait a few minutes and try again.",
       "stripe": "Payments aren't available right now. Please try again later."
     }
+  },
+  "PayLater": {
+    "title": "Pay later by text",
+    "phone": "Your mobile number",
+    "consent": "Text me a link to pay this tip later. Spirit O Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "button": "Text me the link",
+    "previewNote": "Example: this form appears on each good deed's page after scanning its QR code. Nothing is sent from this page."
+  },
+  "TextMessages": {
+    "title": "Text messages from Spirit O Santa",
+    "intro": "We send one kind of text message: a link to pay a tip later, only when you ask for it.",
+    "sections": {
+      "how": {
+        "title": "How you sign up",
+        "body": "When a child does a good deed for you, you can scan the deed's QR code. On that page you may choose \"Pay later by text\", type your own mobile number and tick the box agreeing to receive the text. The box is never ticked for you, and the text can't be requested without it."
+      },
+      "what": {
+        "title": "What we send",
+        "body": "Exactly one text message for each request: a secure payment link for the tip you chose. The link expires after {days} days. We never send marketing or other messages."
+      },
+      "frequency": {
+        "title": "How often",
+        "body": "One message per request. If you don't ask again, you won't hear from us again. Message and data rates may apply."
+      },
+      "stop": {
+        "title": "Stop or get help",
+        "body": "Reply STOP to stop all texts from us, or HELP for help. You can reply START to receive them again."
+      },
+      "privacy": {
+        "title": "Your number",
+        "body": "We use your number only to send the message you asked for. Your mobile number and consent are never shared with third parties or affiliates for marketing or promotional purposes."
+      }
+    },
+    "formIntro": "This is the form you will see:",
+    "privacyLink": "Privacy Policy",
+    "termsLink": "Terms of Service"
+  },
+  "Terms": {
+    "title": "Terms of Service",
+    "version": "Version {version}",
+    "draft": "DRAFT: these terms are being reviewed and will be finalised before launch.",
+    "sections": {
+      "about": {
+        "title": "About Spirit O Santa",
+        "body": "Spirit O Santa is a program where children earn points (\"Christmas magic\") for good deeds and use them toward Christmas gifts from local stores. By using spiritofsanta.com you agree to these terms."
+      },
+      "accounts": {
+        "title": "Accounts",
+        "body": "Only adults can create an account. A parent or guardian sets up and controls each child's profile; children never have their own accounts. Keep your password and parent PIN private."
+      },
+      "points": {
+        "title": "Points",
+        "body": "Points are calculated by Spirit O Santa from money actually received (currently $1.50 = 1 point). Points have no cash value, can't be exchanged for money and reset to zero every January 1."
+      },
+      "payments": {
+        "title": "Payments",
+        "body": "Tips, bonuses, registrations and donations are processed by Stripe. All payments are final: we don't offer refunds."
+      },
+      "donations": {
+        "title": "Community donations",
+        "body": "Gifts on our donation page are pooled and shared equally among registered children when the season freezes (December 1). A platform fee, shown on the donation page before you give, supports running Spirit O Santa."
+      },
+      "texts": {
+        "title": "Text messages (pay later)",
+        "body": "Program: Spirit O Santa pay-later tip links. If you choose \"Pay later by text\" and agree, we send you one text message with a secure payment link for the tip you chose; the link expires after {days} days. One message per request; no marketing. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for help. Carriers are not liable for delayed or undelivered messages. See our Privacy Policy for how we handle your number."
+      },
+      "conduct": {
+        "title": "Acceptable use",
+        "body": "Don't misuse the site, other people's QR codes or payment links, and don't enter information about anyone without permission."
+      },
+      "changes": {
+        "title": "Changes",
+        "body": "We may update these terms. The version and date at the top show the current terms."
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "Questions: contact details will be added here before launch."
+      }
+    }
+  },
+  "Footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "texts": "Text messages"
   }
 }

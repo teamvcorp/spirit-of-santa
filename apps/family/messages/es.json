@@ -71,6 +71,14 @@
       "contact": {
         "title": "Contacto",
         "body": "Preguntas o solicitudes: los datos de contacto se agregarán aquí antes del lanzamiento."
+      },
+      "visitors": {
+        "title": "Propinas y donaciones de visitantes",
+        "body": "Si escaneas un código QR para agradecer a un niño o dar una propina o donación, los pagos con tarjeta los procesa Stripe; nunca vemos el número de tu tarjeta. Para las donaciones guardamos el nombre y el correo que escribes en el formulario de Stripe para enviarte el recibo."
+      },
+      "texts": {
+        "title": "Mensajes de texto",
+        "body": "Si eliges \"Pagar más tarde por mensaje de texto\", usamos el número de celular que escribes para enviarte un mensaje de texto con un enlace de pago para la propina que elegiste. Solo enviamos ese mensaje para esa solicitud, nunca publicidad. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para cancelar, HELP para ayuda. Los mensajes los entrega nuestro proveedor de mensajería (Twilio) solo para enviar tu mensaje. No compartimos tu número ni tu consentimiento con terceros o afiliados con fines de publicidad o promoción. Guardamos el número y la hora en que aceptaste hasta 13 meses como registro de tu consentimiento, y luego los borramos."
       }
     }
   },
@@ -335,5 +343,91 @@
       "rateLimited": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
       "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde."
     }
+  },
+  "PayLater": {
+    "title": "Pagar más tarde por mensaje de texto",
+    "phone": "Tu número de celular",
+    "consent": "Envíenme un enlace para pagar esta propina más tarde. Spirit O Santa enviará 1 mensaje de texto con un enlace de pago seguro que vence en 7 días. Sin publicidad. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para cancelar, HELP para ayuda.",
+    "privacy": "Política de privacidad",
+    "terms": "Términos del servicio",
+    "button": "Envíenme el enlace",
+    "previewNote": "Ejemplo: este formulario aparece en la página de cada buena acción al escanear su código QR. Desde esta página no se envía nada."
+  },
+  "TextMessages": {
+    "title": "Mensajes de texto de Spirit O Santa",
+    "intro": "Enviamos un solo tipo de mensaje de texto: un enlace para pagar una propina más tarde, solo cuando lo pides.",
+    "sections": {
+      "how": {
+        "title": "Cómo te inscribes",
+        "body": "Cuando un niño hace una buena acción por ti, puedes escanear el código QR de la acción. En esa página puedes elegir \"Pagar más tarde por mensaje de texto\", escribir tu propio número de celular y marcar la casilla para aceptar recibir el mensaje. La casilla nunca está marcada de antemano y el mensaje no se puede pedir sin ella."
+      },
+      "what": {
+        "title": "Qué enviamos",
+        "body": "Exactamente un mensaje de texto por solicitud: un enlace de pago seguro para la propina que elegiste. El enlace vence a los {days} días. Nunca enviamos publicidad ni otros mensajes."
+      },
+      "frequency": {
+        "title": "Con qué frecuencia",
+        "body": "Un mensaje por solicitud. Si no vuelves a pedirlo, no volverás a saber de nosotros. Pueden aplicarse tarifas de mensajes y datos."
+      },
+      "stop": {
+        "title": "Cancelar u obtener ayuda",
+        "body": "Responde STOP para dejar de recibir mensajes, o HELP para ayuda. Puedes responder START para volver a recibirlos."
+      },
+      "privacy": {
+        "title": "Tu número",
+        "body": "Usamos tu número solo para enviar el mensaje que pediste. Nunca compartimos tu número ni tu consentimiento con terceros o afiliados con fines de publicidad o promoción."
+      }
+    },
+    "formIntro": "Este es el formulario que verás:",
+    "privacyLink": "Política de privacidad",
+    "termsLink": "Términos del servicio"
+  },
+  "Terms": {
+    "title": "Términos del servicio",
+    "version": "Versión {version}",
+    "draft": "BORRADOR: estos términos se están revisando y se finalizarán antes del lanzamiento.",
+    "sections": {
+      "about": {
+        "title": "Sobre Spirit O Santa",
+        "body": "Spirit O Santa es un programa en el que los niños ganan puntos (\"magia navideña\") por buenas acciones y los usan para regalos de Navidad de tiendas locales. Al usar spiritofsanta.com aceptas estos términos."
+      },
+      "accounts": {
+        "title": "Cuentas",
+        "body": "Solo los adultos pueden crear una cuenta. Un padre, madre o tutor crea y controla el perfil de cada niño; los niños nunca tienen cuentas propias. Mantén en privado tu contraseña y tu PIN de padres."
+      },
+      "points": {
+        "title": "Puntos",
+        "body": "Spirit O Santa calcula los puntos a partir del dinero realmente recibido (actualmente $1.50 = 1 punto). Los puntos no tienen valor en efectivo, no se cambian por dinero y vuelven a cero cada 1 de enero."
+      },
+      "payments": {
+        "title": "Pagos",
+        "body": "Las propinas, bonos, registros y donaciones los procesa Stripe. Todos los pagos son definitivos: no ofrecemos reembolsos."
+      },
+      "donations": {
+        "title": "Donaciones de la comunidad",
+        "body": "Los regalos de nuestra página de donaciones se juntan y se reparten en partes iguales entre los niños registrados cuando la temporada se congela (1 de diciembre). Una comisión de la plataforma, que se muestra en la página antes de donar, ayuda a mantener Spirit O Santa."
+      },
+      "texts": {
+        "title": "Mensajes de texto (pagar más tarde)",
+        "body": "Programa: enlaces de Spirit O Santa para pagar propinas más tarde. Si eliges \"Pagar más tarde por mensaje de texto\" y aceptas, te enviamos un mensaje de texto con un enlace de pago seguro para la propina que elegiste; el enlace vence a los {days} días. Un mensaje por solicitud; sin publicidad. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para cancelar en cualquier momento, o HELP para ayuda. Las operadoras no son responsables de mensajes retrasados o no entregados. Consulta nuestra Política de privacidad para saber cómo tratamos tu número."
+      },
+      "conduct": {
+        "title": "Uso aceptable",
+        "body": "No hagas mal uso del sitio, de los códigos QR o enlaces de pago de otras personas, y no escribas información de nadie sin permiso."
+      },
+      "changes": {
+        "title": "Cambios",
+        "body": "Podemos actualizar estos términos. La versión y la fecha de arriba muestran los términos vigentes."
+      },
+      "contact": {
+        "title": "Contacto",
+        "body": "Preguntas: los datos de contacto se añadirán aquí antes del lanzamiento."
+      }
+    }
+  },
+  "Footer": {
+    "privacy": "Política de privacidad",
+    "terms": "Términos del servicio",
+    "texts": "Mensajes de texto"
   }
 }

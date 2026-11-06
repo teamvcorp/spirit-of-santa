@@ -27,7 +27,10 @@ export const MAX_KID_AGE_YEARS = 17;
 /** A fully funded item locks (can't be removed) after this many days on the list. */
 export const ITEM_LOCK_DAYS = 30;
 
-/** Twilio pay-later SMS links expire after this many days. */
+/**
+ * Twilio pay-later SMS links expire after this many days. REGISTERED with the carriers as "7 days" in the
+ * consent wording (messages PayLater.consent, docs/vendor/twilio.md): changing it means re-registering.
+ */
 export const PAY_LATER_LINK_DAYS = 7;
 
 /** Tip buttons on the community QR page ($5 / $10 / $25; "Other" is free entry). */

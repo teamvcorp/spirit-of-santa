@@ -114,3 +114,12 @@ public URL shortener (carriers block those). Slice 4 must send exactly this word
 
 Put them in `apps/family/.env.local` (local) and the Vercel **family** project (production). Remove the old
 `TWILIO_AUTH_TOKEN` / `TWILIO_SID` lines once the API key works. Never paste values in chat or git.
+
+## UPDATE 2026-11-06: our number is TOLL-FREE (8xx)
+
+So the carrier registration is **Toll-Free Verification** (Console → Phone Numbers → Regulatory / Toll-free
+verification), NOT A2P 10DLC brand + campaign. The answers above (opt-in description, screenshot/URL, opt-in
+message, privacy/terms links) are the same. Env in use: `TWILIO_ACCOUNT_SID` (AC…), `TWILIO_AUTH_TOKEN`,
+`TWILIO_PHONE_NUMBER` in E.164 (`+1` + 10 digits). Messaging Service optional. Slice 4 code: prefer an API key
+(`TWILIO_API_KEY_SID`/`SECRET`) when set, else Account SID + Auth Token. Switching to an API key later is
+safer (revocable without changing the main token).

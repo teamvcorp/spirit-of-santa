@@ -267,6 +267,16 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
 - **npm override:** `@vercel/cli-config` → zod 4.6.7 (its pinned 4.1.11 had a high-severity advisory);
   `npm audit --omit=dev` = 0. Remove the override once @vercel/oidc updates.
 
+## Phase 4 (family app) decisions (user, 2026-11-05)
+
+- Kids: first name + **birth year** only (replace Kid.birthDate). Public pages show only a parent-chosen **display name**
+  (default first initial) + family alias if on: never full name, age or town.
+- COPPA consent: verified email + consent checkbox (policy version) + **$5 registration fee per kid by card** (Stripe) as
+  card-based verification; a kid stays "awaiting registration" (nothing public) until paid. Ask the user: fee → points
+  or revenue? hardship option? Lawyer to confirm before launch.
+- Order: 1 parent sign-up → 2 kids + PIN + dashboard shell (+ $5 step) → 3 deed + QR → 4 QR landing/thank-you →
+  5 parent controls → 6 donation QR. Pay now/later (Stripe Elements, Twilio) = Phase 5.
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.

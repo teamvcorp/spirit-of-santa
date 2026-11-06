@@ -14,7 +14,8 @@
     "./cookies": "./src/cookies.ts",
     "./store": "./src/store.ts",
     "./ids": "./src/ids.ts",
-    "./family": "./src/family.ts"
+    "./family": "./src/family.ts",
+    "./form": "./src/form.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

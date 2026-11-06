@@ -3,21 +3,20 @@ import { connection } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { Card } from "@repo/ui/card";
+import { hasParentPin } from "@repo/auth/parent-pin";
+import { goTo, requireParent } from "@/lib/parent";
+import { UnlockForm } from "../parent-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Parent");
   // Private pages: never indexed.
   return { title: t("unlockTitle"), robots: { index: false, follow: false } };
 }
-import { redirect } from "next/navigation";
-import { hasParentPin } from "@repo/auth/parent-pin";
-import { requireParent } from "@/lib/parent";
-import { UnlockForm } from "../parent-forms";
 
 async function Guarded() {
   await connection();
   const parent = await requireParent();
-  if (!(await hasParentPin(parent))) redirect("/parent/pin/setup");
+  if (!(await hasParentPin(parent))) await goTo("/parent/pin/setup");
   return <UnlockForm />;
 }
 

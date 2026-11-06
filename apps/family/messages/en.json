@@ -114,12 +114,14 @@
       "invalidYear": "Children must be under 18: check the year.",
       "wrongPassword": "That password isn't right.",
       "rateLimited": "Too many tries. Wait 15 minutes, then try again.",
-      "invalid": "Use 4–6 digits for the PIN.",
       "wrongPin": "That PIN didn't work. After 5 wrong tries the parent area is locked for 15 minutes.",
       "locked": "The parent area locked itself (15 minutes). Enter your PIN again.",
       "notFound": "That child wasn't found. Reload the page.",
       "limitReached": "A family can have up to 10 children here.",
-      "confirmRequired": "Tick the box to confirm."
+      "confirmRequired": "Tick the box to confirm.",
+      "invalidPin": "Use 4–6 digits for the PIN.",
+      "passwordRequired": "Type your account password.",
+      "noFamily": "Your family account wasn't found. Sign out and in again."
     }
   }
 }

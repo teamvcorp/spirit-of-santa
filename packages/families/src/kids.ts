@@ -6,11 +6,13 @@
  * scoped to the parent's own family (ownerUserId re-checked in the DB), so a kid id from
  * another family simply isn't found.
  * Audit rows hold ids only, never a child's name (COPPA: no extra copies of personal data).
- * Deleting a kid really deletes the record (COPPA right to deletion). TODO(Phase 5/8): when
- * deeds/ledger rows exist, delete or anonymise them in the same transaction.
+ * Deleting a kid really deletes their record, deeds and wish-list rows in ONE transaction (COPPA
+ * right to deletion). Ledger (Transaction) and Payment rows are financial records: they hold
+ * only the kid's id, no name or other personal data, and the ledger is append-only, so they
+ * stay (with an id that no longer points at anyone).
  */
 import "server-only";
-import { AuditLog, connectDb, ensureLock, Family, Kid, takeLock, withTransaction } from "@repo/db";
+import { AuditLog, connectDb, Deed, ensureLock, Family, Kid, takeLock, WishListItem, withTransaction } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_KIDS_PER_FAMILY } from "@repo/lib/limits";
 import type { KidInput } from "./schemas.ts";
@@ -119,6 +121,9 @@ export async function deleteKid(parent: Parent, rawId: string): Promise<KidResul
   return withTransaction(async (session) => {
     const res = await Kid.deleteOne({ _id: id, familyId: fid }, { session });
     if (res.deletedCount !== 1) return { ok: false, error: "notFound" } as const;
+    // Their deeds (may hold a free-text description) and wish-list rows go too.
+    await Deed.deleteMany({ kidId: id }, { session });
+    await WishListItem.deleteMany({ kidId: id }, { session });
     await audit(parent.id, "kid.delete", id, session);
     return { ok: true } as const;
   });

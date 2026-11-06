@@ -1,8 +1,8 @@
 "use client";
 /** Parent-area forms. Every rule is re-checked on the server (actions.ts + @repo/families). */
 import { useActionState } from "react";
-import { useLocale, useTranslations } from "next-intl";
-import { useFieldError } from "@repo/auth/forms";
+import { useTranslations } from "next-intl";
+import { LocaleField, useFieldError } from "@repo/auth/forms";
 import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/text-field";
@@ -10,11 +10,6 @@ import { useHydrated } from "@repo/ui/use-hydrated";
 import { deleteKidAction, saveKidAction, setPinAction, unlockAction, type ParentFormState } from "./actions";
 
 const INITIAL: ParentFormState = { status: "idle" };
-
-/** Hidden language field: Server Actions can't read the locale themselves (see actions.ts). */
-function LocaleField() {
-  return <input type="hidden" name="locale" value={useLocale()} />;
-}
 
 function useErr(state: ParentFormState) {
   const t = useTranslations("Parent");

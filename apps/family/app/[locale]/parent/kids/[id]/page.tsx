@@ -3,18 +3,18 @@ import { connection } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { Card } from "@repo/ui/card";
-
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("Parent");
-  // Private pages: never indexed.
-  return { title: t("editTitle"), robots: { index: false, follow: false } };
-}
 import { notFound } from "next/navigation";
 import { getKid } from "@repo/families/kids";
 import { birthYearRange } from "@repo/families/schemas";
 import { Link } from "@/i18n/navigation";
 import { requireUnlockedPage } from "@/lib/parent";
 import { KidForm } from "../../parent-forms";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Parent");
+  // Private pages: never indexed.
+  return { title: t("editTitle"), robots: { index: false, follow: false } };
+}
 
 async function Guarded({ params }: { params: PageProps<"/[locale]/parent/kids/[id]">["params"] }) {
   await connection();

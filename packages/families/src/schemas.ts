@@ -5,11 +5,16 @@
  */
 import { z } from "zod";
 import { MAX_KID_AGE_YEARS } from "@repo/lib/limits";
+import { getSeasonYear } from "@repo/lib/season";
 
-/** Under 18 this calendar year. `now` is injectable for tests. */
+/**
+ * Allowed birth years for someone under 18 THIS year (in the season time zone, not UTC, so the
+ * range doesn't change at 6 pm on Dec 31 in Iowa). A 17-year-old can be born in year - 18 (birthday
+ * still to come), hence the extra year (review 2026-11-05). `now` is injectable for tests.
+ */
 export function birthYearRange(now = new Date()) {
-  const y = now.getUTCFullYear();
-  return { min: y - MAX_KID_AGE_YEARS, max: y };
+  const y = getSeasonYear(now);
+  return { min: y - MAX_KID_AGE_YEARS - 1, max: y };
 }
 
 /** "Maya" -> "M." (first letter, upper-cased; works for accented letters). */
@@ -18,12 +23,19 @@ export function defaultDisplayName(firstName: string): string {
   return first ? `${first.toLocaleUpperCase()}.` : "";
 }
 
-export function kidSchema(now = new Date()) {
+/**
+ * `keepYear`: the kid's CURRENT birth year when editing: always accepted, so a child who has
+ * just turned 18 (or after Jan 1) can still have their display name edited or be deleted.
+ */
+export function kidSchema(now = new Date(), keepYear?: number) {
   const { min, max } = birthYearRange(now);
   return z
     .object({
       firstName: z.string().trim().min(1, "required").max(40, "tooLong"),
-      birthYear: z.coerce.number("invalid").int("invalid").min(min, "invalidYear").max(max, "invalidYear"),
+      birthYear: z.coerce
+        .number("invalid")
+        .int("invalid")
+        .refine((y) => y === keepYear || (y >= min && y <= max), "invalidYear"),
       displayName: z.string().trim().max(20, "tooLong"),
     })
     .transform((v) => ({ ...v, displayName: v.displayName || defaultDisplayName(v.firstName) }));

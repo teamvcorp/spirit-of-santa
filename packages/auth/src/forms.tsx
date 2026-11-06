@@ -38,8 +38,11 @@ function FormError({ state }: { state: FormState }) {
   return <Alert tone="error">{t(state.error)}</Alert>;
 }
 
-/** Hidden field telling the Server Action which language to email in. */
-function LocaleField() {
+/**
+ * Hidden field telling a Server Action the page's language (Server Actions can't read the
+ * locale themselves). Use in EVERY form whose action emails or redirects.
+ */
+export function LocaleField() {
   return <input type="hidden" name="locale" value={useLocale()} />;
 }
 

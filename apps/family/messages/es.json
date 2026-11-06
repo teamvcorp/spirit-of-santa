@@ -114,12 +114,14 @@
       "invalidYear": "Los niños deben ser menores de 18 años: revisa el año.",
       "wrongPassword": "Esa contraseña no es correcta.",
       "rateLimited": "Demasiados intentos. Espera 15 minutos e inténtalo de nuevo.",
-      "invalid": "Usa de 4 a 6 dígitos para el PIN.",
       "wrongPin": "Ese PIN no funcionó. Después de 5 intentos fallidos, el área de padres se bloquea 15 minutos.",
       "locked": "El área de padres se bloqueó sola (15 minutos). Escribe tu PIN otra vez.",
       "notFound": "No se encontró a ese niño. Recarga la página.",
       "limitReached": "Una familia puede tener hasta 10 niños aquí.",
-      "confirmRequired": "Marca la casilla para confirmar."
+      "confirmRequired": "Marca la casilla para confirmar.",
+      "invalidPin": "Usa de 4 a 6 dígitos para el PIN.",
+      "passwordRequired": "Escribe la contraseña de tu cuenta.",
+      "noFamily": "No se encontró tu cuenta familiar. Cierra sesión y vuelve a entrar."
     }
   }
 }

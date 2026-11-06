@@ -7,10 +7,11 @@ import { randomUUID } from "node:crypto";
 import { refresh } from "next/cache";
 import { setParentPinWithPassword, unlockParentDashboard, lockParentDashboard } from "@repo/auth/parent-pin";
 import { fieldErrors } from "@repo/auth/schemas";
-import { addKid, deleteKid, updateKid } from "@repo/families/kids";
+import { addKid, deleteKid, getKid, updateKid } from "@repo/families/kids";
 import { kidSchema } from "@repo/families/schemas";
 import { redirect } from "next/navigation";
 import { localizePath } from "@repo/i18n/paths";
+import { formString } from "@repo/lib/form";
 import { DEFAULT_LOCALE, isLocale } from "@repo/lib/locales";
 import { requireParent, unlockedParentOrNull } from "@/lib/parent";
 
@@ -22,7 +23,7 @@ export type ParentFormState = {
   nonce?: string;
 };
 
-const str = (fd: FormData, k: string) => (typeof fd.get(k) === "string" ? String(fd.get(k)) : "");
+const str = formString;
 const err = (error: string, values?: Record<string, string>): ParentFormState => ({ status: "error", error, values, nonce: randomUUID() });
 /**
  * Redirect within the family app in the form's language. Server Actions can't read the locale
@@ -64,9 +65,12 @@ export async function saveKidAction(_prev: ParentFormState, fd: FormData): Promi
   const parent = await unlockedParentOrNull();
   const values = Object.fromEntries(KID_FIELDS.map((k) => [k, str(fd, k).slice(0, 60)]));
   if (!parent) return err("locked", values);
-  const parsed = kidSchema().safeParse(values);
-  if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), values, nonce: randomUUID() };
   const id = str(fd, "id");
+  // Editing: the kid's current birth year is always accepted (see kidSchema keepYear).
+  const current = id ? await getKid(parent, id) : null;
+  if (id && !current) return err("notFound", values);
+  const parsed = kidSchema(new Date(), current?.birthYear).safeParse(values);
+  if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), values, nonce: randomUUID() };
   const r = id ? await updateKid(parent, id, parsed.data) : await addKid(parent, parsed.data);
   if (!r.ok) return err(r.error, values);
   return go("/parent", fd);

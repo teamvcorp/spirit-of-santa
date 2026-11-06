@@ -3,17 +3,17 @@ import { connection } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { Card } from "@repo/ui/card";
+import { listKids } from "@repo/families/kids";
+import { Link } from "@/i18n/navigation";
+import { requireUnlockedPage } from "@/lib/parent";
+import { lockAction } from "./actions";
+import { DeleteKidForm } from "./parent-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Parent");
   // Private pages: never indexed.
   return { title: t("title"), robots: { index: false, follow: false } };
 }
-import { listKids } from "@repo/families/kids";
-import { Link } from "@/i18n/navigation";
-import { requireUnlockedPage } from "@/lib/parent";
-import { lockAction } from "./actions";
-import { DeleteKidForm } from "./parent-forms";
 
 async function Content() {
   await connection();

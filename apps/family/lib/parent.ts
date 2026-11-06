@@ -6,10 +6,11 @@
  * alone would not stop a kid (or anyone with the session) from calling it directly.
  */
 import "server-only";
-import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import { requireRole } from "@repo/auth";
 import { hasParentPin, isParentUnlocked } from "@repo/auth/parent-pin";
 import { authOptions } from "@/auth";
+import { redirect } from "@/i18n/navigation";
 
 /** Signed-in parent (else sign-in / 404). */
 export async function requireParent() {
@@ -17,12 +18,19 @@ export async function requireParent() {
   return { id: user.id, familyId: user.familyId };
 }
 
-/** Parent AND PIN-unlocked (pages): first time → set a PIN; otherwise → enter it. */
+/** Locale-aware redirect for PAGES (route context; Server Actions use localizePath instead). */
+export async function goTo(href: string): Promise<never> {
+  return redirect({ href, locale: await getLocale() });
+}
+
+/**
+ * Parent AND PIN-unlocked (pages). The unlock cookie is checked first (no DB): a valid unlock
+ * implies a PIN exists. Only when locked do we ask the DB whether a PIN was ever set.
+ */
 export async function requireUnlockedPage() {
   const parent = await requireParent();
-  if (!(await hasParentPin(parent))) redirect("/parent/pin/setup");
-  if (!(await isParentUnlocked(parent))) redirect("/parent/pin");
-  return parent;
+  if (await isParentUnlocked(parent)) return parent;
+  return goTo((await hasParentPin(parent)) ? "/parent/pin" : "/parent/pin/setup");
 }
 
 /** Parent AND PIN-unlocked (Server Actions): null if locked, so the action can say so. */

@@ -8,7 +8,7 @@
  */
 import { randomBytes } from "node:crypto";
 import { chromium, type Page } from "playwright-core";
-import { AuditLog, connectDb, Family, Kid, RateLimit, trusted, User } from "@repo/db";
+import { AuditLog, connectDb, Deed, Family, Kid, RateLimit, trusted, User, WishListItem } from "@repo/db";
 import { hashSecret } from "@repo/auth/password";
 import { MAX_KIDS_PER_FAMILY } from "@repo/lib/limits";
 import { makeChecks } from "./lib.ts";
@@ -79,7 +79,9 @@ try {
   await page.fill('[name="pinConfirm"]', PIN);
   await page.locator("main button[type=submit]").click();
   await alert("password isn't right");
-  check("wrong account password → PIN not set", !(await Family.findById(A.family._id).select("+parentPinHash").lean())?.parentPinHash);
+  const failed = await User.findById(A.user._id).select("+failedLoginCount").lean();
+  check("wrong account password → PIN not set, and it counts toward the sign-in lockout",
+    !(await Family.findById(A.family._id).select("+parentPinHash").lean())?.parentPinHash && failed?.failedLoginCount === 1);
   await hydrated(page);
   await page.fill('[name="password"]', PW);
   await page.fill('[name="pin"]', PIN);
@@ -154,13 +156,18 @@ try {
   await page.waitForURL((u) => u.pathname.endsWith("/parent"), { timeout: 15_000 });
   check("wrong PIN refused, right PIN unlocks", true);
 
-  // 9. Delete (needs the tick) = really gone, audited.
+  // 9. Delete (needs the tick) = really gone with their deeds + wish-list rows, audited.
+  const oid = () => new mongoose.Types.ObjectId();
+  await Deed.collection.insertOne({ kidId: kids[1]!._id, familyId: A.family._id, customDescription: "Helped grandma", status: "pending", qrTokenHash: `e2e-${tag}`, createdAt: new Date() });
+  await WishListItem.collection.insertOne({ kidId: kids[1]!._id, familyId: A.family._id, itemId: oid(), storeId: oid(), seasonYear: 2026, costCentipoints: 100, fundedCentipoints: 0, status: "active" });
   await hydrated(page);
   const row = page.locator("main li", { hasText: "Leo" });
   await row.locator('input[name="confirm"]').check();
   await row.locator("button[type=submit]").click();
   for (let i = 0; i < 30 && (await Kid.exists({ _id: kids[1]!._id })); i++) await page.waitForTimeout(300);
-  check("delete really removes the child's record, audited", !(await Kid.exists({ _id: kids[1]!._id })) && (await audits("kid.delete")).length === 1);
+  check("delete really removes the child's record, deeds and wish-list rows, audited",
+    !(await Kid.exists({ _id: kids[1]!._id })) && (await Deed.countDocuments({ kidId: kids[1]!._id })) === 0 &&
+      (await WishListItem.countDocuments({ kidId: kids[1]!._id })) === 0 && (await audits("kid.delete")).length === 1);
 
   // 10. Family limit.
   await Kid.insertMany(Array.from({ length: MAX_KIDS_PER_FAMILY - 1 }, (_, i) => ({ familyId: A.family._id, firstName: `Fill${i}`, birthYear: 2015, displayName: "F." })));
@@ -182,6 +189,8 @@ try {
   const users = [A.user._id, B.user._id];
   const fams = [A.family._id, B.family._id];
   await Kid.collection.deleteMany({ familyId: { $in: fams } });
+  await Deed.collection.deleteMany({ familyId: { $in: fams } });
+  await WishListItem.collection.deleteMany({ familyId: { $in: fams } });
   await AuditLog.collection.deleteMany({ actorUserId: { $in: users } });
   await RateLimit.collection.deleteMany({ key: trusted({ $in: users.map((u) => `pin-set:${u}`) }) });
   await Family.collection.deleteMany({ _id: { $in: fams } });

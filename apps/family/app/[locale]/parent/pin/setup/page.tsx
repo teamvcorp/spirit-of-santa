@@ -3,22 +3,21 @@ import { connection } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { Card } from "@repo/ui/card";
+import { goTo, requireParent } from "@/lib/parent";
+import { hasParentPin, isParentUnlocked } from "@repo/auth/parent-pin";
+import { PinSetupForm } from "../../parent-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Parent");
   // Private pages: never indexed.
   return { title: t("setupTitle"), robots: { index: false, follow: false } };
 }
-import { requireParent } from "@/lib/parent";
-import { hasParentPin, isParentUnlocked } from "@repo/auth/parent-pin";
-import { redirect } from "next/navigation";
-import { PinSetupForm } from "../../parent-forms";
 
 /** First PIN (no PIN yet) or change it (only while unlocked). Both need the account password. */
 async function Guarded() {
   await connection();
   const parent = await requireParent();
-  if ((await hasParentPin(parent)) && !(await isParentUnlocked(parent))) redirect("/parent/pin");
+  if (!(await isParentUnlocked(parent)) && (await hasParentPin(parent))) await goTo("/parent/pin");
   return <PinSetupForm />;
 }
 

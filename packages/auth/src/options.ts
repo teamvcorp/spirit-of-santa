@@ -206,8 +206,12 @@ async function verifyCredentials(raw: unknown, app: AppName) {
   };
 }
 
-/** One failed try (password or code). Atomic, so parallel guesses can't race past the limit. */
-async function recordFailedLogin(userId: unknown) {
+/**
+ * One failed try (password or code). Atomic, so parallel guesses can't race past the limit.
+ * Exported: EVERY place that checks an account password must count failures here (e.g. the
+ * parent PIN setup), or it becomes a guessing endpoint that skips the lockout.
+ */
+export async function recordFailedLogin(userId: unknown) {
   const after = await User.findOneAndUpdate(
     { _id: userId },
     { $inc: { failedLoginCount: 1 } },

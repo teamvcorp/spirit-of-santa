@@ -6,7 +6,7 @@
  * No delete on purpose: submitted deeds point at their type; retired types are turned off.
  */
 import "server-only";
-import { AuditLog, connectDb, DeedType, withTransaction, type AuditAction, type DbSession } from "@repo/db";
+import { AuditLog, connectDb, DeedType, ensureLock, takeLock, withTransaction, type AuditAction, type DbSession } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import type { DeedTypeInput } from "./schemas.ts";
 
@@ -18,6 +18,8 @@ export type DeedTypeRow = {
   tipMaxCents?: number;
   active: boolean;
   sortOrder: number;
+  /** ISO time of the last save: the edit form sends it back (compare-and-set). */
+  version: string;
 };
 
 type Raw = {
@@ -27,6 +29,7 @@ type Raw = {
   recommendedTipCents?: { min?: number | null; max?: number | null } | null;
   active?: boolean | null;
   sortOrder?: number | null;
+  updatedAt?: Date | null;
 };
 
 function toRow(d: Raw): DeedTypeRow {
@@ -38,6 +41,7 @@ function toRow(d: Raw): DeedTypeRow {
     tipMaxCents: d.recommendedTipCents?.max ?? undefined,
     active: d.active !== false,
     sortOrder: d.sortOrder ?? 0,
+    version: d.updatedAt ? new Date(d.updatedAt).toISOString() : "",
   };
 }
 
@@ -58,12 +62,37 @@ export async function getDeedType(rawId: string): Promise<DeedTypeRow | null> {
 
 export type CatalogResult = { ok: true; id?: string } | { ok: false; error: "notFound" | "changed" | "notEmpty" };
 
+/**
+ * Every catalog change that depends on the whole list takes this lock first (see
+ * packages/db/src/models/lock.ts): concurrent creates/moves/seeding take turns, so the starter
+ * set can't be added twice and new deeds can't get the same position (review 2026-11-05).
+ */
+const LOCK = "deed-catalog";
+
+async function locked<T>(fn: (session: DbSession) => Promise<T>): Promise<T> {
+  await connectDb();
+  await ensureLock(LOCK);
+  return withTransaction(async (session) => {
+    await takeLock(LOCK, session);
+    return fn(session);
+  });
+}
+
 async function audit(adminId: string, action: AuditAction, id: unknown, details: Record<string, unknown>, session: DbSession) {
   await AuditLog.create([{ actorUserId: adminId, action, targetType: "deed_type", targetId: String(id), details }], { session });
 }
 
-/** Model fields from the validated form (blank optional text/amounts are removed with $unset). */
-function fields(input: DeedTypeInput) {
+/** The stored shape of a validated form (blank optional text/amounts -> absent). */
+function docFields(input: DeedTypeInput) {
+  return {
+    title: { en: input.titleEn, es: input.titleEs },
+    description: { en: input.descriptionEn || undefined, es: input.descriptionEs || undefined },
+    recommendedTipCents: { min: input.tipMin, max: input.tipMax },
+  };
+}
+
+/** $set/$unset for an edit (Mongoose drops undefined from $set, so blanks must be $unset). */
+function updateOps(input: DeedTypeInput) {
   const set: Record<string, unknown> = { "title.en": input.titleEn, "title.es": input.titleEs };
   const unset: Record<string, 1> = {};
   const opt = (path: string, v: string | number | undefined) => (v === undefined || v === "" ? (unset[path] = 1) : (set[path] = v));
@@ -71,42 +100,36 @@ function fields(input: DeedTypeInput) {
   opt("description.es", input.descriptionEs);
   opt("recommendedTipCents.min", input.tipMin);
   opt("recommendedTipCents.max", input.tipMax);
-  return { set, unset };
+  return { $set: set, ...(Object.keys(unset).length ? { $unset: unset } : {}) };
 }
 
 /** New deed at the END of the list. */
 export async function createDeedType(adminId: string, input: DeedTypeInput): Promise<CatalogResult> {
-  await connectDb();
-  return withTransaction(async (session) => {
+  return locked(async (session) => {
     const last = await DeedType.findOne().sort({ sortOrder: -1 }).select("sortOrder").session(session).lean<Raw>();
-    const { set } = fields(input);
-    const [doc] = await DeedType.create(
-      [
-        {
-          title: { en: input.titleEn, es: input.titleEs },
-          description: { en: input.descriptionEn || undefined, es: input.descriptionEs || undefined },
-          recommendedTipCents: { min: input.tipMin, max: input.tipMax },
-          active: true,
-          sortOrder: (last?.sortOrder ?? 0) + 10,
-        },
-      ],
-      { session },
-    );
-    await audit(adminId, "deed_type.create", doc!._id, { title: set["title.en"] }, session);
+    const [doc] = await DeedType.create([{ ...docFields(input), active: true, sortOrder: (last?.sortOrder ?? 0) + 10 }], { session });
+    await audit(adminId, "deed_type.create", doc!._id, { to: docFields(input) }, session);
     return { ok: true, id: String(doc!._id) } as const;
   });
 }
 
-export async function updateDeedType(adminId: string, rawId: string, input: DeedTypeInput): Promise<CatalogResult> {
+/**
+ * Edit. `version` = the deed's updatedAt (ISO) when the form was opened: if someone saved in
+ * between, nothing is overwritten and the admin gets "changed" (review 2026-11-05).
+ */
+export async function updateDeedType(adminId: string, rawId: string, input: DeedTypeInput, version: string): Promise<CatalogResult> {
   const id = normalizeObjectId(rawId);
+  const at = new Date(version);
   if (!id) return { ok: false, error: "notFound" };
+  if (Number.isNaN(at.getTime())) return { ok: false, error: "changed" };
   await connectDb();
-  const { set, unset } = fields(input);
   return withTransaction(async (session) => {
     const before = await DeedType.findById(id).session(session).lean<Raw>();
     if (!before) return { ok: false, error: "notFound" } as const;
-    await DeedType.updateOne({ _id: id }, { $set: set, ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { session, runValidators: true });
-    await audit(adminId, "deed_type.update", id, { from: toRow(before), to: { title: { en: input.titleEn, es: input.titleEs }, tipMinCents: input.tipMin, tipMaxCents: input.tipMax } }, session);
+    const res = await DeedType.updateOne({ _id: id, updatedAt: at }, updateOps(input), { session, runValidators: true });
+    if (res.matchedCount !== 1) return { ok: false, error: "changed" } as const;
+    // Full before/after (descriptions included) so every visible change is attributable.
+    await audit(adminId, "deed_type.update", id, { from: toRow(before), to: docFields(input) }, session);
     return { ok: true, id } as const;
   });
 }
@@ -128,25 +151,36 @@ export async function setDeedTypeActive(adminId: string, rawId: string, active: 
 }
 
 /**
- * Move one place up or down. The whole list is renumbered (10, 20, 30, …) in one transaction,
- * so ties or gaps in old sortOrder values can never make a move do nothing or jump.
+ * Move one place up or down: swap positions with the neighbour (2 writes). Only if old data has
+ * TIED positions is the whole list renumbered (10, 20, 30, ...), so a move can never do nothing.
  */
 export async function moveDeedType(adminId: string, rawId: string, direction: "up" | "down"): Promise<CatalogResult> {
   const id = normalizeObjectId(rawId);
   if (!id) return { ok: false, error: "notFound" };
-  await connectDb();
-  return withTransaction(async (session) => {
-    const all = await DeedType.find().sort({ sortOrder: 1, createdAt: 1 }).select("_id").session(session).lean<Raw[]>();
-    const order = all.map((d) => String(d._id));
-    const i = order.indexOf(id);
+  return locked(async (session) => {
+    const all = await DeedType.find().sort({ sortOrder: 1, createdAt: 1 }).select("_id sortOrder").limit(500).session(session).lean<Raw[]>();
+    const i = all.findIndex((d) => String(d._id) === id);
     if (i < 0) return { ok: false, error: "notFound" } as const;
     const j = direction === "up" ? i - 1 : i + 1;
-    if (j < 0 || j >= order.length) return { ok: true, id } as const; // already first/last
-    [order[i], order[j]] = [order[j]!, order[i]!];
-    await DeedType.bulkWrite(
-      order.map((docId, n) => ({ updateOne: { filter: { _id: docId }, update: { $set: { sortOrder: (n + 1) * 10 } } } })),
-      { session },
-    );
+    if (j < 0 || j >= all.length) return { ok: true, id } as const; // already first/last
+    const a = all[i]!;
+    const b = all[j]!;
+    if ((a.sortOrder ?? 0) !== (b.sortOrder ?? 0)) {
+      await DeedType.bulkWrite(
+        [
+          { updateOne: { filter: { _id: a._id }, update: { $set: { sortOrder: b.sortOrder ?? 0 } } } },
+          { updateOne: { filter: { _id: b._id }, update: { $set: { sortOrder: a.sortOrder ?? 0 } } } },
+        ],
+        { session },
+      );
+    } else {
+      const order = all.map((d) => String(d._id));
+      [order[i], order[j]] = [order[j]!, order[i]!];
+      await DeedType.bulkWrite(
+        order.map((docId, n) => ({ updateOne: { filter: { _id: docId }, update: { $set: { sortOrder: (n + 1) * 10 } } } })),
+        { session },
+      );
+    }
     await audit(adminId, "deed_type.reorder", id, { direction }, session);
     return { ok: true, id } as const;
   });
@@ -168,8 +202,8 @@ export const STARTER_DEEDS: { en: string; es: string; min: number; max: number }
 ];
 
 export async function seedStarterDeeds(adminId: string): Promise<CatalogResult> {
-  await connectDb();
-  return withTransaction(async (session) => {
+  // Under the catalog lock: two clicks at once can't both see "empty" and both insert.
+  return locked(async (session) => {
     if ((await DeedType.countDocuments().session(session)) > 0) return { ok: false, error: "notEmpty" } as const;
     const docs = await DeedType.insertMany(
       STARTER_DEEDS.map((d, n) => ({ title: { en: d.en, es: d.es }, recommendedTipCents: { min: d.min, max: d.max }, active: true, sortOrder: (n + 1) * 10 })),

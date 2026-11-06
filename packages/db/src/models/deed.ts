@@ -32,6 +32,9 @@ const deedTypeSchema = new Schema(
   { timestamps: true, versionKey: false },
 );
 
+// Families' catalog query: find({ active: true }).sort({ sortOrder: 1, createdAt: 1 }).
+deedTypeSchema.index({ active: 1, sortOrder: 1, createdAt: 1 });
+
 export type DeedTypeDoc = InferSchemaType<typeof deedTypeSchema>;
 export const DeedType = (models.DeedType ??
   model("DeedType", deedTypeSchema)) as Model<DeedTypeDoc>;

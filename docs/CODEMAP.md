@@ -220,7 +220,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
 
 ## Phase 3 (admin app), agreed 2026-11-05
 
-Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, ccd6572 + review fixes) → 3 user management (DONE, a428090 + review fixes) → 4 deed catalog (built; review pending) → 5 platform dashboard v1. Deferred until their data exists: content moderation
+Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, ccd6572 + review fixes) → 3 user management (DONE, a428090 + review fixes) → 4 deed catalog (DONE, 0bcd34f + review fixes) → 5 platform dashboard v1. Deferred until their data exists: content moderation
 (Phase 4), donation settings + pay-later links (Phase 5), announcements (Phase 7).
 
 - **Admin MFA (slice 1):** TOTP authenticator + 10 recovery codes (`docs/vendor/totp-mfa.md`). Admin without MFA
@@ -246,7 +246,9 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   `/deeds/[id]`: titles en+es required, optional description + suggested tip range (cents, ≤ MAX_TIP_CENTS), ↑/↓ reorder
   (whole list renumbered 10,20,… in one transaction), on/off (no delete: deeds reference their type). "8 suggested
   deeds" only into an EMPTY catalog (`STARTER_DEEDS`, user content to review). Phase 4 reads
-  `listDeedTypes({ activeOnly: true })`. E2E `browser-admin-deeds.ts` (14; backs up + restores the catalog).
+  `listDeedTypes({ activeOnly: true })`. E2E `browser-admin-deeds.ts` (16; backs up + restores the catalog).
+- **`Lock` model (`@repo/db`: `ensureLock` outside + `takeLock` first inside the transaction)** serializes changes whose rule
+  spans many documents (deed catalog). Plain count-then-insert in a transaction is NOT safe (snapshot reads).
 - **Season controls (slice 2):** rule book = pure `resolveSeason` / `validateSeasonDates` in `@repo/lib/season`
   (unit-tested); server = `getSeasonState()` in `@repo/stores/season`. ANY server check of season phase or the
   store window must use `getSeasonState()` (it applies the admin overrides). Season dates are stored as calendar

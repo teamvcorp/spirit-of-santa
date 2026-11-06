@@ -39,8 +39,9 @@ export async function saveDeedAction(_prev: DeedFormState, fd: FormData): Promis
   const parsed = deedTypeSchema.safeParse(raw);
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), values, nonce: randomUUID() };
   const id = str(fd, "id");
-  if (id && !normalizeObjectId(id)) return { status: "error", error: "notFound", nonce: randomUUID() };
-  const r = id ? await updateDeedType(admin, id, parsed.data) : await createDeedType(admin, parsed.data);
+  if (id && !normalizeObjectId(id)) return { status: "error", error: "notFound", values, nonce: randomUUID() };
+  // version = updatedAt when the form was opened: a save made meanwhile isn't silently overwritten.
+  const r = id ? await updateDeedType(admin, id, parsed.data, str(fd, "version")) : await createDeedType(admin, parsed.data);
   const out = finish(r);
   return out.status === "error" ? { ...out, values } : out;
 }

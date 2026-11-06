@@ -14,7 +14,7 @@ const INITIAL: DeedFormState = { status: "idle" };
 export type DeedValues = { titleEn: string; titleEs: string; descriptionEn: string; descriptionEs: string; tipMin: string; tipMax: string };
 
 /** Create (no id) or edit. After a successful save, back to the list. */
-export function DeedForm({ id, initial }: { id?: string; initial: DeedValues }) {
+export function DeedForm({ id, version, initial }: { id?: string; version?: string; initial: DeedValues }) {
   const t = useTranslations("Deeds");
   const f = useTranslations("Common.formErrors");
   const [state, action, pending] = useActionState(saveDeedAction, INITIAL);
@@ -34,6 +34,7 @@ export function DeedForm({ id, initial }: { id?: string; initial: DeedValues }) 
     <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-4">
       {state.status === "error" && state.error && <Alert tone="error">{t(`errors.${state.error}` as never)}</Alert>}
       {id && <input type="hidden" name="id" value={id} />}
+      {version && <input type="hidden" name="version" value={version} />}
       <div className="grid gap-4 sm:grid-cols-2">
         <TextField label={t("titleEn")} name="titleEn" required maxLength={100} defaultValue={v("titleEn")} error={err("titleEn")} />
         <TextField label={t("titleEs")} name="titleEs" required maxLength={100} defaultValue={v("titleEs")} error={err("titleEs")} lang="es" />

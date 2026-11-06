@@ -8,7 +8,7 @@
  * end, even if a check fails. Uses its own MFA admin.
  */
 import { randomBytes } from "node:crypto";
-import { chromium, type Page } from "playwright-core";
+import { chromium, type Browser, type Page } from "playwright-core";
 import { AuditLog, connectDb, DeedType, User } from "@repo/db";
 import { seedStarterDeeds, STARTER_DEEDS } from "@repo/deeds/catalog";
 import { createMfaAdmin, makeChecks } from "./lib.ts";
@@ -21,13 +21,10 @@ const tag = randomBytes(4).toString("hex");
 const mongoose = await connectDb();
 if (!mongoose.connection.name.endsWith("_dev")) throw new Error("refusing: not a *_dev database");
 const backup = await DeedType.collection.find({}).toArray();
-await DeedType.collection.deleteMany({});
-const admin = await createMfaAdmin(`e2e-deeds-${tag}@spiritofsanta.test`);
-
-const browser = await chromium.launch({ channel: "msedge", headless: true });
 const errors: string[] = [];
-const page = await (await browser.newContext()).newPage();
-page.on("pageerror", (e) => errors.push(e.message));
+let browser: Browser | undefined;
+let page!: Page;
+let admin!: Awaited<ReturnType<typeof createMfaAdmin>>;
 const hydrated = (p: Page) =>
   p.waitForFunction(() => {
     const b = [...document.querySelectorAll("main button[type=submit]")];
@@ -38,6 +35,12 @@ const audits = (action: string) => AuditLog.countDocuments({ actorUserId: new mo
 const listTitles = () => page.locator("main ol > li a").allInnerTexts();
 
 try {
+  // Everything that can fail AFTER the catalog is emptied is inside this try (review 2026-11-05).
+  await DeedType.collection.deleteMany({});
+  admin = await createMfaAdmin(`e2e-deeds-${tag}@spiritofsanta.test`);
+  browser = await chromium.launch({ channel: "msedge", headless: true });
+  page = await (await browser.newContext()).newPage();
+  page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(`${base}/signin`);
   await hydrated(page);
   await page.fill('[name="email"]', admin.email);
@@ -90,6 +93,17 @@ try {
   check("edit saved; cleared tips removed", edited?.title.en === `Walked two dogs ${tag}` && edited.recommendedTipCents?.min == null && edited.recommendedTipCents?.max == null);
   check("…audited", (await audits("deed_type.update")) === 1);
 
+  // 3b. Someone else saves while the form is open -> "changed", nothing overwritten.
+  await page.goto(`${base}/deeds/${added?._id}`);
+  await hydrated(page);
+  await DeedType.updateOne({ _id: added?._id }, { $set: { "title.es": `Cambiado ${tag}` } });
+  await page.fill('[name="titleEn"]', `Stale save ${tag}`);
+  await page.locator("main button[type=submit]").click();
+  await page.locator("main").getByText("This deed changed meanwhile").waitFor({ timeout: 15_000 });
+  const stale = await DeedType.findById(added?._id).lean();
+  check("a stale edit is refused (other admin's change kept)", stale?.title.en === `Walked two dogs ${tag}` && stale.title.es === `Cambiado ${tag}`);
+  await page.goto(`${base}/deeds`);
+
   // 4. Reorder: move the new (last) deed up one place.
   await page.locator("main ol > li").nth(8).waitFor({ timeout: 15_000 });
   await hydrated(page);
@@ -117,18 +131,25 @@ try {
   await page.locator("main h1").filter({ hasText: "Buenas acciones" }).waitFor({ timeout: 15_000 });
   check("Spanish page", true);
 
+  // 7. Race: two "add suggested deeds" at the same instant on an empty catalog -> exactly 8.
+  await DeedType.collection.deleteMany({});
+  const both = await Promise.all([seedStarterDeeds(admin.id), seedStarterDeeds(admin.id)]);
+  check("two simultaneous starter-set clicks add 8 deeds, not 16", (await DeedType.countDocuments()) === 8 && both.filter((r) => r.ok).length === 1, JSON.stringify(both));
+
   check("no browser errors", errors.length === 0, errors.slice(0, 3).join(" || "));
 } catch (err) {
   report();
   console.error("CRASHED:", err);
   throw err;
 } finally {
-  await browser.close();
+  await browser?.close();
   // Restore the catalog exactly as it was.
   await DeedType.collection.deleteMany({});
   if (backup.length) await DeedType.collection.insertMany(backup);
-  await AuditLog.collection.deleteMany({ actorUserId: new mongoose.Types.ObjectId(admin.id) });
-  await User.collection.deleteOne({ _id: new mongoose.Types.ObjectId(admin.id) });
+  if (admin) {
+    await AuditLog.collection.deleteMany({ actorUserId: new mongoose.Types.ObjectId(admin.id) });
+    await User.collection.deleteOne({ _id: new mongoose.Types.ObjectId(admin.id) });
+  }
   await mongoose.disconnect();
 }
 process.exit(report());

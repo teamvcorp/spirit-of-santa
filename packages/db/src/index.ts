@@ -28,6 +28,7 @@ export {
   type TransactionDoc,
 } from "./models/transaction.ts";
 export { Season, type SeasonDoc } from "./models/season.ts";
+export { Lock, ensureLock, takeLock, type LockDoc } from "./models/lock.ts";
 export {
   Payment,
   PAYMENT_PURPOSES,

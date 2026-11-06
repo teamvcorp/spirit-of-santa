@@ -39,6 +39,12 @@ Later phases (leave unset for now): `TWILIO_*` (pay-later SMS), `FCM_*` / `NEXT_
 **Vercel UI gotcha:** after saving, the list may not refresh. Retrying then fails with "already exists
 … on branch". Press Ctrl+F5 before re-adding anything; to change a value use ⋯ → Edit.
 
+**Build fails with `$'\342\200\242': command not found` / exit 127:** the project's Build Command
+(Settings → Build and Deployment) was pasted WITH backticks: `` `cd ../.. && npx turbo run build --filter=admin` ``.
+Backticks mean "run this, then run its output" in the shell, so after the build Vercel tries to execute
+turbo's printed "•" bullet (bytes \342\200\242). Type it without backticks, or turn the override off and let
+Vercel's Turborepo detection build it. Check all three projects.
+
 Generate a secret: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`
 
 ## 3. Services

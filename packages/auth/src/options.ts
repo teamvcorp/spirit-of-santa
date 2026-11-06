@@ -135,52 +135,63 @@ export function createAuthOptions(app: AppName): AuthOptions {
   };
 }
 
+/**
+ * Why a sign-in was refused, logged SERVER-SIDE only (Vercel → Logs: "[auth] sign-in refused").
+ * The visitor always sees the same generic message (no account enumeration); the log names the
+ * reason + the database searched, so "it says wrong password but the account exists" is
+ * diagnosable (2026-11-06). Never logs the email, password or code.
+ */
+type RefuseReason = "bad_input" | "no_account" | "locked" | "bad_password" | "not_active" | "wrong_app" | "code_missing" | "code_wrong" | "code_reused";
+function refuse(reason: RefuseReason, app: AppName, db?: string): null {
+  console.warn(`[auth] sign-in refused (${app}): ${reason}${db ? ` · db=${db}` : ""}`);
+  return GENERIC_FAILURE;
+}
+
 /** Email + password check with lockout. Returns the user for the session, or null. */
 async function verifyCredentials(raw: unknown, app: AppName) {
   const parsed = credentialsSchema.safeParse(raw);
-  if (!parsed.success) return GENERIC_FAILURE;
+  if (!parsed.success) return refuse("bad_input", app);
   const { email, password, code } = parsed.data;
 
-  await connectDb();
+  const db = (await connectDb()).connection.name;
   const user = await User.findOne({ email }).select(
     "+passwordHash +failedLoginCount +lockedUntil",
   );
   if (!user) {
     await burnVerifyTime(password); // equalise timing with the "wrong password" path
-    return GENERIC_FAILURE;
+    return refuse("no_account", app, db);
   }
   if (user.lockedUntil && user.lockedUntil > new Date()) {
     // Same cost as the other failure paths, so a fast answer can't reveal "this email exists
     // and is locked" (review finding 2026-11-05).
     await burnVerifyTime(password);
-    return GENERIC_FAILURE;
+    return refuse("locked", app, db);
   }
 
   const ok = await verifySecret(password, user.passwordHash);
   if (!ok) {
     await recordFailedLogin(user._id);
-    return GENERIC_FAILURE;
+    return refuse("bad_password", app, db);
   }
 
   // Correct password, but still refuse other apps' roles and any account that isn't active:
   // "pending" = email not verified yet (sign-up flow), "suspended" = blocked by admin.
   // Same generic failure, so the response never reveals which case applies.
-  if (user.status !== "active" || !isRoleAllowedInApp(user.role, app)) {
-    return GENERIC_FAILURE;
-  }
+  if (user.status !== "active") return refuse("not_active", app, db);
+  if (!isRoleAllowedInApp(user.role, app)) return refuse("wrong_app", app, db);
 
   // Second factor. Checked only AFTER the password, so codes can't be guessed without it.
   // A blank code isn't a strike (they may be reaching for their phone); a wrong one is.
   const mfaOn = user.mfa?.enabled === true;
   if (mfaOn) {
-    if (!code) return GENERIC_FAILURE;
+    if (!code) return refuse("code_missing", app, db);
     const second = await verifySecondFactor(user._id.toString(), code);
     if (second === "wrong") {
       await recordFailedLogin(user._id);
       await recordMfaFailure(user._id.toString()); // 10 in a row → 24 h lock
-      return GENERIC_FAILURE;
+      return refuse("code_wrong", app, db);
     }
-    if (second === "replay") return GENERIC_FAILURE; // a used-up but correct code: no strike
+    if (second === "replay") return refuse("code_reused", app, db); // a used-up but correct code: no strike
   }
 
   const update: Record<string, unknown> = {

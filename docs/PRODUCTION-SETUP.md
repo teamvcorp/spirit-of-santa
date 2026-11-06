@@ -92,7 +92,9 @@ Then sign in at `https://admin.spiritofsanta.com/signin` (leave the code box bla
 You'll be asked to set up two-step sign-in: scan the QR code with an authenticator app
 (Google/Microsoft Authenticator, 1Password), type the code, and **save the 10 recovery codes**.
 **Sign-in says "That didn't work" but the account was created?** (2026-11-06) Every SERVER error during sign-in shows
-that same message on purpose (details only in Vercel → admin → Logs: `[auth] sign-in error:`). Check:
+that same message on purpose. Vercel → admin → Logs shows the real reason: `[auth] sign-in refused (admin): <reason> · db=<database>`
+(reasons: no_account, bad_password, locked, not_active, wrong_app, code_missing/code_wrong/code_reused) or
+`[auth] sign-in error:` for a crash. `no_account · db=test` = MONGODB_URI has no database name. Check:
 1. `npm run admin:check` (read-only, same env vars as admin:create) using the EXACT `MONGODB_URI` from the
    Vercel admin project: must say database "spiritofsanta", account found, `password matches: YES`.
    "no account" → the site uses another database/cluster than the one you created the admin in.

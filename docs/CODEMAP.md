@@ -321,8 +321,11 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
 - **Always `connectDb()` before the first query in a service** (public pages can be a fresh instance's first request; a
   missing connect HANGS ~10 s). `hitRateLimit` now connects itself.
 - **E2E gotcha:** visiting `/es/...` sets a locale cookie; later prefix-less visits in the same browser context are Spanish.
-- **Slice 5 parent controls (built; review pending):** `KidVote` (one per kid per Chicago day, upsert = change same day;
-  unvoted days = Nice, computed: `daysSoFar` from Jan 1 or kid creation; per seasonYear → resets Jan 1; deleted with the kid).
+- **Slice 5 parent controls (DONE, b1f6ebe + review fixes):** `KidVote` (one per kid per Chicago day, upsert = change same day;
+  unvoted days = Nice, computed). **Voting runs ALL YEAR; Santa's list year = Dec 26 → Dec 25** (`santaListYear` in
+  @repo/lib/season: votes from Dec 26 count toward NEXT Christmas; user decision 2026-11-06). Nice days count from the list
+  start or the kid's REGISTRATION date. Votes audited (`kid.vote`), registered kids only, deleted with the kid.
+  Family nickname needs ADMIN APPROVAL (`aliasReview`, admin /moderation "Family nicknames") before it shows publicly.
   `@repo/families/votes` (castVote, familyTallies), `settings.ts` (family nickname + on/off, audited without text). Kid form
   has `itemCap` (0–50, enforced in Phase 6). Dashboard: tally + Nice/Naughty buttons (aria-pressed) + nickname card;
   kid page shows the tally. E2E `browser-family-controls.ts` (13).

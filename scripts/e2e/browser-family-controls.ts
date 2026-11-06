@@ -13,7 +13,8 @@ import { AuditLog, connectDb, Deed, Family, Kid, KidVote, User } from "@repo/db"
 import { hashSecret } from "@repo/auth/password";
 import { deedToken, hashDeedToken } from "@repo/deeds/qr";
 import { castVote } from "@repo/families/votes";
-import { getSeasonYear } from "@repo/lib/season";
+import { calendarDateIn, getSeasonYear, isoDay, santaListStart, santaListYear } from "@repo/lib/season";
+import { reviewAlias } from "@repo/deeds/moderation";
 import { makeChecks } from "./lib.ts";
 
 const [base] = process.argv.slice(2);
@@ -35,14 +36,18 @@ const A = await family("a");
 const B = await family("b");
 const reg = { status: "registered", registeredAt: new Date(), method: "card" };
 const maya = await Kid.create({ familyId: A.family._id, firstName: "Maya", birthYear: 2017, displayName: "M.", registration: reg });
-// Added two days ago (same time of day): today + 2 earlier days = 3 days counted (unless Jan 1/2).
-await Kid.collection.updateOne({ _id: maya._id }, { $set: { createdAt: new Date(Date.now() - 2 * 86_400_000) } });
+// Registered two days ago (same time of day): today + 2 earlier days = 3 days counted, unless the
+// current list (Dec 26 → Dec 25) started less than 3 days ago.
+const twoDaysAgo = new Date(Date.now() - 2 * 86_400_000);
+await Kid.collection.updateOne({ _id: maya._id }, { $set: { createdAt: twoDaysAgo, "registration.registeredAt": twoDaysAgo } });
 const year = getSeasonYear();
-const dayOfYear = Math.floor((Date.now() - Date.UTC(year, 0, 1)) / 86_400_000) + 1;
-const expectDays = Math.min(3, dayOfYear);
+const todayIso = isoDay(calendarDateIn(new Date()));
+const listYear = santaListYear(todayIso);
+const sinceListStart = Math.round((Date.parse(todayIso) - Date.parse(santaListStart(listYear))) / 86_400_000) + 1;
+const expectDays = Math.min(3, sinceListStart);
 // A naughty vote from LAST season must not count this year.
 // Raw insert: the model refuses years before the first season (2026), but we need a past one.
-await KidVote.collection.insertOne({ kidId: maya._id, familyId: A.family._id, seasonYear: year - 1, day: `${year - 1}-12-20`, vote: "naughty", createdAt: new Date(), updatedAt: new Date() });
+await KidVote.collection.insertOne({ kidId: maya._id, familyId: A.family._id, seasonYear: listYear - 1, day: `${listYear - 2}-12-30`, vote: "naughty", createdAt: new Date(), updatedAt: new Date() });
 
 const browser = await chromium.launch({ channel: "msedge", headless: true });
 const errors: string[] = [];
@@ -75,13 +80,14 @@ try {
 
   // 1. No votes yet: every day counts as Nice (last season's vote ignored).
   await page.locator(`[data-testid="tally-${maya._id}"]`).waitFor({ timeout: 15_000 });
-  check(`missed days count as Nice: ${expectDays} nice, 0 naughty (last season ignored)`, (await tally()).includes(`${expectDays} nice`) && (await tally()).includes("0 naughty"), await tally());
+  check(`tally names the Christmas it counts toward (${listYear})`, (await tally()).includes(`Christmas ${listYear}`), await tally());
+  check(`missed days count as Nice: ${expectDays} nice, 0 naughty (last list ignored)`, (await tally()).includes(`${expectDays} nice`) && (await tally()).includes("0 naughty"), await tally());
 
   // 2. Vote Naughty → tally changes; change to Nice the same day → still ONE vote.
   await vote("Naughty");
   check("Naughty today: one fewer nice day, 1 naughty", (await tally()).includes(`${expectDays - 1} nice`) && (await tally()).includes("1 naughty"), await tally());
   await vote("Nice");
-  const todays = await KidVote.find({ kidId: maya._id, seasonYear: year }).lean();
+  const todays = await KidVote.find({ kidId: maya._id, seasonYear: listYear }).lean();
   check("changing today's vote updates it (one vote per day)", todays.length === 1 && todays[0]!.vote === "nice" && (await tally()).includes("0 naughty"));
 
   // 3. The kid's own page shows the tally too.
@@ -90,7 +96,7 @@ try {
 
   // 4. Another family can't vote for this kid (service check).
   const foreign = await castVote({ id: String(B.user._id), familyId: String(B.family._id) }, String(maya._id), "naughty");
-  check("another family's vote is refused", !foreign.ok && (await KidVote.countDocuments({ kidId: maya._id, seasonYear: year })) === 1);
+  check("another family's vote is refused", !foreign.ok && (await KidVote.countDocuments({ kidId: maya._id, seasonYear: listYear })) === 1);
 
   // 5. Item limit: 12 saved, 51 refused.
   await page.goto(`${base}/parent/kids/${maya._id}`);
@@ -120,9 +126,16 @@ try {
   const stranger = await (await browser.newContext()).newPage();
   await stranger.goto(`${base}/d/${token}`);
   await stranger.locator("main h1").waitFor({ timeout: 15_000 });
+  check("a new nickname waits for admin review: not shown yet, parent told",
+    !(await stranger.locator("main").innerText()).includes("North Pole Helpers") && (await page.locator("main").innerText()).includes("Waiting for a quick check"));
+  const fakeAdmin = String(new mongoose.Types.ObjectId());
+  await reviewAlias(fakeAdmin, String(A.family._id), "approved");
+  await stranger.reload();
+  await stranger.locator("main h1").waitFor({ timeout: 15_000 });
   const shown = await stranger.locator("main").innerText();
-  check("nickname switched on → QR page says 'From the North Pole Helpers family', never the real name",
+  check("approved + switched on → QR page says 'From the North Pole Helpers family', never the real name",
     shown.includes("North Pole Helpers") && !(await stranger.content()).includes(`Realname${tag}`));
+  await AuditLog.collection.deleteMany({ actorUserId: new mongoose.Types.ObjectId(fakeAdmin) });
   await hydrated(page);
   await page.uncheck('[name="show"]');
   await page.locator("main form", { has: page.locator('[name="alias"]') }).locator("button[type=submit]").click();

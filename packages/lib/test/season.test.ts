@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { defaultSeasonDates, getSeasonPhase, getSeasonYear, isStoreItemWindowOpen, parseIsoDay, resolveSeason, startOfDayInZone, validateSeasonDates } from "../src/season.ts";
+import { defaultSeasonDates, getSeasonPhase, getSeasonYear, isStoreItemWindowOpen, parseIsoDay, resolveSeason, santaListStart, santaListYear, startOfDayInZone, validateSeasonDates } from "../src/season.ts";
 
 // Instants are given in UTC. Chicago is UTC-6 in Dec (CST) and UTC-5 in Oct (CDT).
 const at = (iso: string) => new Date(iso);
@@ -98,6 +98,14 @@ test("startOfDayInZone: midnight in Chicago, both sides of daylight saving", () 
   assert.equal(startOfDayInZone("2027-03-14").toISOString(), "2027-03-14T06:00:00.000Z"); // DST starts at 2 am that day
   assert.equal(startOfDayInZone("2027-11-07").toISOString(), "2027-11-07T05:00:00.000Z"); // DST ends at 2 am that day
   assert.throws(() => startOfDayInZone("2027-02-30"));
+});
+
+test("Santa's list year: Dec 26 starts next Christmas's list", () => {
+  assert.equal(santaListYear("2026-12-25"), 2026); // Christmas Day ends the 2026 list
+  assert.equal(santaListYear("2026-12-26"), 2027); // the next day builds the 2027 list
+  assert.equal(santaListYear("2027-01-01"), 2027);
+  assert.equal(santaListYear("2027-06-15"), 2027);
+  assert.equal(santaListStart(2027), "2026-12-26");
 });
 
 test("parseIsoDay / defaultSeasonDates", () => {

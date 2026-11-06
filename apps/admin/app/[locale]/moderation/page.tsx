@@ -7,7 +7,7 @@ import { connection } from "next/server";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { requireRole } from "@repo/auth";
-import { listPendingTexts } from "@repo/deeds/moderation";
+import { listPendingAliases, listPendingTexts } from "@repo/deeds/moderation";
 import { authOptions } from "@/auth";
 import { ReviewButtons } from "./review-buttons";
 
@@ -19,20 +19,36 @@ export async function generateMetadata(): Promise<Metadata> {
 async function Content() {
   await connection();
   await requireRole(authOptions, "admin");
-  const [rows, t, format] = await Promise.all([listPendingTexts(), getTranslations("Moderation"), getFormatter()]);
-  if (rows.length === 0) return <p className="text-foreground/70">{t("empty")}</p>;
+  const [rows, aliases, t, format] = await Promise.all([listPendingTexts(), listPendingAliases(), getTranslations("Moderation"), getFormatter()]);
+  const when = (d: Date) => format.dateTime(new Date(d), { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  const list = (items: typeof rows, kind: "deed" | "alias", testId: string) =>
+    items.length === 0 ? (
+      <p className="text-foreground/70">{t("empty")}</p>
+    ) : (
+      <ul className="flex flex-col divide-y divide-foreground/10 rounded-2xl border border-foreground/15" data-testid={testId}>
+        {items.map((r) => (
+          <li key={r.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="whitespace-pre-line">{r.text}</p>
+              <p className="text-sm text-foreground/70">{when(r.createdAt)}</p>
+            </div>
+            <ReviewButtons id={r.id} kind={kind} />
+          </li>
+        ))}
+      </ul>
+    );
   return (
-    <ul className="flex flex-col divide-y divide-foreground/10 rounded-2xl border border-foreground/15" data-testid="moderation-list">
-      {rows.map((r) => (
-        <li key={r.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="whitespace-pre-line">{r.text}</p>
-            <p className="text-sm text-foreground/70">{format.dateTime(new Date(r.createdAt), { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</p>
-          </div>
-          <ReviewButtons id={r.id} />
-        </li>
-      ))}
-    </ul>
+    <div className="flex flex-col gap-8">
+      <section>
+        <h2 className="mb-3 text-lg font-semibold">{t("deedTexts")}</h2>
+        {list(rows, "deed", "moderation-list")}
+      </section>
+      <section>
+        <h2 className="mb-1 text-lg font-semibold">{t("aliases")}</h2>
+        <p className="mb-3 text-sm text-foreground/70">{t("aliasesIntro")}</p>
+        {list(aliases, "alias", "alias-list")}
+      </section>
+    </div>
   );
 }
 

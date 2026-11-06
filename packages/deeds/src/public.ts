@@ -64,7 +64,7 @@ async function view(token: unknown, locale: string): Promise<View> {
     Kid.findOne({ _id: String(d.kidId), familyId: String(d.familyId), archivedAt: null })
       .select("displayName registration.status")
       .lean<{ displayName: string; registration?: { status?: string | null } | null }>(),
-    Family.findById(d.familyId).select("alias showAliasPublicly").lean(),
+    Family.findById(d.familyId).select("alias showAliasPublicly aliasReview").lean(),
     d.deedTypeId ? DeedType.findById(d.deedTypeId).select("title").lean() : null,
     getSeasonState(),
   ]);
@@ -75,7 +75,8 @@ async function view(token: unknown, locale: string): Promise<View> {
     view: {
       state: "open",
       kidName: kid.displayName,
-      familyAlias: fam?.showAliasPublicly && fam.alias ? fam.alias : undefined,
+      // Nickname: only when switched on AND approved by an admin.
+      familyAlias: fam?.showAliasPublicly && fam.alias && fam.aliasReview === "approved" ? fam.alias : undefined,
       deed,
       seasonOpen: season.phase === "open" || season.phase === "frozen",
       seasonCloseAt: startOfDayInZone(season.dates.close),

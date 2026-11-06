@@ -9,7 +9,7 @@ import { connection } from "next/server";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { getKid } from "@repo/families/kids";
-import { familyTallies } from "@repo/families/votes";
+import { kidTally } from "@repo/families/votes";
 import { localized } from "@repo/deeds/catalog";
 import { listKidDeeds } from "@repo/deeds/deeds";
 import { formatPoints } from "@repo/lib/format";
@@ -29,7 +29,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
   const { id } = await params;
   const origin = process.env.NEXTAUTH_URL;
   if (!origin) throw new Error("NEXTAUTH_URL is not set");
-  const [kid, deeds, t, format, locale, tallies] = await Promise.all([getKid(parent, id), listKidDeeds(parent, id, origin), getTranslations("Kid"), getFormatter(), getLocale(), familyTallies(parent)]);
+  const [kid, deeds, t, format, locale, tallies] = await Promise.all([getKid(parent, id), listKidDeeds(parent, id, origin), getTranslations("Kid"), getFormatter(), getLocale(), kidTally(parent, id)]);
   if (!kid || !deeds) notFound(); // other families' kids look the same as missing ones
   const day = (d?: Date) => (d ? format.dateTime(new Date(d), { month: "short", day: "numeric" }) : "");
   const title = (d: (typeof deeds)[number]) => d.custom || localized(d.title, locale) || t("aDeed");
@@ -39,7 +39,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
         <div>
           <h1 className="text-3xl font-bold">{kid.firstName}</h1>
           <p className="text-lg">{t("points", { points: formatPoints(kid.availableCentipoints) })}</p>
-          <p className="text-sm text-foreground/70" data-testid="kid-tally">{t("tally", { nice: tallies.get(kid.id)?.nice ?? 0, naughty: tallies.get(kid.id)?.naughty ?? 0 })}</p>
+          {tallies && <p className="text-sm text-foreground/70" data-testid="kid-tally">{t("tally", { nice: tallies.nice, naughty: tallies.naughty, year: tallies.listYear })}</p>}
         </div>
         {kid.registered && (
           <Link href={`/kids/${kid.id}/deed`} className="rounded-lg bg-brand-red px-4 py-2 font-semibold text-white hover:bg-brand-red-dark">

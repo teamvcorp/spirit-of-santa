@@ -5,7 +5,7 @@ import { Button } from "@repo/ui/button";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { reviewAction, type ReviewState } from "./actions";
 
-export function ReviewButtons({ id }: { id: string }) {
+export function ReviewButtons({ id, kind = "deed" }: { id: string; kind?: "deed" | "alias" }) {
   const t = useTranslations("Moderation");
   const [state, action, pending] = useActionState(reviewAction, { status: "idle" } as ReviewState);
   const hydrated = useHydrated();
@@ -13,6 +13,7 @@ export function ReviewButtons({ id }: { id: string }) {
     <form action={action}>
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="decision" value={decision} />
+      <input type="hidden" name="kind" value={kind} />
       <Button type="submit" variant={variant} pending={pending} disabled={!hydrated} className="min-h-9 px-3 py-1 text-sm">
         {label}
       </Button>

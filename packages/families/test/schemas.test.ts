@@ -19,6 +19,15 @@ test("birth year: under 18 this year", () => {
   assert.deepEqual(birthYearRange(new Date("2027-01-01T02:00:00Z")), { min: 2008, max: 2026 });
 });
 
+test("item limit: blank means the default 5 (never 0); 0-50 only", () => {
+  const s = kidSchema(now);
+  const base = { firstName: "Maya", birthYear: "2018", displayName: "" };
+  assert.equal(s.parse({ ...base, itemCap: "" }).itemCap, 5);
+  assert.equal(s.parse(base).itemCap, 5);
+  assert.equal(s.parse({ ...base, itemCap: "0" }).itemCap, 0);
+  assert.equal(s.safeParse({ ...base, itemCap: "51" }).success, false);
+});
+
 test("display name defaults to the first initial; trimmed; max 20", () => {
   const s = kidSchema(now);
   assert.equal(s.parse({ firstName: " maya ", birthYear: "2018", displayName: " " }).displayName, "M.");

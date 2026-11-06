@@ -16,6 +16,12 @@ const familySchema = new Schema(
     /** Optional public family alias, shown on QR pages only when showAliasPublicly is set. */
     alias: { type: String, trim: true, maxlength: 80 },
     showAliasPublicly: { type: Boolean, default: false },
+    /**
+     * Admin review of the nickname (admin /moderation). Shown publicly only when "approved" AND
+     * switched on: a parent could otherwise publish their real surname or something offensive.
+     * Changing the text sets it back to "pending".
+     */
+    aliasReview: { type: String, enum: ["pending", "approved", "rejected"] },
     /** US ZIP for zip-targeted corporate donations. */
     zip: { type: String, match: /^\d{5}$/ },
 

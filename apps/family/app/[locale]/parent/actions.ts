@@ -8,10 +8,9 @@ import { refresh } from "next/cache";
 import { setParentPinWithPassword, unlockParentDashboard, lockParentDashboard } from "@repo/auth/parent-pin";
 import { fieldErrors } from "@repo/auth/schemas";
 import { addKid, deleteKid, getKid, updateKid } from "@repo/families/kids";
-import { familyAliasSchema, kidSchema } from "@repo/families/schemas";
+import { familyAliasSchema, kidSchema, voteSchema } from "@repo/families/schemas";
 import { setFamilyAlias } from "@repo/families/settings";
 import { castVote } from "@repo/families/votes";
-import { z } from "zod";
 import { redirect } from "next/navigation";
 import { localizePath } from "@repo/i18n/paths";
 import { formString } from "@repo/lib/form";
@@ -93,7 +92,7 @@ export async function deleteKidAction(_prev: ParentFormState, fd: FormData): Pro
 export async function voteAction(_prev: ParentFormState, fd: FormData): Promise<ParentFormState> {
   const parent = await unlockedParentOrNull();
   if (!parent) return err("locked");
-  const parsed = z.object({ kidId: z.string().min(1), vote: z.enum(["nice", "naughty"]) }).safeParse({ kidId: str(fd, "kidId"), vote: str(fd, "vote") });
+  const parsed = voteSchema.safeParse({ kidId: str(fd, "kidId"), vote: str(fd, "vote") });
   if (!parsed.success) return err("notFound");
   const r = await castVote(parent, parsed.data.kidId, parsed.data.vote);
   if (!r.ok) return err(r.error);
@@ -109,7 +108,7 @@ export async function aliasAction(_prev: ParentFormState, fd: FormData): Promise
   const parsed = familyAliasSchema.safeParse(values);
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), values, nonce: randomUUID() };
   const r = await setFamilyAlias(parent, parsed.data.alias, parsed.data.show === "on");
-  if (!r.ok) return err("notFound", values);
+  if (!r.ok) return err("noFamily", values);
   refresh();
   return { status: "done", nonce: randomUUID() };
 }

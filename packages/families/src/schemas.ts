@@ -4,14 +4,18 @@
  * public pages show. Blank display name = first initial ("Maya" -> "M.").
  */
 import { z } from "zod";
+import { KID_VOTES } from "@repo/lib/family";
 import { MAX_KID_AGE_YEARS } from "@repo/lib/limits";
+import { getSeasonYear } from "@repo/lib/season";
 
 /** Family nickname for public QR pages ("From the {alias} family"). Blank = none. */
 export const familyAliasSchema = z.object({
   alias: z.string().trim().max(40, "tooLong"),
   show: z.enum(["on", "off"]),
 });
-import { getSeasonYear } from "@repo/lib/season";
+
+/** Today's Naughty/Nice vote form. */
+export const voteSchema = z.object({ kidId: z.string().min(1).max(40), vote: z.enum(KID_VOTES) });
 
 /**
  * Allowed birth years for someone under 18 THIS year (in the season time zone, not UTC, so the
@@ -44,7 +48,8 @@ export function kidSchema(now = new Date(), keepYear?: number) {
         .refine((y) => y === keepYear || (y >= min && y <= max), "invalidYear"),
       displayName: z.string().trim().max(20, "tooLong"),
       /** Max items on this child's wish list (enforced when wish lists arrive, Phase 6). */
-      itemCap: z.coerce.number("invalid").int("invalid").min(0, "invalidCap").max(50, "invalidCap").default(5),
+      // Blank / missing → 5 (z.coerce would turn "" into 0: a silent "no items allowed").
+      itemCap: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number("invalid").int("invalid").min(0, "invalidCap").max(50, "invalidCap").default(5)),
     })
     .transform((v) => ({ ...v, displayName: v.displayName || defaultDisplayName(v.firstName) }));
 }

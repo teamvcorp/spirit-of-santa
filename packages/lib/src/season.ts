@@ -230,3 +230,16 @@ export function startOfDayInZone(isoDayStr: string, timeZone = SEASON_TIME_ZONE)
   }
   return new Date(t);
 }
+
+/**
+ * Santa's Naughty/Nice list year for a calendar day (user decision 2026-11-06): voting runs all
+ * year, and each list covers Dec 26 → Dec 25 (Central Time). Christmas Day ends a list; from
+ * Dec 26 votes build NEXT Christmas's list. "2026-12-25" → 2026, "2026-12-26" → 2027.
+ */
+export function santaListYear(isoDayStr: string): number {
+  const year = Number(isoDayStr.slice(0, 4));
+  return isoDayStr.slice(5) > "12-25" ? year + 1 : year;
+}
+
+/** First day of a list year: Dec 26 of the year before ("2027" → "2026-12-26"). */
+export const santaListStart = (listYear: number) => `${listYear - 1}-12-26`;

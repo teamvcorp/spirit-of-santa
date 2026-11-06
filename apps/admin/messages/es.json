@@ -358,7 +358,7 @@
     "recentTitle": "Actividad reciente de administración y tiendas",
     "recentEmpty": "Aún no hay nada registrado.",
     "laterNote": "Los puntos, el dinero y las acciones completadas aparecerán aquí cuando las familias puedan ganar y recibir propinas (fases 4–5).",
-    "pendingTexts": "{count, plural, =0 {No hay textos de acciones pendientes} one {# texto de acción pendiente de revisión} other {# textos de acciones pendientes de revisión}}"
+    "pendingTexts": "{count, plural, =0 {Nada pendiente de revisión} one {# elemento pendiente de revisión} other {# elementos pendientes de revisión}}"
   },
   "AuditActions": {
     "store_approve": "Tienda aprobada",
@@ -404,7 +404,10 @@
     "kid_update": "Niño editado",
     "kid_delete": "Niño eliminado",
     "kid_register_promo": "Niños registrados (promoción)",
-    "family_pin_set": "PIN de padres establecido"
+    "family_pin_set": "PIN de padres establecido",
+    "family_alias": "Apodo familiar cambiado",
+    "family_alias_review": "Apodo familiar revisado",
+    "kid_vote": "Voto bueno/travieso"
   },
   "Moderation": {
     "title": "Revisión de textos de acciones",
@@ -416,6 +419,9 @@
     "errors": {
       "notFound": "Ya se revisó. Recarga la página.",
       "failed": "No se pudo guardar. Inténtalo de nuevo."
-    }
+    },
+    "deedTexts": "Textos de acciones",
+    "aliases": "Apodos familiares",
+    "aliasesIntro": "Se muestran en las páginas QR públicas como \"De la familia …\". Oculta apellidos reales, lugares o cualquier cosa desagradable."
   }
 }

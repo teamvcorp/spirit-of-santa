@@ -122,12 +122,13 @@
       "invalidPin": "Use 4–6 digits for the PIN.",
       "passwordRequired": "Type your account password.",
       "noFamily": "Your family account wasn't found. Sign out and in again.",
-      "invalidCap": "Use a number from 0 to 50."
+      "invalidCap": "Use a number from 0 to 50.",
+      "notRegistered": "Register this child first (parent area)."
     },
     "registerKids": "Register children ($5 each)",
     "itemCap": "Wish-list item limit",
     "itemCapHint": "How many items this child may put on their wish list (0–50).",
-    "tally": "This year: {nice} nice {nice, plural, one {day} other {days}}, {naughty} naughty",
+    "tally": "For Christmas {year}: {nice, plural, one {# nice day} other {# nice days}}, {naughty} naughty",
     "capLine": "up to {cap} wish-list items",
     "voteFor": "Today's vote for {name}",
     "vote": {
@@ -140,7 +141,9 @@
     "aliasHint": "Something fun, not your surname (e.g. \"North Pole Helpers\").",
     "aliasShow": "Show it on QR pages",
     "aliasSave": "Save",
-    "aliasSaved": "Saved."
+    "aliasSaved": "Saved.",
+    "aliasPending": "Waiting for a quick check by our team before it's shown publicly.",
+    "aliasRejected": "Our team didn't approve this nickname. Please choose another (no real names)."
   },
   "Register": {
     "title": "Register your children",
@@ -204,7 +207,7 @@
       "deedUnavailable": "That deed isn't available any more. Choose another.",
       "dailyLimit": "That's 10 deeds today for this child. Try again tomorrow!"
     },
-    "tally": "Santa's list this year: {nice} nice {nice, plural, one {day} other {days}}, {naughty} naughty"
+    "tally": "Santa's list for Christmas {year}: {nice, plural, one {# nice day} other {# nice days}}, {naughty} naughty"
   },
   "Qr": {
     "title": "A good deed",

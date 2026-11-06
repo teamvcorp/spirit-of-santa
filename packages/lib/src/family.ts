@@ -8,3 +8,7 @@
  * the version it accepted. "-draft": the wording is a DRAFT until a lawyer reviews it (COPPA).
  */
 export const PARENT_CONSENT_VERSION = "2026-11-05-draft";
+
+/** Daily Naughty/Nice vote values: ONE list for the model, the form schema and the service. */
+export const KID_VOTES = ["nice", "naughty"] as const;
+export type KidVoteValue = (typeof KID_VOTES)[number];

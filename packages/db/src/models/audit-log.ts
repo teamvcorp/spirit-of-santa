@@ -59,6 +59,8 @@ export const AUDIT_ACTIONS = [
   "kid.delete",
   "family.pin_set",
   "family.alias",
+  "family.alias_review",
+  "kid.vote",
   "kid.register_promo",
   "deed.create",
   "deed.text_review",

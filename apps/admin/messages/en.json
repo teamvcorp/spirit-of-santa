@@ -358,7 +358,7 @@
     "recentTitle": "Recent admin and store activity",
     "recentEmpty": "Nothing recorded yet.",
     "laterNote": "Points, money and completed deeds appear here once families can earn and tip (Phases 4–5).",
-    "pendingTexts": "{count, plural, =0 {No deed texts waiting for review} one {# deed text waiting for review} other {# deed texts waiting for review}}"
+    "pendingTexts": "{count, plural, =0 {Nothing waiting for review} one {# item waiting for review} other {# items waiting for review}}"
   },
   "AuditActions": {
     "store_approve": "Store approved",
@@ -404,7 +404,10 @@
     "kid_update": "Child edited",
     "kid_delete": "Child deleted",
     "kid_register_promo": "Children registered (promo)",
-    "family_pin_set": "Parent PIN set"
+    "family_pin_set": "Parent PIN set",
+    "family_alias": "Family nickname changed",
+    "family_alias_review": "Family nickname reviewed",
+    "kid_vote": "Naughty/Nice vote"
   },
   "Moderation": {
     "title": "Deed text review",
@@ -416,6 +419,9 @@
     "errors": {
       "notFound": "Already reviewed. Reload the page.",
       "failed": "Couldn't save. Please try again."
-    }
+    },
+    "deedTexts": "Deed texts",
+    "aliases": "Family nicknames",
+    "aliasesIntro": "Shown on public QR pages as \"From the … family\". Hide real surnames, places or anything unkind."
   }
 }

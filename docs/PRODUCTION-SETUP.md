@@ -27,6 +27,7 @@ Node.js version: 24.x (Project → Settings → General).
 | `BLOB_READ_WRITE_TOKEN` | – | auto/✓ | – | connect the Blob store to the **store** project only (OIDC); token only if not using OIDC |
 | `CRON_SECRET` | – | ✓ | – | long random string (protects the daily cleanup job) |
 | `STORE_APP_URL` | – | – | ✓ | `https://store.spiritofsanta.com` |
+| `MFA_ENCRYPTION_KEY` | – | – | ✓ | NEW random value (command below). Encrypts admin authenticator secrets. Keep a copy somewhere safe: if it's lost, every admin re-runs setup |
 | `STRIPE_SECRET_KEY` | ✓ | – | – | Stripe live secret key |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | ✓ | – | – | Stripe live publishable key |
 | `STRIPE_WEBHOOK_SECRET` | ✓ | – | – | `whsec_` of the endpoint below |
@@ -71,7 +72,11 @@ npm run admin:create
 Remove-Item Env:MONGODB_URI, Env:ADMIN_EMAIL, Env:ADMIN_PASSWORD
 ```
 
-Then sign in at `https://admin.spiritofsanta.com/signin`. (The password is hashed with argon2id and
+Then sign in at `https://admin.spiritofsanta.com/signin` (leave the code box blank the first time).
+You'll be asked to set up two-step sign-in: scan the QR code with an authenticator app
+(Google/Microsoft Authenticator, 1Password), type the code, and **save the 10 recovery codes**.
+Lost phone and recovery codes? Re-run `npm run admin:create` for that email: it resets the password
+and two-step sign-in. (The password is hashed with argon2id and
 never printed; re-running resets it and signs out old sessions.)
 
 ## 6. Store item window

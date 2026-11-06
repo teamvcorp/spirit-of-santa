@@ -23,7 +23,8 @@
         "RESEND_FROM",
         "RESEND_REPLY_TO",
         "CRON_SECRET",
-        "STORE_APP_URL"
+        "STORE_APP_URL",
+        "MFA_ENCRYPTION_KEY"
       ],
       "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"]
     },

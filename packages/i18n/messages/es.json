@@ -15,6 +15,9 @@
     },
     "points": "{count, plural, one {# punto} other {# puntos}}",
     "auth": {
+      "code": "Código del autenticador",
+      "codeHint": "El código de 6 dígitos de tu app de autenticación, o un código de recuperación. Déjalo en blanco la primera vez, antes de configurarlo.",
+      "failedWithCode": "No funcionó. Revisa tu correo, contraseña y código del autenticador. Después de 5 intentos fallidos, el inicio de sesión se pausa 15 minutos.",
       "title": "Iniciar sesión",
       "email": "Correo electrónico",
       "password": "Contraseña",

@@ -37,6 +37,9 @@ export const AUDIT_ACTIONS = [
   "item.price",
   "item.archive",
   "item.restore",
+  "user.mfa_enable",
+  "user.mfa_reset",
+  "user.mfa_recovery_used",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 

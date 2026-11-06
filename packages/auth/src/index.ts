@@ -16,5 +16,6 @@ export {
   getSessionUser,
   requireUser,
   requireRole,
+  requireMfaSetupUser,
   type SessionUser,
 } from "./guards.ts";

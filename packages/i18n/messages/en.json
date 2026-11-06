@@ -15,6 +15,9 @@
     },
     "points": "{count, plural, one {# point} other {# points}}",
     "auth": {
+      "code": "Authenticator code",
+      "codeHint": "The 6-digit code from your authenticator app, or a recovery code. Leave blank the first time, before you've set it up.",
+      "failedWithCode": "That didn’t work. Check your email, password and authenticator code. After 5 failed tries, sign-in is paused for 15 minutes.",
       "title": "Sign in",
       "email": "Email",
       "password": "Password",

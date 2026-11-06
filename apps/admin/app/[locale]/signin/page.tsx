@@ -22,7 +22,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/[locale]/
         <h1 className="text-2xl font-bold">{auth("title")}</h1>
         <p className="mb-6 mt-1 text-foreground/70">{page("intro")}</p>
         {/* Prerendered form; ?callbackUrl / ?error stream in (see sign-in-slot.tsx). */}
-        <SignInSlot searchParams={searchParams} />
+        <SignInSlot searchParams={searchParams} showCode />
         <div className="mt-6 flex flex-col gap-2 text-sm">
           <Link href="/forgot-password" className="underline underline-offset-4">{links("forgot")}</Link>
         </div>

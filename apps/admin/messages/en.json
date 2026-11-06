@@ -108,5 +108,34 @@
     "showing": "Showing {from}–{to} of {total}",
     "previous": "Previous",
     "next": "Next"
+  },
+  "MfaSetup": {
+    "title": "Set up two-step sign-in",
+    "intro": "Admin accounts need a code from an authenticator app as well as a password. This takes about two minutes.",
+    "loading": "Loading…",
+    "step1": "Install an authenticator app on your phone if you don't have one: Google Authenticator, Microsoft Authenticator or 1Password all work.",
+    "step2": "In the app, add an account and scan this QR code.",
+    "qrAlt": "QR code for your authenticator app",
+    "manualLabel": "Can't scan it? Choose \"enter a setup key\" in the app and type this key:",
+    "accountLine": "It will show as {issuer} ({account}).",
+    "step3": "Type the 6-digit code the app shows now.",
+    "codeLabel": "6-digit code",
+    "confirm": "Turn on two-step sign-in",
+    "confirming": "Checking…",
+    "errors": {
+      "invalidCode": "That code didn't match. Codes change every 30 seconds: type the one showing now. If it keeps failing, check your phone's clock is set automatically.",
+      "expired": "This setup took too long. Reload the page for a new QR code and scan it again.",
+      "rateLimited": "Too many tries. Wait 15 minutes, then try again.",
+      "notFound": "Two-step sign-in is already on, or this account can't use it. Reload the page."
+    },
+    "doneTitle": "Two-step sign-in is on.",
+    "recoveryLabel": "Recovery codes",
+    "recoveryIntro": "Save these 10 recovery codes somewhere safe, like a password manager or a printed copy. If you lose your phone, type one in the code box when you sign in. Each works once. They won't be shown again.",
+    "savedCheckbox": "I've saved my recovery codes",
+    "saveFirst": "Tick the box once you've saved them.",
+    "signInAgain": "Sign in again",
+    "signInAgainNeeded": "Two-step sign-in is on. Sign in again with your password and a code from the app.",
+    "alreadyOn": "Two-step sign-in is already on for your account.",
+    "backHome": "Back to the dashboard"
   }
 }

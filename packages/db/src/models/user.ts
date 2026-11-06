@@ -48,6 +48,23 @@ const userSchema = new Schema(
      */
     sessionVersion: { type: Number, default: 0, min: 0 },
 
+    /**
+     * Two-factor sign-in (authenticator app / TOTP). Required for admins (Phase 3 slice 1).
+     * Secrets are AES-256-GCM encrypted with MFA_ENCRYPTION_KEY (packages/auth/src/mfa.ts),
+     * recovery codes are stored only as keyed hashes, and none of it is ever selected by default.
+     */
+    mfa: {
+      enabled: { type: Boolean, default: false },
+      enabledAt: Date,
+      secretEnc: { type: String, select: false, maxlength: 512 },
+      /** Set while the admin is scanning the QR code; replaced by secretEnc once confirmed. */
+      pendingSecretEnc: { type: String, select: false, maxlength: 512 },
+      pendingAt: { type: Date, select: false },
+      /** Last accepted 30 s step: the same code can't be used twice (replay protection). */
+      lastStep: { type: Number, select: false },
+      recoveryCodeHashes: { type: [String], select: false, default: undefined },
+    },
+
     /** FCM device tokens for push (Phase 7). */
     fcmTokens: { type: [String], default: [], select: false },
   },
@@ -58,6 +75,7 @@ const userSchema = new Schema(
       "failedLoginCount",
       "lockedUntil",
       "fcmTokens",
+      "mfa",
     ),
   },
 );

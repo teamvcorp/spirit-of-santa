@@ -108,5 +108,34 @@
     "showing": "Mostrando {from}–{to} de {total}",
     "previous": "Anterior",
     "next": "Siguiente"
+  },
+  "MfaSetup": {
+    "title": "Configura el inicio de sesión en dos pasos",
+    "intro": "Las cuentas de administración necesitan un código de una app de autenticación además de la contraseña. Toma unos dos minutos.",
+    "loading": "Cargando…",
+    "step1": "Instala una app de autenticación en tu teléfono si no tienes una: Google Authenticator, Microsoft Authenticator o 1Password funcionan.",
+    "step2": "En la app, agrega una cuenta y escanea este código QR.",
+    "qrAlt": "Código QR para tu app de autenticación",
+    "manualLabel": "¿No puedes escanearlo? Elige \"ingresar una clave de configuración\" en la app y escribe esta clave:",
+    "accountLine": "Aparecerá como {issuer} ({account}).",
+    "step3": "Escribe el código de 6 dígitos que muestra la app ahora.",
+    "codeLabel": "Código de 6 dígitos",
+    "confirm": "Activar el inicio de sesión en dos pasos",
+    "confirming": "Comprobando…",
+    "errors": {
+      "invalidCode": "Ese código no coincide. Los códigos cambian cada 30 segundos: escribe el que aparece ahora. Si sigue fallando, revisa que la hora del teléfono se ajuste automáticamente.",
+      "expired": "La configuración tardó demasiado. Recarga la página para obtener un código QR nuevo y escanéalo otra vez.",
+      "rateLimited": "Demasiados intentos. Espera 15 minutos y vuelve a intentarlo.",
+      "notFound": "El inicio de sesión en dos pasos ya está activado, o esta cuenta no puede usarlo. Recarga la página."
+    },
+    "doneTitle": "El inicio de sesión en dos pasos está activado.",
+    "recoveryLabel": "Códigos de recuperación",
+    "recoveryIntro": "Guarda estos 10 códigos de recuperación en un lugar seguro, como un gestor de contraseñas o una copia impresa. Si pierdes el teléfono, escribe uno en la casilla del código al iniciar sesión. Cada uno funciona una vez. No se volverán a mostrar.",
+    "savedCheckbox": "Guardé mis códigos de recuperación",
+    "saveFirst": "Marca la casilla cuando los hayas guardado.",
+    "signInAgain": "Iniciar sesión de nuevo",
+    "signInAgainNeeded": "El inicio de sesión en dos pasos está activado. Inicia sesión de nuevo con tu contraseña y un código de la app.",
+    "alreadyOn": "El inicio de sesión en dos pasos ya está activado en tu cuenta.",
+    "backHome": "Volver al panel"
   }
 }

@@ -1,7 +1,7 @@
 # turboSanta CODEMAP
 
 > Read this before exploring. Keep it current when packages/routes are added.
-> Last updated: 2026-11-05 (slice 5 engagement). Status: **Phase 1: shared packages, i18n, sign-in, image storage, home-screen icons done; placeholder pages otherwise.**
+> Last updated: 2026-11-05 (Phase 3 slice 1: admin MFA). Status: **Phase 1: shared packages, i18n, sign-in, image storage, home-screen icons done; placeholder pages otherwise.**
 > Rules/constants: [../CLAUDE.md](../CLAUDE.md). Roadmap: [../SpiritOfSanta.md](../SpiritOfSanta.md).
 
 ## Layout
@@ -22,7 +22,7 @@
 | `packages/storage` | **Server-only** `images` (`uploadPublicImage`/`deletePublicImage` on public Vercel Blob, sharp re-encode); client-safe `image-rules` (limits, magic-byte sniff, `blobImagesConfig` for next.config) |
 | `packages/eslint-config` | `./base` (packages), `./next-js` (apps). only-warn + `--max-warnings 0` |
 | `packages/typescript-config` | `base`, `nextjs` (apps), `library` (lib/db/auth), `react-library` (ui) |
-| `docs/vendor/` | Version-specific notes: `mongoose-9.md`, `next-auth-v4.md`, `next-intl.md`, `vercel-blob.md` (also icons), `stripe.md`, `resend.md` |
+| `docs/vendor/` | Version-specific notes: `totp-mfa.md` (admin MFA + qrcode), `mongoose-9.md`, `next-auth-v4.md`, `next-intl.md`, `vercel-blob.md` (also icons), `stripe.md`, `resend.md` |
 
 ## Key decisions (why things look the way they do)
 
@@ -216,6 +216,23 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
   port + `NEXTAUTH_URL=http://localhost:<p>` if an old server holds 3001.
 - **New env:** store `CRON_SECRET` (Vercel cron auth); admin `STORE_APP_URL` (links in invite/approval emails;
   defaults to http://localhost:3001 in dev, required in production).
+
+## Phase 3 (admin app), agreed 2026-11-05
+
+Order: 1 admin MFA (built; review pending) → 2 season controls → 3 user management (incl. "reset MFA"
+button) → 4 deed catalog → 5 platform dashboard v1. Deferred until their data exists: content moderation
+(Phase 4), donation settings + pay-later links (Phase 5), announcements (Phase 7).
+
+- **Admin MFA (slice 1):** TOTP authenticator + 10 recovery codes (`docs/vendor/totp-mfa.md`). Admin without MFA
+  → JWT `mfaSetup` → `requireRole` redirects EVERYTHING to `/mfa/setup`; only that page/action uses
+  `requireMfaSetupUser`. Pages that read the session directly (admin home) must check `user.mfaSetup` too.
+  Sign-in form shows a code field in the admin app only (`<SignInSlot showCode />`). Blank code = no strike,
+  wrong code = strike. `admin:create` re-run = lost-phone reset. New admin env: `MFA_ENCRYPTION_KEY`.
+- **Admin E2E now uses its own MFA admin** (`createMfaAdmin` in `scripts/e2e/lib.ts`, needs
+  `--env-file=apps/admin/.env.local`); `SEED_PASSWORD` no longer needed. `browser-admin-mfa.ts`: 27 checks;
+  `browser-admin-stores.ts --prod`: 18 checks. dev-admin@ gets a setup-only session until you set MFA up.
+- **npm override:** `@vercel/cli-config` → zod 4.6.7 (its pinned 4.1.11 had a high-severity advisory);
+  `npm audit --omit=dev` = 0. Remove the override once @vercel/oidc updates.
 
 ## Open items / TODO
 

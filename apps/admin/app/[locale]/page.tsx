@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { getTranslations } from "next-intl/server";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getSessionUser } from "@repo/auth";
 import { storeStatusCounts } from "@repo/stores/queries";
@@ -12,6 +13,7 @@ async function Dashboard() {
   await connection();
   const user = await getSessionUser(authOptions);
   if (user?.role !== "admin") return null;
+  if (user.mfaSetup) redirect("/mfa/setup"); // no admin data until MFA is set up
   const [counts, t] = await Promise.all([storeStatusCounts(), getTranslations("HomePage")]);
   return (
     <Card className="w-full max-w-md text-left">

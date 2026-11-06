@@ -4,17 +4,17 @@
  * so emails are printed to the dev log instead of sent.
  *
  *   npx turbo run dev --filter=store --filter=admin   (log to a file)
- *   $env:SEED_PASSWORD = "<dev password>"   (dev-admin@spiritofsanta.test, from npm run seed:dev)
  *   node --conditions=react-server --env-file=apps/admin/.env.local scripts/e2e/browser-admin-stores.ts \
  *        http://localhost:3002 http://localhost:3001 <dev-log-file>
  *
- * Creates its own pending test stores in the *_dev DB and removes everything afterwards.
+ * Creates its own pending test stores AND its own admin (with two-step sign-in on, see
+ * createMfaAdmin in lib.ts) in the *_dev DB, and removes everything afterwards.
  */
 import { readFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { chromium, type Page } from "playwright-core";
 import { ActionToken, AuditLog, connectDb, Store, trusted, User } from "@repo/db";
-import { makeChecks, signIn } from "./lib.ts";
+import { createMfaAdmin, makeChecks, signIn } from "./lib.ts";
 
 const [adminBase, storeBase, logFile] = process.argv.slice(2);
 /**
@@ -24,15 +24,13 @@ const [adminBase, storeBase, logFile] = process.argv.slice(2);
  */
 const PROD = process.argv.includes("--prod");
 if (!adminBase || !storeBase || !logFile) throw new Error("usage: <adminUrl> <storeUrl> <devLog>");
-// eslint-disable-next-line turbo/no-undeclared-env-vars
-const ADMIN_PW = process.env.SEED_PASSWORD ?? "";
-if (ADMIN_PW.length < 12) throw new Error("set SEED_PASSWORD (dev-admin password)");
 const { check, report } = makeChecks();
 const tag = randomBytes(4).toString("hex");
 const mail = (n: string) => (PROD ? `delivered+adm${n}${tag}@resend.dev` : `e2e-adm-${n}-${tag}@spiritofsanta.test`);
 
 const mongoose = await connectDb();
 if (!mongoose.connection.name.endsWith("_dev")) throw new Error("refusing: not a *_dev database");
+const admin = await createMfaAdmin(mail("admin"));
 
 async function pendingStore(n: string, ownerStatus: "active" | "pending" = "active") {
   const user = await User.create({ email: mail(n), passwordHash: "x", role: "store_owner", status: ownerStatus, name: `Owner ${n}` });
@@ -86,8 +84,9 @@ try {
   // 1. Admin signs in.
   await page.goto(`${adminBase}/signin`);
   await ready(page);
-  await page.fill('[name="email"]', "dev-admin@spiritofsanta.test");
-  await page.fill('[name="password"]', ADMIN_PW);
+  await page.fill('[name="email"]', admin.email);
+  await page.fill('[name="password"]', admin.password);
+  await page.fill('[name="code"]', await admin.nextCode());
   await page.click('button[type="submit"]');
   await page.waitForURL((u) => !u.pathname.includes("signin"), { timeout: 15_000 });
   await page.goto(`${adminBase}/`);
@@ -183,7 +182,7 @@ try {
   await tab2.close();
 
   // 7. An admin action called WITHOUT an admin session does nothing.
-  const adminSession = await signIn(adminBase, "dev-admin@spiritofsanta.test", ADMIN_PW);
+  const adminSession = await signIn(adminBase, admin.email, admin.password, await admin.nextCode());
   await Store.updateOne({ _id: storeB }, { $set: { status: "pending" } });
   // Read the page WITH the admin cookie (to get the Server Action id), then replay the
   // action WITHOUT any cookie, like an attacker who knows the action id would.

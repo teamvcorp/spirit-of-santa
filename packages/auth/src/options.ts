@@ -7,7 +7,10 @@
  * Security model:
  *  - Credentials (email + password) → argon2id verify → JWT session in an HttpOnly cookie.
  *  - Each app only admits its own roles (APP_ROLES); the token is also pinned to its app.
- *  - 5 bad passwords → 15 min lockout. Errors never reveal whether an email exists.
+ *  - 5 bad passwords (or bad authenticator codes) → 15 min lockout. Errors never reveal
+ *    whether an email exists, or which of password / code was wrong.
+ *  - Admins need a second factor (mfa.ts). An admin without MFA yet gets a restricted
+ *    `mfaSetup` session that can only open /mfa/setup (guards.ts).
  *  - Every 5 min the JWT re-checks the user in the DB, so suspending a user or bumping
  *    sessionVersion ends their sessions within minutes (pure JWTs can't be revoked otherwise).
  * Notes: docs/vendor/next-auth-v4.md
@@ -19,6 +22,7 @@ import { z } from "zod";
 import { connectDb, User } from "@repo/db";
 import { isRoleAllowedInApp, type AppName, type Role } from "@repo/lib/roles";
 import { nextAuthCookies } from "./cookies.ts";
+import { verifySecondFactor } from "./mfa.ts";
 import {
   burnVerifyTime,
   hashSecret,
@@ -35,6 +39,8 @@ declare module "next-auth" {
     sessionVersion: number;
     familyId?: string;
     storeId?: string;
+    /** Admin signed in with a password but hasn't set up MFA: setup page only. */
+    mfaSetup?: boolean;
   }
   interface Session {
     user?: {
@@ -43,6 +49,7 @@ declare module "next-auth" {
       email: string;
       familyId?: string;
       storeId?: string;
+      mfaSetup?: boolean;
     };
   }
 }
@@ -55,6 +62,7 @@ declare module "next-auth/jwt" {
     familyId?: string;
     storeId?: string;
     checkedAt?: number; // last DB re-check (ms)
+    mfaSetup?: boolean; // restricted admin session (no MFA yet)
     invalid?: boolean; // set when the user was suspended / sessions revoked
   }
 }
@@ -76,6 +84,8 @@ const credentialsSchema = z.object({
     .max(254)
     .transform((e) => e.trim().toLowerCase()),
   password: z.string().min(1).max(MAX_SECRET_LENGTH),
+  /** Authenticator code (6 digits) or a recovery code. Optional: only MFA users need it. */
+  code: z.string().trim().max(32).optional(),
 });
 
 /** Same message for every failure: unknown email, wrong password, locked, wrong app. */
@@ -96,6 +106,7 @@ export function createAuthOptions(app: AppName): AuthOptions {
         credentials: {
           email: { label: "Email", type: "email" },
           password: { label: "Password", type: "password" },
+          code: { label: "Authenticator code", type: "text" },
         },
         async authorize(raw) {
           // next-auth v4 copies any error thrown here into the redirect URL
@@ -121,7 +132,7 @@ export function createAuthOptions(app: AppName): AuthOptions {
 async function verifyCredentials(raw: unknown, app: AppName) {
   const parsed = credentialsSchema.safeParse(raw);
   if (!parsed.success) return GENERIC_FAILURE;
-  const { email, password } = parsed.data;
+  const { email, password, code } = parsed.data;
 
   await connectDb();
   const user = await User.findOne({ email }).select(
@@ -140,23 +151,7 @@ async function verifyCredentials(raw: unknown, app: AppName) {
 
   const ok = await verifySecret(password, user.passwordHash);
   if (!ok) {
-    // Atomic increment so parallel guesses can't race past the limit.
-    const after = await User.findOneAndUpdate(
-      { _id: user._id },
-      { $inc: { failedLoginCount: 1 } },
-      { returnDocument: "after", projection: { failedLoginCount: 1 } },
-    ).select("+failedLoginCount");
-    if ((after?.failedLoginCount ?? 0) >= MAX_FAILED_LOGINS) {
-      await User.updateOne(
-        { _id: user._id },
-        {
-          $set: {
-            lockedUntil: new Date(Date.now() + LOCKOUT_MINUTES * 60_000),
-            failedLoginCount: 0,
-          },
-        },
-      );
-    }
+    await recordFailedLogin(user._id);
     return GENERIC_FAILURE;
   }
 
@@ -165,6 +160,17 @@ async function verifyCredentials(raw: unknown, app: AppName) {
   // Same generic failure, so the response never reveals which case applies.
   if (user.status !== "active" || !isRoleAllowedInApp(user.role, app)) {
     return GENERIC_FAILURE;
+  }
+
+  // Second factor. Checked only AFTER the password, so codes can't be guessed without it.
+  // A blank code isn't a strike (they may be reaching for their phone); a wrong one is.
+  const mfaOn = user.mfa?.enabled === true;
+  if (mfaOn) {
+    if (!code) return GENERIC_FAILURE;
+    if (!(await verifySecondFactor(user._id.toString(), code))) {
+      await recordFailedLogin(user._id);
+      return GENERIC_FAILURE;
+    }
   }
 
   const update: Record<string, unknown> = {
@@ -185,7 +191,24 @@ async function verifyCredentials(raw: unknown, app: AppName) {
     sessionVersion: user.sessionVersion,
     familyId: user.familyId?.toString(),
     storeId: user.storeId?.toString(),
+    // Admins must set up MFA before anything else (guards.ts sends them to /mfa/setup).
+    mfaSetup: user.role === "admin" && !mfaOn ? true : undefined,
   };
+}
+
+/** One failed try (password or code). Atomic, so parallel guesses can't race past the limit. */
+async function recordFailedLogin(userId: unknown) {
+  const after = await User.findOneAndUpdate(
+    { _id: userId },
+    { $inc: { failedLoginCount: 1 } },
+    { returnDocument: "after", projection: { failedLoginCount: 1 } },
+  ).select("+failedLoginCount");
+  if ((after?.failedLoginCount ?? 0) >= MAX_FAILED_LOGINS) {
+    await User.updateOne(
+      { _id: userId },
+      { $set: { lockedUntil: new Date(Date.now() + LOCKOUT_MINUTES * 60_000), failedLoginCount: 0 } },
+    );
+  }
 }
 
 function authCallbacks(app: AppName): AuthOptions["callbacks"] {
@@ -201,6 +224,7 @@ function authCallbacks(app: AppName): AuthOptions["callbacks"] {
           sv: user.sessionVersion,
           familyId: user.familyId,
           storeId: user.storeId,
+          mfaSetup: user.mfaSetup,
           checkedAt: Date.now(),
         };
       }
@@ -237,6 +261,7 @@ function authCallbacks(app: AppName): AuthOptions["callbacks"] {
         email: token.email ?? "",
         familyId: token.familyId,
         storeId: token.storeId,
+        ...(token.mfaSetup ? { mfaSetup: true } : {}),
       };
       return session;
     },

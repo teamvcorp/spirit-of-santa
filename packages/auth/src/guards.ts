@@ -52,5 +52,18 @@ export async function requireRole(
 ): Promise<SessionUser> {
   const user = await requireUser(options);
   if (!roles.includes(user.role)) notFound(); // 404, not 403: don't reveal the page exists
+  // An admin who hasn't set up MFA may do NOTHING else (every admin page and Server Action
+  // goes through here). Only /mfa/setup uses requireMfaSetupUser() instead.
+  if (user.mfaSetup) redirect("/mfa/setup");
+  return user;
+}
+
+/**
+ * For the MFA setup page and its actions ONLY: a signed-in admin, with or without MFA yet.
+ * Everything else must use requireRole(), which refuses restricted (mfaSetup) sessions.
+ */
+export async function requireMfaSetupUser(options: AuthOptions): Promise<SessionUser> {
+  const user = await requireUser(options);
+  if (user.role !== "admin") notFound();
   return user;
 }

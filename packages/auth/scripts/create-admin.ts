@@ -13,7 +13,9 @@
  *  - Password comes from the environment (not the command line, so it isn't saved in shell
  *    history), is hashed with argon2id, and is never printed.
  *  - Refuses to turn an existing NON-admin account (parent/store) into an admin.
- *  - Re-running for an existing admin resets the password and signs out their sessions.
+ *  - Re-running for an existing admin resets the password, TURNS OFF their two-step sign-in
+ *    (the lost-phone path: they set it up again at the next sign-in) and signs out their sessions.
+ *  - A new admin must set up two-step sign-in (authenticator app) at the first sign-in.
  */
 import { connectDb, User } from "@repo/db";
 import { emailSchema } from "../src/schemas.ts";
@@ -43,12 +45,13 @@ async function main() {
     { email: email.data },
     {
       $set: { passwordHash, role: "admin", status: "active", failedLoginCount: 0 },
-      $unset: { lockedUntil: 1 },
+      $unset: { lockedUntil: 1, mfa: 1 }, // MFA set up again at next sign-in
       $inc: { sessionVersion: 1 },
     },
     { upsert: true, runValidators: true, setDefaultsOnInsert: true },
   );
-  console.log(`[admin] ${existing ? "password reset for" : "created"} admin ${email.data} in database "${conn.connection.name}"`);
+  console.log(`[admin] ${existing ? "password + two-step sign-in reset for" : "created"} admin ${email.data} in database "${conn.connection.name}"`);
+  console.log("[admin] at the next sign-in they'll be asked to set up an authenticator app.");
   await conn.disconnect();
 }
 

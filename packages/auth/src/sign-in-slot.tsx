@@ -16,20 +16,22 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 const first = (v: string | string[] | undefined) => (typeof v === "string" ? v : undefined);
 
-async function SignInFormWithParams({ searchParams }: { searchParams: SearchParams }) {
+async function SignInFormWithParams({ searchParams, showCode }: { searchParams: SearchParams; showCode: boolean }) {
   const params = await searchParams;
   return (
     <SignInForm
       callbackUrl={safeCallbackPath(first(params.callbackUrl))}
       showError={Boolean(first(params.error))}
+      showCode={showCode}
     />
   );
 }
 
-export function SignInSlot({ searchParams }: { searchParams: SearchParams }) {
+/** `showCode`: add the authenticator-code field (admin app, MFA). */
+export function SignInSlot({ searchParams, showCode = false }: { searchParams: SearchParams; showCode?: boolean }) {
   return (
-    <Suspense fallback={<SignInForm />}>
-      <SignInFormWithParams searchParams={searchParams} />
+    <Suspense fallback={<SignInForm showCode={showCode} />}>
+      <SignInFormWithParams searchParams={searchParams} showCode={showCode} />
     </Suspense>
   );
 }

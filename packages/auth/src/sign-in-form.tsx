@@ -31,10 +31,13 @@ import { safeCallbackPath } from "./redirect.ts";
 export function SignInForm({
   callbackUrl = "/",
   showError = false,
+  showCode = false,
 }: {
   /** Already validated on the server; re-checked here anyway (defence in depth). */
   callbackUrl?: string;
   showError?: boolean;
+  /** Admin app: authenticator / recovery code field (MFA). Blank is fine before MFA is set up. */
+  showCode?: boolean;
 }) {
   const t = useTranslations("Common.auth");
   const router = useRouter();
@@ -53,6 +56,7 @@ export function SignInForm({
       const result = await signIn("credentials", {
         email: String(form.get("email") ?? ""),
         password: String(form.get("password") ?? ""),
+        ...(showCode ? { code: String(form.get("code") ?? "") } : {}),
         redirect: false,
       });
       if (result?.ok && !result.error) {
@@ -69,7 +73,7 @@ export function SignInForm({
 
   return (
     <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4">
-      {failed && <Alert tone="error">{t("failed")}</Alert>}
+      {failed && <Alert tone="error">{showCode ? t("failedWithCode") : t("failed")}</Alert>}
       <TextField
         label={t("email")}
         name="email"
@@ -87,6 +91,18 @@ export function SignInForm({
         required
         maxLength={256}
       />
+      {showCode && (
+        <TextField
+          label={t("code")}
+          hint={t("codeHint")}
+          name="code"
+          type="text"
+          autoComplete="one-time-code"
+          spellCheck={false}
+          autoCapitalize="none"
+          maxLength={32}
+        />
+      )}
       <Button type="submit" pending={pending} disabled={!hydrated}>
         {pending ? t("submitting") : t("submit")}
       </Button>

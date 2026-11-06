@@ -6,10 +6,13 @@
   "exports": {
     ".": "./src/index.ts",
     "./password": "./src/password.ts",
+    "./mfa": "./src/mfa.ts",
+    "./totp": "./src/totp.ts",
     "./parent-pin": "./src/parent-pin.ts",
     "./redirect": "./src/redirect.ts",
     "./sign-in-form": "./src/sign-in-form.tsx",
     "./account-menu": "./src/account-menu.tsx",
+    "./sign-out-button": "./src/sign-out-button.tsx",
     "./sign-in-slot": "./src/sign-in-slot.tsx",
     "./schemas": "./src/schemas.ts",
     "./account-flows": "./src/account-flows.ts",
@@ -34,6 +37,7 @@
     "@repo/ui": "*",
     "next-auth": "4.24.15",
     "next-intl": "4.14.9",
+    "qrcode": "1.5.4",
     "server-only": "0.0.1",
     "zod": "4.6.7"
   },
@@ -45,9 +49,10 @@
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
     "@types/node": "24.19.2",
+    "@types/qrcode": "1.5.6",
+    "@types/react": "19.3.0",
     "eslint": "9.39.5",
     "next": "16.4.5",
-    "typescript": "6.0.3",
-    "@types/react": "19.3.0"
+    "typescript": "6.0.3"
   }
 }

@@ -18,15 +18,16 @@
  *    SUSPENDED account stays suspended.
  */
 import "server-only";
-import { ActionToken, AuditLog, connectDb, Store, trusted, User, withTransaction } from "@repo/db";
+import { ActionToken, AuditLog, connectDb, Family, Store, trusted, User, withTransaction } from "@repo/db";
 import { sendEmail } from "@repo/email";
 import { localizePath } from "@repo/i18n/paths";
 import type { Locale } from "@repo/lib/locales";
 import { isRoleAllowedInApp, type AppName } from "@repo/lib/roles";
+import { PARENT_CONSENT_VERSION } from "@repo/lib/family";
 import { STORE_AGREEMENT_VERSION } from "@repo/lib/store";
 import { burnVerifyTime, hashSecret } from "./password.ts";
 import { clientIp, emailKey, hitRateLimit, ipKey } from "./rate-limit.ts";
-import type { AcceptInviteInput, AcceptRepInviteInput, StoreRegistrationInput } from "./schemas.ts";
+import type { AcceptInviteInput, AcceptRepInviteInput, ParentRegistrationInput, StoreRegistrationInput } from "./schemas.ts";
 import { slugify } from "./slug.ts";
 import { consumeActionToken, createActionToken, hashToken, peekActionToken } from "./tokens.ts";
 
@@ -157,23 +158,80 @@ export async function registerStoreOwner(input: StoreRegistrationInput, ctx: Flo
   return { ok: true };
 }
 
+// ── Parent sign-up (family app) ──────────────────────────────────────────────────────
+/**
+ * Same protections as store sign-up (no enumeration, rate limits, honeypot, verify link).
+ * Creates a PENDING parent + their Family with the consent record (policy version, time).
+ * Confirming the email activates the account and stamps consent.emailVerifiedAt.
+ */
+export async function registerParent(input: ParentRegistrationInput, ctx: FlowContext): Promise<FlowResult> {
+  await connectDb();
+  const limit = await checkLimits("register-parent", ctx, input.email, { perIp: 5, perEmail: 3, global: 200 });
+  if (limit === "blocked") return { ok: false, error: "rateLimited" };
+  if (limit === "skipSend") return { ok: true };
+  if (input.company_url) return { ok: true }; // honeypot: a bot
+
+  const passwordHash = await hashSecret(input.password); // every path: same cost
+  if (await User.exists({ email: input.email })) {
+    const link = appLink(ctx, "/signin");
+    await sendLater(() => sendEmail({ to: input.email, locale: ctx.locale, template: "accountExists", values: { link } }), "accountExists");
+    return { ok: true };
+  }
+  let userId: string;
+  try {
+    userId = await withTransaction(async (session) => {
+      const [user] = await User.create(
+        [{ email: input.email, passwordHash, role: "parent", name: input.parentName, status: "pending", locale: ctx.locale }],
+        { session },
+      );
+      const [family] = await Family.create(
+        [
+          {
+            ownerUserId: user!._id,
+            familyName: input.familyName,
+            ...(input.zip ? { zip: input.zip } : {}),
+            consent: { version: PARENT_CONSENT_VERSION, acceptedAt: new Date() },
+          },
+        ],
+        { session },
+      );
+      await User.updateOne({ _id: user!._id }, { $set: { familyId: family!._id } }, { session });
+      return String(user!._id);
+    });
+  } catch (err) {
+    // Same email signed up a moment ago (unique index): same answer as success.
+    if ((err as { code?: number }).code === 11000) return { ok: true };
+    throw err;
+  }
+  const { raw } = await createActionToken("verify_email", { email: input.email, userId });
+  const link = appLink(ctx, "/verify", raw);
+  await sendLater(() => sendEmail({ to: input.email, locale: ctx.locale, template: "verifyEmail", values: { link } }), "verifyEmail");
+  return { ok: true };
+}
+
 // ── Verify email ─────────────────────────────────────────────────────────────────────
 export async function verifyEmail(raw: unknown): Promise<FlowResult> {
   await connectDb();
   const token = await consumeActionToken(raw, "verify_email");
   if (!token?.userId) return { ok: false, error: "invalidLink" };
   // Only pending → active. Never re-activates a suspended account.
-  await User.updateOne({ _id: token.userId, status: "pending" }, { $set: { status: "active" } });
+  const res = await User.updateOne({ _id: token.userId, status: "pending" }, { $set: { status: "active" } });
+  // Parents: the confirmed email is part of the consent record (COPPA). First confirmation only.
+  if (res.modifiedCount === 1) {
+    await Family.updateOne({ ownerUserId: token.userId, "consent.emailVerifiedAt": null }, { $set: { "consent.emailVerifiedAt": new Date() } });
+  }
   return { ok: true };
 }
 
-export async function resendVerification(email: string, ctx: FlowContext): Promise<FlowResult> {
+/** Resend the confirm link, for accounts of this app's roles only (store owners / parents). */
+export async function resendVerification(email: string, ctx: FlowContext, app: AppName = "store"): Promise<FlowResult> {
   await connectDb();
   const limit = await checkLimits("resend", ctx, email, { perIp: 10, perEmail: 3 });
   if (limit === "blocked") return { ok: false, error: "rateLimited" };
   if (limit === "skipSend") return { ok: true };
-  const user = await User.findOne({ email, status: "pending", role: "store_owner" }).select("_id").lean();
-  if (user) {
+  const user = await User.findOne({ email, status: "pending" }).select("_id role").lean();
+  // Only roles that sign up through this app: a parent can't trigger a store email and vice versa.
+  if (user && (user.role === "store_owner" || user.role === "parent") && isRoleAllowedInApp(user.role, app)) {
     const { raw } = await createActionToken("verify_email", { email, userId: user._id });
     const link = appLink(ctx, "/verify", raw);
     await sendLater(
@@ -249,6 +307,23 @@ export async function purgeUnverifiedStoreSignups(olderThanHours = 48): Promise<
   const deleted = await User.deleteMany({ _id: trusted({ $in: ids }), status: "pending" });
   return { users: deleted.deletedCount, stores: stores.deletedCount };
 }
+/**
+ * Delete parent sign-ups never confirmed within `olderThanHours` (default 48), with their
+ * Family (no kids can exist yet: kids are added after sign-in). Runs in the same daily cron as the
+ * store purge (apps/store/app/api/cron/purge-signups: one shared database).
+ */
+export async function purgeUnverifiedParentSignups(olderThanHours = 48): Promise<{ users: number; families: number }> {
+  await connectDb();
+  const cutoff = new Date(Date.now() - olderThanHours * 3_600_000);
+  const users = await User.find({ status: "pending", role: "parent", createdAt: trusted({ $lt: cutoff }) }).select("_id").limit(1000).lean();
+  if (users.length === 0) return { users: 0, families: 0 };
+  const ids = users.map((u) => u._id);
+  const families = await Family.deleteMany({ ownerUserId: trusted({ $in: ids }) });
+  await ActionToken.deleteMany({ userId: trusted({ $in: ids }) });
+  const deleted = await User.deleteMany({ _id: trusted({ $in: ids }), status: "pending" });
+  return { users: deleted.deletedCount, families: families.deletedCount };
+}
+
 // ── Store invite (admin invited the store; owner accepts) ────────────────────────────
 /** Store name for the /accept-invite page, or null if the link is invalid/used/expired. */
 export async function peekStoreInvite(raw: unknown): Promise<{ storeName: string; email: string } | null> {

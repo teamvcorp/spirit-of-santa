@@ -13,7 +13,8 @@
     "./locales": "./src/locales.ts",
     "./cookies": "./src/cookies.ts",
     "./store": "./src/store.ts",
-    "./ids": "./src/ids.ts"
+    "./ids": "./src/ids.ts",
+    "./family": "./src/family.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

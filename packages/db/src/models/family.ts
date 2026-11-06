@@ -11,12 +11,24 @@ import { hideFields, objectId } from "./_shared.ts";
 const familySchema = new Schema(
   {
     ownerUserId: { ...objectId("User"), unique: true },
+    /** PRIVATE (parent's own pages only). Public QR pages never show it (Phase 4 decision). */
     familyName: { type: String, required: true, trim: true, maxlength: 80 },
-    /** Shown on public QR pages instead of the family name when showAliasPublicly is set. */
+    /** Optional public family alias, shown on QR pages only when showAliasPublicly is set. */
     alias: { type: String, trim: true, maxlength: 80 },
     showAliasPublicly: { type: Boolean, default: false },
     /** US ZIP for zip-targeted corporate donations. */
     zip: { type: String, match: /^\d{5}$/ },
+
+    /**
+     * Parental consent record (COPPA). Sign-up stores the policy version the parent agreed to;
+     * confirming the email sets emailVerifiedAt. Each kid is then registered with a card payment
+     * (Phase 4 slice 2) as the stronger, card-based verification. Kept for as long as the family is.
+     */
+    consent: {
+      version: { type: String, maxlength: 40 },
+      acceptedAt: Date,
+      emailVerifiedAt: Date,
+    },
 
     /** argon2id hash of the 4–6 digit parent PIN. */
     parentPinHash: { type: String, select: false },

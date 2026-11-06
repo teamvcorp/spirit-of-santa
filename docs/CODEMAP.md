@@ -274,6 +274,11 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
 - COPPA consent: verified email + consent checkbox (policy version) + **$5 registration fee per kid by card** (Stripe) as
   card-based verification; a kid stays "awaiting registration" (nothing public) until paid. Ask the user: fee → points
   or revenue? hardship option? Lawyer to confirm before launch.
+- **Slice 1 parent sign-up (built; review pending):** `registerParent` (same protections as store sign-up) creates a
+  pending parent + Family with `consent {version: PARENT_CONSENT_VERSION, acceptedAt}`; verify stamps
+  `consent.emailVerifiedAt`. Family app `/register`, `/verify`, `/verify/resend`, DRAFT `/privacy` (needs lawyer review;
+  bump `PARENT_CONSENT_VERSION` in `@repo/lib/family` on any wording change). Abandoned parent sign-ups are purged by the
+  STORE app daily cron (shared DB). `resendVerificationEmail(app, ...)` now takes the app. E2E `browser-family-signup.ts` (13).
 - Order: 1 parent sign-up → 2 kids + PIN + dashboard shell (+ $5 step) → 3 deed + QR → 4 QR landing/thank-you →
   5 parent controls → 6 donation QR. Pay now/later (Stripe Elements, Twilio) = Phase 5.
 

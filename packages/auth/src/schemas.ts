@@ -94,6 +94,23 @@ export const storeRegistrationSchema = z.object({
 });
 export type StoreRegistrationInput = z.infer<typeof storeRegistrationSchema>;
 
+/**
+ * Parent sign-up (family app /register). Collects the minimum: the parent's name, email,
+ * password, a PRIVATE family name and an optional ZIP (zip-targeted donations). Kids are added
+ * after sign-in (first name + birth year only). `consent` must be ticked (COPPA record).
+ */
+export const parentRegistrationSchema = z.object({
+  parentName: z.string().trim().min(1, "required").max(100, "tooLong"),
+  email: emailSchema,
+  password: newPasswordSchema,
+  familyName: z.string().trim().min(1, "required").max(80, "tooLong"),
+  zip: z.union([z.literal(""), z.string().trim().regex(/^\d{5}$/, "invalid")]).optional(),
+  consent: z.literal("on", "mustAgree"),
+  /** Honeypot (see storeRegistrationSchema). */
+  company_url: z.string().max(500).optional(),
+});
+export type ParentRegistrationInput = z.infer<typeof parentRegistrationSchema>;
+
 /** Field → error code, for the form to translate. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};

@@ -8,6 +8,63 @@
     "intro": "Good deeds earn points. Points make wishes come true."
   },
   "SignInPage": {
-    "intro": "For parents. Kids don’t need an account."
+    "intro": "For parents. Kids don’t need an account.",
+    "signUp": "New here? Create a family account"
+  },
+  "RegisterPage": {
+    "title": "Create your family account",
+    "intro": "For parents and guardians. You'll add your children after you sign in: kids never need their own account.",
+    "parentName": "Your name",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "At least {min} characters.",
+    "familyName": "Family name",
+    "familyNameHint": "Private: only you see it. Public pages show only names you choose later.",
+    "zip": "ZIP code (optional)",
+    "zipHint": "Lets local sponsors support kids in your area.",
+    "consent": "I am the parent or legal guardian of the children I will add, and I agree to the <notice>Children's Privacy Notice</notice>. I understand each child is registered with a $5 card payment that confirms my consent.",
+    "fixErrors": "Please fix the fields marked below.",
+    "submit": "Create account",
+    "submitting": "Creating…",
+    "sentTitle": "Check your email",
+    "sentBody": "We sent a link to confirm your email address. It works once and expires in 24 hours.",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign in"
+  },
+  "Privacy": {
+    "title": "Children's Privacy Notice",
+    "version": "Version {version}",
+    "draft": "DRAFT: this notice is being reviewed and will be finalised before launch.",
+    "intro": "Spirit O Santa lets children earn points for good deeds and spend them on a Christmas wish list. Children never create their own accounts: a parent or guardian sets everything up and stays in control.",
+    "sections": {
+      "collect": {
+        "title": "What we collect",
+        "body": "From you (the parent): your name, email address, a password (stored only in scrambled form), a private family name and, if you choose, your ZIP code.\nAbout each child, entered by you: a first name, birth year and a display name you choose; the good deeds you record; their points and wish list."
+      },
+      "public": {
+        "title": "What others can see",
+        "body": "When someone scans your child's QR code, they see only the display name you chose (for example \"M.\"), the deed, and your family nickname if you switch that on. Never your child's full name, age, town or photo."
+      },
+      "share": {
+        "title": "Who we share information with",
+        "body": "Stores only ever see totals (for example \"on 12 wish lists\"), never which children chose an item. Card payments are handled by Stripe; we never see or store card numbers. Emails are sent by our email provider. We don't sell information and don't show ads."
+      },
+      "consent": {
+        "title": "Your consent",
+        "body": "You agree to this notice when you create your account and confirm your email. Each child is then registered with a $5 card payment, which confirms that a parent or guardian is giving consent."
+      },
+      "rights": {
+        "title": "Your rights",
+        "body": "At any time you can see, correct or delete your child's information, or stop us collecting more, from your parent dashboard or by contacting us. Deleting a child removes their information."
+      },
+      "keep": {
+        "title": "How long we keep it",
+        "body": "Points reset every January 1. We keep your family's information while your account is open, and delete a child's information when you ask us to."
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "Questions or requests: contact details will be added here before launch."
+      }
+    }
   }
 }

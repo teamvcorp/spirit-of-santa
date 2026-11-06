@@ -18,6 +18,7 @@ import type { AppName } from "@repo/lib/roles";
 import {
   acceptRepInvite,
   acceptStoreInvite,
+  registerParent,
   registerStoreOwner,
   requestPasswordReset,
   resendVerification,
@@ -25,7 +26,7 @@ import {
   verifyEmail,
   type FlowContext,
 } from "./account-flows.ts";
-import { acceptInviteSchema, acceptRepInviteSchema, emailSchema, fieldErrors, newPasswordSchema, storeRegistrationSchema } from "./schemas.ts";
+import { acceptInviteSchema, acceptRepInviteSchema, emailSchema, fieldErrors, newPasswordSchema, parentRegistrationSchema, storeRegistrationSchema } from "./schemas.ts";
 import type { FormState } from "./form-state.ts";
 
 async function context(fd: FormData): Promise<FlowContext> {
@@ -68,10 +69,10 @@ export async function forgotPassword(app: AppName, _prev: FormState, fd: FormDat
   return r.ok ? { status: "sent" } : emailError(fd, { error: r.error });
 }
 
-export async function resendVerificationEmail(_prev: FormState, fd: FormData): Promise<FormState> {
+export async function resendVerificationEmail(app: AppName, _prev: FormState, fd: FormData): Promise<FormState> {
   const email = emailSchema.safeParse(str(fd, "email"));
   if (!email.success) return emailError(fd, { fieldErrors: { email: "invalid" } });
-  const r = await atLeast(resendVerification(email.data, await context(fd)));
+  const r = await atLeast(resendVerification(email.data, await context(fd), app));
   return r.ok ? { status: "sent" } : emailError(fd, { error: r.error });
 }
 
@@ -94,6 +95,16 @@ export async function registerStore(_prev: FormState, fd: FormData): Promise<For
   for (const [k, v] of fd) if (typeof v === "string" && k !== "password" && !k.startsWith("$")) values[k] = v.slice(0, 2000);
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), values, nonce: randomUUID() };
   const r = await atLeast(registerStoreOwner(parsed.data, await context(fd)));
+  return r.ok ? { status: "sent" } : { status: "error", error: r.error, values, nonce: randomUUID() };
+}
+
+/** Parent sign-up (family app). Echoes what was typed (never the password) on error. */
+export async function registerParentForm(_prev: FormState, fd: FormData): Promise<FormState> {
+  const parsed = parentRegistrationSchema.safeParse(Object.fromEntries(fd));
+  const values: Record<string, string> = {};
+  for (const [k, v] of fd) if (typeof v === "string" && k !== "password" && !k.startsWith("$")) values[k] = v.slice(0, 500);
+  if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), values, nonce: randomUUID() };
+  const r = await atLeast(registerParent(parsed.data, await context(fd)));
   return r.ok ? { status: "sent" } : { status: "error", error: r.error, values, nonce: randomUUID() };
 }
 

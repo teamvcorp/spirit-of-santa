@@ -1,11 +1,12 @@
 /**
- * GET /api/cron/purge-signups: daily cleanup of unconfirmed store sign-ups (> 48 h old).
+ * GET /api/cron/purge-signups: daily cleanup of unconfirmed sign-ups (> 48 h old): store owners
+ * AND parents (one shared database, so the family app needs no cron or CRON_SECRET of its own).
  * Called by Vercel Cron (schedule in apps/store/vercel.json), which sends
  * `Authorization: Bearer <CRON_SECRET>`. Set CRON_SECRET (a long random string) in the
  * store project's Vercel env; anyone without it gets 401.
  */
 import { timingSafeEqual } from "node:crypto";
-import { purgeUnverifiedStoreSignups } from "@repo/auth/account-flows";
+import { purgeUnverifiedParentSignups, purgeUnverifiedStoreSignups } from "@repo/auth/account-flows";
 
 export async function GET(request: Request): Promise<Response> {
   const secret = process.env.CRON_SECRET;
@@ -15,7 +16,7 @@ export async function GET(request: Request): Promise<Response> {
   if (!secret || secret.length < 16 || given.length !== expected.length || !timingSafeEqual(given, expected)) {
     return new Response("Unauthorized", { status: 401 });
   }
-  const result = await purgeUnverifiedStoreSignups();
+  const result = { stores: await purgeUnverifiedStoreSignups(), parents: await purgeUnverifiedParentSignups() };
   console.info("[cron] purge-signups", result); // counts only
   return Response.json(result, { headers: { "Cache-Control": "no-store" } });
 }

@@ -22,7 +22,7 @@ export async function confirmEmailAction(prev: FormState, fd: FormData) {
   return confirmEmailWithToken(prev, fd);
 }
 export async function resendVerificationAction(prev: FormState, fd: FormData) {
-  return resendVerificationEmail(prev, fd);
+  return resendVerificationEmail("store", prev, fd);
 }
 export async function acceptInviteAction(prev: FormState, fd: FormData) {
   return acceptInvite(prev, fd);

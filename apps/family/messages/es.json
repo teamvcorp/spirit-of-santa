@@ -8,6 +8,63 @@
     "intro": "Las buenas acciones ganan puntos. Los puntos hacen realidad los deseos."
   },
   "SignInPage": {
-    "intro": "Para padres. Los niños no necesitan una cuenta."
+    "intro": "Para padres. Los niños no necesitan una cuenta.",
+    "signUp": "¿Eres nuevo? Crea una cuenta familiar"
+  },
+  "RegisterPage": {
+    "title": "Crea tu cuenta familiar",
+    "intro": "Para padres y tutores. Agregarás a tus hijos después de iniciar sesión: los niños nunca necesitan su propia cuenta.",
+    "parentName": "Tu nombre",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "passwordHint": "Al menos {min} caracteres.",
+    "familyName": "Apellido de la familia",
+    "familyNameHint": "Privado: solo tú lo ves. Las páginas públicas muestran solo los nombres que elijas después.",
+    "zip": "Código postal (opcional)",
+    "zipHint": "Permite que patrocinadores locales apoyen a los niños de tu zona.",
+    "consent": "Soy el padre, la madre o el tutor legal de los niños que agregaré y acepto el <notice>Aviso de privacidad infantil</notice>. Entiendo que cada niño se registra con un pago de $5 con tarjeta que confirma mi consentimiento.",
+    "fixErrors": "Corrige los campos marcados abajo.",
+    "submit": "Crear cuenta",
+    "submitting": "Creando…",
+    "sentTitle": "Revisa tu correo",
+    "sentBody": "Te enviamos un enlace para confirmar tu correo. Funciona una vez y vence en 24 horas.",
+    "haveAccount": "¿Ya tienes una cuenta?",
+    "signIn": "Inicia sesión"
+  },
+  "Privacy": {
+    "title": "Aviso de privacidad infantil",
+    "version": "Versión {version}",
+    "draft": "BORRADOR: este aviso está en revisión y se finalizará antes del lanzamiento.",
+    "intro": "Spirit O Santa permite que los niños ganen puntos por buenas acciones y los usen en una lista de deseos de Navidad. Los niños nunca crean sus propias cuentas: un padre, madre o tutor configura todo y mantiene el control.",
+    "sections": {
+      "collect": {
+        "title": "Qué recopilamos",
+        "body": "De ti (padre, madre o tutor): tu nombre, correo electrónico, una contraseña (guardada solo en forma cifrada), un apellido familiar privado y, si quieres, tu código postal.\nSobre cada niño, ingresado por ti: un nombre, el año de nacimiento y un nombre para mostrar que tú eliges; las buenas acciones que registras; sus puntos y su lista de deseos."
+      },
+      "public": {
+        "title": "Qué pueden ver otras personas",
+        "body": "Cuando alguien escanea el código QR de tu hijo, ve solo el nombre para mostrar que elegiste (por ejemplo \"M.\"), la acción y el apodo de tu familia si lo activas. Nunca el nombre completo, la edad, el pueblo ni una foto de tu hijo."
+      },
+      "share": {
+        "title": "Con quién compartimos información",
+        "body": "Las tiendas solo ven totales (por ejemplo \"en 12 listas de deseos\"), nunca qué niños eligieron un artículo. Los pagos con tarjeta los procesa Stripe; nunca vemos ni guardamos números de tarjeta. Los correos los envía nuestro proveedor de correo. No vendemos información ni mostramos anuncios."
+      },
+      "consent": {
+        "title": "Tu consentimiento",
+        "body": "Aceptas este aviso al crear tu cuenta y confirmar tu correo. Luego cada niño se registra con un pago de $5 con tarjeta, que confirma que un padre, madre o tutor da su consentimiento."
+      },
+      "rights": {
+        "title": "Tus derechos",
+        "body": "En cualquier momento puedes ver, corregir o eliminar la información de tu hijo, o pedirnos que dejemos de recopilarla, desde tu panel de padres o contactándonos. Eliminar a un niño borra su información."
+      },
+      "keep": {
+        "title": "Cuánto tiempo la guardamos",
+        "body": "Los puntos se reinician cada 1 de enero. Guardamos la información de tu familia mientras tu cuenta esté abierta y borramos la información de un niño cuando nos lo pidas."
+      },
+      "contact": {
+        "title": "Contacto",
+        "body": "Preguntas o solicitudes: los datos de contacto se agregarán aquí antes del lanzamiento."
+      }
+    }
   }
 }

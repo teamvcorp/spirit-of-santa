@@ -25,6 +25,8 @@ export default async function SignInPage({ searchParams }: PageProps<"/[locale]/
         <SignInSlot searchParams={searchParams} />
         <div className="mt-6 flex flex-col gap-2 text-sm">
           <Link href="/forgot-password" className="underline underline-offset-4">{links("forgot")}</Link>
+          <Link href="/register" className="underline underline-offset-4">{page("signUp")}</Link>
+          <Link href="/verify/resend" className="underline underline-offset-4">{links("resend")}</Link>
         </div>
       </Card>
     </main>

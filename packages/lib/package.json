@@ -12,7 +12,8 @@
     "./format": "./src/format.ts",
     "./locales": "./src/locales.ts",
     "./cookies": "./src/cookies.ts",
-    "./store": "./src/store.ts"
+    "./store": "./src/store.ts",
+    "./ids": "./src/ids.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

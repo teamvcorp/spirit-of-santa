@@ -10,6 +10,7 @@ import { randomBytes } from "node:crypto";
 import { chromium, type Page } from "playwright-core";
 import { AuditLog, connectDb, trusted, User } from "@repo/db";
 import { hashSecret } from "@repo/auth/password";
+import { reinstateUser, resetUserMfa, suspendUser } from "@repo/auth/admin-users";
 import { createMfaAdmin, makeChecks } from "./lib.ts";
 
 const [base] = process.argv.slice(2);
@@ -26,6 +27,8 @@ const hash = await hashSecret(`users pass ${tag}`);
 const owner = await User.create({ email: mail("owner"), passwordHash: hash, role: "store_owner", status: "active" });
 const locked = await User.create({ email: mail("locked"), passwordHash: hash, role: "store_rep", status: "active" });
 await User.updateOne({ _id: locked._id }, { $set: { lockedUntil: new Date(Date.now() + 3_600_000), failedLoginCount: 4 } });
+// A rep their store removed: "suspended" but NOT by an admin.
+const removedRep = await User.create({ email: mail("removed"), passwordHash: hash, role: "store_rep", status: "suspended" });
 
 const browser = await chromium.launch({ channel: "msedge", headless: true });
 const errors: string[] = [];
@@ -110,6 +113,20 @@ try {
   await page.locator("main").getByText("This is your own account").waitFor({ timeout: 15_000 });
   check("own account: no suspend or MFA reset offered",
     (await page.locator('main [name="reason"]').count()) === 0 && (await page.locator("main button", { hasText: "Reset two-step" }).count()) === 0);
+
+  // 6b. Upper-case copy of your own id can't get past the "not yourself" guard.
+  const upper = admin.id.toUpperCase();
+  const selfSuspend = await suspendUser(admin.id, upper, "self test");
+  const selfReset = await resetUserMfa(admin.id, upper);
+  check("upper-case own id is still 'yourself' (suspend + MFA reset refused)",
+    !selfSuspend.ok && selfSuspend.error === "self" && !selfReset.ok && selfReset.error === "self" && (await doc(admin.id))?.status === "active");
+
+  // 6c. A rep removed by their store can't be "reinstated" by an admin.
+  await page.goto(`${base}/users/${removedRep._id}`);
+  await page.locator("main").getByText("removed by their store").waitFor({ timeout: 15_000 });
+  const rr = await reinstateUser(admin.id, String(removedRep._id));
+  check("store-removed rep: no Reinstate button, explanation shown, service refuses",
+    (await page.locator("main button", { hasText: "Reinstate" }).count()) === 0 && !rr.ok && rr.error === "removedRep" && (await doc(removedRep._id))?.status === "suspended");
 
   // 7. Spanish.
   await page.goto(`${base}/es/users`);

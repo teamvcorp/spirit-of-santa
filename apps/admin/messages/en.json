@@ -273,7 +273,10 @@
       "self": "You can't do that to your own account.",
       "badStatus": "The account's status changed meanwhile. Reload the page.",
       "notAdmin": "Only admin accounts use two-step sign-in.",
-      "reasonRequired": "Please give a reason (at least 3 characters)."
+      "reasonRequired": "Please give a reason (at least 3 characters).",
+      "removedRep": "This rep was removed by their store, not suspended by an admin. The store can re-invite them.",
+      "notLocked": "This account isn't locked (any more). Reload the page.",
+      "reasonTooLong": "The reason is too long (500 characters at most)."
     },
     "history": "History",
     "noHistory": "Nothing recorded yet.",

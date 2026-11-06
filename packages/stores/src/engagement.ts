@@ -12,6 +12,7 @@ import "server-only";
 import { createHmac, hkdfSync } from "node:crypto";
 import type { Types } from "mongoose";
 import { connectDb, Item, Store, WishListItem } from "@repo/db";
+import { normalizeObjectId } from "@repo/lib/ids";
 import { getSeasonYear } from "@repo/lib/season";
 import { hitRateLimit, ipKey } from "@repo/auth/rate-limit";
 import { EMPTY_TOTALS, FUNDED_STATUSES, LOCKED_STATUSES, ON_LIST_STATUSES, type WishListTotals } from "./engagement-math.ts";
@@ -19,7 +20,6 @@ import { EMPTY_TOTALS, FUNDED_STATUSES, LOCKED_STATUSES, ON_LIST_STATUSES, type 
 /** Most views one visitor can add across ALL items per day (blunts scripted inflation). */
 export const MAX_COUNTED_VIEWS_PER_VISITOR_PER_DAY = 300;
 const DAY_SECONDS = 86_400;
-const OBJECT_ID = /^[0-9a-f]{24}$/i;
 
 /** Who is viewing. familyId when a family is signed in, otherwise the request IP. */
 export type Viewer = { familyId?: string; ip: string };
@@ -45,7 +45,9 @@ function viewerKey(v: Viewer): string {
  * Only counts active items of APPROVED stores in the current season, once per viewer per
  * item per day. Never throws for bad input: a broken counter must not break the page.
  */
-export async function recordItemView(itemId: string, viewer: Viewer): Promise<boolean> {
+export async function recordItemView(rawItemId: string, viewer: Viewer): Promise<boolean> {
+  const itemId = normalizeObjectId(rawItemId);
+  if (!itemId) return false;
   try {
     return await countView(itemId, viewer);
   } catch (err) {
@@ -57,7 +59,6 @@ export async function recordItemView(itemId: string, viewer: Viewer): Promise<bo
 }
 
 async function countView(itemId: string, viewer: Viewer): Promise<boolean> {
-  if (!OBJECT_ID.test(itemId)) return false;
   await connectDb();
   const item = await Item.findOne({ _id: itemId, seasonYear: getSeasonYear(), status: "active" }).select("storeId").lean();
   if (!item) return false;

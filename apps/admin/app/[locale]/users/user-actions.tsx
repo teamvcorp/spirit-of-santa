@@ -35,7 +35,8 @@ export function UserActions({ userId, ops, email }: { userId: string; ops: UserO
       {state.status === "done" && state.done && <Alert>{t(`done.${state.done}` as never)}</Alert>}
       {state.status === "error" && state.error && <Alert tone="error">{t(`errors.${state.error}` as never)}</Alert>}
       {ops.suspend && (
-        <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-2">
+        // Re-mount (clear the reason) only after SUCCESS: an error keeps what the admin typed.
+        <form key={state.status === "done" ? state.nonce : "suspend"} action={action} className="flex flex-col gap-2">
           <input type="hidden" name="userId" value={userId} />
           <input type="hidden" name="op" value="suspend" />
           <TextField label={t("reasonLabel", { email })} hint={t("reasonHint")} name="reason" required minLength={3} maxLength={500} />

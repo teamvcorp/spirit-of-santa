@@ -23,7 +23,7 @@
 import "server-only";
 import { createCipheriv, createDecipheriv, createHmac, hkdfSync, randomBytes } from "node:crypto";
 import QRCode from "qrcode";
-import { AuditLog, connectDb, trusted, User } from "@repo/db";
+import { AuditLog, connectDb, trusted, User, withTransaction } from "@repo/db";
 import { sendEmail } from "@repo/email";
 import { hitRateLimit } from "./rate-limit.ts";
 import {
@@ -256,6 +256,9 @@ export async function recordMfaFailure(userId: string): Promise<void> {
 /** Turn MFA off (lost phone): the admin sets it up again at the next sign-in. Ends all sessions. */
 export async function resetMfa(userId: string, actorUserId = userId): Promise<void> {
   await connectDb();
-  await User.updateOne({ _id: userId }, { $unset: { mfa: 1 }, $inc: { sessionVersion: 1 } });
-  await AuditLog.create({ actorUserId, action: "user.mfa_reset", targetType: "user", targetId: userId, details: {} });
+  // Change + audit together: MFA is never removed without a record.
+  await withTransaction(async (session) => {
+    await User.updateOne({ _id: userId }, { $unset: { mfa: 1 }, $inc: { sessionVersion: 1 } }, { session });
+    await AuditLog.create([{ actorUserId, action: "user.mfa_reset", targetType: "user", targetId: userId, details: {} }], { session });
+  });
 }

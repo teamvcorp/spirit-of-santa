@@ -273,7 +273,10 @@
       "self": "No puedes hacer eso con tu propia cuenta.",
       "badStatus": "El estado de la cuenta cambió mientras tanto. Recarga la página.",
       "notAdmin": "Solo las cuentas de administración usan el inicio de sesión en dos pasos.",
-      "reasonRequired": "Escribe un motivo (al menos 3 caracteres)."
+      "reasonRequired": "Escribe un motivo (al menos 3 caracteres).",
+      "removedRep": "La tienda quitó a este representante; no lo suspendió un administrador. La tienda puede invitarlo de nuevo.",
+      "notLocked": "Esta cuenta (ya) no está bloqueada. Recarga la página.",
+      "reasonTooLong": "El motivo es demasiado largo (500 caracteres como máximo)."
     },
     "history": "Historial",
     "noHistory": "Aún no hay nada registrado.",

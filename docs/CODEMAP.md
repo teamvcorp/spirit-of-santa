@@ -219,7 +219,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
 
 ## Phase 3 (admin app), agreed 2026-11-05
 
-Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, ccd6572 + review fixes) → 3 user management (built; review pending) → 4 deed catalog → 5 platform dashboard v1. Deferred until their data exists: content moderation
+Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, ccd6572 + review fixes) → 3 user management (DONE, a428090 + review fixes) → 4 deed catalog → 5 platform dashboard v1. Deferred until their data exists: content moderation
 (Phase 4), donation settings + pay-later links (Phase 5), announcements (Phase 7).
 
 - **Admin MFA (slice 1):** TOTP authenticator + 10 recovery codes (`docs/vendor/totp-mfa.md`). Admin without MFA
@@ -237,7 +237,10 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   reason, reinstate, unlock, sign out everywhere, reset another admin's MFA; change + audit in one transaction; never on
   yourself). Pages `/users`, `/users/[id]` (header link). Email search = escaped "starts with" (index-friendly, input is
   never a regex). No delete (COPPA flow, Phase 8); no "activate unverified" (would bypass email verification).
-  E2E `browser-admin-users.ts` (13 checks).
+  `suspendedByAdmin` flag distinguishes an ADMIN suspension from a store removing a rep (both set "suspended"):
+  only admin suspensions can be reinstated; a store's rep re-invite can't undo one. E2E `browser-admin-users.ts` (15).
+- **Ids from requests: always `normalizeObjectId()` (`@repo/lib/ids`)** before comparing as text (upper-case copy of your
+  own id once bypassed "not yourself").
 - **Season controls (slice 2):** rule book = pure `resolveSeason` / `validateSeasonDates` in `@repo/lib/season`
   (unit-tested); server = `getSeasonState()` in `@repo/stores/season`. ANY server check of season phase or the
   store window must use `getSeasonState()` (it applies the admin overrides). Season dates are stored as calendar

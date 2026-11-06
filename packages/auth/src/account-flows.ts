@@ -364,11 +364,12 @@ export async function acceptRepInvite(input: AcceptRepInviteInput, ctx: FlowCont
         .lean();
       if (!store) throw new InviteNoLongerValid();
 
-      const existing = await User.findOne({ email: token.email }).select("role status storeId").session(session).lean();
+      const existing = await User.findOne({ email: token.email }).select("role status storeId suspendedByAdmin").session(session).lean();
       let repId;
       if (existing) {
-        // Only a rep who was REMOVED from a store (suspended, no store) may be re-activated.
-        if (existing.role !== "store_rep" || existing.status !== "suspended" || existing.storeId) throw new InviteNoLongerValid();
+        // Only a rep who was REMOVED from a store (suspended, no store) may be re-activated, and
+        // never one an ADMIN suspended: a store can't undo an admin's decision (review 2026-11-05).
+        if (existing.role !== "store_rep" || existing.status !== "suspended" || existing.storeId || existing.suspendedByAdmin) throw new InviteNoLongerValid();
         await User.updateOne(
           { _id: existing._id },
           {

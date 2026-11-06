@@ -49,6 +49,13 @@ const userSchema = new Schema(
     sessionVersion: { type: Number, default: 0, min: 0 },
 
     /**
+     * True when an ADMIN suspended the account (admin app /users). "suspended" alone can also
+     * mean a store removed a rep; only admin suspensions can be reinstated by an admin, and a
+     * store's rep re-invite can't undo an admin suspension.
+     */
+    suspendedByAdmin: { type: Boolean },
+
+    /**
      * Two-factor sign-in (authenticator app / TOTP). Required for admins (Phase 3 slice 1).
      * Secrets are AES-256-GCM encrypted with MFA_ENCRYPTION_KEY (packages/auth/src/mfa.ts),
      * recovery codes are stored only as keyed hashes, and none of it is ever selected by default.

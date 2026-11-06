@@ -30,7 +30,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/users/[id]">["
   const self = u.id === admin.id;
   const ops = {
     suspend: !self && u.status === "active",
-    reinstate: u.status === "suspended",
+    reinstate: u.status === "suspended" && u.suspendedByAdmin,
     unlock: Boolean(u.lockedUntil),
     signOut: !self && u.status === "active",
     resetMfa: !self && u.role === "admin" && Boolean(u.mfa),
@@ -42,6 +42,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/users/[id]">["
         <span className="rounded-full border border-foreground/20 px-3 py-1 text-sm">{t(`statuses.${u.status}` as never)}</span>
       </div>
       {self && <Alert>{t("selfNote")}</Alert>}
+      {u.status === "suspended" && !u.suspendedByAdmin && <Alert>{t("errors.removedRep")}</Alert>}
       {u.lockedUntil && <Alert tone="error">{t("lockedUntil", { when: when(u.lockedUntil) })}</Alert>}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>

@@ -13,7 +13,7 @@ import "server-only";
 import { AuditLog, connectDb, Family, Kid, Payment, withTransaction } from "@repo/db";
 import { ownFamilyId, type Parent } from "@repo/families/kids";
 import { normalizeObjectId } from "@repo/lib/ids";
-import { buildPaymentMetadata, getStripe } from "@repo/payments/checkout";
+import { buildPaymentMetadata, fulfilPaidPaymentIntent, getStripe } from "@repo/payments/checkout";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { MAX_CHECKOUT_MS, MIN_CHECKOUT_MS, publicFamilyAlias, publicSeason } from "./public.ts";
 import { donationToken, hashDeedToken, isDeedToken, qrDataUrl } from "./qr.ts";
@@ -145,6 +145,8 @@ export async function donationStatus(token: unknown, sessionId: string): Promise
     if (s.status === "open") return "open";
     if (s.status !== "complete") return null;
     const piId = typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id;
+    // Paid? Record it now (same idempotent handler as the webhook; see @repo/payments fulfil.ts).
+    if (piId && s.payment_status === "paid") await fulfilPaidPaymentIntent(piId).catch((e: unknown) => console.error("[return] fulfil failed:", e instanceof Error ? e.name : "unknown"));
     const pay = piId ? await Payment.findOne({ stripePaymentIntentId: piId }).select("fulfilment").lean() : null;
     if (!pay) return "processing";
     return pay.fulfilment === "credited" ? "credited" : "review";

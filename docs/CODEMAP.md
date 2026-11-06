@@ -49,6 +49,12 @@
 - **Payments (2026-11-05):** Stripe webhook credits tips/bonuses (ledger + balance + deed in one DB transaction,
   idempotent per PaymentIntent). **No refunds at all**: refunds/chargebacks recorded on `Payment` + flagged, points kept.
   Donations/pay-ups recorded as "held" until Phases 5–6. See `docs/vendor/stripe.md`.
+  **Also fulfilled on the return page (2026-11-06):** registration/tip/donation status pages call
+  `fulfilPaidPaymentIntent` (same idempotent handler) when Stripe says the session is paid, so a late or missing
+  webhook (always the case locally without the Stripe CLI) doesn't leave kids "awaiting". E2E `stripe-return-fulfil.ts`.
+- **Parent PIN lock-state changes = full page load (2026-11-06):** set PIN / unlock return `{ to }` and the form does
+  `window.location.replace` (the client router otherwise replayed a cached "/parent → /parent/pin" redirect, so the
+  first correct PIN "failed"). Lock = server redirect home. E2E kids test clicks links like a user (20 checks).
 - **No PWA (2026-11-05):** home-screen icon only (`display: "browser"` manifest, no service worker).
 - **TS source packages:** no build step; Next transpiles them. Relative imports use `.ts` extensions
   (Node type-stripping for tests). Mongoose must be default-imported (CJS) in packages/db.

@@ -13,7 +13,7 @@ import { clientIp, hitRateLimit, ipKey } from "@repo/auth/rate-limit";
 import { connectDb, Deed, DeedType, Family, Kid, Payment, trusted } from "@repo/db";
 import { parseDollarsToCents } from "@repo/lib/format";
 import { MAX_TIP_CENTS, MIN_TIP_CENTS, TIP_PRESETS_CENTS } from "@repo/lib/limits";
-import { buildPaymentMetadata, getStripe } from "@repo/payments/checkout";
+import { buildPaymentMetadata, fulfilPaidPaymentIntent, getStripe } from "@repo/payments/checkout";
 import { startOfDayInZone } from "@repo/lib/season";
 import { getSeasonState } from "@repo/stores/season";
 import { localized } from "./catalog.ts";
@@ -175,6 +175,8 @@ export async function tipStatus(token: unknown, sessionId: string): Promise<"cre
     if (s.status === "open") return "open";
     if (s.status !== "complete") return null;
     const piId = typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id;
+    // Paid? Record it now (same idempotent handler as the webhook; see @repo/payments fulfil.ts).
+    if (piId && s.payment_status === "paid") await fulfilPaidPaymentIntent(piId).catch((e: unknown) => console.error("[return] fulfil failed:", e instanceof Error ? e.name : "unknown"));
     const pay = piId ? await Payment.findOne({ stripePaymentIntentId: piId }).select("fulfilment").lean() : null;
     if (!pay) return "processing";
     return pay.fulfilment === "credited" ? "credited" : "review";

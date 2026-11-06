@@ -5,3 +5,4 @@
 import "server-only";
 export { getStripe } from "./client.ts";
 export { buildPaymentMetadata } from "./metadata.ts";
+export { fulfilPaidPaymentIntent } from "./fulfil.ts";

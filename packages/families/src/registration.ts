@@ -15,7 +15,7 @@ import { hitRateLimit } from "@repo/auth/rate-limit";
 import { AuditLog, Kid, Payment, trusted, User, withTransaction } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_KIDS_PER_FAMILY, REGISTRATION_FEE_CENTS } from "@repo/lib/limits";
-import { buildPaymentMetadata, getStripe } from "@repo/payments/checkout";
+import { buildPaymentMetadata, fulfilPaidPaymentIntent, getStripe } from "@repo/payments/checkout";
 import { ownFamilyId, type Parent } from "./kids.ts";
 
 /** Case- and space-insensitive promo check. Blank/missing env = promo switched off. */
@@ -120,6 +120,8 @@ export async function registrationSessionStatus(parent: Parent, sessionId: strin
     if (s.status === "open") return "open";
     if (s.status !== "complete") return null;
     const piId = typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id;
+    // Paid? Record it now (same idempotent handler as the webhook; see @repo/payments fulfil.ts).
+    if (piId && s.payment_status === "paid") await fulfilPaidPaymentIntent(piId).catch((e: unknown) => console.error("[return] fulfil failed:", e instanceof Error ? e.name : "unknown"));
     const pay = piId ? await Payment.findOne({ stripePaymentIntentId: piId, familyId: fid }).select("fulfilment").lean() : null;
     if (!pay) return "processing";
     return pay.fulfilment === "fulfilled" ? "registered" : "review";

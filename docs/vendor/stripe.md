@@ -26,10 +26,22 @@
   `charge.refunded`; `charge.dispute.created`, `.closed`.
 - `whsec_` secret → family `STRIPE_WEBHOOK_SECRET` (Vercel). Test and live endpoints have
   different secrets. Roll secrets periodically (Stripe allows 24 h overlap).
-- Local: no Stripe CLI installed. `scripts/e2e/stripe-webhook.ts` signs events itself with the
-  local secret; `--real-stripe` makes a real test payment and replays Stripe's actual event.
-  (With the CLI: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`, then use
-  the secret it prints.)
+- Local: Stripe can't reach localhost, so without the Stripe CLI NO webhook arrives locally.
+  `scripts/e2e/stripe-webhook.ts` signs events itself with the local secret; `--real-stripe` makes
+  a real test payment and replays Stripe's actual event.
+  With the CLI: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`, and put the
+  `whsec_` it prints in apps/family/.env.local `STRIPE_WEBHOOK_SECRET` (it's per machine).
+
+## Fulfil on the return page too (added 2026-11-06)
+
+Stripe's guidance: fulfil from the webhook AND when the customer lands back on your site, with
+fulfilment idempotent. We do this: the registration / tip / donation status pages call
+`fulfilPaidPaymentIntent(piId)` (@repo/payments/checkout, `fulfil.ts`) when Stripe's API says the
+session is `payment_status: "paid"`. It retrieves the PaymentIntent with OUR key (so same mode,
+nothing from the browser trusted) and runs the same `onPaymentIntentSucceeded` as the webhook;
+the unique PaymentIntent id makes whichever runs second a no-op. Found when a local $5 registration
+stayed "awaiting" (no webhook locally). Refunds/disputes are still webhook-only.
+Test: `scripts/e2e/stripe-return-fulfil.ts` (real test PaymentIntent with `pm_card_visa`).
 
 ## SDK facts we rely on (v23)
 

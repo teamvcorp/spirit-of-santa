@@ -37,7 +37,9 @@ async function Personal() {
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3" data-testid="kid-selector">
           {kids.map((k) => (
             <li key={k.id} className="rounded-2xl border border-foreground/15 p-4 text-left">
-              <p className="text-lg font-semibold">{k.firstName}</p>
+              <Link href={`/kids/${k.id}`} className="text-lg font-semibold underline underline-offset-4">
+                {k.firstName}
+              </Link>
               <p className="text-sm text-foreground/70">{t("points", { points: formatPoints(k.availableCentipoints) })}</p>
               {!k.registered && <span className="mt-2 inline-block rounded-full border border-foreground/30 px-2 text-xs">{t("awaiting")}</span>}
             </li>

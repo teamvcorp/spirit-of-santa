@@ -37,3 +37,14 @@ export const deedTypeSchema = z
   });
 
 export type DeedTypeInput = z.infer<typeof deedTypeSchema>;
+
+/**
+ * Recording a deed (family app, parent with PIN). Exactly one of: a catalog deed type, or
+ * "other" with a short description (max 280, the model's limit).
+ */
+/** The "Other" description on its own, so a form gets the PRECISE error (tooShort / tooLong). */
+export const otherDeedSchema = z.string().trim().min(3, "tooShort").max(280, "tooLong");
+export const recordDeedSchema = z.union([
+  z.object({ choice: z.string().regex(/^[0-9a-f]{24}$/i, "invalid").transform((v) => v.toLowerCase()), other: z.string().optional() }),
+  z.object({ choice: z.literal("other"), other: otherDeedSchema }),
+]);

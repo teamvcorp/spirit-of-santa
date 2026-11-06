@@ -151,5 +151,40 @@
     },
     "processing": "¡Gracias! Recibimos el pago. Tus hijos aparecerán como registrados en un minuto: actualiza el área de padres.",
     "review": "Recibimos el pago, pero algo no coincidió (por ejemplo, un niño ya estaba registrado). Nuestro equipo lo revisará y se comunicará contigo."
+  },
+  "Kid": {
+    "title": "Mis buenas acciones",
+    "back": "Todos",
+    "points": "{points} puntos",
+    "record": "Registrar una buena acción",
+    "notRegistered": "Este niño aún no está registrado. Un padre o madre puede registrarlo en el área de padres ($5) para empezar a registrar acciones.",
+    "deedsTitle": "Buenas acciones",
+    "noDeeds": "Aún no hay acciones. ¡Pide a un padre o madre que registre la primera!",
+    "aDeed": "Una buena acción",
+    "showQr": "Muestra este código a la persona que ayudaste. Funciona una vez, hasta el {until}.",
+    "qrAlt": "Código QR de: {deed}",
+    "status": {
+      "pending": "Esperando un agradecimiento",
+      "confirmed": "¡Agradecida!",
+      "expired": "Código vencido",
+      "flagged": "En revisión",
+      "rejected": "No cuenta"
+    },
+    "recordTitle": "Registrar una buena acción",
+    "recordIntro": "¿Qué hizo {name}? Se crea un código QR para la persona que ayudó.",
+    "whichDeed": "Elige la acción",
+    "other": "Otra cosa",
+    "otherLabel": "Describe la buena acción",
+    "otherHint": "Breve y sencillo. No incluyas nombres, direcciones ni otros datos personales: la gente verá este texto cuando nuestro equipo lo apruebe.",
+    "create": "Crear el código QR",
+    "errors": {
+      "locked": "El área de padres se bloqueó sola (15 minutos). Escribe tu PIN otra vez.",
+      "pickOne": "Elige una acción o descríbela en \"Otra cosa\".",
+      "notFound": "No se encontró a ese niño.",
+      "notRegistered": "Primero registra a este niño (área de padres).",
+      "seasonClosed": "Las buenas acciones se pueden registrar mientras la temporada está abierta (desde el 1 de octubre).",
+      "deedUnavailable": "Esa acción ya no está disponible. Elige otra.",
+      "dailyLimit": "Son 10 acciones hoy para este niño. ¡Inténtalo mañana!"
+    }
   }
 }

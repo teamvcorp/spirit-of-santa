@@ -70,6 +70,11 @@ const deedSchema = new Schema(
         "Pick a deed type or describe the deed",
       ],
     },
+    /**
+     * "Other" text is shown on the PUBLIC QR page only once an admin approved it (children's free
+     * text can contain personal details). Until then the page says "a good deed". (Phase 4.)
+     */
+    customReview: { type: String, enum: ["pending", "approved", "rejected"] },
     locale: { type: String, enum: LOCALES, default: "en" },
 
     status: {
@@ -86,6 +91,8 @@ const deedSchema = new Schema(
       select: false,
     },
     qrUsedAt: Date,
+    /** The QR code stops working after this (DEED_QR_DAYS). */
+    expiresAt: Date,
 
     outcome: { type: String, enum: DEED_OUTCOMES },
     tipCents: centsField(false),
@@ -95,6 +102,9 @@ const deedSchema = new Schema(
   },
   { timestamps: true, versionKey: false },
 );
+
+deedSchema.index({ kidId: 1, createdAt: -1 }); // a kid's recent deeds + the daily cap
+deedSchema.index({ customReview: 1, createdAt: 1 }); // admin moderation queue
 
 export type DeedDoc = InferSchemaType<typeof deedSchema>;
 export const Deed = (models.Deed ??

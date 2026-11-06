@@ -14,6 +14,11 @@ export const STORE_ITEM_LIMIT = 50;
  */
 export const REGISTRATION_FEE_CENTS = 500;
 
+/** A deed's QR code works for this many days (single use). */
+export const DEED_QR_DAYS = 14;
+/** Deeds one child can record per day (abuse cap). */
+export const MAX_DEEDS_PER_KID_PER_DAY = 10;
+
 /** Kids per family (a sanity cap: also bounds the $5 registrations one card pays for). */
 export const MAX_KIDS_PER_FAMILY = 10;
 /** Kids are under 18: birth year between (this year - 17) and this year. */

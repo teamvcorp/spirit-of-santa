@@ -151,5 +151,40 @@
     },
     "processing": "Thank you! Payment received. Your children will show as registered within a minute: refresh the parent area.",
     "review": "Payment received, but something didn't match (for example a child was already registered). Our team will check it and contact you."
+  },
+  "Kid": {
+    "title": "My deeds",
+    "back": "Everyone",
+    "points": "{points} points",
+    "record": "Record a good deed",
+    "notRegistered": "This child isn't registered yet. A parent can register them in the parent area ($5) to start recording deeds.",
+    "deedsTitle": "Good deeds",
+    "noDeeds": "No deeds yet. Ask a parent to record your first one!",
+    "aDeed": "A good deed",
+    "showQr": "Show this code to the person you helped. It works once, until {until}.",
+    "qrAlt": "QR code for: {deed}",
+    "status": {
+      "pending": "Waiting for a thank-you",
+      "confirmed": "Thanked!",
+      "expired": "Code expired",
+      "flagged": "Being checked",
+      "rejected": "Not counted"
+    },
+    "recordTitle": "Record a good deed",
+    "recordIntro": "What did {name} do? A QR code is made for the person they helped.",
+    "whichDeed": "Choose the deed",
+    "other": "Something else",
+    "otherLabel": "Describe the good deed",
+    "otherHint": "Short and simple. Don't include names, addresses or other personal details: people see this text once our team approves it.",
+    "create": "Make the QR code",
+    "errors": {
+      "locked": "The parent area locked itself (15 minutes). Enter your PIN again.",
+      "pickOne": "Choose a deed, or describe it under \"Something else\".",
+      "notFound": "That child wasn't found.",
+      "notRegistered": "Register this child first (parent area).",
+      "seasonClosed": "Good deeds can be recorded while the season is open (from October 1).",
+      "deedUnavailable": "That deed isn't available any more. Choose another.",
+      "dailyLimit": "That's 10 deeds today for this child. Try again tomorrow!"
+    }
   }
 }

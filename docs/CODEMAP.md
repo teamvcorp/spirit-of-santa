@@ -301,6 +301,12 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   fulfilment `fulfilled`; nothing left to register → `review` (e.g. double payment). Money = platform revenue, no points.
   `@repo/payments/checkout` exports getStripe + buildPaymentMetadata for other packages. No CSP yet: when adding one
   (Phase 8) allow js.stripe.com (script + frame). E2E `browser-family-register.ts` (14).
+- **Slice 3 deeds + QR (built; review pending):** `@repo/deeds/deeds` (`recordDeed`: own family, REGISTERED kid, season open|frozen,
+  active type, 10/kid/day; `listKidDeeds` with QR images) + `qr.ts`: token = HMAC(HKDF(NEXTAUTH_SECRET,"sos/deed-qr/v1"), deedId),
+  DB keeps only SHA-256(token) (`qrTokenHash`), so QRs can be re-shown but not forged from the DB. QR link = `/d/<token>`
+  (slice 4 page). 14-day expiry (`expiresAt`), single use (`qrUsedAt`). "Other" text: `customReview: pending` → NOT public until
+  an admin approves (moderation queue = next). Kid page `/kids/[id]` (no PIN, shows QRs); record `/kids/[id]/deed` (PIN).
+  E2E `browser-family-deeds.ts` (14; needs season open/frozen).
 - **Server Actions can't read the locale** (`getLocale()` / next/root-params throw there): forms send a hidden `locale`
   field and actions redirect with `localizePath()`.
 - Order: 1 parent sign-up → 2 kids + PIN + dashboard shell (+ $5 step) → 3 deed + QR → 4 QR landing/thank-you →

@@ -9,6 +9,8 @@ import { connection } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { getPublicDeed, publicLimit } from "@repo/deeds/public";
+import { CENTS_PER_POINT } from "@repo/lib/constants";
+import { formatCents } from "@repo/lib/format";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { QrActions } from "./qr-actions";
@@ -37,7 +39,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/d/[token]">["p
           {view.deed ?? t("aGoodDeed")}
         </p>
       </div>
-      {view.seasonOpen ? <QrActions token={token} kidName={view.kidName} /> : <Alert>{t("errors.seasonClosed")}</Alert>}
+      {view.seasonOpen ? <QrActions token={token} kidName={view.kidName} rate={formatCents(CENTS_PER_POINT)} /> : <Alert>{t("errors.seasonClosed")}</Alert>}
     </div>
   );
 }

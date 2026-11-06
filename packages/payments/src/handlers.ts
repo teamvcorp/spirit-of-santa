@@ -166,7 +166,9 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
         return review("deed_mismatch");
       }
       if (deed.status !== "pending" && deed.status !== "confirmed") return review(`deed_${deed.status}`);
-      confirmDeed = true;
+      // Only a still-pending deed is confirmed by this payment. A second tip (two visitors paid at
+      // once, or a thank-you came first) is credited, but the FIRST confirmation stands.
+      confirmDeed = deed.status === "pending";
     }
 
     const centipoints = centsToCentipoints(pi.amount_received);
@@ -193,9 +195,10 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
 
     if (confirmDeed) {
       // Paying IS the recipient confirming the deed ("pay now" outcome on the QR page).
+      // Compare-and-set on "pending": a thank-you landing at the same moment wins, never overwritten.
       await Deed.updateOne(
-        { _id: ids.deedId },
-        { $set: { status: "confirmed", outcome: "paid", tipCents: pi.amount_received, confirmedAt: now } },
+        { _id: ids.deedId, status: "pending" },
+        { $set: { status: "confirmed", outcome: "paid", tipCents: pi.amount_received, confirmedAt: now, qrUsedAt: now } },
         { session },
       );
     }

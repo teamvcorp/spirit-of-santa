@@ -197,7 +197,7 @@
     "sayThanksHelp": "Confirms the good deed. Free, nothing else needed.",
     "thanked": "Thank you! {name} will be so happy to hear it.",
     "tipTitle": "Want to leave a tip?",
-    "tipHelp": "Tips become points the child spends on a Christmas wish list ($1.50 = 1 point). Paying also confirms the deed.",
+    "tipHelp": "Tips become points the child spends on a Christmas wish list ({rate} = 1 point). Paying also confirms the deed.",
     "other": "Other",
     "otherAmount": "Amount in dollars",
     "tipButton": "Continue to payment",

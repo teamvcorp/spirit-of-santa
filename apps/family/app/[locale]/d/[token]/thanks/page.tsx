@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
-import { tipStatus } from "@repo/deeds/public";
+import { headers } from "next/headers";
+import { publicLimit, tipStatus } from "@repo/deeds/public";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 
@@ -15,6 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
 async function Status(props: PageProps<"/[locale]/d/[token]/thanks">) {
   await connection();
   const [{ token }, sp, t] = await Promise.all([props.params, props.searchParams, getTranslations("Qr")]);
+  // Each check costs a Stripe API call: same per-visitor limit as the QR page itself.
+  if (!(await publicLimit(await headers(), "view", 120))) return <Alert tone="error">{t("errors.rateLimited")}</Alert>;
   const sid = typeof sp.session_id === "string" ? sp.session_id : "";
   const s = await tipStatus(token, sid);
   const msg = s === "credited" ? t("tipCredited") : s === "processing" ? t("tipProcessing") : s === "review" ? t("tipReview") : s === "open" ? t("tipNotPaid") : t("invalid");

@@ -98,6 +98,18 @@ try {
   check("thank you → deed confirmed (outcome thanked), QR used, no points",
     thanked?.status === "confirmed" && thanked.outcome === "thanked" && !!thanked.qrUsedAt && (await Kid.findById(maya._id).lean())?.availableCentipoints === 0);
   check("scanning again → 'already thanked'", (await open(dType.token)).includes("already thanked"));
+  // A tip that arrives for an already-thanked deed (two visitors at once): points credited, the
+  // FIRST confirmation ("thanked") stands.
+  const late = buildPaymentMetadata({ sos_purpose: "tip", sos_kid_id: String(maya._id), sos_family_id: String(fam._id), sos_deed_id: String(dType.id) });
+  const lateId = `pi_e2eqrlate${randomBytes(6).toString("hex")}`;
+  const lateEvt = `evt_e2eqrlate${randomBytes(6).toString("hex")}`;
+  piIds.push(lateId);
+  evtIds.push(lateEvt);
+  const t0 = Math.floor(Date.now() / 1000);
+  const lateBody = JSON.stringify({ id: lateEvt, object: "event", type: "payment_intent.succeeded", livemode: false, created: t0, data: { object: { id: lateId, object: "payment_intent", amount: 500, amount_received: 500, currency: "usd", status: "succeeded", livemode: false, metadata: late, created: t0 } } });
+  await fetch(`${base}/api/webhooks/stripe`, { method: "POST", headers: { "content-type": "application/json", "stripe-signature": Stripe.webhooks.generateTestHeaderString({ payload: lateBody, secret: whsec }) }, body: lateBody });
+  check("a tip for an already-thanked deed: points credited, outcome stays 'thanked'",
+    (await Kid.findById(maya._id).lean())?.availableCentipoints === 333 && (await Deed.findById(dType.id).lean())?.outcome === "thanked");
 
   // 5. Tips: bad amount refused; $10 → Stripe form; signed webhook → points + deed paid.
   await open(dApproved.token);
@@ -123,8 +135,8 @@ try {
   const body = JSON.stringify({ id: evtId, object: "event", type: "payment_intent.succeeded", livemode: false, created: now, data: { object: { id: piId, object: "payment_intent", amount: 1000, amount_received: 1000, currency: "usd", status: "succeeded", livemode: false, metadata: md, created: now } } });
   await fetch(`${base}/api/webhooks/stripe`, { method: "POST", headers: { "content-type": "application/json", "stripe-signature": Stripe.webhooks.generateTestHeaderString({ payload: body, secret: whsec }) }, body });
   const paid = await Deed.findById(dApproved.id).lean();
-  check("paid tip → 6.66 points for the kid, deed confirmed 'paid'",
-    (await Kid.findById(maya._id).lean())?.availableCentipoints === 666 && paid?.status === "confirmed" && paid.outcome === "paid");
+  check("paid tip → +6.66 points (9.99 total), deed confirmed 'paid', QR used",
+    (await Kid.findById(maya._id).lean())?.availableCentipoints === 999 && paid?.status === "confirmed" && paid.outcome === "paid" && !!paid.qrUsedAt);
   check("scanning a tipped deed → 'already received a tip'", (await open(dApproved.token)).includes("already received a tip"));
   await page.goto(`${base}/d/${dApproved.token}/thanks?session_id=cs_test_${"y".repeat(20)}`);
   await page.locator("main [role=alert]").first().waitFor({ timeout: 15_000 });

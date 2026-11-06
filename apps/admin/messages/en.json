@@ -414,7 +414,8 @@
     "approve": "Approve",
     "hide": "Hide",
     "errors": {
-      "notFound": "Already reviewed. Reload the page."
+      "notFound": "Already reviewed. Reload the page.",
+      "failed": "Couldn't save. Please try again."
     }
   }
 }

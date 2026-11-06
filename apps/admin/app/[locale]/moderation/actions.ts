@@ -14,8 +14,14 @@ export async function reviewAction(_prev: ReviewState, fd: FormData): Promise<Re
   const admin = await requireRole(authOptions, "admin");
   const parsed = z.object({ id: z.string().min(1), decision: z.enum(["approved", "rejected"]) }).safeParse({ id: formString(fd, "id"), decision: formString(fd, "decision") });
   if (!parsed.success) return { status: "error", error: "notFound", nonce: randomUUID() };
-  const r = await reviewDeedText(admin.id, parsed.data.id, parsed.data.decision);
-  if (!r.ok) return { status: "error", error: r.error, nonce: randomUUID() };
+  try {
+    const r = await reviewDeedText(admin.id, parsed.data.id, parsed.data.decision);
+    if (!r.ok) return { status: "error", error: r.error, nonce: randomUUID() };
+  } catch (err) {
+    // A real failure must not look like "already reviewed" (the text would stay pending unseen).
+    console.error("[moderation] review failed:", err instanceof Error ? err.name : "unknown");
+    return { status: "error", error: "failed", nonce: randomUUID() };
+  }
   refresh();
   return { status: "done", nonce: randomUUID() };
 }

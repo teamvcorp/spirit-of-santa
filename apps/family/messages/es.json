@@ -197,7 +197,7 @@
     "sayThanksHelp": "Confirma la buena acción. Gratis, no hace falta nada más.",
     "thanked": "¡Gracias! {name} se pondrá muy feliz.",
     "tipTitle": "¿Quieres dejar una propina?",
-    "tipHelp": "Las propinas se convierten en puntos que el niño usa en su lista de deseos de Navidad ($1.50 = 1 punto). Pagar también confirma la acción.",
+    "tipHelp": "Las propinas se convierten en puntos que el niño usa en su lista de deseos de Navidad ({rate} = 1 punto). Pagar también confirma la acción.",
     "other": "Otra",
     "otherAmount": "Cantidad en dólares",
     "tipButton": "Continuar al pago",

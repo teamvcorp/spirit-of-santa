@@ -19,7 +19,8 @@ import { thankAction, tipAction, type ThankState, type TipState } from "./action
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 
-export function QrActions({ token, kidName }: { token: string; kidName: string }) {
+/** `rate`: the dollars-per-point text, from the server constant (never hard-coded). */
+export function QrActions({ token, kidName, rate }: { token: string; kidName: string; rate: string }) {
   const t = useTranslations("Qr");
   const [thank, thankFormAction, thanking] = useActionState(thankAction, { status: "idle" } as ThankState);
   const [tip, tipFormAction, tipping] = useActionState(tipAction, { status: "idle" } as TipState);
@@ -53,7 +54,7 @@ export function QrActions({ token, kidName }: { token: string; kidName: string }
       </form>
       <form action={tipFormAction} className="flex flex-col gap-3 border-t border-foreground/15 pt-6">
         <h2 className="text-lg font-semibold">{t("tipTitle")}</h2>
-        <p className="text-sm text-foreground/70">{t("tipHelp")}</p>
+        <p className="text-sm text-foreground/70">{t("tipHelp", { rate })}</p>
         {tipError && (
           <Alert tone="error">
             {tipError === "amount" ? t("errors.amount", { min: formatCents(MIN_TIP_CENTS), max: formatCents(MAX_TIP_CENTS) }) : t(`errors.${tipError}` as never)}

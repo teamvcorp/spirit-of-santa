@@ -4,20 +4,26 @@
  * it's fine to show publicly. Approve = shown on the QR page; hide = never shown ("a good deed").
  */
 import "server-only";
-import { AuditLog, connectDb, Deed, withTransaction } from "@repo/db";
+import { AuditLog, connectDb, Deed, trusted, withTransaction } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 
 export type PendingText = { id: string; text: string; createdAt: Date };
 
+/**
+ * Texts worth reviewing: still pending AND on a deed whose QR page can still show it (unused,
+ * unexpired). Older ones can never appear publicly, so they don't clutter the queue.
+ */
+const reviewable = () => ({ customReview: "pending" as const, status: "pending" as const, qrUsedAt: null, expiresAt: trusted({ $gt: new Date() }) });
+
 export async function listPendingTexts(limit = 100): Promise<PendingText[]> {
   await connectDb();
-  const rows = await Deed.find({ customReview: "pending" }).sort({ createdAt: 1 }).limit(limit).select("customDescription createdAt").lean();
+  const rows = await Deed.find(reviewable()).sort({ createdAt: 1 }).limit(limit).select("customDescription createdAt").lean();
   return rows.map((r) => ({ id: String(r._id), text: r.customDescription ?? "", createdAt: r.createdAt }));
 }
 
 export async function countPendingTexts(): Promise<number> {
   await connectDb();
-  return Deed.countDocuments({ customReview: "pending" });
+  return Deed.countDocuments(reviewable());
 }
 
 export type ReviewResult = { ok: true } | { ok: false; error: "notFound" };

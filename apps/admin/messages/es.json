@@ -414,7 +414,8 @@
     "approve": "Aprobar",
     "hide": "Ocultar",
     "errors": {
-      "notFound": "Ya se revisó. Recarga la página."
+      "notFound": "Ya se revisó. Recarga la página.",
+      "failed": "No se pudo guardar. Inténtalo de nuevo."
     }
   }
 }

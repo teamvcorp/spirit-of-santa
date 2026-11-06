@@ -121,3 +121,6 @@ Used for the $5 child registration (Phase 4 slice 2b): Stripe's form inside our 
   (failed/cancelled: show checkout again). Show status only; FULFIL from the webhook (`payment_intent.succeeded`,
   our rule: credit/fulfil only there).
 - Test cards: 4242 4242 4242 4242 (ok), 4000 0025 0000 3155 (3-D Secure), 4000 0000 0000 9995 (declined).
+- **`expires_at`** (Checkout Session): must be at least 30 minutes and STRICTLY LESS than 24 hours after creation
+  (exactly +24 h is refused: "must be less than 24 hours from Checkout Session creation", verified 2026-11-05). We
+  cap tips at 23.5 h and at the deed's expiry / season close (`packages/deeds/src/public.ts`).

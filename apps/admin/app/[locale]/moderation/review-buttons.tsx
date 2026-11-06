@@ -22,7 +22,7 @@ export function ReviewButtons({ id }: { id: string }) {
     <div className="flex flex-wrap items-center gap-2">
       {button("approved", t("approve"), "primary")}
       {button("rejected", t("hide"), "secondary")}
-      {state.status === "error" && <span role="alert" className="text-sm text-danger">{t("errors.notFound")}</span>}
+      {state.status === "error" && <span role="alert" className="text-sm text-danger">{t(state.error === "failed" ? "errors.failed" : "errors.notFound")}</span>}
     </div>
   );
 }

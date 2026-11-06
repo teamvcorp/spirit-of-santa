@@ -309,13 +309,15 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   (slice 4 page). 14-day expiry (`expiresAt`), single use (`qrUsedAt`). "Other" text: `customReview: pending` → NOT public until
   an admin approves (moderation queue = next). Kid page `/kids/[id]` (no PIN, shows QRs); record `/kids/[id]/deed` (PIN).
   E2E `browser-family-deeds.ts` (15; needs season open/frozen).
-- **Slice 4 QR page + tips + text review (built; review pending):** public `/d/<token>` (`@repo/deeds/public`): display name +
+- **Slice 4 QR page + tips + text review (DONE, 70e6828 + review fixes):** tip checkout `expires_at` = min(deed expiry, season
+  close, 23.5 h) (Stripe: STRICTLY < 24 h); webhook confirms only a still-PENDING deed (CAS), later tips are credited but
+  the first confirmation stands; queue shows only texts that can still go public; public actions use Zod; public `/d/<token>` (`@repo/deeds/public`): display name +
   alias (if on) + deed ("Other" text only if approved); never first/family name. "Say thank you" = atomic single-use confirm
   (no points). Tips (pulled forward from Phase 5): presets $5/$10/$25 or $1–$1,000, Embedded Checkout, metadata purpose `tip`
   → existing webhook credits points + marks deed `paid`; an abandoned checkout does NOT burn the QR. `/d/<token>/thanks` shows
   only what our Payment says. Per-visitor limits (view 120, act 30, tip 10 per 15 min). Admin `/moderation`
   (`@repo/deeds/moderation`): approve/hide "Other" text, audited `deed.text_review`, dashboard count. Pay-later = Phase 5.
-  E2E `browser-qr-page.ts` (21; family + admin servers, both env files).
+  E2E `browser-qr-page.ts` (22; family + admin servers, both env files).
 - **Always `connectDb()` before the first query in a service** (public pages can be a fresh instance's first request; a
   missing connect HANGS ~10 s). `hitRateLimit` now connects itself.
 - **E2E gotcha:** visiting `/es/...` sets a locale cookie; later prefix-less visits in the same browser context are Spanish.

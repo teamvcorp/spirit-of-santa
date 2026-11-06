@@ -219,8 +219,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
 
 ## Phase 3 (admin app), agreed 2026-11-05
 
-Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, ccd6572 + review fixes) → 3 user management (incl. "reset MFA"
-button) → 4 deed catalog → 5 platform dashboard v1. Deferred until their data exists: content moderation
+Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, ccd6572 + review fixes) → 3 user management (built; review pending) → 4 deed catalog → 5 platform dashboard v1. Deferred until their data exists: content moderation
 (Phase 4), donation settings + pay-later links (Phase 5), announcements (Phase 7).
 
 - **Admin MFA (slice 1):** TOTP authenticator + 10 recovery codes (`docs/vendor/totp-mfa.md`). Admin without MFA
@@ -234,6 +233,11 @@ button) → 4 deed catalog → 5 platform dashboard v1. Deferred until their dat
   signed out (`ADMIN_TOKEN_VERSION` in options.ts: bump to force all admins to sign in again).
 - **`getSessionUser` hides restricted (MFA-setup) sessions** unless `{ includeRestricted: true }` (account menu,
   admin home which redirects). `requireUser`/`requireRole` send them to /mfa/setup.
+- **User management (slice 3):** `@repo/auth/admin-users` (list/search, detail + audit history, suspend with
+  reason, reinstate, unlock, sign out everywhere, reset another admin's MFA; change + audit in one transaction; never on
+  yourself). Pages `/users`, `/users/[id]` (header link). Email search = escaped "starts with" (index-friendly, input is
+  never a regex). No delete (COPPA flow, Phase 8); no "activate unverified" (would bypass email verification).
+  E2E `browser-admin-users.ts` (13 checks).
 - **Season controls (slice 2):** rule book = pure `resolveSeason` / `validateSeasonDates` in `@repo/lib/season`
   (unit-tested); server = `getSeasonState()` in `@repo/stores/season`. ANY server check of season phase or the
   store window must use `getSeasonState()` (it applies the admin overrides). Season dates are stored as calendar

@@ -7,6 +7,7 @@
     ".": "./src/index.ts",
     "./password": "./src/password.ts",
     "./mfa": "./src/mfa.ts",
+    "./admin-users": "./src/admin-users.ts",
     "./totp": "./src/totp.ts",
     "./parent-pin": "./src/parent-pin.ts",
     "./redirect": "./src/redirect.ts",

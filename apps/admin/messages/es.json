@@ -200,5 +200,83 @@
       "notOpen": "La temporada no está abierta, así que no hay nada que congelar."
     },
     "freezeOnlyOpen": "La congelación de emergencia solo se puede activar mientras la temporada está abierta."
+  },
+  "Users": {
+    "title": "Usuarios",
+    "intro": "Todas las cuentas (padres, dueños y representantes de tiendas, administradores). Los niños no son cuentas y nunca aparecen aquí.",
+    "detailTitle": "Usuario",
+    "loading": "Cargando…",
+    "back": "Todos los usuarios",
+    "searchLabel": "El correo empieza con",
+    "searchPlaceholder": "nombre@ejemplo.com",
+    "roleLabel": "Rol",
+    "statusLabel": "Estado",
+    "any": "Cualquiera",
+    "search": "Buscar",
+    "count": "{total, plural, one {# cuenta} other {# cuentas}}",
+    "empty": "Ninguna cuenta coincide.",
+    "colEmail": "Correo",
+    "colRole": "Rol",
+    "colStatus": "Estado",
+    "colCreated": "Creada",
+    "colLastLogin": "Último inicio de sesión",
+    "pagesLabel": "Páginas",
+    "prev": "← Anterior",
+    "next": "Siguiente →",
+    "pageOf": "Página {page} de {pages}",
+    "roles": {
+      "child": "Niño",
+      "parent": "Padre o madre",
+      "store_owner": "Dueño de tienda",
+      "store_rep": "Representante de tienda",
+      "admin": "Administrador"
+    },
+    "statuses": {
+      "pending": "Correo sin confirmar",
+      "active": "Activa",
+      "suspended": "Suspendida"
+    },
+    "mfaOn": "dos pasos activado",
+    "mfaOff": "dos pasos sin configurar",
+    "details": "Detalles",
+    "name": "Nombre",
+    "store": "Tienda",
+    "mfa": "Inicio de sesión en dos pasos",
+    "mfaSince": "Activado desde {when} · quedan {left} códigos de recuperación",
+    "mfaNotSetUp": "Aún sin configurar (se pedirá en el próximo inicio de sesión)",
+    "lockedUntil": "El inicio de sesión está bloqueado hasta {when} (demasiados intentos fallidos).",
+    "selfNote": "Esta es tu propia cuenta: aquí no puedes suspenderla ni restablecer su inicio de sesión en dos pasos.",
+    "actionsTitle": "Acciones",
+    "noActions": "No hay nada que hacer con esta cuenta por ahora.",
+    "reasonLabel": "Motivo para suspender a {email}",
+    "reasonHint": "Queda en el registro de auditoría. No podrá iniciar sesión hasta que se reactive.",
+    "ops": {
+      "suspend": "Suspender cuenta",
+      "reinstate": "Reactivar",
+      "reinstateHelp": "Permite iniciar sesión de nuevo.",
+      "unlock": "Desbloquear inicio de sesión",
+      "unlockHelp": "Quita ahora el bloqueo por intentos fallidos.",
+      "signOut": "Cerrar sesión en todas partes",
+      "signOutHelp": "Termina todas las sesiones en 5 minutos (p. ej., una laptop perdida). Puede volver a iniciar sesión.",
+      "resetMfa": "Restablecer inicio de sesión en dos pasos",
+      "resetMfaHelp": "Para un teléfono perdido: configurará una app de autenticación otra vez en su próximo inicio de sesión."
+    },
+    "done": {
+      "suspend": "Suspendida. Sus sesiones terminan en 5 minutos.",
+      "reinstate": "Reactivada.",
+      "unlock": "Desbloqueada.",
+      "signOut": "Todas las sesiones terminarán en 5 minutos.",
+      "resetMfa": "Inicio de sesión en dos pasos restablecido. Lo configurará de nuevo en su próximo inicio de sesión."
+    },
+    "errors": {
+      "notFound": "No se encontró esa cuenta. Recarga la página.",
+      "self": "No puedes hacer eso con tu propia cuenta.",
+      "badStatus": "El estado de la cuenta cambió mientras tanto. Recarga la página.",
+      "notAdmin": "Solo las cuentas de administración usan el inicio de sesión en dos pasos.",
+      "reasonRequired": "Escribe un motivo (al menos 3 caracteres)."
+    },
+    "history": "Historial",
+    "noHistory": "Aún no hay nada registrado.",
+    "byThisUser": "por este usuario"
   }
 }

@@ -200,5 +200,83 @@
       "notOpen": "The season isn't open, so there's nothing to freeze."
     },
     "freezeOnlyOpen": "The emergency freeze can only be switched on while the season is open."
+  },
+  "Users": {
+    "title": "Users",
+    "intro": "Every account (parents, store owners and reps, admins). Children aren't accounts and never appear here.",
+    "detailTitle": "User",
+    "loading": "Loading…",
+    "back": "All users",
+    "searchLabel": "Email starts with",
+    "searchPlaceholder": "name@example.com",
+    "roleLabel": "Role",
+    "statusLabel": "Status",
+    "any": "Any",
+    "search": "Search",
+    "count": "{total, plural, one {# account} other {# accounts}}",
+    "empty": "No accounts match.",
+    "colEmail": "Email",
+    "colRole": "Role",
+    "colStatus": "Status",
+    "colCreated": "Created",
+    "colLastLogin": "Last sign-in",
+    "pagesLabel": "Pages",
+    "prev": "← Previous",
+    "next": "Next →",
+    "pageOf": "Page {page} of {pages}",
+    "roles": {
+      "child": "Child",
+      "parent": "Parent",
+      "store_owner": "Store owner",
+      "store_rep": "Store rep",
+      "admin": "Admin"
+    },
+    "statuses": {
+      "pending": "Email not confirmed",
+      "active": "Active",
+      "suspended": "Suspended"
+    },
+    "mfaOn": "two-step on",
+    "mfaOff": "two-step not set up",
+    "details": "Details",
+    "name": "Name",
+    "store": "Store",
+    "mfa": "Two-step sign-in",
+    "mfaSince": "On since {when} · {left} recovery codes left",
+    "mfaNotSetUp": "Not set up yet (asked at next sign-in)",
+    "lockedUntil": "Sign-in is locked until {when} (too many failed tries).",
+    "selfNote": "This is your own account: you can't suspend it or reset its two-step sign-in here.",
+    "actionsTitle": "Actions",
+    "noActions": "Nothing to do for this account right now.",
+    "reasonLabel": "Reason for suspending {email}",
+    "reasonHint": "Kept in the audit log. They can't sign in until reinstated.",
+    "ops": {
+      "suspend": "Suspend account",
+      "reinstate": "Reinstate",
+      "reinstateHelp": "Allows sign-in again.",
+      "unlock": "Unlock sign-in",
+      "unlockHelp": "Clears the failed-tries lockout now.",
+      "signOut": "Sign out everywhere",
+      "signOutHelp": "Ends every session within 5 minutes (e.g. a lost laptop). They can sign in again.",
+      "resetMfa": "Reset two-step sign-in",
+      "resetMfaHelp": "For a lost phone: they'll set up an authenticator app again at their next sign-in."
+    },
+    "done": {
+      "suspend": "Suspended. Their sessions end within 5 minutes.",
+      "reinstate": "Reinstated.",
+      "unlock": "Unlocked.",
+      "signOut": "Every session will end within 5 minutes.",
+      "resetMfa": "Two-step sign-in reset. They'll set it up again at their next sign-in."
+    },
+    "errors": {
+      "notFound": "That account wasn't found. Reload the page.",
+      "self": "You can't do that to your own account.",
+      "badStatus": "The account's status changed meanwhile. Reload the page.",
+      "notAdmin": "Only admin accounts use two-step sign-in.",
+      "reasonRequired": "Please give a reason (at least 3 characters)."
+    },
+    "history": "History",
+    "noHistory": "Nothing recorded yet.",
+    "byThisUser": "by this user"
   }
 }

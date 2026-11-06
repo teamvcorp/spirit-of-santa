@@ -86,7 +86,8 @@
     },
     "nav": {
       "stores": "Tiendas",
-      "season": "Temporada"
+      "season": "Temporada",
+      "users": "Usuarios"
     },
     "storeStatus": {
       "invited": "Invitada",

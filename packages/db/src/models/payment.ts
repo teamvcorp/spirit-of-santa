@@ -30,7 +30,8 @@ export const PAYMENT_STATUSES = ["succeeded", "failed", "canceled"] as const;
  * none     = no points involved (failed/canceled payments).
  * fulfilled = done, no points involved (child registrations: the kids were marked registered).
  */
-export const PAYMENT_FULFILMENTS = ["credited", "held", "review", "none", "fulfilled"] as const;
+/** retained = community-donation money never shared, kept by the platform at season end (Jan 1 job). */
+export const PAYMENT_FULFILMENTS = ["credited", "held", "review", "none", "fulfilled", "retained"] as const;
 
 const paymentSchema = new Schema(
   {

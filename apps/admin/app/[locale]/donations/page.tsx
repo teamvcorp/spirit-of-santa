@@ -11,6 +11,7 @@ import { Suspense } from "react";
 import { requireRole } from "@repo/auth";
 import { formatCents, formatPoints } from "@repo/lib/format";
 import { receiptCounts } from "@repo/payments/receipts";
+import { listSeasonResets } from "@repo/payments/season-end";
 import { listDonationSplits, previewDonationSplit } from "@repo/payments/split";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
@@ -25,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 async function Content() {
   await connection();
   await requireRole(authOptions, "admin");
-  const [preview, runs, counts, t, format] = await Promise.all([previewDonationSplit(), listDonationSplits(), receiptCounts(), getTranslations("Donations"), getFormatter()]);
+  const [preview, runs, counts, resets, t, format] = await Promise.all([previewDonationSplit(), listDonationSplits(), receiptCounts(), listSeasonResets(), getTranslations("Donations"), getFormatter()]);
   const pct = (bps: number) => `${bps / 100}%`;
   const willShare = preview.pools.some((p) => p.status === "split");
   return (
@@ -88,6 +89,28 @@ async function Content() {
                   amount: formatCents(r.totalCents),
                   fee: formatCents(r.feeCents),
                   kids: r.kidsCredited,
+                })}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold">{t("seasonEndTitle")}</h2>
+        <p className="mb-3 text-sm text-foreground/70">{t("seasonEndIntro")}</p>
+        {resets.length === 0 ? (
+          <p className="text-foreground/70">{t("noResets")}</p>
+        ) : (
+          <ul className="flex flex-col gap-2 text-sm" data-testid="resets">
+            {resets.map((r) => (
+              <li key={r.seasonYear}>
+                {t(r.status === "done" ? "resetLine" : "resetRunning", {
+                  year: r.seasonYear,
+                  kids: r.kidsReset,
+                  points: formatPoints(r.centipointsReset),
+                  retained: formatCents(r.retainedCents),
+                  gifts: r.retainedCount,
                 })}
               </li>
             ))}

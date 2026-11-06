@@ -11,7 +11,8 @@
     "./community": "./src/community.ts",
     "./receipts": "./src/receipts.ts",
     "./settings": "./src/settings.ts",
-    "./split": "./src/split.ts"
+    "./split": "./src/split.ts",
+    "./season-end": "./src/season-end.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

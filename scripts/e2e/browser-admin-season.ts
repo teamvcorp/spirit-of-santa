@@ -105,6 +105,7 @@ try {
   await nxt().locator("button[type=submit]").click();
   await nxt().locator('[role="alert"]').filter({ hasText: "must be in order" }).waitFor({ timeout: 15_000 });
   check("dates out of order are refused with a clear message", !(await seasonDoc(N))?.openDate);
+  check("…and the typed date is kept (not wiped)", (await nxt().locator('input[name="openDate"]').inputValue()) === `${N}-12-10`);
   await hydrated(page);
   await nxt().locator('input[name="openDate"]').fill(`${N}-10-15`);
   await nxt().locator('input[name="freezeDate"]').fill(`${N}-12-05`);

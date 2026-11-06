@@ -196,7 +196,9 @@
       "openInPast": "La fecha de apertura debe ser posterior a hoy.",
       "locked": "Esta temporada ya abrió, así que sus fechas están bloqueadas.",
       "changed": "Otra persona cambió estas fechas mientras tanto. Recarga la página e inténtalo de nuevo.",
-      "confirmRequired": "Marca la casilla para confirmar la congelación."
-    }
+      "confirmRequired": "Marca la casilla para confirmar la congelación.",
+      "notOpen": "La temporada no está abierta, así que no hay nada que congelar."
+    },
+    "freezeOnlyOpen": "La congelación de emergencia solo se puede activar mientras la temporada está abierta."
   }
 }

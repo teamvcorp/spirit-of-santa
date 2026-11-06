@@ -47,7 +47,8 @@ export function StoreWindowForm({ mode }: { mode: "auto" | "open" | "closed" }) 
   );
 }
 
-export function ForceFreezeForm({ on }: { on: boolean }) {
+/** `canFreeze`: only while the season is open (server enforces it too). */
+export function ForceFreezeForm({ on, canFreeze }: { on: boolean; canFreeze: boolean }) {
   const t = useTranslations("Season");
   const [state, action, pending] = useActionState(forceFreezeAction, INITIAL);
   const hydrated = useHydrated();
@@ -55,15 +56,18 @@ export function ForceFreezeForm({ on }: { on: boolean }) {
     <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-3">
       <Result state={state} />
       <input type="hidden" name="on" value={on ? "false" : "true"} />
-      {!on && (
+      {!on && !canFreeze && <p className="text-sm text-foreground/70">{t("freezeOnlyOpen")}</p>}
+      {!on && canFreeze && (
         <label className="flex items-start gap-2">
           <input type="checkbox" name="confirm" value="yes" required className="mt-1 size-4" />
           <span className="text-sm">{t("freezeConfirm")}</span>
         </label>
       )}
-      <Button type="submit" variant={on ? "secondary" : "primary"} pending={pending} disabled={!hydrated} className="self-start">
-        {on ? t("unfreeze") : t("freezeNow")}
-      </Button>
+      {(on || canFreeze) && (
+        <Button type="submit" variant={on ? "secondary" : "primary"} pending={pending} disabled={!hydrated} className="self-start">
+          {on ? t("unfreeze") : t("freezeNow")}
+        </Button>
+      )}
     </form>
   );
 }
@@ -82,7 +86,7 @@ export function DatesForm({ year, custom, defaults, locked }: { year: number; cu
       type="date"
       min={`${year}-01-01`}
       max={`${year}-12-31`}
-      defaultValue={custom[name]}
+      defaultValue={state.status === "error" && state.values ? (state.values[name] ?? "") : custom[name]}
       disabled={locked}
     />
   );

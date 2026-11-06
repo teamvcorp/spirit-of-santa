@@ -53,7 +53,7 @@ async function Content() {
       <Card>
         <h2 className="mb-1 text-lg font-semibold">{t("freezeTitle")}</h2>
         <p className="mb-4 text-sm text-foreground/70">{state.forceFrozen ? t("freezeOnIntro") : t("freezeIntro")}</p>
-        <ForceFreezeForm on={state.forceFrozen} />
+        <ForceFreezeForm on={state.forceFrozen} canFreeze={state.phase === "open"} />
       </Card>
 
       <Card>

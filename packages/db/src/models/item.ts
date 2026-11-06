@@ -1,7 +1,8 @@
 /**
  * Item = a product a store lists for one season.
  * Limits enforced by the server action, not here (they need a count/date check):
- *   STORE_ITEM_LIMIT (50) per store per season; edits only while isStoreItemWindowOpen().
+ *   STORE_ITEM_LIMIT (50) per store per season; edits only while the store item window is open
+ *   (getSeasonState() in @repo/stores/season: it includes the admin's open/closed switch).
  */
 // Default import: mongoose is CommonJS, so named runtime imports fail under plain Node ESM.
 import mongoose, { type InferSchemaType, type Model } from "mongoose";

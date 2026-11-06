@@ -196,7 +196,9 @@
       "openInPast": "The opening date must be after today.",
       "locked": "This season has opened, so its dates are locked.",
       "changed": "Someone else changed these dates meanwhile. Reload the page and try again.",
-      "confirmRequired": "Tick the box to confirm the freeze."
-    }
+      "confirmRequired": "Tick the box to confirm the freeze.",
+      "notOpen": "The season isn't open, so there's nothing to freeze."
+    },
+    "freezeOnlyOpen": "The emergency freeze can only be switched on while the season is open."
   }
 }

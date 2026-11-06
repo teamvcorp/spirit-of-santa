@@ -10,7 +10,13 @@ import { requireRole } from "@repo/auth";
 import { setForceFrozen, setSeasonDates, setStoreWindow, type SeasonResult } from "@repo/stores/season";
 import { authOptions } from "@/auth";
 
-export type SeasonFormState = { status: "idle" | "done" | "error"; error?: string; nonce?: string };
+export type SeasonFormState = {
+  status: "idle" | "done" | "error";
+  error?: string;
+  /** Echoed back on error so the admin's typing isn't lost when the form re-mounts. */
+  values?: Record<string, string>;
+  nonce?: string;
+};
 
 const str = (fd: FormData, k: string) => (typeof fd.get(k) === "string" ? String(fd.get(k)) : "");
 async function adminId() {
@@ -32,9 +38,13 @@ export async function storeWindowAction(_prev: SeasonFormState, fd: FormData): P
 
 export async function forceFreezeAction(_prev: SeasonFormState, fd: FormData): Promise<SeasonFormState> {
   const id = await adminId();
-  const on = str(fd, "on") === "true";
+  const parsed = z
+    .object({ on: z.enum(["true", "false"]), confirm: z.enum(["yes", ""]) })
+    .safeParse({ on: str(fd, "on"), confirm: str(fd, "confirm") });
+  if (!parsed.success) return invalid();
+  const on = parsed.data.on === "true";
   // Turning it ON stops every family changing their list: the form requires an explicit tick.
-  if (on && str(fd, "confirm") !== "yes") return { status: "error", error: "confirmRequired", nonce: randomUUID() };
+  if (on && parsed.data.confirm !== "yes") return { status: "error", error: "confirmRequired", nonce: randomUUID() };
   return finish(await setForceFrozen(id, on));
 }
 
@@ -43,8 +53,11 @@ const datesSchema = z.object({ year: z.coerce.number().int().min(2026).max(2100)
 
 export async function datesAction(_prev: SeasonFormState, fd: FormData): Promise<SeasonFormState> {
   const id = await adminId();
-  const parsed = datesSchema.safeParse({ year: str(fd, "year"), openDate: str(fd, "openDate"), freezeDate: str(fd, "freezeDate"), closeDate: str(fd, "closeDate") });
-  if (!parsed.success) return invalid();
+  const raw = { year: str(fd, "year"), openDate: str(fd, "openDate"), freezeDate: str(fd, "freezeDate"), closeDate: str(fd, "closeDate") };
+  const values = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, v.slice(0, 10)]));
+  const parsed = datesSchema.safeParse(raw);
+  if (!parsed.success) return { ...invalid(), values };
   const { year, ...dates } = parsed.data;
-  return finish(await setSeasonDates(id, year, dates));
+  const r = finish(await setSeasonDates(id, year, dates));
+  return r.status === "error" ? { ...r, values } : r;
 }

@@ -219,7 +219,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
 
 ## Phase 3 (admin app), agreed 2026-11-05
 
-Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (ccd6572; review pending) → 3 user management (incl. "reset MFA"
+Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, ccd6572 + review fixes) → 3 user management (incl. "reset MFA"
 button) → 4 deed catalog → 5 platform dashboard v1. Deferred until their data exists: content moderation
 (Phase 4), donation settings + pay-later links (Phase 5), announcements (Phase 7).
 

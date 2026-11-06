@@ -130,12 +130,15 @@ export async function listStoreItems(store: MemberStore, isOwner: boolean) {
   // Listed items (drafts + active, never more than the limit) and archived items are loaded
   // separately, so a long archive history can never push drafts out of view (review 2026-11-05).
   const scope = { storeId: store._id, seasonYear: getSeasonYear(now) };
-  const [win, current, archived, count, lists] = await Promise.all([
+  const [win, current, archived, count, lists, viewSum] = await Promise.all([
     storeItemWindow(now),
     Item.find({ ...scope, status: NOT_ARCHIVED() }).sort({ createdAt: 1 }).limit(STORE_ITEM_LIMIT + 10).lean(),
     Item.find({ ...scope, status: "archived" }).sort({ updatedAt: -1 }).limit(100).lean(),
     Item.countDocuments({ ...scope, status: NOT_ARCHIVED() }),
     wishListTotals(scope.storeId, scope.seasonYear),
+    // Views summed over EVERY item this season (the lists above are capped), so the summary
+    // covers the same items as the wish-list totals (review 2026-11-05). Values are ours, not input.
+    Item.aggregate<{ views: number }>([{ $match: scope }, { $group: { _id: null, views: { $sum: "$stats.views" } } }]),
   ]);
   // Drafts first so the owner sees what needs a price.
   const rows = [...current.filter((i) => i.status === "draft"), ...current.filter((i) => i.status !== "draft"), ...archived].map((i) =>
@@ -143,10 +146,7 @@ export async function listStoreItems(store: MemberStore, isOwner: boolean) {
   );
   // Store-wide summary: every item this season, archived ones included (kids may still have them).
   const all = sumTotals(lists.values());
-  const summary = toStats(
-    [...current, ...archived].reduce((n, i) => n + ((i.stats as { views?: number } | undefined)?.views ?? 0), 0),
-    all,
-  );
+  const summary = toStats(viewSum[0]?.views ?? 0, all);
   return {
     items: rows,
     summary,

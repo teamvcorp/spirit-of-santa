@@ -134,7 +134,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
   families see a store only once approved.
 - **Pricing:** owners set prices; reps add/edit item details + inventory (rep-created items wait for a price).
 - **Agreement wording is a DRAFT** (`StoreAgreement` messages, version `2026-11-05`): user must review before launch.
-- Slices: 1 accounts+email (DONE, 349c069) · 2 admin approval/invite (DONE, d900b67 + review fixes 44e58aa) · 3 owner dashboard/reps (DONE, ce397ac + 5a9b255) · 4 item catalog (DONE, 4d96799 + b3d07b9) · 5 engagement stats (built; review pending).
+- Slices: 1 accounts+email (DONE, 349c069) · 2 admin approval/invite (DONE, d900b67 + review fixes 44e58aa) · 3 owner dashboard/reps (DONE, ce397ac + 5a9b255) · 4 item catalog (DONE, 4d96799 + b3d07b9) · 5 engagement stats (DONE, 43515e4 + review fixes). Phase 2 buildable scope complete; rep "mark shipped" waits for Phase 6.
 
 ## Phase 2 gotchas (learned 2026-11-05)
 

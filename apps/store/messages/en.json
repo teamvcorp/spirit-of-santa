@@ -189,7 +189,7 @@
     "statFullyFunded": "Fully funded",
     "statLocked": "Locked in (to fulfil)",
     "statFunding": "Funding progress",
-    "engagementNote": "Views count once per family per day. Wish-list numbers are totals only: you'll never see which children chose an item. Locked-in items can't be removed and are yours to fulfil.",
+    "engagementNote": "Repeat views by the same visitor on the same day count once. Wish-list numbers are totals only: you'll never see which children chose an item. Locked-in items can't be removed and are yours to fulfil.",
     "archivedHeading": "Archived items ({count})",
     "status": {
       "draft": "Needs a price",

@@ -9,7 +9,8 @@
  *  - Wish lists: only aggregate totals per item ever leave this module.
  */
 import "server-only";
-import { createHmac } from "node:crypto";
+import { createHmac, hkdfSync } from "node:crypto";
+import type { Types } from "mongoose";
 import { connectDb, Item, Store, WishListItem } from "@repo/db";
 import { getSeasonYear } from "@repo/lib/season";
 import { hitRateLimit, ipKey } from "@repo/auth/rate-limit";
@@ -23,12 +24,19 @@ const OBJECT_ID = /^[0-9a-f]{24}$/i;
 /** Who is viewing. familyId when a family is signed in, otherwise the request IP. */
 export type Viewer = { familyId?: string; ip: string };
 
-/** Non-reversible, per-deployment key for a viewer (never stored in clear). */
+/**
+ * Non-reversible, per-deployment key for a viewer (never stored in clear). The HMAC key is
+ * DERIVED from NEXTAUTH_SECRET with HKDF under its own label (same pattern as
+ * packages/auth/src/unlock-token.ts), so the session-signing key itself is never reused.
+ * Known limits (accepted, review 2026-11-05): "day" = UTC day (fixed rate-limit windows), and
+ * one household browsing signed out then signed in counts as two viewers.
+ */
 function viewerKey(v: Viewer): string {
   const secret = process.env.NEXTAUTH_SECRET;
   if (!secret) throw new Error("NEXTAUTH_SECRET is not set");
+  const key = Buffer.from(hkdfSync("sha256", secret, "", "sos/item-view/v1", 32));
   const who = v.familyId ? `family:${v.familyId}` : `ip:${ipKey(v.ip)}`;
-  return createHmac("sha256", secret).update(`item-view|${who}`).digest("base64url").slice(0, 32);
+  return createHmac("sha256", key).update(who).digest("base64url").slice(0, 32);
 }
 
 /**
@@ -38,6 +46,17 @@ function viewerKey(v: Viewer): string {
  * item per day. Never throws for bad input: a broken counter must not break the page.
  */
 export async function recordItemView(itemId: string, viewer: Viewer): Promise<boolean> {
+  try {
+    return await countView(itemId, viewer);
+  } catch (err) {
+    // Keep the promise in the doc comment: a counter failure must never fail the family's page.
+    // Log the error TYPE only (messages can contain connection details).
+    console.error("[engagement] view not counted:", err instanceof Error ? err.name : "unknown");
+    return false;
+  }
+}
+
+async function countView(itemId: string, viewer: Viewer): Promise<boolean> {
   if (!OBJECT_ID.test(itemId)) return false;
   await connectDb();
   const item = await Item.findOne({ _id: itemId, seasonYear: getSeasonYear(), status: "active" }).select("storeId").lean();
@@ -47,7 +66,8 @@ export async function recordItemView(itemId: string, viewer: Viewer): Promise<bo
   // Dedupe first (a repeat view costs nothing from the daily cap), then the per-viewer cap.
   if (!(await hitRateLimit(`view:${itemId}:${who}`, 1, DAY_SECONDS))) return false;
   if (!(await hitRateLimit(`view-cap:${who}`, MAX_COUNTED_VIEWS_PER_VISITOR_PER_DAY, DAY_SECONDS))) return false;
-  await Item.updateOne({ _id: itemId }, { $inc: { "stats.views": 1 } });
+  // timestamps: false: a family viewing an item is not an edit (updatedAt means "last edited").
+  await Item.updateOne({ _id: itemId }, { $inc: { "stats.views": 1 } }, { timestamps: false });
   return true;
 }
 
@@ -56,7 +76,9 @@ export async function recordItemView(itemId: string, viewer: Viewer): Promise<bo
  * Items nobody has listed are absent from the map: use EMPTY_TOTALS for them.
  * `storeId` must come from memberStore() (the caller's own store), never from user input.
  */
-export async function wishListTotals(storeId: unknown, seasonYear: number, itemId?: unknown): Promise<Map<string, WishListTotals>> {
+export async function wishListTotals(storeId: Types.ObjectId, seasonYear: number, itemId?: Types.ObjectId): Promise<Map<string, WishListTotals>> {
+  // ObjectId types (not string/unknown) so a URL string or request object can't be passed in by
+  // mistake: aggregations skip sanitizeFilter, so an object like {$ne: null} would match every store.
   await connectDb();
   // Aggregation pipelines aren't cast or sanitised by Mongoose: every value here is ours
   // (an ObjectId from the DB, a number, and constant status lists), never request input.

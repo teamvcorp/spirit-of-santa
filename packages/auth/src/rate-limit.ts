@@ -9,10 +9,12 @@
  */
 import "server-only";
 import { createHash } from "node:crypto";
-import { RateLimit } from "@repo/db";
+import { connectDb, RateLimit } from "@repo/db";
 
 /** Count one hit for `key`; returns true if still within `limit` for this window. */
 export async function hitRateLimit(key: string, limit: number, windowSeconds: number): Promise<boolean> {
+  // Often the first DB call of a request: make sure the (cached) connection is open.
+  await connectDb();
   const windowMs = windowSeconds * 1000;
   const windowStart = new Date(Math.floor(Date.now() / windowMs) * windowMs);
   const bump = () =>

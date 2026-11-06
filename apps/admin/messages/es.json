@@ -357,7 +357,8 @@
     "onLists": "Artículos en listas de deseos",
     "recentTitle": "Actividad reciente de administración y tiendas",
     "recentEmpty": "Aún no hay nada registrado.",
-    "laterNote": "Los puntos, el dinero y las acciones completadas aparecerán aquí cuando las familias puedan ganar y recibir propinas (fases 4–5)."
+    "laterNote": "Los puntos, el dinero y las acciones completadas aparecerán aquí cuando las familias puedan ganar y recibir propinas (fases 4–5).",
+    "pendingTexts": "{count, plural, =0 {No hay textos de acciones pendientes} one {# texto de acción pendiente de revisión} other {# textos de acciones pendientes de revisión}}"
   },
   "AuditActions": {
     "store_approve": "Tienda aprobada",
@@ -396,6 +397,24 @@
     "deed_type_activate": "Acción activada",
     "deed_type_deactivate": "Acción desactivada",
     "deed_type_reorder": "Acciones reordenadas",
-    "deed_type_seed": "Acciones sugeridas agregadas"
+    "deed_type_seed": "Acciones sugeridas agregadas",
+    "deed_create": "Acción registrada",
+    "deed_text_review": "Texto de acción revisado",
+    "kid_add": "Niño agregado",
+    "kid_update": "Niño editado",
+    "kid_delete": "Niño eliminado",
+    "kid_register_promo": "Niños registrados (promoción)",
+    "family_pin_set": "PIN de padres establecido"
+  },
+  "Moderation": {
+    "title": "Revisión de textos de acciones",
+    "intro": "Texto que escribieron los padres en acciones de \"Otra cosa\". Apruébalo para mostrarlo en la página pública del QR; ocúltalo para mostrar \"una buena acción\". Oculta cualquier cosa con nombres, lugares u otros datos personales.",
+    "loading": "Cargando…",
+    "empty": "No hay nada pendiente de revisión.",
+    "approve": "Aprobar",
+    "hide": "Ocultar",
+    "errors": {
+      "notFound": "Ya se revisó. Recarga la página."
+    }
   }
 }

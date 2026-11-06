@@ -187,5 +187,38 @@
       "deedUnavailable": "That deed isn't available any more. Choose another.",
       "dailyLimit": "That's 10 deeds today for this child. Try again tomorrow!"
     }
+  },
+  "Qr": {
+    "title": "A good deed",
+    "heading": "{name} did a good deed for you!",
+    "family": "From the {family} family",
+    "aGoodDeed": "A good deed",
+    "sayThanks": "Say thank you",
+    "sayThanksHelp": "Confirms the good deed. Free, nothing else needed.",
+    "thanked": "Thank you! {name} will be so happy to hear it.",
+    "tipTitle": "Want to leave a tip?",
+    "tipHelp": "Tips become points the child spends on a Christmas wish list ($1.50 = 1 point). Paying also confirms the deed.",
+    "other": "Other",
+    "otherAmount": "Amount in dollars",
+    "tipButton": "Continue to payment",
+    "tipTotal": "Tip: {amount}",
+    "final": "All tips are final. Payments are handled by Stripe; we never see your card number.",
+    "invalid": "This code isn't valid. Check you scanned the right one.",
+    "used": "This good deed was already thanked. Thank you!",
+    "usedPaid": "This good deed already received a tip. Thank you!",
+    "expired": "This code has expired.",
+    "tipCredited": "Thank you! Your tip was received and turned into points for the child.",
+    "tipProcessing": "Thank you! Your tip was received; the points appear within a minute.",
+    "tipReview": "Thank you! Your payment was received and our team is checking it.",
+    "tipNotPaid": "The payment wasn't completed. You haven't been charged.",
+    "errors": {
+      "rateLimited": "Too many tries. Please wait a few minutes.",
+      "invalid": "This code isn't valid.",
+      "used": "This good deed was already confirmed.",
+      "expired": "This code has expired.",
+      "seasonClosed": "The Christmas season is closed, so deeds can't be thanked right now.",
+      "amount": "Choose an amount between {min} and {max}.",
+      "stripe": "Payments aren't available right now. You can still say thank you."
+    }
   }
 }

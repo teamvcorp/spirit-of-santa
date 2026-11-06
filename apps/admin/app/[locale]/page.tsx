@@ -57,6 +57,11 @@ async function Dashboard() {
             {home("pendingStores", { count: s.stores.pending })}
           </Link>
         </p>
+        <p className="mt-2">
+          <Link href="/moderation" className="font-semibold underline underline-offset-4">
+            {t("pendingTexts", { count: s.pendingTexts })}
+          </Link>
+        </p>
         <p className="mt-2" data-testid="dash-season">
           {t("seasonLine", { year: s.season.year })} {t(`phase.${s.season.phase}`)} · {s.season.storeWindowOpen ? t("windowOpen") : t("windowClosed")} ·{" "}
           <Link href="/season" className="underline underline-offset-4">

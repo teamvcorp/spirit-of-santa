@@ -7,7 +7,9 @@
     "./catalog": "./src/catalog.ts",
     "./schemas": "./src/schemas.ts",
     "./deeds": "./src/deeds.ts",
-    "./qr": "./src/qr.ts"
+    "./qr": "./src/qr.ts",
+    "./public": "./src/public.ts",
+    "./moderation": "./src/moderation.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -19,6 +21,7 @@
     "@repo/db": "*",
     "@repo/families": "*",
     "@repo/lib": "*",
+    "@repo/payments": "*",
     "@repo/stores": "*",
     "mongoose": "9.11.4",
     "qrcode": "1.5.4",

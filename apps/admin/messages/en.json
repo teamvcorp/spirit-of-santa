@@ -357,7 +357,8 @@
     "onLists": "Items on wish lists",
     "recentTitle": "Recent admin and store activity",
     "recentEmpty": "Nothing recorded yet.",
-    "laterNote": "Points, money and completed deeds appear here once families can earn and tip (Phases 4–5)."
+    "laterNote": "Points, money and completed deeds appear here once families can earn and tip (Phases 4–5).",
+    "pendingTexts": "{count, plural, =0 {No deed texts waiting for review} one {# deed text waiting for review} other {# deed texts waiting for review}}"
   },
   "AuditActions": {
     "store_approve": "Store approved",
@@ -396,6 +397,24 @@
     "deed_type_activate": "Deed turned on",
     "deed_type_deactivate": "Deed turned off",
     "deed_type_reorder": "Deeds reordered",
-    "deed_type_seed": "Suggested deeds added"
+    "deed_type_seed": "Suggested deeds added",
+    "deed_create": "Deed recorded",
+    "deed_text_review": "Deed text reviewed",
+    "kid_add": "Child added",
+    "kid_update": "Child edited",
+    "kid_delete": "Child deleted",
+    "kid_register_promo": "Children registered (promo)",
+    "family_pin_set": "Parent PIN set"
+  },
+  "Moderation": {
+    "title": "Deed text review",
+    "intro": "Text parents typed for \"Something else\" deeds. Approve to show it on the public QR page; hide to show \"a good deed\" instead. Hide anything with names, places or other personal details.",
+    "loading": "Loading…",
+    "empty": "Nothing waiting for review.",
+    "approve": "Approve",
+    "hide": "Hide",
+    "errors": {
+      "notFound": "Already reviewed. Reload the page."
+    }
   }
 }

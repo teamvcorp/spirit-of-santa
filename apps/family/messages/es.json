@@ -187,5 +187,38 @@
       "deedUnavailable": "Esa acción ya no está disponible. Elige otra.",
       "dailyLimit": "Son 10 acciones hoy para este niño. ¡Inténtalo mañana!"
     }
+  },
+  "Qr": {
+    "title": "Una buena acción",
+    "heading": "¡{name} hizo una buena acción por ti!",
+    "family": "De la familia {family}",
+    "aGoodDeed": "Una buena acción",
+    "sayThanks": "Dar las gracias",
+    "sayThanksHelp": "Confirma la buena acción. Gratis, no hace falta nada más.",
+    "thanked": "¡Gracias! {name} se pondrá muy feliz.",
+    "tipTitle": "¿Quieres dejar una propina?",
+    "tipHelp": "Las propinas se convierten en puntos que el niño usa en su lista de deseos de Navidad ($1.50 = 1 punto). Pagar también confirma la acción.",
+    "other": "Otra",
+    "otherAmount": "Cantidad en dólares",
+    "tipButton": "Continuar al pago",
+    "tipTotal": "Propina: {amount}",
+    "final": "Todas las propinas son definitivas. Stripe procesa los pagos; nunca vemos el número de tu tarjeta.",
+    "invalid": "Este código no es válido. Revisa que escaneaste el correcto.",
+    "used": "Ya se dieron las gracias por esta buena acción. ¡Gracias!",
+    "usedPaid": "Esta buena acción ya recibió una propina. ¡Gracias!",
+    "expired": "Este código venció.",
+    "tipCredited": "¡Gracias! Recibimos tu propina y se convirtió en puntos para el niño.",
+    "tipProcessing": "¡Gracias! Recibimos tu propina; los puntos aparecen en un minuto.",
+    "tipReview": "¡Gracias! Recibimos tu pago y nuestro equipo lo está revisando.",
+    "tipNotPaid": "El pago no se completó. No se te cobró nada.",
+    "errors": {
+      "rateLimited": "Demasiados intentos. Espera unos minutos.",
+      "invalid": "Este código no es válido.",
+      "used": "Esta buena acción ya se confirmó.",
+      "expired": "Este código venció.",
+      "seasonClosed": "La temporada de Navidad está cerrada, así que ahora no se pueden agradecer acciones.",
+      "amount": "Elige una cantidad entre {min} y {max}.",
+      "stripe": "Los pagos no están disponibles ahora. Aún puedes dar las gracias."
+    }
   }
 }

@@ -31,7 +31,8 @@ function useFullReload(state: ParentFormState) {
   }, [state]);
 }
 
-export function PinSetupForm() {
+/** `next`: where to go after the PIN (validated again on the server). */
+export function PinSetupForm({ next }: { next?: string }) {
   const t = useTranslations("Parent");
   const [state, action, pending] = useActionState(setPinAction, INITIAL);
   const hydrated = useHydrated();
@@ -40,6 +41,7 @@ export function PinSetupForm() {
   return (
     <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-4">
       <LocaleField />
+      {next && <input type="hidden" name="next" value={next} />}
       {state.status === "error" && state.error && <Alert tone="error">{t(`errors.${state.error}` as never)}</Alert>}
       <TextField label={t("password")} hint={t("passwordHint")} name="password" type="password" autoComplete="current-password" required maxLength={256} />
       <TextField label={t("newPin")} hint={t("pinHint")} name="pin" type="password" inputMode="numeric" autoComplete="off" pattern="\d{4,6}" minLength={4} maxLength={6} required />
@@ -51,7 +53,7 @@ export function PinSetupForm() {
   );
 }
 
-export function UnlockForm() {
+export function UnlockForm({ next }: { next?: string }) {
   const t = useTranslations("Parent");
   const [state, action, pending] = useActionState(unlockAction, INITIAL);
   const hydrated = useHydrated();
@@ -59,6 +61,7 @@ export function UnlockForm() {
   return (
     <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-4">
       <LocaleField />
+      {next && <input type="hidden" name="next" value={next} />}
       {state.status === "error" && state.error && <Alert tone="error">{t(`errors.${state.error}` as never)}</Alert>}
       <TextField label={t("pin")} name="pin" type="password" inputMode="numeric" autoComplete="off" pattern="\d{4,6}" minLength={4} maxLength={6} required autoFocus />
       <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">

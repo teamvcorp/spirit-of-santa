@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 async function Content() {
   await connection();
-  const parent = await requireUnlockedPage();
+  const parent = await requireUnlockedPage("/parent/register");
   const [kids, t] = await Promise.all([listKids(parent), getTranslations("Register")]);
   const awaiting = kids.filter((k) => !k.registered).map((k) => ({ id: k.id, firstName: k.firstName }));
   if (awaiting.length === 0) return <p className="text-foreground/70">{t("nothingToDo")}</p>;

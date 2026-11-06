@@ -21,8 +21,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]/deed">["params"] }) {
   await connection();
-  const parent = await requireUnlockedPage();
-  const [kid, types, t, locale] = await Promise.all([getKid(parent, (await params).id), listDeedTypes({ activeOnly: true }), getTranslations("Kid"), getLocale()]);
+  const { id } = await params;
+  const parent = await requireUnlockedPage(`/kids/${id}/deed`);
+  const [kid, types, t, locale] = await Promise.all([getKid(parent, id), listDeedTypes({ activeOnly: true }), getTranslations("Kid"), getLocale()]);
   if (!kid) notFound();
   if (!kid.registered) return <Alert>{t("notRegistered")}</Alert>;
   const deeds = types.map((d) => ({ id: d.id, title: localized(d.title, locale) ?? "", description: localized(d.description, locale) }));

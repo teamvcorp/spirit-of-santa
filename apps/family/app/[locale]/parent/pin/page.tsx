@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { Card } from "@repo/ui/card";
 import { hasParentPin } from "@repo/auth/parent-pin";
-import { goTo, requireParent } from "@/lib/parent";
+import { goTo, requireParent, safeNext } from "@/lib/parent";
 import { UnlockForm } from "../parent-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,14 +13,15 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("unlockTitle"), robots: { index: false, follow: false } };
 }
 
-async function Guarded() {
+async function Guarded({ searchParams }: { searchParams: PageProps<"/[locale]/parent/pin">["searchParams"] }) {
   await connection();
   const parent = await requireParent();
-  if (!(await hasParentPin(parent))) await goTo("/parent/pin/setup");
-  return <UnlockForm />;
+  const next = safeNext((await searchParams).next) ?? undefined; // validated: family-app paths only
+  if (!(await hasParentPin(parent))) await goTo(next ? `/parent/pin/setup?next=${encodeURIComponent(next)}` : "/parent/pin/setup");
+  return <UnlockForm next={next} />;
 }
 
-export default async function UnlockPage() {
+export default async function UnlockPage(props: PageProps<"/[locale]/parent/pin">) {
   const t = await getTranslations("Parent");
   return (
     <main className="flex flex-1 items-center justify-center p-6">
@@ -28,7 +29,7 @@ export default async function UnlockPage() {
         <h1 className="text-2xl font-bold">{t("unlockTitle")}</h1>
         <p className="mb-6 mt-1 text-foreground/70">{t("unlockIntro")}</p>
         <Suspense fallback={null}>
-          <Guarded />
+          <Guarded searchParams={props.searchParams} />
         </Suspense>
       </Card>
     </main>

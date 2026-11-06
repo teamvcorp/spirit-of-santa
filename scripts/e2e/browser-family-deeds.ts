@@ -154,6 +154,28 @@ try {
   await page.waitForURL(/\/parent\/pin/, { timeout: 15_000 });
   check("kids can open their page and QR codes without the PIN; recording needs it", true);
 
+  // 7b. Like a person: "Record a good deed" while locked → PIN → BACK to the deed form (not the dashboard).
+  await page.goto(`${base}/kids/${maya._id}`);
+  await page.locator(`main:visible a[href$="/kids/${maya._id}/deed"]`).first().click();
+  await page.waitForURL(/\/parent\/pin\?next=/, { timeout: 15_000 });
+  await page.locator("main:visible").getByRole("button", { name: "Unlock" }).waitFor({ timeout: 15_000 });
+  await page.waitForFunction(() => [...document.querySelectorAll("main button[type=submit]")].filter((x) => x.checkVisibility()).every((x) => !(x as HTMLButtonElement).disabled));
+  await page.fill('main:visible [name="pin"]', PIN);
+  await page.locator("main:visible button[type=submit]").click();
+  await page.waitForURL((u) => u.pathname.endsWith(`/kids/${maya._id}/deed`), { timeout: 15_000 });
+  await page.locator('main:visible input[name="choice"]').first().waitFor({ timeout: 15_000 });
+  check("after the PIN, 'Record a good deed' lands on the deed form", true);
+
+  // 7c. A forged next= can't send the parent anywhere else (open-redirect safe).
+  await ctx.clearCookies({ name: /parent-unlock/ });
+  await page.goto(`${base}/parent/pin?next=${encodeURIComponent("//evil.example/x")}`);
+  await page.waitForFunction(() => [...document.querySelectorAll("main button[type=submit]")].filter((x) => x.checkVisibility()).every((x) => !(x as HTMLButtonElement).disabled));
+  check("forged next= is not even put in the form", (await page.locator('input[name="next"]').count()) === 0);
+  await page.fill('main:visible [name="pin"]', PIN);
+  await page.locator("main:visible button[type=submit]").click();
+  await page.waitForURL((u) => u.pathname.endsWith("/parent"), { timeout: 15_000 });
+  check("…and after the PIN it goes to the parent area, same site", new URL(page.url()).host === new URL(base).host);
+
   // 8. Spanish.
   await page.goto(`${base}/es/kids/${maya._id}`);
   await page.locator("main").getByText("Buenas acciones").first().waitFor({ timeout: 15_000 });

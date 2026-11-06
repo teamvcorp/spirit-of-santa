@@ -24,13 +24,27 @@ export async function goTo(href: string): Promise<never> {
 }
 
 /**
+ * Where to go after the PIN (`?next=`). ONLY these family-app paths are accepted, so the link can
+ * never send anyone to another site (no open redirect): /parent, /parent/kids/new,
+ * /parent/kids/<id>, /parent/register, /parent/bonus[?kid=<id>], /kids/<id>, /kids/<id>/deed.
+ */
+export function safeNext(raw: unknown): string | null {
+  if (typeof raw !== "string" || raw.length > 120) return null;
+  const ok = /^\/(?:parent(?:\/(?:kids\/new|kids\/[a-f0-9]{24}|register|bonus(?:\?kid=[a-f0-9]{24})?))?|kids\/[a-f0-9]{24}(?:\/deed)?)$/.test(raw);
+  return ok ? raw : null;
+}
+
+/**
  * Parent AND PIN-unlocked (pages). The unlock cookie is checked first (no DB): a valid unlock
  * implies a PIN exists. Only when locked do we ask the DB whether a PIN was ever set.
+ * `next` = this page's path: after the PIN the parent comes BACK here (not to the dashboard).
  */
-export async function requireUnlockedPage() {
+export async function requireUnlockedPage(next?: string) {
   const parent = await requireParent();
   if (await isParentUnlocked(parent)) return parent;
-  return goTo((await hasParentPin(parent)) ? "/parent/pin" : "/parent/pin/setup");
+  const target = (await hasParentPin(parent)) ? "/parent/pin" : "/parent/pin/setup";
+  const back = safeNext(next);
+  return goTo(back ? `${target}?next=${encodeURIComponent(back)}` : target);
 }
 
 /** Parent AND PIN-unlocked (Server Actions): null if locked, so the action can say so. */

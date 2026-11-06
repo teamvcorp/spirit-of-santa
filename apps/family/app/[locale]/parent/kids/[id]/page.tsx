@@ -18,8 +18,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 async function Guarded({ params }: { params: PageProps<"/[locale]/parent/kids/[id]">["params"] }) {
   await connection();
-  const parent = await requireUnlockedPage();
-  const kid = await getKid(parent, (await params).id);
+  const { id } = await params;
+  const parent = await requireUnlockedPage(`/parent/kids/${id}`);
+  const kid = await getKid(parent, id);
   if (!kid) notFound(); // other families' kids look the same as missing ones
   const { min, max } = birthYearRange();
   return <KidForm id={kid.id} initial={{ firstName: kid.firstName, birthYear: String(kid.birthYear), displayName: kid.displayName, itemCap: String(kid.itemCap) }} minYear={min} maxYear={max} />;

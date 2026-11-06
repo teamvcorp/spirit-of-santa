@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 async function Guarded() {
   await connection();
-  await requireUnlockedPage();
+  await requireUnlockedPage("/parent/kids/new");
   const { min, max } = birthYearRange();
   return <KidForm initial={{ firstName: "", birthYear: "", displayName: "", itemCap: "5" }} minYear={min} maxYear={max} />;
 }

@@ -52,6 +52,12 @@
   **Also fulfilled on the return page (2026-11-06):** registration/tip/donation status pages call
   `fulfilPaidPaymentIntent` (same idempotent handler) when Stripe says the session is paid, so a late or missing
   webhook (always the case locally without the Stripe CLI) doesn't leave kids "awaiting". E2E `stripe-return-fulfil.ts`.
+- **Back to where you were after the PIN (2026-11-06, user bug "Record a good deed → parent page"):**
+  `requireUnlockedPage(next)` sends a locked parent to `/parent/pin?next=<path>`; the PIN forms carry `next` and the
+  actions go there. `safeNext()` (apps/family/lib/parent.ts) is an ALLOW-LIST of family paths (no open redirect).
+  Every PIN page passes its own path. E2E deeds 18 (incl. forged next=), bonus 13.
+- **Who records deeds (roadmap):** the PARENT picks from the catalog and submits (PIN). No kid-facing "choose a deed
+  to do" screen exists (asked user 2026-11-06).
 - **Parent PIN lock-state changes = full page load (2026-11-06):** set PIN / unlock return `{ to }` and the form does
   `window.location.replace` (the client router otherwise replayed a cached "/parent → /parent/pin" redirect, so the
   first correct PIN "failed"). Lock = server redirect home. E2E kids test clicks links like a user (20 checks).

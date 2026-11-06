@@ -15,7 +15,7 @@ import { redirect } from "next/navigation";
 import { localizePath } from "@repo/i18n/paths";
 import { formString } from "@repo/lib/form";
 import { DEFAULT_LOCALE, isLocale } from "@repo/lib/locales";
-import { requireParent, unlockedParentOrNull } from "@/lib/parent";
+import { requireParent, safeNext, unlockedParentOrNull } from "@/lib/parent";
 
 export type ParentFormState = {
   status: "idle" | "done" | "error";
@@ -58,14 +58,15 @@ export async function setPinAction(_prev: ParentFormState, fd: FormData): Promis
   if (pin !== str(fd, "pinConfirm")) return { status: "error", fieldErrors: { pinConfirm: "pinMismatch" }, nonce: randomUUID() };
   const r = await setParentPinWithPassword(parent, str(fd, "password"), pin);
   if (!r.ok) return err(r.error);
-  return reloadTo("/parent", fd);
+  // Back to the page that asked for the PIN (only known family-app paths), else the dashboard.
+  return reloadTo(safeNext(fd.get("next")) ?? "/parent", fd);
 }
 
 export async function unlockAction(_prev: ParentFormState, fd: FormData): Promise<ParentFormState> {
   const parent = await requireParent();
   // Same answer for wrong PIN and lockout (the lockout is what makes guessing impractical).
   if (!(await unlockParentDashboard(parent, str(fd, "pin")))) return err("wrongPin");
-  return reloadTo("/parent", fd);
+  return reloadTo(safeNext(fd.get("next")) ?? "/parent", fd);
 }
 
 /**

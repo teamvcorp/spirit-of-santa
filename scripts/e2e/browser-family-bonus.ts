@@ -74,12 +74,14 @@ try {
 
   // 1. Locked → the PIN page first.
   await page.goto(`${base}/parent/bonus`);
-  await page.waitForURL(/\/parent\/pin$/, { timeout: 60_000 });
-  check("bonus page needs the parent PIN", true);
+  await page.waitForURL((u) => u.pathname.endsWith("/parent/pin") && u.searchParams.get("next") === "/parent/bonus", { timeout: 60_000 });
+  check("bonus page needs the parent PIN (and remembers where you were going)", true);
   await hydrated(page);
   await page.fill('[name="pin"]', PIN);
   await page.click("main:visible button[type=submit]");
-  await page.waitForURL((u) => u.pathname.endsWith("/parent"), { timeout: 60_000 });
+  await page.waitForURL((u) => u.pathname.endsWith("/parent/bonus"), { timeout: 60_000 });
+  check("after the PIN, back on the bonus page", true);
+  await page.goto(`${base}/parent`);
 
   // 2. Dashboard: link only for registered kids, preselecting the kid.
   await page.locator("main:visible h1").first().waitFor({ timeout: 60_000 });

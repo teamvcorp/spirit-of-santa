@@ -23,8 +23,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 async function Content({ searchParams }: { searchParams: PageProps<"/[locale]/parent/bonus">["searchParams"] }) {
   await connection();
-  const parent = await requireUnlockedPage();
-  const [kids, win, sp, t] = await Promise.all([listKids(parent), giftWindow(), searchParams, getTranslations("Bonus")]);
+  const sp = await searchParams;
+  const kidParam = typeof sp.kid === "string" ? sp.kid : "";
+  const parent = await requireUnlockedPage(`/parent/bonus${/^[a-f0-9]{24}$/.test(kidParam) ? `?kid=${kidParam}` : ""}`);
+  const [kids, win, t] = await Promise.all([listKids(parent), giftWindow(), getTranslations("Bonus")]);
   const registered = kids.filter((k) => k.registered).map((k) => ({ id: k.id, firstName: k.firstName }));
   if (registered.length === 0) return <p className="text-foreground/70">{t("noKids")}</p>;
   if (!win.open) return <Alert>{t("errors.seasonClosed")}</Alert>;

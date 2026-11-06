@@ -12,6 +12,7 @@
   "dependencies": {
     "@repo/auth": "*",
     "@repo/db": "*",
+    "@repo/deeds": "*",
     "@repo/i18n": "*",
     "@repo/lib": "*",
     "@repo/storage": "*",

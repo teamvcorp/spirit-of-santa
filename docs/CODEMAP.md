@@ -15,6 +15,7 @@
 | `packages/i18n` | next-intl factories (routing, request, proxy), `Common` messages, `LocaleSwitcher`, `getCommonTranslator` for SMS/push |
 | `packages/db` | `connectDb()`, `withTransaction()` + 12 Mongoose models incl. `Payment` (money records) and `StripeEvent` (webhook log) (server-only) |
 | `packages/email` | **Server-only** `sendEmail()` via Resend + pure `renderEmail()` templates (en/es, escaped, link allow-list). Dev prints instead of sending |
+| `packages/deeds` | **Server-only** deed catalog (`catalog.ts`) + client-safe zod (`schemas.ts`). Phase 4 deed flow goes here too |
 | `packages/stores` | **Server-only** store business logic: `engagement.ts` (`recordItemView` for the family app in Phase 6, `wishListTotals`) + pure `engagement-math.ts`, `admin.ts` (approve/reject/suspend/reinstate/discount/invite/resend/cancel: atomic transitions + AuditLog + owner emails), `owner.ts` (profile, photos, reps; ownership re-checked from the DB on every call), `items.ts` (catalog: window, 50 limit, owner-only pricing, photos), `queries.ts` (queue, detail), `schemas.ts` (discount % → bps), `urls.ts` (STORE_APP_URL) |
 | `packages/payments` | **Server-only** Stripe: `client` (`getStripe`, `expectedLivemode`), `metadata` (`sos_*` payment-label contract), `webhook` (verify → dedupe → `handlers`) |
 | `packages/auth` | NextAuth v4 options, guards, argon2id hashing, parent PIN (server-only); UI: `SignInSlot`/`SignInForm`, `AccountMenu`, `SignOutButton`; `safeCallbackPath` (open-redirect guard); `scripts/seed-dev.ts`; account flows (`account-flows.ts`: store sign-up, verify, resend, forgot/reset), `tokens.ts` (hashed single-use links), `rate-limit.ts`, `schemas.ts`, shared forms (`forms.tsx`, `token-slot.tsx`, `form-actions.ts`) |
@@ -219,7 +220,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
 
 ## Phase 3 (admin app), agreed 2026-11-05
 
-Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, ccd6572 + review fixes) → 3 user management (DONE, a428090 + review fixes) → 4 deed catalog → 5 platform dashboard v1. Deferred until their data exists: content moderation
+Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, ccd6572 + review fixes) → 3 user management (DONE, a428090 + review fixes) → 4 deed catalog (built; review pending) → 5 platform dashboard v1. Deferred until their data exists: content moderation
 (Phase 4), donation settings + pay-later links (Phase 5), announcements (Phase 7).
 
 - **Admin MFA (slice 1):** TOTP authenticator + 10 recovery codes (`docs/vendor/totp-mfa.md`). Admin without MFA
@@ -241,6 +242,11 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   only admin suspensions can be reinstated; a store's rep re-invite can't undo one. E2E `browser-admin-users.ts` (15).
 - **Ids from requests: always `normalizeObjectId()` (`@repo/lib/ids`)** before comparing as text (upper-case copy of your
   own id once bypassed "not yourself").
+- **Deed catalog (slice 4):** new package `@repo/deeds` (`catalog.ts` server, `schemas.ts` zod). Admin `/deeds`, `/deeds/new`,
+  `/deeds/[id]`: titles en+es required, optional description + suggested tip range (cents, ≤ MAX_TIP_CENTS), ↑/↓ reorder
+  (whole list renumbered 10,20,… in one transaction), on/off (no delete: deeds reference their type). "8 suggested
+  deeds" only into an EMPTY catalog (`STARTER_DEEDS`, user content to review). Phase 4 reads
+  `listDeedTypes({ activeOnly: true })`. E2E `browser-admin-deeds.ts` (14; backs up + restores the catalog).
 - **Season controls (slice 2):** rule book = pure `resolveSeason` / `validateSeasonDates` in `@repo/lib/season`
   (unit-tested); server = `getSeasonState()` in `@repo/stores/season`. ANY server check of season phase or the
   store window must use `getSeasonState()` (it applies the admin overrides). Season dates are stored as calendar

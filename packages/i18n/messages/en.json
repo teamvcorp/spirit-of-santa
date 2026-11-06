@@ -87,7 +87,8 @@
     "nav": {
       "stores": "Stores",
       "season": "Season",
-      "users": "Users"
+      "users": "Users",
+      "deeds": "Deeds"
     },
     "storeStatus": {
       "invited": "Invited",

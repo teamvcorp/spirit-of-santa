@@ -18,7 +18,14 @@ const deedTypeSchema = new Schema(
       en: { type: String, required: true, trim: true, maxlength: 100 },
       es: { type: String, trim: true, maxlength: 100 },
     },
+    /** Optional one-line explanation shown under the title (admin /deeds, Phase 3 slice 4). */
+    description: {
+      en: { type: String, trim: true, maxlength: 200 },
+      es: { type: String, trim: true, maxlength: 200 },
+    },
+    /** Suggested tip range shown to the person thanking the kid (never enforced on the amount). */
     recommendedTipCents: { min: centsField(false), max: centsField(false) },
+    /** Inactive = hidden from families; kept because submitted deeds point at it (no delete). */
     active: { type: Boolean, default: true },
     sortOrder: { type: Number, default: 0 },
   },

@@ -57,6 +57,9 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
                 <Link href="/users" className="font-semibold underline-offset-4 hover:underline">
                   {common("nav.users")}
                 </Link>
+                <Link href="/deeds" className="font-semibold underline-offset-4 hover:underline">
+                  {common("nav.deeds")}
+                </Link>
                 {/* usePathname() inside: on dynamic routes (e.g. /stores/[id]) the path isn't known
                     at prerender time, so it must stream in inside Suspense (Cache Components). */}
                 <Suspense fallback={null}>

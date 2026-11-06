@@ -22,7 +22,7 @@ async function Guarded({ params }: { params: PageProps<"/[locale]/parent/kids/[i
   const kid = await getKid(parent, (await params).id);
   if (!kid) notFound(); // other families' kids look the same as missing ones
   const { min, max } = birthYearRange();
-  return <KidForm id={kid.id} initial={{ firstName: kid.firstName, birthYear: String(kid.birthYear), displayName: kid.displayName }} minYear={min} maxYear={max} />;
+  return <KidForm id={kid.id} initial={{ firstName: kid.firstName, birthYear: String(kid.birthYear), displayName: kid.displayName, itemCap: String(kid.itemCap) }} minYear={min} maxYear={max} />;
 }
 
 export default async function EditKidPage(props: PageProps<"/[locale]/parent/kids/[id]">) {

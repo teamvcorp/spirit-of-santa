@@ -321,6 +321,11 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
 - **Always `connectDb()` before the first query in a service** (public pages can be a fresh instance's first request; a
   missing connect HANGS ~10 s). `hitRateLimit` now connects itself.
 - **E2E gotcha:** visiting `/es/...` sets a locale cookie; later prefix-less visits in the same browser context are Spanish.
+- **Slice 5 parent controls (built; review pending):** `KidVote` (one per kid per Chicago day, upsert = change same day;
+  unvoted days = Nice, computed: `daysSoFar` from Jan 1 or kid creation; per seasonYear → resets Jan 1; deleted with the kid).
+  `@repo/families/votes` (castVote, familyTallies), `settings.ts` (family nickname + on/off, audited without text). Kid form
+  has `itemCap` (0–50, enforced in Phase 6). Dashboard: tally + Nice/Naughty buttons (aria-pressed) + nickname card;
+  kid page shows the tally. E2E `browser-family-controls.ts` (13).
 - **Server Actions can't read the locale** (`getLocale()` / next/root-params throw there): forms send a hidden `locale`
   field and actions redirect with `localizePath()`.
 - Order: 1 parent sign-up → 2 kids + PIN + dashboard shell (+ $5 step) → 3 deed + QR → 4 QR landing/thank-you →

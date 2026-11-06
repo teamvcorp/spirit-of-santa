@@ -121,9 +121,26 @@
       "confirmRequired": "Tick the box to confirm.",
       "invalidPin": "Use 4–6 digits for the PIN.",
       "passwordRequired": "Type your account password.",
-      "noFamily": "Your family account wasn't found. Sign out and in again."
+      "noFamily": "Your family account wasn't found. Sign out and in again.",
+      "invalidCap": "Use a number from 0 to 50."
     },
-    "registerKids": "Register children ($5 each)"
+    "registerKids": "Register children ($5 each)",
+    "itemCap": "Wish-list item limit",
+    "itemCapHint": "How many items this child may put on their wish list (0–50).",
+    "tally": "This year: {nice} nice {nice, plural, one {day} other {days}}, {naughty} naughty",
+    "capLine": "up to {cap} wish-list items",
+    "voteFor": "Today's vote for {name}",
+    "vote": {
+      "nice": "Nice",
+      "naughty": "Naughty"
+    },
+    "familyTitle": "Family nickname",
+    "familyIntro": "Shown on QR pages as \"From the … family\" only if you switch it on. Your real family name is never shown.",
+    "aliasLabel": "Nickname",
+    "aliasHint": "Something fun, not your surname (e.g. \"North Pole Helpers\").",
+    "aliasShow": "Show it on QR pages",
+    "aliasSave": "Save",
+    "aliasSaved": "Saved."
   },
   "Register": {
     "title": "Register your children",
@@ -186,7 +203,8 @@
       "seasonClosed": "Good deeds can be recorded while the season is open (from October 1).",
       "deedUnavailable": "That deed isn't available any more. Choose another.",
       "dailyLimit": "That's 10 deeds today for this child. Try again tomorrow!"
-    }
+    },
+    "tally": "Santa's list this year: {nice} nice {nice, plural, one {day} other {days}}, {naughty} naughty"
   },
   "Qr": {
     "title": "A good deed",

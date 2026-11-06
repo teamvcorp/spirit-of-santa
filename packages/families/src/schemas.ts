@@ -5,6 +5,12 @@
  */
 import { z } from "zod";
 import { MAX_KID_AGE_YEARS } from "@repo/lib/limits";
+
+/** Family nickname for public QR pages ("From the {alias} family"). Blank = none. */
+export const familyAliasSchema = z.object({
+  alias: z.string().trim().max(40, "tooLong"),
+  show: z.enum(["on", "off"]),
+});
 import { getSeasonYear } from "@repo/lib/season";
 
 /**
@@ -37,6 +43,8 @@ export function kidSchema(now = new Date(), keepYear?: number) {
         .int("invalid")
         .refine((y) => y === keepYear || (y >= min && y <= max), "invalidYear"),
       displayName: z.string().trim().max(20, "tooLong"),
+      /** Max items on this child's wish list (enforced when wish lists arrive, Phase 6). */
+      itemCap: z.coerce.number("invalid").int("invalid").min(0, "invalidCap").max(50, "invalidCap").default(5),
     })
     .transform((v) => ({ ...v, displayName: v.displayName || defaultDisplayName(v.firstName) }));
 }

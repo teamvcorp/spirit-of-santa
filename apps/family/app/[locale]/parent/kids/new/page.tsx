@@ -18,7 +18,7 @@ async function Guarded() {
   await connection();
   await requireUnlockedPage();
   const { min, max } = birthYearRange();
-  return <KidForm initial={{ firstName: "", birthYear: "", displayName: "" }} minYear={min} maxYear={max} />;
+  return <KidForm initial={{ firstName: "", birthYear: "", displayName: "", itemCap: "5" }} minYear={min} maxYear={max} />;
 }
 
 export default async function NewKidPage() {

@@ -6,7 +6,9 @@
   "exports": {
     "./kids": "./src/kids.ts",
     "./registration": "./src/registration.ts",
-    "./schemas": "./src/schemas.ts"
+    "./schemas": "./src/schemas.ts",
+    "./votes": "./src/votes.ts",
+    "./settings": "./src/settings.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

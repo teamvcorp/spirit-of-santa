@@ -121,9 +121,26 @@
       "confirmRequired": "Marca la casilla para confirmar.",
       "invalidPin": "Usa de 4 a 6 dígitos para el PIN.",
       "passwordRequired": "Escribe la contraseña de tu cuenta.",
-      "noFamily": "No se encontró tu cuenta familiar. Cierra sesión y vuelve a entrar."
+      "noFamily": "No se encontró tu cuenta familiar. Cierra sesión y vuelve a entrar.",
+      "invalidCap": "Usa un número del 0 al 50."
     },
-    "registerKids": "Registrar niños ($5 cada uno)"
+    "registerKids": "Registrar niños ($5 cada uno)",
+    "itemCap": "Límite de artículos en la lista",
+    "itemCapHint": "Cuántos artículos puede poner este niño en su lista de deseos (0–50).",
+    "tally": "Este año: {nice} {nice, plural, one {día bueno} other {días buenos}}, {naughty} traviesos",
+    "capLine": "hasta {cap} artículos en la lista",
+    "voteFor": "Voto de hoy para {name}",
+    "vote": {
+      "nice": "Bueno",
+      "naughty": "Travieso"
+    },
+    "familyTitle": "Apodo familiar",
+    "familyIntro": "Se muestra en las páginas QR como \"De la familia …\" solo si lo activas. Tu apellido real nunca se muestra.",
+    "aliasLabel": "Apodo",
+    "aliasHint": "Algo divertido, no tu apellido (p. ej., \"Ayudantes del Polo Norte\").",
+    "aliasShow": "Mostrarlo en las páginas QR",
+    "aliasSave": "Guardar",
+    "aliasSaved": "Guardado."
   },
   "Register": {
     "title": "Registra a tus hijos",
@@ -186,7 +203,8 @@
       "seasonClosed": "Las buenas acciones se pueden registrar mientras la temporada está abierta (desde el 1 de octubre).",
       "deedUnavailable": "Esa acción ya no está disponible. Elige otra.",
       "dailyLimit": "Son 10 acciones hoy para este niño. ¡Inténtalo mañana!"
-    }
+    },
+    "tally": "La lista de Santa este año: {nice} {nice, plural, one {día bueno} other {días buenos}}, {naughty} traviesos"
   },
   "Qr": {
     "title": "Una buena acción",

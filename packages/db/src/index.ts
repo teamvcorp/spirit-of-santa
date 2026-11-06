@@ -12,6 +12,7 @@ export { connectDb, trusted, withTransaction, type DbSession } from "./connect.t
 export { User, USER_STATUSES, type UserDoc } from "./models/user.ts";
 export { Family, type FamilyDoc } from "./models/family.ts";
 export { Kid, type KidDoc } from "./models/kid.ts";
+export { KidVote, KID_VOTES, type KidVoteDoc } from "./models/kid-vote.ts";
 export { Store, STORE_STATUSES, type StoreDoc } from "./models/store.ts";
 export { Item, ITEM_STATUSES, type ItemDoc } from "./models/item.ts";
 export {

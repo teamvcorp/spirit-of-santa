@@ -8,7 +8,10 @@ import { refresh } from "next/cache";
 import { setParentPinWithPassword, unlockParentDashboard, lockParentDashboard } from "@repo/auth/parent-pin";
 import { fieldErrors } from "@repo/auth/schemas";
 import { addKid, deleteKid, getKid, updateKid } from "@repo/families/kids";
-import { kidSchema } from "@repo/families/schemas";
+import { familyAliasSchema, kidSchema } from "@repo/families/schemas";
+import { setFamilyAlias } from "@repo/families/settings";
+import { castVote } from "@repo/families/votes";
+import { z } from "zod";
 import { redirect } from "next/navigation";
 import { localizePath } from "@repo/i18n/paths";
 import { formString } from "@repo/lib/form";
@@ -58,7 +61,7 @@ export async function lockAction(fd: FormData): Promise<void> {
   go("/", fd);
 }
 
-const KID_FIELDS = ["firstName", "birthYear", "displayName"] as const;
+const KID_FIELDS = ["firstName", "birthYear", "displayName", "itemCap"] as const;
 
 /** Add (no id) or edit a kid. */
 export async function saveKidAction(_prev: ParentFormState, fd: FormData): Promise<ParentFormState> {
@@ -82,6 +85,31 @@ export async function deleteKidAction(_prev: ParentFormState, fd: FormData): Pro
   if (str(fd, "confirm") !== "yes") return err("confirmRequired");
   const r = await deleteKid(parent, str(fd, "id"));
   if (!r.ok) return err(r.error);
+  refresh();
+  return { status: "done", nonce: randomUUID() };
+}
+
+/** Today's Naughty/Nice vote for one kid (PIN re-checked here). */
+export async function voteAction(_prev: ParentFormState, fd: FormData): Promise<ParentFormState> {
+  const parent = await unlockedParentOrNull();
+  if (!parent) return err("locked");
+  const parsed = z.object({ kidId: z.string().min(1), vote: z.enum(["nice", "naughty"]) }).safeParse({ kidId: str(fd, "kidId"), vote: str(fd, "vote") });
+  if (!parsed.success) return err("notFound");
+  const r = await castVote(parent, parsed.data.kidId, parsed.data.vote);
+  if (!r.ok) return err(r.error);
+  refresh();
+  return { status: "done", nonce: randomUUID() };
+}
+
+/** Family nickname for public QR pages (PIN re-checked here). */
+export async function aliasAction(_prev: ParentFormState, fd: FormData): Promise<ParentFormState> {
+  const values = { alias: str(fd, "alias").slice(0, 60), show: str(fd, "show") === "on" ? "on" : "off" };
+  const parent = await unlockedParentOrNull();
+  if (!parent) return err("locked", values);
+  const parsed = familyAliasSchema.safeParse(values);
+  if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), values, nonce: randomUUID() };
+  const r = await setFamilyAlias(parent, parsed.data.alias, parsed.data.show === "on");
+  if (!r.ok) return err("notFound", values);
   refresh();
   return { status: "done", nonce: randomUUID() };
 }

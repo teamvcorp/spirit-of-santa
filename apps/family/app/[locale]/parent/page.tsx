@@ -7,7 +7,9 @@ import { listKids } from "@repo/families/kids";
 import { Link } from "@/i18n/navigation";
 import { requireUnlockedPage } from "@/lib/parent";
 import { lockAction } from "./actions";
-import { DeleteKidForm } from "./parent-forms";
+import { AliasForm, DeleteKidForm, VoteButtons } from "./parent-forms";
+import { getFamilySettings } from "@repo/families/settings";
+import { familyTallies } from "@repo/families/votes";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Parent");
@@ -18,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 async function Content() {
   await connection();
   const parent = await requireUnlockedPage();
-  const [kids, t, locale] = await Promise.all([listKids(parent), getTranslations("Parent"), getLocale()]);
+  const [kids, t, locale, tallies, settings] = await Promise.all([listKids(parent), getTranslations("Parent"), getLocale(), familyTallies(parent), getFamilySettings(parent)]);
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -53,6 +55,12 @@ async function Content() {
                     {k.firstName}
                   </Link>
                   <p className="text-sm text-foreground/70">{t("kidLine", { displayName: k.displayName, year: k.birthYear })}</p>
+                  <p className="text-sm" data-testid={`tally-${k.id}`}>
+                    {t("tally", { nice: tallies.get(k.id)?.nice ?? 0, naughty: tallies.get(k.id)?.naughty ?? 0 })} · {t("capLine", { cap: k.itemCap })}
+                  </p>
+                  <div className="mt-2">
+                    <VoteButtons kidId={k.id} name={k.firstName} today={tallies.get(k.id)?.today} />
+                  </div>
                   <span className="mt-1 inline-block rounded-full border border-foreground/30 px-2 text-xs">{k.registered ? t("registered") : t("awaiting")}</span>
                 </div>
                 <DeleteKidForm id={k.id} name={k.firstName} />
@@ -66,6 +74,11 @@ async function Content() {
             {t("registerKids")}
           </Link>
         )}
+      </Card>
+      <Card className="mt-6">
+        <h2 className="mb-1 text-lg font-semibold">{t("familyTitle")}</h2>
+        <p className="mb-4 text-sm text-foreground/70">{t("familyIntro")}</p>
+        <AliasForm alias={settings?.alias ?? ""} show={settings?.show ?? false} />
       </Card>
     </>
   );

@@ -163,7 +163,7 @@ try {
   await hydrated(page);
   const row = page.locator("main li", { hasText: "Leo" });
   await row.locator('input[name="confirm"]').check();
-  await row.locator("button[type=submit]").click();
+  await row.locator("button", { hasText: "Delete child" }).click();
   for (let i = 0; i < 30 && (await Kid.exists({ _id: kids[1]!._id })); i++) await page.waitForTimeout(300);
   check("delete really removes the child's record, deeds and wish-list rows, audited",
     !(await Kid.exists({ _id: kids[1]!._id })) && (await Deed.countDocuments({ kidId: kids[1]!._id })) === 0 &&

@@ -34,15 +34,8 @@ import { ITEM_LOCK_DAYS, MIN_CENTIPOINTS_TO_ADD_ITEM } from "@repo/lib/limits";
 import { itemPriceCentsToCentipoints } from "@repo/lib/points";
 import { getSeasonState } from "@repo/stores/season";
 import { planAllocation } from "./plan.ts";
+import { isRemovable, ON_LIST } from "./rules.ts";
 
-/** Statuses that count as "on the list" (item cap, no duplicates). */
-const ON_LIST = [
-  "active",
-  "fully_funded",
-  "locked",
-  "shipped",
-  "delivered",
-] as const;
 const DAY_MS = 86_400_000;
 
 /**
@@ -320,13 +313,8 @@ export async function removeFromList(
               : "notFound",
         };
       }
-      // Past its 30 days even if the daily lock job hasn't run yet: it's locked.
-      if (
-        w.status === "fully_funded" &&
-        w.fullyFundedAt &&
-        new Date(w.fullyFundedAt).getTime() <=
-          now.getTime() - ITEM_LOCK_DAYS * DAY_MS
-      )
+      // Past its 30 days even if the daily lock job hasn't run yet: it's locked (shared rule).
+      if (!isRemovable(w.status, w.fullyFundedAt, now))
         return { ok: false, error: "locked" };
       const kidId = String(w.kidId);
       const res = await WishListItem.updateOne(

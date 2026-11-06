@@ -14,6 +14,8 @@ import { localized } from "@repo/deeds/catalog";
 import { listKidDeeds } from "@repo/deeds/deeds";
 import { donationLink, qrImage } from "@repo/deeds/donate";
 import { ResetLinkForm } from "./donation-card";
+import { WishListCard } from "./wish-list-card";
+import { kidWishList } from "@repo/wishlists/catalog";
 import { formatPoints } from "@repo/lib/format";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
@@ -31,8 +33,8 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
   const { id } = await params;
   const origin = process.env.NEXTAUTH_URL;
   if (!origin) throw new Error("NEXTAUTH_URL is not set");
-  const [kid, deeds, t, format, locale, tallies] = await Promise.all([getKid(parent, id), listKidDeeds(parent, id, origin), getTranslations("Kid"), getFormatter(), getLocale(), kidTally(parent, id)]);
-  if (!kid || !deeds) notFound(); // other families' kids look the same as missing ones
+  const [kid, deeds, t, format, locale, tallies, wishes] = await Promise.all([getKid(parent, id), listKidDeeds(parent, id, origin), getTranslations("Kid"), getFormatter(), getLocale(), kidTally(parent, id), kidWishList(parent, id)]);
+  if (!kid || !deeds || !wishes) notFound(); // other families' kids look the same as missing ones
   const link = kid.registered ? await donationLink(parent, id, origin) : null;
   const donate = link ? { url: link, image: await qrImage(link) } : null;
   const day = (d?: Date) => (d ? format.dateTime(new Date(d), { month: "short", day: "numeric" }) : "");
@@ -52,6 +54,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
         )}
       </div>
       {!kid.registered && <Alert className="mb-6">{t("notRegistered")}</Alert>}
+      <WishListCard kidId={kid.id} registered={kid.registered} cap={kid.itemCap} list={wishes} />
       {donate && (
         <Card className="mb-6">
           <h2 className="mb-1 text-lg font-semibold">{t("donateTitle")}</h2>

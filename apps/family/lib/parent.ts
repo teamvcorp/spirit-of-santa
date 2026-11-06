@@ -26,11 +26,12 @@ export async function goTo(href: string): Promise<never> {
 /**
  * Where to go after the PIN (`?next=`). ONLY these family-app paths are accepted, so the link can
  * never send anyone to another site (no open redirect): /parent, /parent/kids/new,
- * /parent/kids/<id>, /parent/register, /parent/bonus[?kid=<id>], /kids/<id>, /kids/<id>/deed.
+ * /parent/kids/<id>, /parent/register, /parent/bonus[?kid=<id>], /kids/<id>, /kids/<id>/deed,
+ * /kids/<id>/wishlist/<wishId>/remove.
  */
 export function safeNext(raw: unknown): string | null {
   if (typeof raw !== "string" || raw.length > 120) return null;
-  const ok = /^\/(?:parent(?:\/(?:kids\/new|kids\/[a-f0-9]{24}|register|bonus(?:\?kid=[a-f0-9]{24})?))?|kids\/[a-f0-9]{24}(?:\/deed)?)$/.test(raw);
+  const ok = /^\/(?:parent(?:\/(?:kids\/new|kids\/[a-f0-9]{24}|register|bonus(?:\?kid=[a-f0-9]{24})?))?|kids\/[a-f0-9]{24}(?:\/deed|\/wishlist\/[a-f0-9]{24}\/remove)?)$/.test(raw);
   return ok ? raw : null;
 }
 

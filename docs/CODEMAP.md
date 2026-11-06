@@ -496,6 +496,19 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   → rolled back, "seasonNotOpen"); sweep starts from kids WITH points; split's sweep is best-effort;
   `MIN_CENTIPOINTS_TO_ADD_ITEM` in @repo/lib/limits. **Before live use, slice 4 MUST handle escrow still on unfinished
   items at Dec 25 (→ unfunded, parent pay-up, then zeroed with the Jan 1 reset).**
+  User 2026-11-06: an item not fully funded at Dec 25 DROPS OFF and its escrowed points go to Spirit of Santa
+  (confirm a parent pay-up window first, at slice 4). The "≥1 spare point to add" rule stays (big lists = active kids).
+- **Slice 2 gift browser + wish-list UI (2026-11-06).** Kid pages (NO PIN, parent session):
+  `/kids/[id]/gifts` (GET form: q / category / sort / page in the URL, `parseGiftQuery` = Zod with
+  defaults on bad input; 24 per page), `/kids/[id]/gifts/[itemId]` (photo, store, points price, stock, Add button
+  with the reason it's blocked; counts a store view via `recordItemView`), "My wish list" card on `/kids/[id]`
+  (`wish-list-card.tsx`, native <progress>, lock date, substitute note). Parent PIN page
+  `/kids/[id]/wishlist/[wid]/remove` (added to `safeNext`). Share = the existing donation link (hint text).
+  Reads: `@repo/wishlists/catalog` (`browseGifts`/`giftDetail`/`kidWishList`; aggregation with $lookup of
+  APPROVED stores; $text search on the Item text index = whole words). Pure rules `@repo/wishlists/rules`
+  (`ON_LIST`, `lockAt`, `isRemovable`) shared by engine + UI (tests). `toObjectId` in @repo/db: aggregate() does
+  NOT cast string ids (a string $match silently matches nothing). E2E `browser-family-wishlist.ts` (19).
+  Gotcha: notFound() inside Suspense streams with HTTP 200: E2E checks the "Page not found" text, not the status.
 
 ## Open items / TODO
 

@@ -404,7 +404,17 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   receipt date = `Payment.succeededAt` (new); receipt no. = sha256(full PI id) (no case-folding collisions, collision
   logged); Save sends at most 10, the rest on the cron (2b); fee % formatted in the page language; settings rules
   live ONLY in `settingsInputSchema` (specific error codes). E2E 29.
-  **2b must add:** daily cron sending pending receipts (+ wire `retryFailedReceipts`), split late gifts (after freeze).
+- **Slice 2b the split (DONE):** `@repo/payments/split`: `planSplit`/`shareOf` are PURE (unit tests
+  `packages/payments/test/split.test.ts`); `runDonationSplit` = season frozen/closed + fee set → Lock "donation-split" →
+  ONE transaction: `DonationSplit` record + `earn_donation` ledger rows (idempotencyKey per run/pool/kid) + Kid `$inc`
+  + Payments held→credited with `splitId` (CAS on held). Fee = floor(cents × bps / 10000); points = server constant;
+  rounding leftover + a pool < 1 centipoint each stays (tooSmall = stays held). Empty ZIP → "all kids" (fee once).
+  Eligible = registered, not archived; ZIP pool = family ZIP. Cron `apps/store/app/api/cron/donations` daily 08:00 UTC
+  (split + send pending receipts, independent; Bearer CRON_SECRET) → late gifts shared next day. Admin `/donations`:
+  preview table, "Split now" (tick required, audited `donations.split`), past runs, receipt counts + retry failed.
+  Scale note: one transaction credits every kid; fine for thousands; batch it if kids reach tens of thousands.
+  E2E `browser-donation-split.ts` (17): test-only ZIPs, REFUSES if the dev DB already has held gifts, restores
+  season + settings.
 - **Alert roles:** `tone="error"` → `role="alert"`, info → `role="status"`. E2E success checks must match both.
 - **Dev server gotchas:** new message namespaces may need a dev-server restart. **Mongoose models are cached across
   hot reloads (`models.X ?? model(...)`): after a SCHEMA change restart the dev server, or new fields are silently

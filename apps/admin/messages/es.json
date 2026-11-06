@@ -454,5 +454,50 @@
     "fromDay": "Los recibos cubren regalos desde",
     "fromDayHint": "El día en que empezó el acuerdo con la organización. Los regalos anteriores nunca reciben recibo.",
     "before": "{count, plural, one {# regalo se hizo antes del {day} y no recibe recibo.} other {# regalos se hicieron antes del {day} y no reciben recibo.}}"
+  },
+  "Donations": {
+    "title": "Donaciones de la comunidad",
+    "poolsTitle": "Fondos de la temporada {year} (en espera, sin repartir)",
+    "poolsIntro": "Si el reparto se hiciera ahora: comisión de la plataforma {fee} primero, el resto en partes iguales entre los niños registrados. Un código postal sin niños registrados va a todos los niños.",
+    "noPools": "No hay regalos esperando reparto.",
+    "pool": "Fondo",
+    "allKids": "Todos los niños",
+    "gifts": "Regalos",
+    "total": "Total",
+    "fee": "Comisión",
+    "kids": "Niños",
+    "each": "Puntos cada uno",
+    "statusCol": "Qué pasa",
+    "status": {
+      "split": "Se reparte",
+      "rolled": "Va a todos los niños",
+      "tooSmall": "Muy pequeño para repartir (se queda)"
+    },
+    "runTitle": "Repartir los fondos",
+    "runIntro": "Esto se hace solo cada día desde el congelamiento de la temporada (1 de diciembre). Usa el botón para hacerlo ahora.",
+    "reason": {
+      "notYet": "Los fondos se reparten cuando la temporada está congelada (1 de diciembre).",
+      "feeMissing": "Primero define la comisión en Ajustes."
+    },
+    "confirm": "Entiendo que esto acredita los puntos de los niños ahora y no se puede deshacer.",
+    "splitNow": "Repartir ahora",
+    "splitDone": "Se repartieron {amount} entre {kids} niños (comisión {fee}).",
+    "splitNothing": "No hay nada que repartir.",
+    "historyTitle": "Repartos anteriores",
+    "noRuns": "Aún no hay repartos.",
+    "runLine": "{when} ({by}): {amount} repartidos entre {kids} niños, comisión {fee}",
+    "trigger": {
+      "cron": "tarea diaria",
+      "admin": "admin"
+    },
+    "receiptsTitle": "Recibos de impuestos",
+    "receiptCounts": "Pendientes: {pending} · Enviados: {sent} · Fallidos: {failed}",
+    "retry": "Reintentar recibos fallidos",
+    "retried": "{requeued} en cola de nuevo, {sent} enviados ahora (el resto sale con la tarea diaria).",
+    "errors": {
+      "confirmRequired": "Marca la casilla para confirmar.",
+      "notYet": "Los fondos se reparten cuando la temporada está congelada (1 de diciembre).",
+      "feeMissing": "Primero define la comisión en Ajustes."
+    }
   }
 }

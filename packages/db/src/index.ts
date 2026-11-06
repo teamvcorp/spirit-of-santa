@@ -47,6 +47,7 @@ export {
 export { RateLimit, type RateLimitDoc } from "./models/rate-limit.ts";
 export { PlatformSettings, type PlatformSettingsDoc } from "./models/platform-settings.ts";
 export { DonationReceipt, DONATION_RECEIPT_STATUSES, type DonationReceiptDoc } from "./models/donation-receipt.ts";
+export { DonationSplit, SPLIT_POOL_STATUSES, type DonationSplitDoc } from "./models/donation-split.ts";
 export { AuditLog, AUDIT_ACTIONS, type AuditAction, type AuditLogDoc } from "./models/audit-log.ts";
 export {
   WishListItem,

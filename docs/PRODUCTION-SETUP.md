@@ -25,7 +25,7 @@ Node.js version: 24.x (Project → Settings → General).
 | `RESEND_REPLY_TO` | opt | opt | opt | a monitored inbox (recommended) |
 | `BLOB_STORE_ID` | ✓ | auto | ✓ | not secret; store project gets it by connecting the Blob store |
 | `BLOB_READ_WRITE_TOKEN` | – | auto/✓ | – | connect the Blob store to the **store** project only (OIDC); token only if not using OIDC |
-| `CRON_SECRET` | – | ✓ | – | long random string (protects the daily cleanup job) |
+| `CRON_SECRET` | – | ✓ | – | long random string (protects the daily jobs: sign-up cleanup + donations) |
 | `STORE_APP_URL` | – | – | ✓ | `https://store.spiritofsanta.com` |
 | `MFA_ENCRYPTION_KEY` | – | – | ✓ | NEW random value (command below). Encrypts admin authenticator secrets. Keep a copy somewhere safe: if it's lost, every admin re-runs setup |
 | `STRIPE_SECRET_KEY` | ✓ | – | – | Stripe live secret key |
@@ -54,8 +54,12 @@ Generate a secret: `node -e "console.log(require('crypto').randomBytes(32).toStr
   `docs/vendor/stripe.md`. Copy its `whsec_` to the family project.
 - **Resend**: domain `fyht4.com` verified (done). Sending-only API key.
 - **Vercel Blob**: public store. Connect it to the **store** project (all environments).
-- **Vercel Cron**: defined in `apps/store/vercel.json` (daily purge of unconfirmed sign-ups).
-  Needs `CRON_SECRET` in the store project.
+- **Vercel Cron**: defined in `apps/store/vercel.json`, both daily: `/api/cron/purge-signups` (unconfirmed
+  sign-ups) and `/api/cron/donations` (08:00 UTC: share community-donation pools once the season is frozen,
+  and email waiting tax receipts). Needs `CRON_SECRET` in the store project. The Vercel Hobby plan allows
+  only 2 cron jobs (once a day each): we use both; a third job needs Pro or merging into an existing route.
+- **Before Dec 1 (admin):** set the platform fee in /settings (the split refuses to run without it), and
+  for tax receipts the charity name + EIN + "receipts cover gifts from" day.
 - **MongoDB Atlas**: allow Vercel to connect (Network Access). Recommended: one DB user per app
   (least privilege), and for the ledger, a role with only find/insert on `transactions` and
   `auditlogs` (see CODEMAP "Security TODO").

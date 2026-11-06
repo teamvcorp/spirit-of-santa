@@ -454,5 +454,50 @@
     "fromDay": "Receipts cover gifts from",
     "fromDayHint": "The day the charity arrangement took effect. Gifts before this day never get a receipt.",
     "before": "{count, plural, one {# gift was made before {day} and gets no receipt.} other {# gifts were made before {day} and get no receipt.}}"
+  },
+  "Donations": {
+    "title": "Community donations",
+    "poolsTitle": "Pools for the {year} season (held, not shared yet)",
+    "poolsIntro": "If the split ran now: platform fee {fee} off the top, the rest shared equally among registered children. A ZIP with no registered children goes to all children.",
+    "noPools": "No gifts are waiting to be shared.",
+    "pool": "Pool",
+    "allKids": "All children",
+    "gifts": "Gifts",
+    "total": "Total",
+    "fee": "Fee",
+    "kids": "Children",
+    "each": "Points each",
+    "statusCol": "What happens",
+    "status": {
+      "split": "Shared",
+      "rolled": "Goes to all children",
+      "tooSmall": "Too small to share yet (stays)"
+    },
+    "runTitle": "Share the pools",
+    "runIntro": "This happens automatically every day from the season freeze (Dec 1). Use the button to run it now.",
+    "reason": {
+      "notYet": "Pools can be shared once the season is frozen (Dec 1).",
+      "feeMissing": "Set the platform fee in Settings first."
+    },
+    "confirm": "I understand this credits the children's points now and can't be undone.",
+    "splitNow": "Split now",
+    "splitDone": "Shared {amount} among {kids} children (platform fee {fee}).",
+    "splitNothing": "Nothing to share.",
+    "historyTitle": "Past splits",
+    "noRuns": "No splits yet.",
+    "runLine": "{when} ({by}): {amount} shared among {kids} children, fee {fee}",
+    "trigger": {
+      "cron": "daily job",
+      "admin": "admin"
+    },
+    "receiptsTitle": "Tax receipts",
+    "receiptCounts": "Waiting: {pending} · Sent: {sent} · Failed: {failed}",
+    "retry": "Retry failed receipts",
+    "retried": "{requeued} queued again, {sent} sent now (the rest go out with the daily job).",
+    "errors": {
+      "confirmRequired": "Tick the box to confirm.",
+      "notYet": "Pools can be shared once the season is frozen (Dec 1).",
+      "feeMissing": "Set the platform fee in Settings first."
+    }
   }
 }

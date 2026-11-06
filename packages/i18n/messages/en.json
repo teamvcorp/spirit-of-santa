@@ -90,7 +90,8 @@
       "users": "Users",
       "deeds": "Deeds",
       "moderation": "Review",
-      "settings": "Settings"
+      "settings": "Settings",
+      "donations": "Donations"
     },
     "storeStatus": {
       "invited": "Invited",

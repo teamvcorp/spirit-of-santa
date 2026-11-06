@@ -91,6 +91,14 @@ Remove-Item Env:MONGODB_URI, Env:ADMIN_EMAIL, Env:ADMIN_PASSWORD
 Then sign in at `https://admin.spiritofsanta.com/signin` (leave the code box blank the first time).
 You'll be asked to set up two-step sign-in: scan the QR code with an authenticator app
 (Google/Microsoft Authenticator, 1Password), type the code, and **save the 10 recovery codes**.
+**Sign-in says "That didn't work" but the account was created?** (2026-11-06) Every SERVER error during sign-in shows
+that same message on purpose (details only in Vercel → admin → Logs: `[auth] sign-in error:`). Check:
+1. `npm run admin:check` (read-only, same env vars as admin:create) using the EXACT `MONGODB_URI` from the
+   Vercel admin project: must say database "spiritofsanta", account found, `password matches: YES`.
+   "no account" → the site uses another database/cluster than the one you created the admin in.
+2. Atlas → Network Access must allow Vercel (`0.0.0.0/0`; Vercel IPs change). Log shows `MongooseServerSelectionError`.
+3. `MFA_ENCRYPTION_KEY` (32 bytes base64url) set in the admin project, and the project REDEPLOYED after any env change.
+
 Lost phone and recovery codes? Re-run `npm run admin:create` for that email: it resets the password
 and two-step sign-in. (The password is hashed with argon2id and
 never printed; re-running resets it and signs out old sessions.)

@@ -65,3 +65,7 @@ open the links; an unreachable opt-in page is a common rejection reason.
 > transactional message per request (the payment link); no recurring or marketing messages. Numbers are
 > never bought, rented or shared. Privacy Policy: https://spiritofsanta.com/privacy
 > Terms of Service: https://spiritofsanta.com/terms
+
+**Short version (706 characters, for the <1000 limit):**
+
+> Adults who received a good deed from a child in our program scan the deed's QR code, which opens a web page on https://spiritofsanta.com. There they may choose "Pay later by text", enter their own mobile number and tick an unchecked box: "Text me a link to pay this tip later. Spirit O Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help." The form can't be sent without the box ticked; we record the consent time. We send one transactional message per request, never marketing, and never buy, rent or share numbers. Privacy Policy: https://spiritofsanta.com/privacy Terms: https://spiritofsanta.com/terms

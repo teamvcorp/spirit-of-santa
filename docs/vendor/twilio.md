@@ -81,3 +81,9 @@ full stop) with "The url you entered is invalid". Never put a full stop or comma
 **Version B (664 chars, no links: if the box also checks that links load, use this until the site is live):**
 
 > Adults who received a good deed from a child in our program scan the deed's QR code, which opens a page on our website. There they may choose "Pay later by text", enter their own mobile number and tick an unchecked box: "Text me a link to pay this tip later. Spirit O Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help." The form can't be sent without the box ticked; we record the consent time. We send one transactional message per request, never marketing, and never buy, rent or share numbers. Our Privacy Policy and Terms of Service are linked on that page.
+
+**Proof-of-consent box** ("For proof of consent by web form, provide a link…"): ONLY links, one per line,
+each starting with https://. The form isn't published yet, so upload `docs/vendor/twilio-optin-form.png`
+(screenshot of the planned "Pay later by text" form, made 2026-11-06) to Google Drive, share it as
+"Anyone with the link", and paste that Drive link alone. **Slice 4 MUST build the real form to match this
+screenshot and the wording above** (one text, 7-day link, STOP/HELP, privacy + terms links, unchecked box).

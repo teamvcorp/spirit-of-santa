@@ -39,10 +39,10 @@
     "signIn": "Inicia sesión"
   },
   "Privacy": {
-    "title": "Aviso de privacidad infantil",
-    "version": "Versión {version}",
+    "title": "Política de privacidad y Aviso de privacidad infantil",
+    "version": "Versión {version} · Aviso de privacidad infantil (lo que aceptan los padres): versión {childVersion}",
     "draft": "BORRADOR: este aviso está en revisión y se finalizará antes del lanzamiento.",
-    "intro": "Spirit O Santa permite que los niños ganen puntos por buenas acciones y los usen en una lista de deseos de Navidad. Los niños nunca crean sus propias cuentas: un padre, madre o tutor configura todo y mantiene el control.",
+    "intro": "Esta política cubre a las familias que usan Spirit O Santa y a los visitantes que agradecen a un niño, dan una propina o donación, o piden un mensaje para pagar más tarde. Incluye nuestro Aviso de privacidad infantil. Spirit O Santa permite que los niños ganen puntos por buenas acciones y los usen en una lista de deseos de Navidad. Los niños nunca crean sus propias cuentas: un padre, madre o tutor configura todo y mantiene el control.",
     "sections": {
       "collect": {
         "title": "Qué recopilamos",
@@ -54,7 +54,7 @@
       },
       "share": {
         "title": "Con quién compartimos información",
-        "body": "Las tiendas solo ven totales (por ejemplo \"en 12 listas de deseos\"), nunca qué niños eligieron un artículo. Los pagos con tarjeta los procesa Stripe; nunca vemos ni guardamos números de tarjeta. Los correos los envía nuestro proveedor de correo. No vendemos información ni mostramos anuncios."
+        "body": "Las tiendas solo ven totales (por ejemplo \"en 12 listas de deseos\"), nunca qué niños eligieron un artículo. Los pagos con tarjeta los procesa Stripe; nunca vemos ni guardamos números de tarjeta. Los correos los envía nuestro proveedor de correo. No vendemos información ni mostramos anuncios. Los mensajes de texto para pagar más tarde los entrega nuestro proveedor de mensajería (Twilio), solo para enviar el mensaje que pediste."
       },
       "consent": {
         "title": "Tu consentimiento",
@@ -66,7 +66,7 @@
       },
       "keep": {
         "title": "Cuánto tiempo la guardamos",
-        "body": "Los puntos se reinician cada 1 de enero. Guardamos la información de tu familia mientras tu cuenta esté abierta y borramos la información de un niño cuando nos lo pidas."
+        "body": "Los puntos se reinician cada 1 de enero. Guardamos la información de tu familia mientras tu cuenta esté abierta y borramos la información de un niño cuando nos lo pidas.\nVisitantes: los datos de los recibos de donación se guardan como registros de la organización benéfica; el número de celular para pagar más tarde y la hora en que aceptaste se guardan hasta 13 meses y luego se borran."
       },
       "contact": {
         "title": "Contacto",
@@ -397,11 +397,11 @@
       },
       "points": {
         "title": "Puntos",
-        "body": "Spirit O Santa calcula los puntos a partir del dinero realmente recibido (actualmente $1.50 = 1 punto). Los puntos no tienen valor en efectivo, no se cambian por dinero y vuelven a cero cada 1 de enero."
+        "body": "Spirit O Santa calcula los puntos a partir del dinero realmente recibido (actualmente {rate} = 1 punto). Los puntos no tienen valor en efectivo, no se cambian por dinero y vuelven a cero cada 1 de enero."
       },
       "payments": {
         "title": "Pagos",
-        "body": "Las propinas, bonos, registros y donaciones los procesa Stripe. Todos los pagos son definitivos: no ofrecemos reembolsos."
+        "body": "Las propinas, bonos, registros y donaciones los procesa Stripe. Todos los pagos son definitivos: no ofrecemos reembolsos, salvo cuando la ley o tu red de tarjetas lo exija (por ejemplo, un cargo en disputa)."
       },
       "donations": {
         "title": "Donaciones de la comunidad",

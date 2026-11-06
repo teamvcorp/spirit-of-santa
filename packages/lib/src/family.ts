@@ -7,13 +7,26 @@
  * (family app /register and /privacy). Bump whenever that wording changes; each Family records
  * the version it accepted. "-draft": the wording is a DRAFT until a lawyer reviews it (COPPA).
  */
-export const PARENT_CONSENT_VERSION = "2026-11-06-draft"; // + text-message & visitor sections
+export const PARENT_CONSENT_VERSION = "2026-11-05-draft";
+
+/**
+ * Version of the WHOLE /privacy page (bump with any change). Separate from PARENT_CONSENT_VERSION
+ * (what parents agreed to about their children): the visitor + text-message sections added
+ * 2026-11-06 don't change anything parents agreed to (review 2026-11-06).
+ */
+export const PRIVACY_VERSION = "2026-11-06-draft";
 
 /** Terms of Service version shown on /terms (bump with any change). */
 export const TERMS_VERSION = "2026-11-06-draft";
 
-/** Version of the pay-later text consent wording (registered with carriers); stored with each consent. */
+/**
+ * Pay-later text consent (registered with the carriers, docs/vendor/twilio.md). Stored with each
+ * consent record (slice 4b). SMS_CONSENT_SHA256 pins the exact wording per language (first 16 hex
+ * of SHA-256 of messages PayLater.consent): the i18n test FAILS if the wording changes without a
+ * new version + hash (and the carriers must be told about new wording).
+ */
 export const SMS_CONSENT_VERSION = "sms-2026-11-06";
+export const SMS_CONSENT_SHA256: Record<"en" | "es", string> = { en: "640402c5ce04a63c", es: "afeef3fe8d1f137d" };
 
 /** Daily Naughty/Nice vote values: ONE list for the model, the form schema and the service. */
 export const KID_VOTES = ["nice", "naughty"] as const;

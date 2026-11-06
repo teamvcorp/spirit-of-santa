@@ -6,9 +6,12 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { TERMS_VERSION } from "@repo/lib/family";
+import { CENTS_PER_POINT } from "@repo/lib/constants";
+import { formatCents } from "@repo/lib/format";
 import { PAY_LATER_LINK_DAYS } from "@repo/lib/limits";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
+import { LegalSections } from "../../../components/legal-sections";
 
 const SECTIONS = ["about", "accounts", "points", "payments", "donations", "texts", "conduct", "changes", "contact"] as const;
 
@@ -25,12 +28,8 @@ export default async function TermsPage() {
         <h1 className="text-2xl font-bold">{t("title")}</h1>
         <p className="mb-4 mt-1 text-sm text-foreground/70">{t("version", { version: TERMS_VERSION })}</p>
         <Alert className="mb-6">{t("draft")}</Alert>
-        {SECTIONS.map((s) => (
-          <section key={s} id={s} className="mb-6">
-            <h2 className="mb-2 text-lg font-semibold">{t(`sections.${s}.title`)}</h2>
-            <p className="whitespace-pre-line">{t(`sections.${s}.body`, { days: PAY_LATER_LINK_DAYS })}</p>
-          </section>
-        ))}
+        {/* Rate + days from the server constants (never hard-coded in the wording). */}
+        <LegalSections namespace="Terms" keys={SECTIONS} values={{ days: PAY_LATER_LINK_DAYS, rate: formatCents(CENTS_PER_POINT) }} />
       </Card>
     </main>
   );

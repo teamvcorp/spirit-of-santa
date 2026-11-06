@@ -39,10 +39,10 @@
     "signIn": "Sign in"
   },
   "Privacy": {
-    "title": "Children's Privacy Notice",
-    "version": "Version {version}",
+    "title": "Privacy Policy and Children's Privacy Notice",
+    "version": "Version {version} · Children's Privacy Notice (what parents agree to): version {childVersion}",
     "draft": "DRAFT: this notice is being reviewed and will be finalised before launch.",
-    "intro": "Spirit O Santa lets children earn points for good deeds and spend them on a Christmas wish list. Children never create their own accounts: a parent or guardian sets everything up and stays in control.",
+    "intro": "This policy covers families who use Spirit O Santa and visitors who thank a child, give a tip or donation, or ask for a pay-later text. It includes our Children's Privacy Notice. Spirit O Santa lets children earn points for good deeds and spend them on a Christmas wish list. Children never create their own accounts: a parent or guardian sets everything up and stays in control.",
     "sections": {
       "collect": {
         "title": "What we collect",
@@ -54,7 +54,7 @@
       },
       "share": {
         "title": "Who we share information with",
-        "body": "Stores only ever see totals (for example \"on 12 wish lists\"), never which children chose an item. Card payments are handled by Stripe; we never see or store card numbers. Emails are sent by our email provider. We don't sell information and don't show ads."
+        "body": "Stores only ever see totals (for example \"on 12 wish lists\"), never which children chose an item. Card payments are handled by Stripe; we never see or store card numbers. Emails are sent by our email provider. We don't sell information and don't show ads. Pay-later text messages are delivered by our messaging provider (Twilio), only to send the message you asked for."
       },
       "consent": {
         "title": "Your consent",
@@ -66,7 +66,7 @@
       },
       "keep": {
         "title": "How long we keep it",
-        "body": "Points reset every January 1. We keep your family's information while your account is open, and delete a child's information when you ask us to."
+        "body": "Points reset every January 1. We keep your family's information while your account is open, and delete a child's information when you ask us to.\nVisitors: donation receipt details are kept as the charity's records; a pay-later mobile number and the time you agreed are kept up to 13 months, then deleted."
       },
       "contact": {
         "title": "Contact",
@@ -397,11 +397,11 @@
       },
       "points": {
         "title": "Points",
-        "body": "Points are calculated by Spirit O Santa from money actually received (currently $1.50 = 1 point). Points have no cash value, can't be exchanged for money and reset to zero every January 1."
+        "body": "Points are calculated by Spirit O Santa from money actually received (currently {rate} = 1 point). Points have no cash value, can't be exchanged for money and reset to zero every January 1."
       },
       "payments": {
         "title": "Payments",
-        "body": "Tips, bonuses, registrations and donations are processed by Stripe. All payments are final: we don't offer refunds."
+        "body": "Tips, bonuses, registrations and donations are processed by Stripe. All payments are final: we don't offer refunds, except where the law or your card network requires it (for example a disputed charge)."
       },
       "donations": {
         "title": "Community donations",

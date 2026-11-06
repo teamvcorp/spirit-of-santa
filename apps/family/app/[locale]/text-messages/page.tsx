@@ -8,6 +8,7 @@ import { getTranslations } from "next-intl/server";
 import { PAY_LATER_LINK_DAYS } from "@repo/lib/limits";
 import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
+import { LegalSections } from "../../../components/legal-sections";
 import { PayLaterPreview } from "../../../components/pay-later-form";
 
 const SECTIONS = ["how", "what", "frequency", "stop", "privacy"] as const;
@@ -24,12 +25,7 @@ export default async function TextMessagesPage() {
       <Card>
         <h1 className="text-2xl font-bold">{t("title")}</h1>
         <p className="mb-6 mt-2">{t("intro")}</p>
-        {SECTIONS.map((s) => (
-          <section key={s} className="mb-5">
-            <h2 className="mb-1 text-lg font-semibold">{t(`sections.${s}.title`)}</h2>
-            <p className="whitespace-pre-line">{t(`sections.${s}.body`, { days: PAY_LATER_LINK_DAYS })}</p>
-          </section>
-        ))}
+        <LegalSections namespace="TextMessages" keys={SECTIONS} values={{ days: PAY_LATER_LINK_DAYS }} />
         <div className="mt-6 rounded-xl border border-foreground/15 p-4">
           <p className="mb-3 text-sm text-foreground/70">{t("formIntro")}</p>
           <PayLaterPreview />

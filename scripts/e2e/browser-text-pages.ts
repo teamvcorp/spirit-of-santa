@@ -42,19 +42,25 @@ try {
   // 2. /terms: public, has the SMS terms.
   const terms = await open(page, `${base}/terms`);
   check("/terms is public (200) with SMS terms", terms.status === 200 && terms.text.includes("Text messages (pay later)") && terms.text.includes("Carriers are not liable") && terms.text.includes("expires after 7 days"));
+  check("/terms shows the points rate from the server constant ($1.50) and the dispute exception", terms.text.includes("currently $1.50 = 1 point") && terms.text.includes("card network requires it"));
 
   // 3. /privacy: the carrier-required sentence.
   const pv = await open(page, `${base}/privacy`);
+  check("/privacy is titled 'Privacy Policy…' and names the texting provider", pv.text.includes("Privacy Policy and Children's Privacy Notice") && pv.text.includes("Twilio"));
   check("/privacy has a Text messages section with the no-sharing sentence",
     pv.status === 200 && pv.text.includes("Text messages") && pv.text.includes("not shared with third parties or affiliates for marketing or promotional purposes"));
 
-  // 4. Footer on every page links all three.
-  await open(page, `${base}/`);
-  check("footer links Privacy, Terms and Text messages on every page",
-    (await linksTo(page, "footer", "/privacy")) && (await linksTo(page, "footer", "/terms")) && (await linksTo(page, "footer", "/text-messages")));
+  // 4. Footer links all three on several kinds of pages.
+  let footerOk = true;
+  for (const path of ["/", "/donate", "/signin", "/terms"]) {
+    await open(page, `${base}${path}`);
+    footerOk &&= (await linksTo(page, "footer", "/privacy")) && (await linksTo(page, "footer", "/terms")) && (await linksTo(page, "footer", "/text-messages"));
+  }
+  check("footer links Privacy, Terms and Text messages (home, donate, sign-in, terms)", footerOk);
 
   // 5. Spanish.
   const es = await (await browser.newContext()).newPage();
+  es.on("pageerror", (e) => errors.push(e.message));
   const esTm = await open(es, `${base}/es/text-messages`);
   check("Spanish /es/text-messages", esTm.status === 200 && esTm.text.includes("Mensajes de texto de Spirit O Santa") && esTm.text.includes("Responde STOP"));
   check("no browser errors", errors.length === 0, errors.slice(0, 3).join(" || "));

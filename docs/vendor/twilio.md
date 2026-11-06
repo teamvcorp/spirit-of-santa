@@ -123,3 +123,12 @@ message, privacy/terms links) are the same. Env in use: `TWILIO_ACCOUNT_SID` (AC
 `TWILIO_PHONE_NUMBER` in E.164 (`+1` + 10 digits). Messaging Service optional. Slice 4 code: prefer an API key
 (`TWILIO_API_KEY_SID`/`SECRET`) when set, else Account SID + Auth Token. Switching to an API key later is
 safer (revocable without changing the main token).
+
+
+**Spanish wording (review 2026-11-06):** the site is bilingual, so Spanish visitors see a translated consent
+box. Tell the carriers (e.g. add to the opt-in description or a reviewer note): "The page is also available
+in Spanish with this consent text:"
+
+> Envíenme un enlace para pagar esta propina más tarde. Spirit O Santa enviará 1 mensaje de texto con un enlace de pago seguro que vence en 7 días. Sin publicidad. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para cancelar, HELP para ayuda.
+
+Both sentences are pinned by SMS_CONSENT_SHA256 (@repo/lib/family); the i18n test fails if either changes.

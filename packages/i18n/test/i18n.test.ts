@@ -34,6 +34,20 @@ test("switchLocalePath always produces an explicit prefix", () => {
   assert.equal(switchLocalePath("/wishlist", "es"), "/es/wishlist");
 });
 
+// ── Pay-later consent wording (registered with the carriers) ─────────────────────────────
+test("pay-later consent wording is the registered version and says PAY_LATER_LINK_DAYS days", async () => {
+  const { createHash } = await import("node:crypto");
+  const { SMS_CONSENT_SHA256 } = await import("@repo/lib/family");
+  const { PAY_LATER_LINK_DAYS } = await import("@repo/lib/limits");
+  const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+  const daysWord = { en: "days", es: "días" } as const;
+  for (const l of ["en", "es"] as const) {
+    const consent = (JSON.parse(readFileSync(join(rootDir, "apps/family/messages", `${l}.json`), "utf8")) as { PayLater: { consent: string } }).PayLater.consent;
+    assert.equal(createHash("sha256").update(consent).digest("hex").slice(0, 16), SMS_CONSENT_SHA256[l], `${l}: consent wording changed: bump SMS_CONSENT_VERSION + hash and tell the carriers`);
+    assert.ok(consent.includes(`${PAY_LATER_LINK_DAYS} ${daysWord[l]}`), `${l}: consent must say ${PAY_LATER_LINK_DAYS} ${daysWord[l]}`);
+  }
+});
+
 // ── Message parity ──────────────────────────────────────────────────────────────────
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const MESSAGE_DIRS = [

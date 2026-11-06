@@ -436,7 +436,12 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   three. These URLs are REGISTERED with the carriers (Toll-Free Verification): keep them public. The opt-in form =
   `apps/family/components/pay-later-form.tsx` (`PayLaterFields`, `PayLaterConsentText`, `PayLaterPreview`); the
   registered sentence lives ONLY in messages `PayLater.consent` (version `SMS_CONSENT_VERSION`); "7 days" must equal
-  `PAY_LATER_LINK_DAYS`. E2E `browser-text-pages.ts` (12) compares the page to the registered sentence.
+  `PAY_LATER_LINK_DAYS`. E2E `browser-text-pages.ts` (14) compares the page to the registered sentence.
+  Review fixes: wording pinned by `SMS_CONSENT_SHA256` (en+es) + "N days" = PAY_LATER_LINK_DAYS, checked by the i18n
+  test; /privacy titled "Privacy Policy and Children's Privacy Notice", own `PRIVACY_VERSION` (parents' consent
+  version unchanged, both shown); names Twilio + visitor retention; Terms rate from CENTS_PER_POINT, refunds "except
+  where law/card network requires"; shared `components/legal-sections.tsx` for the three legal pages. Spanish consent
+  must also be told to the carriers (docs/vendor/twilio.md).
 - **Alert roles:** `tone="error"` → `role="alert"`, info → `role="status"`. E2E success checks must match both.
 - **Dev server gotchas:** new message namespaces may need a dev-server restart. **Mongoose models are cached across
   hot reloads (`models.X ?? model(...)`): after a SCHEMA change restart the dev server, or new fields are silently

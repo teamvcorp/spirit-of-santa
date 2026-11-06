@@ -105,8 +105,8 @@
       "unreadable": "That file couldn't be read as a photo.",
       "notApproved": "You can invite reps once Spirit O Santa has approved your store.",
       "emailFailed": "We couldn't send the email. Please try again in a few minutes.",
-      "windowClosed": "Item lists can only be changed January 1 – March 31.",
-      "limitReached": "You've reached the 50-item limit. Archive an item to add another.",
+      "windowClosed": "Item lists are closed for changes right now (they're normally open January 1 – March 31).",
+      "limitReached": "You've reached the item limit. Archive an item to add another.",
       "priceRequired": "Please enter a price."
     }
   },
@@ -167,8 +167,8 @@
     "title": "Items",
     "count": "{count} of {limit} items",
     "addButton": "Add an item",
-    "windowOpen": "Your item list is open for changes until March 31.",
-    "windowClosed": "Item lists can be changed January 1 – March 31. You can still update stock counts.",
+    "windowOpen": "Your item list is open for changes.",
+    "windowClosed": "Your item list is closed for changes right now (it's normally open January 1 – March 31). You can still update stock counts.",
     "readOnly": "Items can't be changed while your store has this status.",
     "discountNote": "Your agreed discount is {discount}. Wholesale is what you bill Spirit O Santa when an item is earned.",
     "empty": "No items yet.",

@@ -33,6 +33,9 @@ Node.js version: 24.x (Project → Settings → General).
 
 Later phases (leave unset for now): `TWILIO_*` (pay-later SMS), `FCM_*` / `NEXT_PUBLIC_FCM_*` (push).
 
+**Vercel UI gotcha:** after saving, the list may not refresh. Retrying then fails with "already exists
+… on branch". Press Ctrl+F5 before re-adding anything; to change a value use ⋯ → Edit.
+
 Generate a secret: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`
 
 ## 3. Services

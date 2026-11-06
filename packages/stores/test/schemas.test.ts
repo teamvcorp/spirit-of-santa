@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { discountPercentSchema, inviteStoreSchema, itemSchema, toItemInput } from "../src/schemas.ts";
+import { discountPercentSchema, inventoryFormSchema, inviteStoreSchema, itemSchema, toItemInput } from "../src/schemas.ts";
 import { wholesaleCents } from "@repo/lib/store";
 
 test("discount % → basis points (integers, no float drift)", () => {
@@ -43,8 +43,15 @@ test("item form: dollars → integer cents, optional fields, inventory bounds", 
     const r = itemSchema.safeParse({ name: "X", price, inventory: "1" });
     assert.equal(r.success, false, price);
   }
-  for (const inventory of ["-1", "1.5", "10000", "lots"]) {
+  // "", " " and "12a" used to coerce to 0 ("0 in stock") instead of failing (review 2026-11-05).
+  for (const inventory of ["-1", "1.5", "10000", "lots", "", " ", "12a", "1e3", "0x10", undefined]) {
     assert.equal(itemSchema.safeParse({ name: "X", price: "1", inventory }).success, false, inventory);
   }
   assert.equal(itemSchema.safeParse({ name: "X", category: "weapons", inventory: "1" }).success, false);
+});
+
+test("stock form: digits only, empty box is an error (not 0)", () => {
+  assert.deepEqual(inventoryFormSchema.parse({ inventory: " 7 " }), { inventory: 7 });
+  assert.deepEqual(inventoryFormSchema.parse({ inventory: "0" }), { inventory: 0 });
+  for (const inventory of ["", "12a", "-3", "10000"]) assert.equal(inventoryFormSchema.safeParse({ inventory }).success, false, inventory);
 });

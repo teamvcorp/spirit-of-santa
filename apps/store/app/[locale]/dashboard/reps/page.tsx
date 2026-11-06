@@ -5,7 +5,7 @@ import { listReps } from "@repo/stores/owner";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { DashboardNav } from "../dashboard-nav";
-import { EDITABLE_STATUSES, loadMember } from "../member";
+import { isStoreEditable, loadMember } from "../member";
 import { NoAccess } from "../no-access";
 import { InviteRepForm, RepsList } from "./reps-ui";
 
@@ -20,7 +20,7 @@ async function Content() {
   const data = await listReps({ id: user.id, role: user.role, storeId: user.storeId });
   if (!data) return <NoAccess />;
   const [t, format] = await Promise.all([getTranslations("Reps"), getFormatter()]);
-  const editable = EDITABLE_STATUSES.includes(store.status);
+  const editable = isStoreEditable(store.status);
   return (
     <>
       <DashboardNav isOwner current="reps" />

@@ -8,7 +8,7 @@ import { refresh } from "next/cache";
 import { requireRole } from "@repo/auth";
 import { fieldErrors } from "@repo/auth/schemas";
 import { archiveItem, createItem, removeItemPhoto, restoreItem, setInventory, setItemPhoto, updateItem, type ItemResult } from "@repo/stores/items";
-import { itemSchema, MAX_INVENTORY, objectIdSchema, toItemInput } from "@repo/stores/schemas";
+import { inventoryFormSchema, itemSchema, objectIdSchema, toItemInput } from "@repo/stores/schemas";
 import { authOptions } from "@/auth";
 import type { DashFormState } from "../form-state";
 
@@ -60,10 +60,11 @@ export async function updateItemAction(_prev: ItemFormState, fd: FormData): Prom
 export async function inventoryAction(_prev: ItemFormState, fd: FormData): Promise<ItemFormState> {
   const actor = await member();
   const id = idOf(fd);
-  const n = Number(str(fd, "inventory"));
   if (!id) return { status: "error", error: "notFound", nonce: randomUUID() };
-  if (!Number.isInteger(n) || n < 0 || n > MAX_INVENTORY) return { status: "error", fieldErrors: { inventory: "invalid" }, nonce: randomUUID() };
-  return result(await setInventory(actor, id, n));
+  // Zod like every other form: an empty box is an error, never "0 in stock".
+  const parsed = inventoryFormSchema.safeParse({ inventory: str(fd, "inventory") });
+  if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), nonce: randomUUID() };
+  return result(await setInventory(actor, id, parsed.data.inventory));
 }
 
 export async function archiveItemAction(_prev: ItemFormState, fd: FormData): Promise<ItemFormState> {

@@ -5,7 +5,7 @@ import { MAX_STORE_PHOTOS } from "@repo/stores/owner";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { DashboardNav } from "../dashboard-nav";
-import { EDITABLE_STATUSES, loadMember } from "../member";
+import { isStoreEditable, loadMember } from "../member";
 import { NoAccess } from "../no-access";
 import { Photos } from "./photos";
 import { ProfileForm } from "./profile-form";
@@ -19,7 +19,7 @@ async function Content() {
   const { store, isOwner } = await loadMember();
   if (!store || !isOwner) return <NoAccess />;
   const t = await getTranslations("Profile");
-  const editable = EDITABLE_STATUSES.includes(store.status);
+  const editable = isStoreEditable(store.status);
   const a = store.contact?.address;
   return (
     <>

@@ -17,9 +17,12 @@ import mongoose from "mongoose";
 mongoose.set("sanitizeFilter", true);
 // Filtering on a field that isn't in the schema throws instead of being silently dropped.
 mongoose.set("strictQuery", "throw");
-// Build indexes automatically in dev only. In production, run syncIndexes deliberately
-// so a deploy never triggers an unexpected index build on a live collection.
-mongoose.set("autoIndex", process.env.NODE_ENV !== "production");
+// Build indexes automatically ONLY under `next dev` (NODE_ENV=development). Everywhere else
+// (production, and CLI scripts like admin:create / db:sync-indexes where NODE_ENV is unset
+// but MONGODB_URI may point at the LIVE database) it stays off: run `npm run db:sync-indexes`
+// deliberately so nothing starts an unexpected index build on a live collection.
+// Opt-in rather than opt-out: an unknown environment defaults to the safe choice.
+mongoose.set("autoIndex", process.env.NODE_ENV === "development");
 
 // ── Connection cache ────────────────────────────────────────────────────────────────
 // Serverless functions and Next dev hot-reloads re-run module code. Caching the connect

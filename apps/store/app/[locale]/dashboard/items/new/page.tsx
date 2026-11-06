@@ -16,10 +16,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 async function Content() {
-  const { user, store, isOwner } = await loadMember();
+  const { store, isOwner } = await loadMember();
   if (!store) return <NoAccess />;
-  const data = await listStoreItems({ id: user.id, role: user.role, storeId: user.storeId });
-  if (!data) return <NoAccess />;
+  const data = await listStoreItems(store, isOwner); // store already loaded + membership-checked
   const t = await getTranslations("Items");
   const canAdd = data.editable && data.window.open && data.count < data.limit;
   return (

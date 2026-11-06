@@ -37,6 +37,20 @@ export type InviteStoreInput = {
  * maths. It's optional at this level: reps never send one; the service requires it from owners.
  */
 export const MAX_INVENTORY = 9999;
+/**
+ * Stock count from a form field. Deliberately NOT z.coerce.number(): Number("") is 0, so an
+ * emptied box (or "12a", which a number input submits as "") would silently save "0 in stock"
+ * (review 2026-11-05). Only whole numbers 0–9999 written as digits pass.
+ */
+export const inventorySchema = z
+  .string("invalid")
+  .trim()
+  .regex(/^\d{1,4}$/, "invalid")
+  .transform(Number)
+  .pipe(z.number().int().min(0).max(MAX_INVENTORY, "invalid"));
+/** The stand-alone stock form on the items list / item page. */
+export const inventoryFormSchema = z.object({ inventory: inventorySchema });
+
 export const itemSchema = z.object({
   name: z.string().trim().min(1, "required").max(120, "tooLong"),
   description: z
@@ -63,7 +77,7 @@ export const itemSchema = z.object({
       }
       return cents;
     }),
-  inventory: z.coerce.number("invalid").int("invalid").min(0, "invalid").max(MAX_INVENTORY, "invalid"),
+  inventory: inventorySchema,
 });
 export type ItemInput = { name: string; description?: string; category?: (typeof STORE_CATEGORIES)[number]; priceCents?: number; inventory: number };
 export function toItemInput(parsed: z.infer<typeof itemSchema>): ItemInput {

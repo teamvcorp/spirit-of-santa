@@ -26,6 +26,17 @@ export function isStoreCategory(v: unknown): v is StoreCategory {
 }
 
 /**
+ * Store statuses whose owner/reps may change the profile, photos, reps and items.
+ * "rejected"/"suspended" stores are read-only; "invited" stores have no owner yet.
+ * ONE list for every gate (service layer and dashboard UI) so they can't drift apart.
+ */
+export const EDITABLE_STORE_STATUSES = ["pending", "approved"] as const;
+
+export function isStoreEditable(status: string): boolean {
+  return (EDITABLE_STORE_STATUSES as readonly string[]).includes(status);
+}
+
+/**
  * Version of the store discount + guarantee agreement text (StoreAgreement messages).
  * Bump this whenever the wording changes; each store records the version it accepted.
  */

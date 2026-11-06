@@ -15,6 +15,7 @@ import { ActionToken, AuditLog, connectDb, Store, trusted, User, withTransaction
 import { sendEmail } from "@repo/email";
 import { localizePath } from "@repo/i18n/paths";
 import { DEFAULT_LOCALE, isLocale } from "@repo/lib/locales";
+import { EDITABLE_STORE_STATUSES, isStoreEditable } from "@repo/lib/store";
 import { cancelOtherTokens, createActionToken, voidToken } from "@repo/auth/tokens";
 import { emailKey, hitRateLimit } from "@repo/auth/rate-limit";
 import type { StoreDetailsInput } from "@repo/auth/schemas";
@@ -25,7 +26,7 @@ export type OwnerResult =
   | { ok: true }
   | { ok: false; error: "notFound" | "readOnly" | "notApproved" | "tooManyPhotos" | "emailInUse" | "rateLimited" | "emailFailed" | ImageUploadErrorCode };
 
-const EDITABLE = ["pending", "approved"] as const;
+// Editable statuses: one shared list (@repo/lib/store) for owner, rep and item gates.
 export const MAX_STORE_PHOTOS = 10;
 
 type StoreLite = { _id: { toString(): string }; name: string; status: string; ownerUserId?: { toString(): string } | null };
@@ -45,7 +46,6 @@ export async function memberStore(actor: StoreActor) {
   return Store.findOne({ _id: actor.storeId, ...membership }).lean();
 }
 
-const isEditable = (status: string) => (EDITABLE as readonly string[]).includes(status);
 
 async function audit(actorId: string, action: AuditAction, targetType: "store" | "user", targetId: string, details: Record<string, unknown> = {}) {
   await AuditLog.create({ actorUserId: actorId, action, targetType, targetId, details });
@@ -55,10 +55,10 @@ async function audit(actorId: string, action: AuditAction, targetType: "store" |
 export async function updateStoreProfile(actor: StoreActor, input: StoreDetailsInput): Promise<OwnerResult> {
   const store = await ownedStore(actor);
   if (!store) return { ok: false, error: "notFound" };
-  if (!isEditable(store.status)) return { ok: false, error: "readOnly" };
+  if (!isStoreEditable(store.status)) return { ok: false, error: "readOnly" };
   const res = await Store.updateOne(
     // Status re-checked in the filter: an admin suspending the store at the same moment wins.
-    { _id: store._id, ownerUserId: actor.id, status: trusted({ $in: [...EDITABLE] }) },
+    { _id: store._id, ownerUserId: actor.id, status: trusted({ $in: [...EDITABLE_STORE_STATUSES] }) },
     {
       $set: {
         name: input.storeName,
@@ -81,7 +81,7 @@ export async function updateStoreProfile(actor: StoreActor, input: StoreDetailsI
 export async function addStorePhoto(actor: StoreActor, file: Blob): Promise<OwnerResult> {
   const store = await ownedStore(actor);
   if (!store) return { ok: false, error: "notFound" };
-  if (!isEditable(store.status)) return { ok: false, error: "readOnly" };
+  if (!isStoreEditable(store.status)) return { ok: false, error: "readOnly" };
   if (!(await hitRateLimit(`photo:store:${store._id}`, 30, 3600))) return { ok: false, error: "rateLimited" };
   const storeId = String(store._id);
 
@@ -109,7 +109,7 @@ export async function addStorePhoto(actor: StoreActor, file: Blob): Promise<Owne
 export async function removeStorePhoto(actor: StoreActor, pathname: string): Promise<OwnerResult> {
   const store = await ownedStore(actor);
   if (!store) return { ok: false, error: "notFound" };
-  if (!isEditable(store.status)) return { ok: false, error: "readOnly" };
+  if (!isStoreEditable(store.status)) return { ok: false, error: "readOnly" };
   const storeId = String(store._id);
   // The pathname must be one of THIS store's files (checked before touching storage).
   if (!isOwnedImagePath(pathname, { folder: "stores", ownerId: storeId })) return { ok: false, error: "notFound" };

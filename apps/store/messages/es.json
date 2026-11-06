@@ -105,8 +105,8 @@
       "unreadable": "No se pudo leer ese archivo como foto.",
       "notApproved": "Podrás invitar representantes cuando Spirit O Santa apruebe tu tienda.",
       "emailFailed": "No pudimos enviar el correo. Inténtalo de nuevo en unos minutos.",
-      "windowClosed": "Las listas de artículos solo se pueden cambiar del 1 de enero al 31 de marzo.",
-      "limitReached": "Llegaste al límite de 50 artículos. Archiva un artículo para agregar otro.",
+      "windowClosed": "Las listas de artículos están cerradas a cambios en este momento (normalmente se abren del 1 de enero al 31 de marzo).",
+      "limitReached": "Llegaste al límite de artículos. Archiva un artículo para agregar otro.",
       "priceRequired": "Escribe un precio."
     }
   },
@@ -167,8 +167,8 @@
     "title": "Artículos",
     "count": "{count} de {limit} artículos",
     "addButton": "Agregar un artículo",
-    "windowOpen": "Tu lista de artículos se puede cambiar hasta el 31 de marzo.",
-    "windowClosed": "Las listas de artículos se pueden cambiar del 1 de enero al 31 de marzo. Aún puedes actualizar el inventario.",
+    "windowOpen": "Tu lista de artículos está abierta a cambios.",
+    "windowClosed": "Tu lista de artículos está cerrada a cambios en este momento (normalmente se abre del 1 de enero al 31 de marzo). Aún puedes actualizar el inventario.",
     "readOnly": "Los artículos no se pueden cambiar mientras tu tienda tenga este estado.",
     "discountNote": "Tu descuento acordado es {discount}. El precio mayorista es lo que le cobras a Spirit O Santa cuando un niño gana un artículo.",
     "empty": "Aún no hay artículos.",

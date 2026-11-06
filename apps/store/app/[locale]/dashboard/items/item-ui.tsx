@@ -208,14 +208,19 @@ export function ItemPhoto({ itemId, photo, canEdit, alt }: { itemId: string; pho
   const [state, formAction, pending] = useActionState(reporting(itemPhotoAction, () => setNotice(photo ? t("photoReplaced") : p("photoAdded")), () => setNotice(null)), INITIAL);
   const [rmState, rmAction, rmPending] = useActionState(reporting(removeItemPhotoAction, () => setNotice(p("photoRemoved"))), INITIAL);
   const hydrated = useHydrated();
+  // Action states are never reset, so remember which form ran LAST and show only its error;
+  // otherwise an old upload error would sit next to a later "Photo removed" (review 2026-11-05).
+  const [last, setLast] = useState<"upload" | "remove">("upload");
   function checkSize(e: FormEvent<HTMLFormElement>) {
+    setLast("upload");
     const file = (e.currentTarget.elements.namedItem("photo") as HTMLInputElement | null)?.files?.[0];
     if (file && file.size > MAX_IMAGE_BYTES) {
       e.preventDefault();
       setClientError(errorsT("too_large"));
     } else setClientError(null);
   }
-  const error = clientError ?? (state.status === "error" && state.error ? errorsT(state.error as never) : null) ?? (rmState.status === "error" && rmState.error ? errorsT(rmState.error as never) : null);
+  const lastState = last === "upload" ? state : rmState;
+  const error = clientError ?? (lastState.status === "error" && lastState.error ? errorsT(lastState.error as never) : null);
   return (
     <div className="flex flex-col gap-3">
       {region}
@@ -245,7 +250,13 @@ export function ItemPhoto({ itemId, photo, canEdit, alt }: { itemId: string; pho
             </Button>
           </form>
           {photo && (
-            <form action={rmAction}>
+            <form
+              action={rmAction}
+              onSubmit={() => {
+                setLast("remove");
+                setClientError(null);
+              }}
+            >
               <input type="hidden" name="itemId" value={itemId} />
               <Button type="submit" variant="ghost" pending={rmPending} disabled={!hydrated} className="px-0">
                 {p("removePhoto")}

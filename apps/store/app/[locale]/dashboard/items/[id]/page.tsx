@@ -19,12 +19,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 async function Content({ params, searchParams }: { params: PageProps<"/[locale]/dashboard/items/[id]">["params"]; searchParams: PageProps<"/[locale]/dashboard/items/[id]">["searchParams"] }) {
-  const { user, store } = await loadMember();
+  const { store, isOwner } = await loadMember();
   if (!store) return <NoAccess />;
   const { id } = await params;
   if (!objectIdSchema.safeParse(id).success) notFound();
-  const data = await getStoreItem({ id: user.id, role: user.role, storeId: user.storeId }, id);
-  if (!data) notFound(); // includes items of OTHER stores: indistinguishable from missing
+  const data = await getStoreItem(store, isOwner, id);
+  if (!data) notFound(); // other stores' items and older seasons look the same as missing
   const [t, statusT] = await Promise.all([getTranslations("Items"), getTranslations("Items.status")]);
   const created = (await searchParams).created === "1";
   const { item } = data;

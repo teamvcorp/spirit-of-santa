@@ -18,6 +18,7 @@ import { AuditLog, connectDb, Item, Season, Store, trusted, User } from "@repo/d
 import { hashSecret } from "@repo/auth/password";
 import { getSeasonYear } from "@repo/lib/season";
 import { deletePublicImage } from "@repo/storage/images";
+import { createItem, restoreItem } from "@repo/stores/items";
 import { makeChecks } from "./lib.ts";
 
 const sharp = createRequire(import.meta.url)("sharp") as typeof import("sharp");
@@ -224,6 +225,27 @@ try {
   const res = await ownerB.goto(`${base}/dashboard/items/${sled?._id}`);
   await ownerB.waitForTimeout(1000);
   check("another store's item is not found for owner B", res?.status() === 404 || !(await text(ownerB)).includes(`Red Sled ${tag}`));
+
+  // 9. Older seasons are history (review 2026-11-05): not viewable, editable or restorable.
+  const ownerA = await User.findOne({ email: mail("a") }).select("_id").lean();
+  const actorA = { id: String(ownerA?._id), role: "store_owner", storeId: A };
+  // Raw insert: the schema refuses years before the first season (2026), but we need a "past" one.
+  const oldIns = await Item.collection.insertOne({ storeId: new mongoose.Types.ObjectId(A), seasonYear: seasonYear - 1, name: `Old Kite ${tag}`, priceCents: 500, payoutCents: 0, inventory: 1, status: "archived", stats: { impressions: 0, wishListAdds: 0 }, createdAt: new Date(), updatedAt: new Date() });
+  const oldItem = { _id: oldIns.insertedId };
+  const oldRes = await owner.goto(`${base}/dashboard/items/${oldItem._id}`);
+  await owner.waitForTimeout(1000);
+  check("last season's item is not found on its page", oldRes?.status() === 404 || !(await text(owner)).includes(`Old Kite ${tag}`));
+  const oldRestore = await restoreItem(actorA, String(oldItem._id));
+  check("last season's item can't be restored", !oldRestore.ok && oldRestore.error === "notFound" && (await Item.findById(oldItem._id).lean())?.status === "archived");
+
+  // 10. Limit race: two adds at the same moment with ONE free slot → exactly one succeeds.
+  await Item.updateOne({ storeId: A, seasonYear, name: `Filler 0 ${tag}` }, { $set: { status: "archived" } });
+  const input = { name: `Race ${tag}`, inventory: 1, priceCents: 100 };
+  const race = await Promise.all([createItem(actorA, input), createItem(actorA, input)]);
+  const raceCount = await Item.countDocuments({ storeId: A, seasonYear, status: trusted({ $ne: "archived" }) });
+  check("simultaneous adds for the last slot: one added, one 'limit reached', 50 total",
+    race.filter((r) => r.ok).length === 1 && race.filter((r) => !r.ok && r.error === "limitReached").length === 1 && raceCount === 50,
+    JSON.stringify({ race, raceCount }));
 
   check("no browser errors", errors.length === 0, errors.slice(0, 3).join(" || "));
 } catch (err) {

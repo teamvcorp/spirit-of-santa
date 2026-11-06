@@ -109,6 +109,14 @@ const storeSchema = new Schema(
     // No Stripe Connect (decided 2026-11-04): stores are paid by check or other means
     // outside the app, so we store no bank or Stripe account details for them.
 
+    /**
+     * Write counter used ONLY as a lock for the per-season item limit (packages/stores/items.ts).
+     * Every item add/restore bumps it inside its transaction; MongoDB lets only one transaction
+     * write this document at a time, so two simultaneous adds can't both see "49 items" and both
+     * insert. The number itself means nothing.
+     */
+    itemLockSeq: { type: Number, default: 0, select: false },
+
     invitedByAdminId: objectId("User", false),
     reviewedByAdminId: objectId("User", false),
     reviewedAt: Date,

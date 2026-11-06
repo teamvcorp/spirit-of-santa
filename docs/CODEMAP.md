@@ -1,7 +1,7 @@
 # turboSanta CODEMAP
 
 > Read this before exploring. Keep it current when packages/routes are added.
-> Last updated: 2026-11-05. Status: **Phase 1: shared packages, i18n, sign-in, image storage, home-screen icons done; placeholder pages otherwise.**
+> Last updated: 2026-11-05 (slice 4 review fixes). Status: **Phase 1: shared packages, i18n, sign-in, image storage, home-screen icons done; placeholder pages otherwise.**
 > Rules/constants: [../CLAUDE.md](../CLAUDE.md). Roadmap: [../SpiritOfSanta.md](../SpiritOfSanta.md).
 
 ## Layout
@@ -134,7 +134,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
   families see a store only once approved.
 - **Pricing:** owners set prices; reps add/edit item details + inventory (rep-created items wait for a price).
 - **Agreement wording is a DRAFT** (`StoreAgreement` messages, version `2026-11-05`): user must review before launch.
-- Slices: 1 accounts+email (DONE, 349c069) · 2 admin approval/invite (DONE, d900b67 + review fixes 44e58aa) · 3 owner dashboard/reps (DONE, ce397ac + 5a9b255) · 4 item catalog (built; review pending) · 3 owner dashboard/reps · 4 item catalog · 5 engagement stats.
+- Slices: 1 accounts+email (DONE, 349c069) · 2 admin approval/invite (DONE, d900b67 + review fixes 44e58aa) · 3 owner dashboard/reps (DONE, ce397ac + 5a9b255) · 4 item catalog (DONE, 4d96799 + review fixes) · 5 engagement stats (next).
 
 ## Phase 2 gotchas (learned 2026-11-05)
 
@@ -173,7 +173,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
 - **Store app emails use its own NEXTAUTH_URL** for links (rep invites). `STORE_APP_URL` is only for the admin
   app (found by the production E2E: production refuses the dev localhost fallback).
 - **Store app Server Action body limit = 4.5mb** (`experimental.serverActions.bodySizeLimit`) for photo uploads.
-- **Store E2E:** `scripts/e2e/browser-store-dashboard.ts` (dev 21 checks; `--prod` 13 checks, real Blob uploads).
+- **Store E2E:** `scripts/e2e/browser-store-dashboard.ts` (dev 21 checks; `--prod` 17 checks, real Blob uploads).
 - **Item catalog (slice 4):** items are per store per season (`seasonYear`); statuses `draft` (rep-created, no price) →
   `active` (owner priced) → `archived` (frees a slot). Add/edit/price/archive only while the item window is open
   (`storeItemWindow()`: Season `storeWindow` override, else Jan 1–Mar 31); stock updates any time. 50-item limit is
@@ -187,7 +187,19 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
   in a plain module (`item-values.ts`). **E2E selector trap:** `[name="description"]` also matches
   `<meta name="description">`; scope to `main`. Headings in the static shell render before streamed content: wait
   for the content itself.
-- **Store E2E (items):** `scripts/e2e/browser-store-items.ts` (20 checks, dev and production).
+- **Store E2E (items):** `scripts/e2e/browser-store-items.ts` (27 checks, dev and production; incl. last-season and limit-race checks).
+- **Item limit = transaction + lock document (slice 4 review):** add/restore bump `Store.itemLockSeq` inside `withTransaction`,
+  then count, then insert. Two transactions writing one document conflict, Mongoose retries the loser, and it re-counts.
+  Plain "count then insert" (even in a transaction) is NOT safe: snapshot reads let both see 49. Reuse this pattern for any
+  "at most N" rule (e.g. Phase 6 kid item caps).
+- **Items are scoped to the CURRENT season** in every read and write (`scopeOf`): older seasons are history, they 404.
+- **Editable store statuses:** one list, `EDITABLE_STORE_STATUSES` / `isStoreEditable` in `@repo/lib/store`.
+- **Form numbers:** never `z.coerce.number()` for form fields: `Number("")` is 0. Use a digits regex then transform
+  (`inventorySchema` in `@repo/stores/schemas`).
+- **`autoIndex` is opt-in** (`NODE_ENV === "development"`, i.e. `next dev` only). CLI scripts run with NODE_ENV unset and
+  may point at production, so they never auto-build indexes; use `npm run db:sync-indexes`.
+- **Item read functions take the loaded store** (`listStoreItems(store, isOwner)`, `getStoreItem(store, isOwner, id)`):
+  pass only `loadMember()`'s result for the current request.
 - **New env:** store `CRON_SECRET` (Vercel cron auth); admin `STORE_APP_URL` (links in invite/approval emails;
   defaults to http://localhost:3001 in dev, required in production).
 

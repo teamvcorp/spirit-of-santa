@@ -18,4 +18,5 @@ export async function loadMember() {
   return { user, store, isOwner: user.role === "store_owner" };
 }
 
-export const EDITABLE_STATUSES = ["pending", "approved"];
+/** Same list as the server gates (re-exported so pages keep one import). */
+export { isStoreEditable } from "@repo/lib/store";

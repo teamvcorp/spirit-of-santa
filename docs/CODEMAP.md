@@ -1,7 +1,7 @@
 # turboSanta CODEMAP
 
 > Read this before exploring. Keep it current when packages/routes are added.
-> Last updated: 2026-11-05 (Phase 3 slice 1: admin MFA). Status: **Phase 1: shared packages, i18n, sign-in, image storage, home-screen icons done; placeholder pages otherwise.**
+> Last updated: 2026-11-05 (Phase 3 slice 2: season controls). Status: **Phase 1: shared packages, i18n, sign-in, image storage, home-screen icons done; placeholder pages otherwise.**
 > Rules/constants: [../CLAUDE.md](../CLAUDE.md). Roadmap: [../SpiritOfSanta.md](../SpiritOfSanta.md).
 
 ## Layout
@@ -219,7 +219,7 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
 
 ## Phase 3 (admin app), agreed 2026-11-05
 
-Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls → 3 user management (incl. "reset MFA"
+Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (ccd6572; review pending) → 3 user management (incl. "reset MFA"
 button) → 4 deed catalog → 5 platform dashboard v1. Deferred until their data exists: content moderation
 (Phase 4), donation settings + pay-later links (Phase 5), announcements (Phase 7).
 
@@ -234,6 +234,12 @@ button) → 4 deed catalog → 5 platform dashboard v1. Deferred until their dat
   signed out (`ADMIN_TOKEN_VERSION` in options.ts: bump to force all admins to sign in again).
 - **`getSessionUser` hides restricted (MFA-setup) sessions** unless `{ includeRestricted: true }` (account menu,
   admin home which redirects). `requireUser`/`requireRole` send them to /mfa/setup.
+- **Season controls (slice 2):** rule book = pure `resolveSeason` / `validateSeasonDates` in `@repo/lib/season`
+  (unit-tested); server = `getSeasonState()` in `@repo/stores/season`. ANY server check of season phase or the
+  store window must use `getSeasonState()` (it applies the admin overrides). Season dates are stored as calendar
+  days `"YYYY-MM-DD"` (Chicago), editable only before that season opens (user decision); store-window switch and
+  force-freeze any time. Admin page `/season` (header link). Audit actions `season.*`, targetType `season`.
+  E2E `browser-admin-season.ts` (16 checks; restores both Season docs).
 - **E2E emails in `next start` are REAL:** any flow that emails (now incl. MFA enable) must use
   `delivered+...@resend.dev` addresses.
 - **Admin E2E now uses its own MFA admin** (`createMfaAdmin` in `scripts/e2e/lib.ts`, needs

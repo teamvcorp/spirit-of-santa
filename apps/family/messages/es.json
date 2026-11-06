@@ -212,8 +212,8 @@
     "donateIntro": "Compártelo con familiares y amigos: pueden regalar a la lista de este niño sin una buena acción. Solo se muestra el nombre público.",
     "donateQrAlt": "Código QR de la página para donar a este niño",
     "newLink": "Crear un enlace nuevo",
-    "newLinkHelp": "El enlace anterior deja de funcionar de inmediato (requiere el PIN de padres).",
-    "linkReset": "Enlace nuevo creado. El anterior ya no funciona.",
+    "newLinkHelp": "Después de esto, el enlace anterior ya no abre (requiere el PIN de padres). Un regalo que alguien ya empezó aún puede completarse.",
+    "linkReset": "Enlace nuevo creado. El enlace anterior ya no abre.",
     "linkLocked": "Primero escribe el PIN de padres (área de padres) e inténtalo de nuevo."
   },
   "Qr": {

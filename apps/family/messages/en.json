@@ -212,8 +212,8 @@
     "donateIntro": "Share this with family and friends: they can give to this child's wish list without a good deed. Only the display name is shown.",
     "donateQrAlt": "QR code for this child's donation page",
     "newLink": "Make a new link",
-    "newLinkHelp": "The old link stops working right away (needs the parent PIN).",
-    "linkReset": "New link made. The old one no longer works.",
+    "newLinkHelp": "After this, the old link no longer opens (needs the parent PIN). A gift someone already started can still finish.",
+    "linkReset": "New link made. The old link no longer opens.",
     "linkLocked": "Enter the parent PIN first (parent area), then try again."
   },
   "Qr": {

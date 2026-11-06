@@ -13,11 +13,10 @@ import "server-only";
 import { AuditLog, connectDb, Family, Kid, Payment, withTransaction } from "@repo/db";
 import { ownFamilyId, type Parent } from "@repo/families/kids";
 import { normalizeObjectId } from "@repo/lib/ids";
-import { startOfDayInZone } from "@repo/lib/season";
 import { buildPaymentMetadata, getStripe } from "@repo/payments/checkout";
-import { getSeasonState } from "@repo/stores/season";
-import { MAX_CHECKOUT_MS, MIN_CHECKOUT_MS } from "./public.ts";
-import { donationToken, hashDeedToken, isDeedToken } from "./qr.ts";
+import { createHash, timingSafeEqual } from "node:crypto";
+import { MAX_CHECKOUT_MS, MIN_CHECKOUT_MS, publicFamilyAlias, publicSeason } from "./public.ts";
+import { donationToken, hashDeedToken, isDeedToken, qrDataUrl } from "./qr.ts";
 
 type KidLite = { _id: unknown; familyId: unknown; displayName: string; registration?: { status?: string | null } | null; donationLinkVersion?: number | null };
 
@@ -35,11 +34,20 @@ export async function donationLink(parent: Parent, rawKidId: string, origin: str
   const version = kid.donationLinkVersion ?? 1;
   const token = donationToken(kidId, version);
   const hash = hashDeedToken(token);
-  if (kid.donationTokenHash !== hash) await Kid.updateOne({ _id: kidId, familyId: fid }, { $set: { donationTokenHash: hash, donationLinkVersion: version } });
+  if (kid.donationTokenHash !== hash) {
+    // Compare-and-set on the version we read: if "Make a new link" ran in between, don't write
+    // the OLD link's hash back (that would revive a revoked link). Show no link this time instead.
+    const r = await Kid.updateOne({ _id: kidId, familyId: fid, donationLinkVersion: version }, { $set: { donationTokenHash: hash } });
+    if (r.matchedCount === 0) return null;
+  }
   return new URL(`/k/${token}`, origin).toString();
 }
 
-/** "Make a new link": the old one stops working at once. Audited. (Caller checks the PIN.) */
+/**
+ * "Make a new link": the old link stops opening the page at once. Audited. (Caller checks the PIN.)
+ * A checkout someone ALREADY opened from the old link can still finish (up to 23.5 h); that money
+ * still goes to this kid, and refusing it after payment would only mean refunds.
+ */
 export async function resetDonationLink(parent: Parent, rawKidId: string): Promise<{ ok: boolean }> {
   const kidId = normalizeObjectId(rawKidId);
   const fid = await ownFamilyId(parent);
@@ -68,15 +76,9 @@ export type DonationPage = { state: "invalid" } | { state: "open"; kidName: stri
 async function view(token: unknown): Promise<{ page: DonationPage; kid: KidLite | null }> {
   const kid = await findKid(token);
   if (!kid || kid.registration?.status !== "registered") return { page: { state: "invalid" }, kid: null };
-  const [fam, season] = await Promise.all([Family.findById(kid.familyId).select("alias showAliasPublicly aliasReview").lean(), getSeasonState()]);
+  const [fam, season] = await Promise.all([Family.findById(kid.familyId).select("alias showAliasPublicly aliasReview").lean(), publicSeason()]);
   return {
-    page: {
-      state: "open",
-      kidName: kid.displayName,
-      familyAlias: fam?.showAliasPublicly && fam.alias && fam.aliasReview === "approved" ? fam.alias : undefined,
-      seasonOpen: season.phase === "open" || season.phase === "frozen",
-      seasonCloseAt: startOfDayInZone(season.dates.close),
-    },
+    page: { state: "open", kidName: kid.displayName, familyAlias: publicFamilyAlias(fam), ...season },
     kid,
   };
 }
@@ -113,14 +115,33 @@ export async function startDonation(token: unknown, amountCents: number | null, 
   }
 }
 
+const sha = (s: string) => createHash("sha256").update(s).digest();
+
+/**
+ * Was `token` EVER this kid's donation link (any version up to the current one)? Used only after
+ * paying: a donor who started checkout before the parent made a new link must still see "thank
+ * you", not "invalid". Constant-time compare; versions only grow via PIN-gated resets (capped).
+ */
+async function wasKidsLink(token: string, rawKidId: unknown): Promise<boolean> {
+  const kidId = normalizeObjectId(rawKidId);
+  if (!kidId) return false;
+  await connectDb();
+  const kid = await Kid.findOne({ _id: kidId, archivedAt: null }).select("donationLinkVersion").lean();
+  const current = kid?.donationLinkVersion ?? 0;
+  const want = sha(token);
+  let match = false;
+  for (let v = Math.max(1, current - 499); v <= current; v++) match = timingSafeEqual(sha(donationToken(kidId, v)), want) || match;
+  return match;
+}
+
 /** After paying: "credited" / "processing" / "review" / "open" / null (only this kid's session). */
 export async function donationStatus(token: unknown, sessionId: string): Promise<"credited" | "processing" | "review" | "open" | null> {
-  if (!/^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(sessionId)) return null;
-  const kid = await findKid(token);
-  if (!kid) return null;
+  if (!/^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(sessionId) || !isDeedToken(token)) return null;
+  const kid = await findKid(token); // current link (fast path); else maybe an older link, checked below
   try {
     const s = await getStripe().checkout.sessions.retrieve(sessionId);
-    if (s.metadata?.sos_purpose !== "tip" || s.metadata?.sos_kid_id !== String(kid._id) || s.metadata?.sos_deed_id) return null;
+    if (s.metadata?.sos_purpose !== "tip" || s.metadata?.sos_deed_id) return null;
+    if (kid ? s.metadata?.sos_kid_id !== String(kid._id) : !(await wasKidsLink(token, s.metadata?.sos_kid_id))) return null;
     if (s.status === "open") return "open";
     if (s.status !== "complete") return null;
     const piId = typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id;
@@ -133,7 +154,5 @@ export async function donationStatus(token: unknown, sessionId: string): Promise
 }
 
 /** QR image (PNG data URL) for a link, shown on the kid's page. */
-export async function qrImage(url: string): Promise<string> {
-  const QRCode = (await import("qrcode")).default;
-  return QRCode.toDataURL(url, { errorCorrectionLevel: "M", margin: 1, width: 220 });
-}
+/** QR image for a donation link (shared look with deed codes). */
+export const qrImage = qrDataUrl;

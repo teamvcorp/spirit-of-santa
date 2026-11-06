@@ -13,6 +13,7 @@
  */
 import "server-only";
 import { createHash, createHmac } from "node:crypto";
+import QRCode from "qrcode";
 
 let cached: { raw: string; key: Buffer } | null = null;
 /** Parsed once per process (and again only if the env value changes, e.g. in tests). */
@@ -37,3 +38,6 @@ export const hashDeedToken = (token: string) => createHash("sha256").update(toke
 
 /** Looks like one of our tokens? (Cheap check before any DB lookup.) */
 export const isDeedToken = (v: unknown): v is string => typeof v === "string" && /^[A-Za-z0-9_-]{43}$/.test(v);
+
+/** PNG data-URL of a QR code for `url` (same look everywhere: deed codes + donation links). */
+export const qrDataUrl = (url: string) => QRCode.toDataURL(url, { errorCorrectionLevel: "M", margin: 1, width: 220 });

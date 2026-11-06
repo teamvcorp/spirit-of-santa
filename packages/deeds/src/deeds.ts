@@ -14,7 +14,6 @@
  *    per-kid lock (concurrent submits take turns; a failed attempt uses nothing up).
  */
 import "server-only";
-import QRCode from "qrcode";
 import { AuditLog, Deed, DeedType, ensureLock, Kid, takeLock, trusted, withTransaction } from "@repo/db";
 import { ownFamilyId, type Parent } from "@repo/families/kids";
 import { normalizeObjectId } from "@repo/lib/ids";
@@ -23,7 +22,7 @@ import type { Locale } from "@repo/lib/locales";
 import { calendarDateIn, isoDay, startOfDayInZone } from "@repo/lib/season";
 import { getSeasonState } from "@repo/stores/season";
 import mongoose from "mongoose";
-import { deedToken, hashDeedToken } from "./qr.ts";
+import { deedToken, hashDeedToken, qrDataUrl } from "./qr.ts";
 
 export type RecordInput = { deedTypeId: string } | { other: string };
 export type RecordResult = { ok: true; deedId: string } | { ok: false; error: "notFound" | "notRegistered" | "seasonClosed" | "deedUnavailable" | "dailyLimit" };
@@ -124,7 +123,7 @@ export async function listKidDeeds(parent: Parent, rawKidId: string, origin: str
       let qr: KidDeedRow["qr"];
       if (usable) {
         const url = new URL(`/d/${deedToken(id)}`, origin).toString();
-        qr = { url, image: await QRCode.toDataURL(url, { errorCorrectionLevel: "M", margin: 1, width: 220 }) };
+        qr = { url, image: await qrDataUrl(url) };
       }
       return {
         id,

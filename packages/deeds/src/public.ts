@@ -66,7 +66,7 @@ async function view(token: unknown, locale: string): Promise<View> {
       .lean<{ displayName: string; registration?: { status?: string | null } | null }>(),
     Family.findById(d.familyId).select("alias showAliasPublicly aliasReview").lean(),
     d.deedTypeId ? DeedType.findById(d.deedTypeId).select("title").lean() : null,
-    getSeasonState(),
+    publicSeason(),
   ]);
   // Only registered kids (consent verified) ever appear publicly.
   if (!kid || kid.registration?.status !== "registered") return { view: { state: "invalid" }, deed: d };
@@ -75,11 +75,9 @@ async function view(token: unknown, locale: string): Promise<View> {
     view: {
       state: "open",
       kidName: kid.displayName,
-      // Nickname: only when switched on AND approved by an admin.
-      familyAlias: fam?.showAliasPublicly && fam.alias && fam.aliasReview === "approved" ? fam.alias : undefined,
+      familyAlias: publicFamilyAlias(fam),
       deed,
-      seasonOpen: season.phase === "open" || season.phase === "frozen",
-      seasonCloseAt: startOfDayInZone(season.dates.close),
+      ...season,
     },
     deed: d,
   };
@@ -117,6 +115,17 @@ export function tipAmountCents(choice: string, otherDollars: string): number | n
 }
 
 export type TipStart = { ok: true; clientSecret: string; amountCents: number } | { ok: false; error: "invalid" | "used" | "expired" | "seasonClosed" | "amount" | "stripe" };
+
+/** Family nickname shown publicly ONLY when switched on AND approved by an admin (single source of truth). */
+export function publicFamilyAlias(fam: { alias?: string | null; showAliasPublicly?: boolean | null; aliasReview?: string | null } | null): string | undefined {
+  return fam?.showAliasPublicly && fam.alias && fam.aliasReview === "approved" ? fam.alias : undefined;
+}
+
+/** Public thanks/tips/donations run while the season is open or frozen; checkouts end by season close. */
+export async function publicSeason(): Promise<{ seasonOpen: boolean; seasonCloseAt: Date }> {
+  const season = await getSeasonState();
+  return { seasonOpen: season.phase === "open" || season.phase === "frozen", seasonCloseAt: startOfDayInZone(season.dates.close) };
+}
 
 /** Stripe's minimum Checkout lifetime is 30 minutes: a code expiring sooner can't take a tip. */
 export const MIN_CHECKOUT_MS = 31 * 60_000;

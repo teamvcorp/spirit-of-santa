@@ -334,11 +334,17 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   (`donationTokenHash`, select:false, sparse unique). "Make a new link" (PIN unlock needed) bumps `donationLinkVersion` →
   old link dies at once; audited `kid.donation_link_reset`. Public page: display name + APPROVED nickname only. Money =
   Stripe Embedded Checkout, purpose `tip` WITHOUT `sos_deed_id` (existing webhook credits points); expires at
-  min(season close, 23.5 h). `@repo/deeds/donate`; per-visitor limit `donate` 10/15 min. E2E `browser-family-donate.ts` (14).
+  min(season close, 23.5 h). `@repo/deeds/donate`; per-visitor limit `donate` 10/15 min. E2E `browser-family-donate.ts` (15).
+  Review fixes: lazy hash write is compare-and-set on the version (a reset can't be undone by a page render); the OLD
+  link's thanks page still recognises a checkout started before the reset (`wasKidsLink`, constant-time over versions);
+  checkouts already open from an old link CAN still finish (money goes to the same kid; UI says so). Shared
+  `publicFamilyAlias` / `publicSeason` (public.ts) and `qrDataUrl` (qr.ts) = one privacy rule + one QR look.
+  **Deferred to Phase 5:** merge startTip/startDonation + tipStatus/donationStatus into one kid-checkout helper (pay-later
+  reworks that code anyway); kid page computes the donation link + QR on every render (fine at current scale).
 - **Amount pickers (tip /d + donate /k) = shared `apps/family/components/amount-picker.tsx`.** React 19 RESETS a form
   after its action runs; a controlled "which radio" state then drifts from the DOM (empty required "Other" box silently
   blocked the next submit). Fix pattern (same as the deed form): action echoes `values` + `nonce`
-  (`apps/family/lib/amount-echo.ts`), `<form key={nonce}>`, radios use `defaultChecked`. **Use this for any radio/
+  (`apps/family/lib/amount-form.ts`), `<form key={nonce}>`, radios use `defaultChecked`. **Use this for any radio/
   conditional-field form driven by useActionState.**
 - **Server Actions can't read the locale** (`getLocale()` / next/root-params throw there): forms send a hidden `locale`
   field and actions redirect with `localizePath()`.

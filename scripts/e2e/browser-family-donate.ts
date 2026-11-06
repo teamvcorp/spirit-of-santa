@@ -12,7 +12,7 @@ import { chromium, type Page } from "playwright-core";
 import { AuditLog, connectDb, Family, Kid, Payment, StripeEvent, Transaction, User } from "@repo/db";
 import { hashSecret } from "@repo/auth/password";
 import { hashDeedToken } from "@repo/deeds/qr";
-import { buildPaymentMetadata } from "@repo/payments/checkout";
+import { buildPaymentMetadata, getStripe } from "@repo/payments/checkout";
 import { makeChecks } from "./lib.ts";
 
 const [base] = process.argv.slice(2);
@@ -34,6 +34,7 @@ const maya = await Kid.create({ familyId: fam._id, firstName: `Mayafirst${tag}`,
 const leo = await Kid.create({ familyId: fam._id, firstName: "Leo", birthYear: 2018, displayName: "L." });
 const piIds: string[] = [];
 const evtIds: string[] = [];
+const sessionIds: string[] = [];
 
 const browser = await chromium.launch({ channel: "msedge", headless: true });
 const errors: string[] = [];
@@ -105,6 +106,12 @@ try {
   check("thanks page never claims success for an unknown session", (await visit(stranger, `${url1}/thanks?session_id=cs_test_${"z".repeat(20)}`)).includes("isn't valid"));
 
   // 4. "Make a new link": needs the PIN; then the old link dies, the new one works.
+  // A donor's checkout started from the OLD link before the reset (real Stripe test session).
+  const early = await getStripe().checkout.sessions.create({
+    ui_mode: "embedded_page", mode: "payment", metadata: md, return_url: `${url1}/thanks?session_id={CHECKOUT_SESSION_ID}`,
+    line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: 500, product_data: { name: "E2E early donation" } } }],
+  });
+  sessionIds.push(early.id);
   await page.goto(`${base}/kids/${maya._id}`);
   await hydrated(page);
   await page.locator("main button", { hasText: "Make a new link" }).click();
@@ -123,6 +130,8 @@ try {
   check("new link is different; change audited", url2 !== url1 && (await AuditLog.countDocuments({ actorUserId: user._id, action: "kid.donation_link_reset" })) === 1);
   check("old link no longer works", (await visit(stranger, url1)).includes("isn't valid"));
   check("new link works", (await visit(stranger, url2)).includes("Give to M."));
+  check("old link's thanks page still knows a checkout started before the reset (not 'invalid')",
+    (await visit(stranger, `${url1}/thanks?session_id=${early.id}`)).includes("wasn't completed"));
 
   // 5. Spanish.
   const es = await (await browser.newContext()).newPage();
@@ -136,6 +145,7 @@ try {
   throw err;
 } finally {
   await browser.close();
+  for (const id of sessionIds) await getStripe().checkout.sessions.expire(id).catch(() => undefined);
   await Transaction.collection.deleteMany({ stripePaymentIntentId: { $in: piIds } });
   await Payment.collection.deleteMany({ stripePaymentIntentId: { $in: piIds } });
   await StripeEvent.collection.deleteMany({ eventId: { $in: evtIds } });

@@ -23,3 +23,23 @@
   don't expire on their own: see `stripe.md`).
 - Env names (roadmap): `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` (→ we'll use API key vars instead),
   `TWILIO_PHONE_NUMBER` (→ or messaging service SID). Already listed in turbo.json build env.
+
+## Env names we will use (Phase 5 slice 4) — set 2026-11-06
+
+| Variable | Looks like | What it is |
+|---|---|---|
+| `TWILIO_ACCOUNT_SID` | `AC` + 32 hex | Account SID (Console home). NOT the `SK…` key. |
+| `TWILIO_API_KEY_SID` | `SK` + 32 hex | API key (Account → API keys & tokens → Create API key, Standard) |
+| `TWILIO_API_KEY_SECRET` | 32 chars | That key's secret (shown once when created) |
+| `TWILIO_MESSAGING_SERVICE_SID` | `MG` + 32 hex | Messaging Service (preferred: STOP/opt-out handling) |
+| `TWILIO_PHONE_NUMBER` | `+1XXXXXXXXXX` | only if no Messaging Service |
+
+The main Auth Token is NOT needed (an API key can be revoked on its own). Never paste values in chat.
+
+## Test credentials
+
+Console → Account (top right) → **API keys & tokens** → section **"Test credentials"**: a separate Test
+Account SID + Test Auth Token. They never send a real text or charge, but only work with Twilio's "magic"
+numbers (From `+15005550006`) and NOT with API keys or Messaging Services. We don't need them: in local
+dev our SMS code prints the text to the server console instead of sending (same as email) unless
+`TWILIO_DEV_SEND=true`. Real texts also need A2P 10DLC approval first.

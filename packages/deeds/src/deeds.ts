@@ -9,16 +9,18 @@
  *    still fund items until it closes.
  *  - A catalog deed must be ACTIVE; "other" text waits for admin approval before it's shown
  *    publicly (customReview).
- *  - QR: single use, DEED_QR_DAYS valid (qr.ts for the token scheme); MAX_DEEDS_PER_KID_PER_DAY.
+ *  - QR: single use; valid DEED_QR_DAYS but never past the season's close (qr.ts: token scheme).
+ *  - MAX_DEEDS_PER_KID_PER_DAY counts the kid's actual deeds since midnight Chicago time, under a
+ *    per-kid lock (concurrent submits take turns; a failed attempt uses nothing up).
  */
 import "server-only";
 import QRCode from "qrcode";
-import { hitRateLimit } from "@repo/auth/rate-limit";
-import { AuditLog, Deed, DeedType, Kid, trusted, withTransaction } from "@repo/db";
+import { AuditLog, Deed, DeedType, ensureLock, Kid, takeLock, trusted, withTransaction } from "@repo/db";
 import { ownFamilyId, type Parent } from "@repo/families/kids";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { DEED_QR_DAYS, MAX_DEEDS_PER_KID_PER_DAY } from "@repo/lib/limits";
 import type { Locale } from "@repo/lib/locales";
+import { calendarDateIn, isoDay, startOfDayInZone } from "@repo/lib/season";
 import { getSeasonState } from "@repo/stores/season";
 import mongoose from "mongoose";
 import { deedToken, hashDeedToken } from "./qr.ts";
@@ -47,13 +49,20 @@ export async function recordDeed(parent: Parent, rawKidId: string, input: Record
     if (!id || !(await DeedType.exists({ _id: id, active: true }))) return { ok: false, error: "deedUnavailable" };
     deedTypeId = id;
   }
-  // Daily cap per kid (fixed UTC-day window, like other limits).
-  if (!(await hitRateLimit(`deed-create:${kid.kidId}`, MAX_DEEDS_PER_KID_PER_DAY, 86_400))) return { ok: false, error: "dailyLimit" };
+  const now = new Date();
+  const todayStart = startOfDayInZone(isoDay(calendarDateIn(now)));
+  // Never valid past the season's close (midnight starting the close day, Chicago time).
+  const expiresAt = new Date(Math.min(now.getTime() + DEED_QR_DAYS * 86_400_000, startOfDayInZone(season.dates.close).getTime()));
 
   // The id is chosen first so the QR token (HMAC of the id) can be hashed into the same insert.
   const _id = new mongoose.Types.ObjectId();
   const deedId = String(_id);
-  await withTransaction(async (session) => {
+  const lock = `kid-deeds:${kid.kidId}`;
+  await ensureLock(lock);
+  const created = await withTransaction(async (session) => {
+    await takeLock(lock, session);
+    const today = await Deed.countDocuments({ kidId: kid.kidId, createdAt: trusted({ $gte: todayStart }) }).session(session);
+    if (today >= MAX_DEEDS_PER_KID_PER_DAY) return false;
     await Deed.create(
       [
         {
@@ -65,15 +74,16 @@ export async function recordDeed(parent: Parent, rawKidId: string, input: Record
           locale,
           status: "pending",
           qrTokenHash: hashDeedToken(deedToken(deedId)),
-          expiresAt: new Date(Date.now() + DEED_QR_DAYS * 86_400_000),
+          expiresAt,
         },
       ],
       { session },
     );
     // Audit: ids only (no free text: it may describe the child).
     await AuditLog.create([{ actorUserId: parent.id, action: "deed.create", targetType: "kid", targetId: kid.kidId, details: { deedId, custom: !deedTypeId } }], { session });
+    return true;
   });
-  return { ok: true, deedId };
+  return created ? { ok: true, deedId } : { ok: false, error: "dailyLimit" };
 }
 
 export type KidDeedRow = {
@@ -88,13 +98,21 @@ export type KidDeedRow = {
 };
 
 /**
- * A kid's recent deeds (newest first) for the kid's own page, with QR codes for the usable ones.
- * `origin` = the family app's public URL (QR links point there).
+ * A kid's deeds for the kid's own page: EVERY still-usable one (with its QR code) plus the 20
+ * most recent others, newest first. `origin` = the family app's public URL (QR links point there).
  */
 export async function listKidDeeds(parent: Parent, rawKidId: string, origin: string): Promise<KidDeedRow[] | null> {
   const kid = await ownKid(parent, rawKidId);
   if (!kid) return null;
-  const deeds = await Deed.find({ kidId: kid.kidId, familyId: kid.fid }).sort({ createdAt: -1 }).limit(20).lean();
+  const scope = { kidId: kid.kidId, familyId: kid.fid };
+  const usableFilter = { status: "pending" as const, qrUsedAt: null, expiresAt: trusted({ $gt: new Date() }) };
+  // Usable codes are bounded by the daily cap x 14 days; history is capped at 20.
+  const [usable, recent] = await Promise.all([
+    Deed.find({ ...scope, ...usableFilter }).sort({ createdAt: -1 }).limit(MAX_DEEDS_PER_KID_PER_DAY * DEED_QR_DAYS).lean(),
+    Deed.find(scope).sort({ createdAt: -1 }).limit(20).lean(),
+  ]);
+  const seen = new Set(usable.map((d) => String(d._id)));
+  const deeds = [...usable, ...recent.filter((d) => !seen.has(String(d._id)))].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const typeIds = [...new Set(deeds.map((d) => (d.deedTypeId ? String(d.deedTypeId) : null)).filter((v): v is string => Boolean(v)))];
   const types = typeIds.length ? await DeedType.find({ _id: trusted({ $in: typeIds }) }).select("title").lean() : [];
   const titleOf = new Map(types.map((t) => [String(t._id), { en: t.title?.en ?? undefined, es: t.title?.es ?? undefined }]));
@@ -112,7 +130,8 @@ export async function listKidDeeds(parent: Parent, rawKidId: string, origin: str
         id,
         title: d.deedTypeId ? (titleOf.get(String(d.deedTypeId)) ?? {}) : {},
         custom: d.customDescription ?? undefined,
-        status: usable ? "pending" : d.status === "pending" ? "expired" : d.status,
+        // A scanned code (qrUsedAt) that's still pending is being handled (e.g. payment), not expired.
+        status: usable ? "pending" : d.status === "pending" ? (d.qrUsedAt ? "processing" : "expired") : d.status,
         createdAt: d.createdAt,
         expiresAt: d.expiresAt ?? undefined,
         qr,

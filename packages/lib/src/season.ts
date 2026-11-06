@@ -207,3 +207,26 @@ export function validateSeasonDates(
   if (open <= today) return "openInPast";
   return null;
 }
+
+/**
+ * The instant a calendar day ("YYYY-MM-DD") begins at midnight in `timeZone` (DST-safe).
+ * Used for "today" limits and for season-close deadlines (e.g. a QR code must not outlive the season).
+ */
+export function startOfDayInZone(isoDayStr: string, timeZone = SEASON_TIME_ZONE): Date {
+  const d = parseIsoDay(isoDayStr);
+  if (!d) throw new RangeError("not a YYYY-MM-DD day");
+  const target = Date.UTC(d.year, d.month - 1, d.day);
+  // Guess UTC midnight, see what wall-clock time that is in the zone, correct by the difference.
+  // Two passes handle a daylight-saving change between the guess and the answer.
+  let t = target;
+  for (let i = 0; i < 2; i++) {
+    const parts = Object.fromEntries(
+      new Intl.DateTimeFormat("en-US", { timeZone, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", hourCycle: "h23" })
+        .formatToParts(new Date(t))
+        .map((p) => [p.type, p.value]),
+    );
+    const wall = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), Number(parts.hour), Number(parts.minute));
+    t += target - wall;
+  }
+  return new Date(t);
+}

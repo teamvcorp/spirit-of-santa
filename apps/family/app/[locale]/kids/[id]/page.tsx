@@ -9,6 +9,7 @@ import { connection } from "next/server";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { getKid } from "@repo/families/kids";
+import { localized } from "@repo/deeds/catalog";
 import { listKidDeeds } from "@repo/deeds/deeds";
 import { formatPoints } from "@repo/lib/format";
 import { Alert } from "@repo/ui/alert";
@@ -30,7 +31,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
   const [kid, deeds, t, format, locale] = await Promise.all([getKid(parent, id), listKidDeeds(parent, id, origin), getTranslations("Kid"), getFormatter(), getLocale()]);
   if (!kid || !deeds) notFound(); // other families' kids look the same as missing ones
   const day = (d?: Date) => (d ? format.dateTime(new Date(d), { month: "short", day: "numeric" }) : "");
-  const title = (d: (typeof deeds)[number]) => (d.custom ? d.custom : ((locale === "es" ? d.title.es : d.title.en) ?? d.title.en ?? t("aDeed")));
+  const title = (d: (typeof deeds)[number]) => d.custom || localized(d.title, locale) || t("aDeed");
   return (
     <>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">

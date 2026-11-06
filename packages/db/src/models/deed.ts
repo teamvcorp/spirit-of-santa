@@ -2,9 +2,10 @@
  * DeedType = admin-managed catalog of preset good deeds.
  * Deed     = one submitted deed by a kid, with a single-use QR code the recipient scans.
  *
- * QR security: the QR encodes a random 32-byte token. We store only its SHA-256 hash
- * (qrTokenHash), so someone who reads the database still can't forge working QR links.
- * Lookup = hash the scanned token, then find by hash. Single-use = qrUsedAt set atomically.
+ * QR security (@repo/deeds/qr): the QR link's token = HMAC(DEED_QR_KEY, deedId). We store only its
+ * SHA-256 hash (qrTokenHash), so someone who reads the database can't forge working QR links, while
+ * the server can recompute (re-show) a kid's QR. Lookup = hash the scanned token, then find by hash.
+ * Single use = qrUsedAt set atomically; never valid after expiresAt (14 days, capped at season close).
  */
 // Default import: mongoose is CommonJS, so named runtime imports fail under plain Node ESM.
 import mongoose, { type InferSchemaType, type Model } from "mongoose";

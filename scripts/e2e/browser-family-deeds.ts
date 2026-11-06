@@ -133,11 +133,18 @@ try {
   check("another family's kid page is not found", res?.status() === 404 || !(await page.locator("main").innerText()).includes("Other"));
 
   // 6. Daily cap.
-  const windowStart = new Date(Math.floor(Date.now() / 86_400_000) * 86_400_000);
-  await RateLimit.updateOne({ key: `deed-create:${maya._id}`, windowStart }, { $set: { count: 10, expiresAt: new Date(windowStart.getTime() + 86_400_000) } }, { upsert: true });
+  // The cap counts real deeds since midnight Chicago time: add 8 more for today (2 exist).
+  await Deed.insertMany(Array.from({ length: 8 }, () => ({
+    kidId: maya._id, familyId: A.family._id, seasonYear: getSeasonYear(), deedTypeId: typeOn._id, status: "pending",
+    qrTokenHash: randomBytes(32).toString("hex"), expiresAt: new Date(Date.now() + 86_400_000),
+  })));
   await record(String(typeOn._id));
   await page.locator("main").getByText("10 deeds today").waitFor({ timeout: 15_000 });
-  check("10 deeds a day per child", (await mayaDeeds()).length === 2);
+  check("10 deeds a day per child (counted from real deeds)", (await mayaDeeds()).length === 10);
+  // Every still-usable QR is listed, not just the newest 20 (here: all 10 + their QR images).
+  await page.goto(`${base}/kids/${maya._id}`);
+  await page.locator("main img[data-qr-url]").first().waitFor({ timeout: 15_000 });
+  check("all usable QR codes are shown", (await page.locator("main img[data-qr-url]").count()) === 10);
 
   // 7. PIN locked: the kid page (and its QR codes) still works, recording needs the PIN.
   await ctx.clearCookies({ name: /parent-unlock/ });

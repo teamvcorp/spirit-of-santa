@@ -25,7 +25,8 @@
         "CRON_SECRET",
         "STORE_APP_URL",
         "MFA_ENCRYPTION_KEY",
-        "FAMILY_PROMO_CODE"
+        "FAMILY_PROMO_CODE",
+        "DEED_QR_KEY"
       ],
       "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"]
     },

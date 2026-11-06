@@ -168,7 +168,8 @@
       "confirmed": "¡Agradecida!",
       "expired": "Código vencido",
       "flagged": "En revisión",
-      "rejected": "No cuenta"
+      "rejected": "No cuenta",
+      "processing": "Código escaneado: en proceso"
     },
     "recordTitle": "Registrar una buena acción",
     "recordIntro": "¿Qué hizo {name}? Se crea un código QR para la persona que ayudó.",

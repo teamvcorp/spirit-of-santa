@@ -10,6 +10,13 @@ import { AuditLog, connectDb, DeedType, ensureLock, takeLock, withTransaction, t
 import { normalizeObjectId } from "@repo/lib/ids";
 import type { DeedTypeInput } from "./schemas.ts";
 
+/** Spanish when asked for and present (non-empty), else English. One helper for every page. */
+export function localized(text: { en?: string | null; es?: string | null } | undefined, locale: string): string | undefined {
+  const es = text?.es?.trim();
+  const en = text?.en?.trim();
+  return (locale === "es" && es ? es : en) || undefined;
+}
+
 export type DeedTypeRow = {
   id: string;
   title: { en: string; es?: string };

@@ -168,7 +168,8 @@
       "confirmed": "Thanked!",
       "expired": "Code expired",
       "flagged": "Being checked",
-      "rejected": "Not counted"
+      "rejected": "Not counted",
+      "processing": "Code scanned: being processed"
     },
     "recordTitle": "Record a good deed",
     "recordIntro": "What did {name} do? A QR code is made for the person they helped.",

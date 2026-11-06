@@ -37,7 +37,7 @@ export function RecordDeedForm({ kidId, deeds }: { kidId: string; deeds: { id: s
           <span className="font-semibold">{t("other")}</span>
         </label>
       </fieldset>
-      {(choice === "other" || state.values?.choice === "other") && (
+      {choice === "other" && (
         <div className="flex flex-col gap-1">
           <label htmlFor="other" className="text-sm font-medium">
             {t("otherLabel")}

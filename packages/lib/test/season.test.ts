@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { defaultSeasonDates, getSeasonPhase, getSeasonYear, isStoreItemWindowOpen, parseIsoDay, resolveSeason, validateSeasonDates } from "../src/season.ts";
+import { defaultSeasonDates, getSeasonPhase, getSeasonYear, isStoreItemWindowOpen, parseIsoDay, resolveSeason, startOfDayInZone, validateSeasonDates } from "../src/season.ts";
 
 // Instants are given in UTC. Chicago is UTC-6 in Dec (CST) and UTC-5 in Oct (CDT).
 const at = (iso: string) => new Date(iso);
@@ -90,6 +90,14 @@ test("validateSeasonDates", () => {
   assert.equal(validateSeasonDates(2027, { openDate: "2027-11-01" }, {}, at("2027-10-02T12:00:00Z")), "locked");
   // A custom later open date keeps it editable until then.
   assert.equal(validateSeasonDates(2027, { openDate: "2027-11-01" }, { openDate: "2027-10-20" }, at("2027-10-02T12:00:00Z")), null);
+});
+
+test("startOfDayInZone: midnight in Chicago, both sides of daylight saving", () => {
+  assert.equal(startOfDayInZone("2027-12-25").toISOString(), "2027-12-25T06:00:00.000Z"); // CST, UTC-6
+  assert.equal(startOfDayInZone("2027-07-04").toISOString(), "2027-07-04T05:00:00.000Z"); // CDT, UTC-5
+  assert.equal(startOfDayInZone("2027-03-14").toISOString(), "2027-03-14T06:00:00.000Z"); // DST starts at 2 am that day
+  assert.equal(startOfDayInZone("2027-11-07").toISOString(), "2027-11-07T05:00:00.000Z"); // DST ends at 2 am that day
+  assert.throws(() => startOfDayInZone("2027-02-30"));
 });
 
 test("parseIsoDay / defaultSeasonDates", () => {

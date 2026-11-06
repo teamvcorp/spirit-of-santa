@@ -33,6 +33,7 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
   const locale = await rootLocale();
   if (!isLocale(locale)) notFound(); // the proxy normally guarantees a valid locale
   const common = await getTranslations("Common");
+  const community = await getTranslations("Community");
 
   return (
     <html
@@ -46,6 +47,10 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
             brand={<Link href="/">{common("brand")}</Link>}
             actions={
               <>
+                {/* Public page for community / corporate gifts (Phase 5 slice 2). */}
+                <Link href="/donate" className="font-semibold underline-offset-4 hover:underline">
+                  {community("navLink")}
+                </Link>
                 {/* usePathname() inside: on dynamic routes (e.g. /stores/[id]) the path isn't known
                     at prerender time, so it must stream in inside Suspense (Cache Components). */}
                 <Suspense fallback={null}>

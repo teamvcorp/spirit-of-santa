@@ -40,11 +40,13 @@ export const paymentMetadataSchema = z.discriminatedUnion("sos_purpose", [
     sos_kid_id: objectId,
     sos_family_id: objectId,
   }),
-  // Corporate/public donation: split pro-rata across kids later (Phase 5), optionally by ZIP.
+  // Community/corporate donation (/donate): pooled, split EQUALLY at the Dec 1 freeze; optionally one ZIP.
   z.object({
     sos_v: version,
     sos_purpose: z.literal("donation"),
     sos_zip: z.string().regex(/^\d{5}$/).optional(),
+    /** Donor's page language: the tax receipt email is sent in it. */
+    sos_locale: z.enum(["en", "es"]).optional(),
   }),
   // $5 child registration (parental-consent card check). Up to 10 kids, comma-separated ids.
   // sos_promo "1" = family promo code: one $5 covers every listed kid.

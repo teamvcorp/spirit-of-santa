@@ -301,5 +301,39 @@
       "seasonClosed": "La magia extra solo está disponible mientras la temporada de Navidad está abierta.",
       "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde."
     }
+  },
+  "Community": {
+    "navLink": "Donar",
+    "title": "Regala a los niños de Spirit O Santa",
+    "intro": "Tu regalo se convierte en puntos mágicos para niños que ganan regalos de Navidad con buenas acciones. Regala a todos los niños o a los niños de un código postal.",
+    "how": "Los regalos se juntan y se reparten en partes iguales entre los niños registrados el {day}. El {fee} de cada regalo ayuda a mantener Spirit O Santa; el resto se convierte en puntos ({rate} = 1 punto).",
+    "charity": "Spirit O Santa es un programa de {orgName} (EIN {ein}), una organización sin fines de lucro 501(c)(3). Recibirás un recibo para impuestos por correo electrónico.",
+    "raised": "Donado esta temporada hasta ahora: {amount}",
+    "who": "¿A quién quieres ayudar?",
+    "all": "A todos los niños",
+    "zipChoice": "A los niños de un código postal",
+    "zipLabel": "Código postal",
+    "zipNote": "Si ningún niño registrado vive en ese código postal cuando se repartan los regalos, tu regalo será para todos los niños.",
+    "amount": "Cantidad",
+    "other": "Otra",
+    "otherAmount": "Cantidad en dólares",
+    "button": "Continuar al pago",
+    "final": "Todos los regalos son definitivos. Los pagos los procesa Stripe; nunca vemos el número de tu tarjeta.",
+    "total": "Regalo: {amount}",
+    "received": "¡Gracias! Tu regalo está en el fondo y se repartirá entre los niños.",
+    "processing": "¡Gracias! Estamos confirmando tu pago.",
+    "review": "Recibimos tu pago. Nuestro equipo lo revisará antes de repartirlo.",
+    "notPaid": "El pago no se completó. No se te cobró nada.",
+    "unknown": "No encontramos ese pago.",
+    "tryAgain": "Intentar de nuevo",
+    "back": "Volver a la página de donaciones",
+    "errors": {
+      "amount": "Elige una cantidad entre {min} y {max}.",
+      "zip": "Escribe un código postal de 5 dígitos.",
+      "closed": "Los regalos de la comunidad no están abiertos ahora. Abren con la temporada de Navidad y cierran cuando se reparten los regalos.",
+      "invalid": "Algo salió mal con el formulario. Inténtalo de nuevo.",
+      "rateLimited": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
+      "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde."
+    }
   }
 }

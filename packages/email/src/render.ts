@@ -34,10 +34,15 @@ export type EmailTemplates = {
   inviteRep: { storeName: string; link: string };
   /** Security alert to an admin: two-step sign-in was just turned on (catches a hijacked enrolment). */
   mfaEnabled: { link: string };
+  /**
+   * Tax receipt for a community donation (Phase 5 slice 2). donorName = what the donor typed in
+   * Stripe Checkout; org details typed by an admin. Body is multi-line (rendered with line breaks).
+   */
+  donationReceipt: { link: string; receiptNo: string; amount: string; date: string; donorName: string; orgName: string; ein: string; orgAddress: string };
 };
 
 /** Security alerts and "you already have an account": "ignore this email" would be wrong advice. */
-const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled"]);
+const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled", "donationReceipt"]);
 export type EmailTemplateName = keyof EmailTemplates;
 
 export type RenderedEmail = { subject: string; text: string; html: string };
@@ -101,7 +106,7 @@ export function renderEmail<T extends EmailTemplateName>(
 <tr><td style="padding:24px 28px;border-top:6px solid #b3261e;border-radius:8px 8px 0 0">
 <p style="margin:0 0 4px;font-weight:bold;color:#8c1d18">Spirit O Santa</p>
 <h1 style="margin:0 0 16px;font-size:22px">${e(heading)}</h1>
-<p style="margin:0 0 20px;line-height:1.5">${e(body)}</p>
+<p style="margin:0 0 20px;line-height:1.5;white-space:pre-line">${e(body)}</p>
 <p style="margin:0 0 20px"><a href="${e(link)}" style="display:inline-block;background:#b3261e;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:6px;font-weight:bold">${e(button)}</a></p>
 ${expiry ? `<p style="margin:0 0 12px;color:#555;font-size:14px">${e(expiry)}</p>` : ""}
 <p style="margin:0 0 4px;color:#555;font-size:13px">${e(tt("linkFallback"))}</p>

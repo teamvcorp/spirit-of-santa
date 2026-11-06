@@ -41,6 +41,17 @@ export const MIN_TIP_CENTS = 100;
 export const MAX_TIP_CENTS = 100_000;
 
 /**
+ * Community donations (/donate, Phase 5 slice 2): preset buttons and free-entry bounds. Bigger
+ * than tips (businesses give). ASSUMPTION: $5–$50,000 (fat-finger/fraud guard); larger gifts can
+ * be arranged with an admin. The webhook re-checks the same bounds.
+ */
+export const DONATION_PRESETS_CENTS = [2500, 5000, 10_000, 25_000] as const;
+export const MIN_DONATION_CENTS = 500;
+export const MAX_DONATION_CENTS = 5_000_000;
+/** Highest platform fee an admin can set on donation pools (basis points: 3000 = 30%). */
+export const MAX_DONATION_FEE_BPS = 3000;
+
+/**
  * Stripe Checkout lifetime bounds (expires_at): at least 30 minutes (we use 31 so a session about
  * to expire is refused) and strictly under 24 hours (we use 23.5). Shared by tips, donations, bonus.
  */

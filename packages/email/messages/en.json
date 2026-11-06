@@ -61,6 +61,12 @@
       "body": "Thanks for creating a family account on Spirit O Santa. Please confirm this is your email address. After that you can sign in and add your children.",
       "button": "Confirm email",
       "expiry": "This link works once and expires in 24 hours."
+    },
+    "donationReceipt": {
+      "subject": "Your donation receipt from {orgName}",
+      "heading": "Thank you for your gift",
+      "body": "Thank you for supporting children through Spirit O Santa, a program of {orgName}.\n\nReceipt number: {receiptNo}\nDate: {date}\nAmount: {amount}\nDonor: {donorName}\n\n{orgName}, EIN {ein}\n{orgAddress}\n\nNo goods or services were provided in exchange for this contribution. {orgName} is a tax-exempt organization under section 501(c)(3) of the Internal Revenue Code. Please keep this receipt for your tax records.",
+      "button": "Visit Spirit O Santa"
     }
   }
 }

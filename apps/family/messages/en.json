@@ -301,5 +301,39 @@
       "seasonClosed": "Bonus magic is only available while the Christmas season is open.",
       "stripe": "Payments aren't available right now. Please try again later."
     }
+  },
+  "Community": {
+    "navLink": "Donate",
+    "title": "Give to Spirit O Santa kids",
+    "intro": "Your gift becomes magic points for children who earn Christmas gifts with good deeds. Give to every child, or to children in one ZIP code.",
+    "how": "Gifts are pooled and shared equally among registered children on {day}. {fee} of each gift supports running Spirit O Santa; the rest becomes points ({rate} = 1 point).",
+    "charity": "Spirit O Santa is a program of {orgName} (EIN {ein}), a 501(c)(3) nonprofit. You'll get a tax receipt by email.",
+    "raised": "Given this season so far: {amount}",
+    "who": "Who should your gift help?",
+    "all": "All children",
+    "zipChoice": "Children in one ZIP code",
+    "zipLabel": "ZIP code",
+    "zipNote": "If no registered children live in that ZIP code when gifts are shared, your gift goes to all children.",
+    "amount": "Amount",
+    "other": "Other",
+    "otherAmount": "Amount in dollars",
+    "button": "Continue to payment",
+    "final": "All gifts are final. Payments are handled by Stripe; we never see your card number.",
+    "total": "Gift: {amount}",
+    "received": "Thank you! Your gift is in the pool and will be shared among the children.",
+    "processing": "Thank you! Your payment is being confirmed.",
+    "review": "We got your payment. Our team will check it before it is shared.",
+    "notPaid": "The payment wasn't completed. You haven't been charged.",
+    "unknown": "We couldn't find that payment.",
+    "tryAgain": "Try again",
+    "back": "Back to the donation page",
+    "errors": {
+      "amount": "Choose an amount between {min} and {max}.",
+      "zip": "Enter a 5-digit ZIP code.",
+      "closed": "Community gifts aren't open right now. They open with the Christmas season and close when the gifts are shared.",
+      "invalid": "Something was wrong with the form. Please try again.",
+      "rateLimited": "Too many tries. Please wait a few minutes and try again.",
+      "stripe": "Payments aren't available right now. Please try again later."
+    }
   }
 }

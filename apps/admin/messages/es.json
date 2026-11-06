@@ -423,5 +423,32 @@
     "deedTexts": "Textos de acciones",
     "aliases": "Apodos familiares",
     "aliasesIntro": "Se muestran en las páginas QR públicas como \"De la familia …\". Oculta apellidos reales, lugares o cualquier cosa desagradable."
+  },
+  "Settings": {
+    "title": "Ajustes",
+    "donationsTitle": "Donaciones de la comunidad",
+    "donationsIntro": "Los regalos de la página pública de donaciones se juntan y se reparten en partes iguales entre los niños registrados al congelar la temporada. La comisión de Spirit O Santa se descuenta primero y se muestra a los donantes antes de donar.",
+    "fee": "Comisión de la plataforma (%)",
+    "feeHint": "De 0 a 30, hasta dos decimales (p. ej. 10 o 12.5). Se muestra en la página de donaciones.",
+    "feeMissing": "La comisión aún no está definida: la página pública de donaciones sigue cerrada (y el reparto del 1 de diciembre no se ejecutará) hasta que guardes una.",
+    "charityTitle": "Organización en los recibos de impuestos (501(c)(3))",
+    "legalName": "Nombre legal",
+    "ein": "EIN",
+    "einHint": "Formato 12-3456789.",
+    "address": "Dirección postal (opcional)",
+    "receipts": "Enviar recibos de impuestos por correo",
+    "receiptsHelp": "Actívalo solo cuando hayas confirmado con la organización (y un contador) que estas donaciones se reciben en su nombre. Los regalos hechos antes recibirán su recibo cuando lo actives.",
+    "save": "Guardar ajustes",
+    "saved": "Guardado.",
+    "savedSent": "{count, plural, one {Guardado. Se envió # recibo pendiente.} other {Guardado. Se enviaron # recibos pendientes.}}",
+    "receiptsTitle": "Recibos de impuestos",
+    "counts": "Pendientes: {pending} · Enviados: {sent} · Fallidos: {failed}",
+    "waiting": "Hay recibos pendientes: activa los recibos y escribe el nombre legal y el EIN de la organización para enviarlos.",
+    "errors": {
+      "invalid": "Algo salió mal con el formulario. Inténtalo de nuevo.",
+      "fee": "Escribe una comisión entre 0 y 30 (hasta dos decimales).",
+      "ein": "Escribe el EIN como 12-3456789.",
+      "receiptsNeedCharity": "Para enviar recibos, escribe el nombre legal y el EIN de la organización."
+    }
   }
 }

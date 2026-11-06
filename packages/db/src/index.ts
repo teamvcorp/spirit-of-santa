@@ -45,6 +45,8 @@ export {
   type ActionTokenPurpose,
 } from "./models/action-token.ts";
 export { RateLimit, type RateLimitDoc } from "./models/rate-limit.ts";
+export { PlatformSettings, type PlatformSettingsDoc } from "./models/platform-settings.ts";
+export { DonationReceipt, DONATION_RECEIPT_STATUSES, type DonationReceiptDoc } from "./models/donation-receipt.ts";
 export { AuditLog, AUDIT_ACTIONS, type AuditAction, type AuditLogDoc } from "./models/audit-log.ts";
 export {
   WishListItem,

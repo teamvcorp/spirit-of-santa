@@ -7,7 +7,10 @@
     "./webhook": "./src/webhook.ts",
     "./metadata": "./src/metadata.ts",
     "./client": "./src/client.ts",
-    "./checkout": "./src/checkout.ts"
+    "./checkout": "./src/checkout.ts",
+    "./community": "./src/community.ts",
+    "./receipts": "./src/receipts.ts",
+    "./settings": "./src/settings.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -16,7 +19,9 @@
   },
   "dependencies": {
     "@repo/db": "*",
+    "@repo/email": "*",
     "@repo/lib": "*",
+    "@repo/stores": "*",
     "server-only": "0.0.1",
     "stripe": "23.0.1",
     "zod": "4.6.7"

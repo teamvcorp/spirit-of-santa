@@ -61,6 +61,12 @@
       "body": "Gracias por crear una cuenta familiar en Spirit O Santa. Confirma que este es tu correo electrónico. Después podrás iniciar sesión y agregar a tus hijos.",
       "button": "Confirmar correo",
       "expiry": "Este enlace funciona una vez y vence en 24 horas."
+    },
+    "donationReceipt": {
+      "subject": "Tu recibo de donación de {orgName}",
+      "heading": "Gracias por tu regalo",
+      "body": "Gracias por apoyar a los niños a través de Spirit O Santa, un programa de {orgName}.\n\nNúmero de recibo: {receiptNo}\nFecha: {date}\nCantidad: {amount}\nDonante: {donorName}\n\n{orgName}, EIN {ein}\n{orgAddress}\n\nNo se proporcionaron bienes ni servicios a cambio de esta contribución. {orgName} es una organización exenta de impuestos según la sección 501(c)(3) del Código de Rentas Internas. Guarda este recibo para tus registros de impuestos.",
+      "button": "Visitar Spirit O Santa"
     }
   }
 }

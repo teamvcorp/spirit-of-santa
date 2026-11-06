@@ -423,5 +423,32 @@
     "deedTexts": "Deed texts",
     "aliases": "Family nicknames",
     "aliasesIntro": "Shown on public QR pages as \"From the … family\". Hide real surnames, places or anything unkind."
+  },
+  "Settings": {
+    "title": "Settings",
+    "donationsTitle": "Community donations",
+    "donationsIntro": "Gifts on the public donation page are pooled and shared equally among registered children at the season freeze. Spirit O Santa's fee is taken off the top and shown to donors before they give.",
+    "fee": "Platform fee (%)",
+    "feeHint": "0 to 30, up to two decimals (e.g. 10 or 12.5). Shown on the donation page.",
+    "feeMissing": "The platform fee isn't set yet: the public donation page stays closed (and the Dec 1 split won't run) until you save one.",
+    "charityTitle": "Charity on tax receipts (501(c)(3))",
+    "legalName": "Legal name",
+    "ein": "EIN",
+    "einHint": "Format 12-3456789.",
+    "address": "Mailing address (optional)",
+    "receipts": "Send tax receipts by email",
+    "receiptsHelp": "Only switch this on once you've confirmed with the charity (and an accountant) that these donations are received on its behalf. Gifts made before then get their receipt when you switch it on.",
+    "save": "Save settings",
+    "saved": "Saved.",
+    "savedSent": "{count, plural, one {Saved. # waiting receipt was emailed.} other {Saved. # waiting receipts were emailed.}}",
+    "receiptsTitle": "Tax receipts",
+    "counts": "Waiting: {pending} · Sent: {sent} · Failed: {failed}",
+    "waiting": "Receipts are waiting: switch receipts on and fill in the charity's legal name and EIN to send them.",
+    "errors": {
+      "invalid": "Something was wrong with the form. Please try again.",
+      "fee": "Enter a fee between 0 and 30 (up to two decimals).",
+      "ein": "Enter the EIN as 12-3456789.",
+      "receiptsNeedCharity": "To send receipts, fill in the charity's legal name and EIN."
+    }
   }
 }

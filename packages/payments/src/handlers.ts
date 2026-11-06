@@ -17,11 +17,12 @@
 import "server-only";
 import type Stripe from "stripe";
 import { Deed, Kid, Payment, Transaction, trusted, withTransaction } from "@repo/db";
-import { MAX_TIP_CENTS, MIN_TIP_CENTS, REGISTRATION_FEE_CENTS } from "@repo/lib/limits";
+import { MAX_DONATION_CENTS, MAX_TIP_CENTS, MIN_DONATION_CENTS, MIN_TIP_CENTS, REGISTRATION_FEE_CENTS } from "@repo/lib/limits";
 import { centsToCentipoints } from "@repo/lib/points";
 import { getSeasonYear } from "@repo/lib/season";
 import { getStripe } from "./client.ts";
 import { parsePaymentMetadata, type PaymentMetadata } from "./metadata.ts";
+import { ensureDonationReceipt, sendPendingReceipts } from "./receipts.ts";
 
 export type Outcome = { status: "processed" | "ignored"; note: string };
 const processed = (note: string): Outcome => ({ status: "processed", note });
@@ -42,6 +43,9 @@ function moneyProblem(pi: Stripe.PaymentIntent, meta: PaymentMetadata): string |
   ) {
     return "amount_out_of_bounds"; // creation code should have blocked this: a human checks
   }
+  if (meta.sos_purpose === "donation" && (pi.amount_received < MIN_DONATION_CENTS || pi.amount_received > MAX_DONATION_CENTS)) {
+    return "amount_out_of_bounds";
+  }
   if (meta.sos_purpose === "registration") {
     // The amount we asked for: $5 x kids, or one $5 with the promo code.
     const kids = meta.sos_kid_ids.split(",").length;
@@ -56,15 +60,33 @@ const isDuplicateKey = (err: unknown) => (err as { code?: number }).code === 110
 
 // ── payment_intent.succeeded ─────────────────────────────────────────────────────────
 export async function onPaymentIntentSucceeded(pi: Stripe.PaymentIntent): Promise<Outcome> {
+  let outcome: Outcome;
   try {
-    return await creditPaymentIntent(pi);
+    outcome = await creditPaymentIntent(pi);
   } catch (err) {
     // A unique index fired inside the transaction (it aborted, nothing was written):
     //  - another copy of this event credited it first → the re-run sees "already_recorded";
     //  - a concurrent payment_failed inserted the Payment row first → the re-run updates
     //    that row and credits. (Review finding 2026-11-05: never treat this as "done".)
     if (!isDuplicateKey(err)) throw err;
-    return creditPaymentIntent(pi);
+    outcome = await creditPaymentIntent(pi);
+  }
+  if (outcome.status === "processed" && parsePaymentMetadata(pi.metadata)?.sos_purpose === "donation") await afterDonationRecorded(pi.id);
+  return outcome;
+}
+
+/**
+ * Community donation recorded → its tax receipt (created once, emailed if receipts are on).
+ * AFTER the money transaction and best-effort: an email problem must never fail or roll back the
+ * payment record; the daily cron sends anything still pending. Runs in the family app (webhook +
+ * return page), so NEXTAUTH_URL is the family site where /donate lives.
+ */
+async function afterDonationRecorded(piId: string): Promise<void> {
+  try {
+    await ensureDonationReceipt(piId, new URL("/donate", process.env.NEXTAUTH_URL ?? "https://spiritofsanta.com").toString());
+    await sendPendingReceipts({ onlyPiId: piId });
+  } catch (err) {
+    console.error("[receipts] after donation failed:", err instanceof Error ? err.name : "unknown");
   }
 }
 
@@ -143,10 +165,15 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
       return processed(`registered:${ids.length}`);
     }
 
-    // Donations (pro-rata split) and pay-ups (item lock) are handled in later phases.
-    if (meta.sos_purpose === "donation" || meta.sos_purpose === "payup") {
+    // Community donation: HELD in its pool (zip or "all kids") until the Dec 1 split (Phase 5 slice 2b).
+    if (meta.sos_purpose === "donation") {
+      await record("held", meta.sos_zip ? { zip: meta.sos_zip } : {});
+      return processed("held:donation");
+    }
+    // Pay-ups (item lock) are handled with wish lists (Phase 6).
+    if (meta.sos_purpose === "payup") {
       await record("held");
-      return processed(`held:${meta.sos_purpose}`);
+      return processed("held:payup");
     }
 
     // tip | bonus → credit points to the kid. Only a REGISTERED kid of that family (consent

@@ -377,6 +377,24 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   Stripe can arrive locked). startBonus bounds-checks the amount itself; rate limit counted before any lookup.
   Webhook credits tips/bonuses only to REGISTERED kids (else review). Tips, donation links and bonuses deliberately
   share one set of amount limits (TIP_PRESETS/MIN/MAX_TIP_CENTS).
+- **Slice 2a community donations (DONE, split = 2b):** public `/donate` (+ `/donate/thanks`, header "Donate" link):
+  "all children" or one ZIP, presets $25/$50/$100/$250, $5–$50,000 (`DONATION_*` in @repo/lib/limits; webhook
+  re-checks). Open only while the season is OPEN (before the freeze, when pools split) AND an admin has set the fee
+  (the fee must be stated before anyone gives). Checkout expires by the freeze. Payment = purpose `donation`,
+  fulfilment `held`, `zip` on the Payment. Page shows the season total only (no per-ZIP numbers: privacy). ZIP with no
+  registered kids at split time → goes to all kids (stated on the page; implement in 2b).
+  `@repo/payments/community` (startCommunityDonation, communityDonationStatus, donationWindow, seasonDonationTotal),
+  `/settings` (admin; `PlatformSettings` singleton: donationFeeBps NO default, charity legalName/EIN/address,
+  `receiptsEnabled` OFF by default, audited `settings.update`), `/receipts` (`DonationReceipt`, one per
+  PaymentIntent; donor email/name from Stripe Checkout `customer_details`; locale from `sos_locale`). Webhook creates
+  + sends the receipt AFTER the money transaction, best-effort. Receipts only go out when switched on + name + EIN
+  (a 501(c)(3) receipt is only valid if the charity receives the gift: user must confirm with Edynsgate/accountant);
+  saving settings sends waiting ones; claim = CAS on `attempts` + Resend idempotency key `receipt/<no>`.
+  Email renderer: body `white-space:pre-line` (multi-line receipt). E2E `browser-community-donate.ts` (26; saves and
+  RESTORES PlatformSettings).
+- **Alert roles:** `tone="error"` → `role="alert"`, info → `role="status"`. E2E success checks must match both.
+- **Dev server gotchas:** new message namespaces may need a dev-server restart. `TaskStop` on `npm run dev` leaves the
+  `next dev` children running (ports stay taken): stop them by PID (Get-NetTCPConnection on 3000–3002).
 - **Stripe CLI forwarder + E2E:** with `stripe listen` running, `stripe-webhook.ts --real-stripe` SKIPS the
   "refund before payment" check (the CLI records the real payment first). Stop the forwarder to run that check.
 - **E2E gotcha (Next 16 Cache Components):** after a client navigation the PREVIOUS page stays in the DOM, hidden

@@ -15,6 +15,7 @@
     "@repo/deeds": "*",
     "@repo/i18n": "*",
     "@repo/lib": "*",
+    "@repo/payments": "*",
     "@repo/storage": "*",
     "@repo/stores": "*",
     "@repo/ui": "*",

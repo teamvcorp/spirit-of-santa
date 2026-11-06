@@ -89,7 +89,8 @@
       "season": "Season",
       "users": "Users",
       "deeds": "Deeds",
-      "moderation": "Review"
+      "moderation": "Review",
+      "settings": "Settings"
     },
     "storeStatus": {
       "invited": "Invited",

@@ -10,17 +10,25 @@ import { TIP_PRESETS_CENTS } from "@repo/lib/limits";
 import { TextField } from "@repo/ui/text-field";
 import type { AmountEcho } from "../lib/amount-form";
 
-type Props = { values: AmountEcho["values"]; initial: number; legend: string; otherLabel: string; otherAmountLabel: string };
+type Props = {
+  values: AmountEcho["values"];
+  initial: number;
+  legend: string;
+  otherLabel: string;
+  otherAmountLabel: string;
+  /** Preset buttons in cents (default: the tip presets; /donate passes DONATION_PRESETS_CENTS). */
+  presets?: readonly number[];
+};
 
-export function AmountPicker({ values, initial, legend, otherLabel, otherAmountLabel }: Props) {
-  const valid = values?.amount === "other" || (TIP_PRESETS_CENTS as readonly number[]).map(String).includes(values?.amount ?? "");
+export function AmountPicker({ values, initial, legend, otherLabel, otherAmountLabel, presets = TIP_PRESETS_CENTS }: Props) {
+  const valid = values?.amount === "other" || presets.map(String).includes(values?.amount ?? "");
   const start = valid && values ? values.amount : String(initial);
   const [amount, setAmount] = useState(start);
   return (
     <>
       <fieldset className="flex flex-wrap gap-3">
         <legend className="sr-only">{legend}</legend>
-        {TIP_PRESETS_CENTS.map((c) => (
+        {presets.map((c) => (
           <label key={c} className="flex items-center gap-2 rounded-lg border border-foreground/20 px-4 py-2">
             <input type="radio" name="amount" value={String(c)} defaultChecked={start === String(c)} onChange={() => setAmount(String(c))} />
             {formatCents(c)}

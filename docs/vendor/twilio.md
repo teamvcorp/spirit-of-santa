@@ -87,3 +87,9 @@ each starting with https://. The form isn't published yet, so upload `docs/vendo
 (screenshot of the planned "Pay later by text" form, made 2026-11-06) to Google Drive, share it as
 "Anyone with the link", and paste that Drive link alone. **Slice 4 MUST build the real form to match this
 screenshot and the wording above** (one text, 7-day link, STOP/HELP, privacy + terms links, unchecked box).
+
+**SUBMITTED in the A2P form (2026-11-06) — these URLs are now commitments, keep them working:**
+- Proof of consent (web form): https://spiritofsanta.com/text-messages (permanent public page with the same
+  opt-in form + wording; Spanish /es/text-messages). Real per-deed form: /d/<code> (single-use).
+- Privacy Policy: https://spiritofsanta.com/privacy (needs the SMS section: numbers not shared for marketing)
+- Terms of Service: https://spiritofsanta.com/terms (to build, with SMS terms)

@@ -320,5 +320,43 @@
       "invalidAmount": "Escribe una cantidad entre $0.01 y $1,000, como 5 o 12.50.",
       "minAboveMax": "La cantidad \"hasta\" debe ser al menos la cantidad \"desde\"."
     }
+  },
+  "Dashboard": {
+    "seasonLine": "Temporada {year}:",
+    "phase": {
+      "offseason": "aún no abierta",
+      "open": "abierta",
+      "frozen": "congelada",
+      "closed": "cerrada"
+    },
+    "windowOpen": "listas de las tiendas abiertas",
+    "windowClosed": "listas de las tiendas cerradas",
+    "seasonLink": "Configuración de la temporada",
+    "storesTitle": "Tiendas y artículos",
+    "stores": {
+      "approved": "Tiendas aprobadas",
+      "invited": "Invitadas (aún no se unen)",
+      "suspended": "Tiendas suspendidas"
+    },
+    "items": {
+      "active": "Artículos publicados esta temporada",
+      "draft": "Artículos en borrador (sin precio)"
+    },
+    "usersTitle": "Cuentas",
+    "users": {
+      "parent": "Padres",
+      "store_owner": "Dueños de tiendas",
+      "store_rep": "Representantes",
+      "admin": "Administradores (activos)",
+      "pending": "Correo sin confirmar",
+      "suspended": "Cuentas suspendidas"
+    },
+    "activityTitle": "Buenas acciones e interés",
+    "deeds": "Acciones en el catálogo",
+    "views": "Vistas de artículos (temporada)",
+    "onLists": "Artículos en listas de deseos",
+    "recentTitle": "Actividad reciente de administración y tiendas",
+    "recentEmpty": "Aún no hay nada registrado.",
+    "laterNote": "Los puntos, el dinero y las acciones completadas aparecerán aquí cuando las familias puedan ganar y recibir propinas (fases 4–5)."
   }
 }

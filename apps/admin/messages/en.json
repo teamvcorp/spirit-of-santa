@@ -320,5 +320,43 @@
       "invalidAmount": "Enter an amount between $0.01 and $1,000, like 5 or 12.50.",
       "minAboveMax": "The 'up to' amount must be at least the 'from' amount."
     }
+  },
+  "Dashboard": {
+    "seasonLine": "Season {year}:",
+    "phase": {
+      "offseason": "not open yet",
+      "open": "open",
+      "frozen": "frozen",
+      "closed": "closed"
+    },
+    "windowOpen": "store item lists open",
+    "windowClosed": "store item lists closed",
+    "seasonLink": "Season settings",
+    "storesTitle": "Stores and items",
+    "stores": {
+      "approved": "Approved stores",
+      "invited": "Invited (not joined yet)",
+      "suspended": "Suspended stores"
+    },
+    "items": {
+      "active": "Items listed this season",
+      "draft": "Draft items (need a price)"
+    },
+    "usersTitle": "Accounts",
+    "users": {
+      "parent": "Parents",
+      "store_owner": "Store owners",
+      "store_rep": "Store reps",
+      "admin": "Admins (active)",
+      "pending": "Email not confirmed",
+      "suspended": "Suspended accounts"
+    },
+    "activityTitle": "Deeds and engagement",
+    "deeds": "Deeds in the catalog",
+    "views": "Item page views (season)",
+    "onLists": "Items on wish lists",
+    "recentTitle": "Recent admin and store activity",
+    "recentEmpty": "Nothing recorded yet.",
+    "laterNote": "Points, money and completed deeds appear here once families can earn and tip (Phases 4–5)."
   }
 }

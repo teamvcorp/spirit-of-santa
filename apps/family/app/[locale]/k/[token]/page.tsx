@@ -9,8 +9,6 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { getDonationPage } from "@repo/deeds/donate";
 import { publicLimit } from "@repo/deeds/public";
-import { CENTS_PER_POINT } from "@repo/lib/constants";
-import { formatCents } from "@repo/lib/format";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { DonateForm } from "./donate-form";
@@ -32,7 +30,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/k/[token]">["p
         {t("heading", { name: page.kidName })}
       </h1>
       {page.familyAlias && <p className="text-muted">{t("family", { family: page.familyAlias })}</p>}
-      <p>{t("intro", { rate: formatCents(CENTS_PER_POINT), name: page.kidName })}</p>
+      <p>{t("intro", { name: page.kidName })}</p>
       {page.seasonOpen ? <DonateForm token={token} /> : <Alert>{t("errors.seasonClosed")}</Alert>}
     </div>
   );

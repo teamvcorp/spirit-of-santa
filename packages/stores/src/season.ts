@@ -66,11 +66,13 @@ export async function getSeasonState(now = new Date()): Promise<SeasonState> {
 export async function seasonAdminView(now = new Date()) {
   await connectDb();
   const year = getSeasonYear(now);
-  const [cur, next] = await Promise.all([loadSeason(year), loadSeason(year + 1)]);
+  // The SAME gate as getSeasonState (review 2026-11-07): without it this page could never show "resetting",
+  // hiding the "Run the season reset now" button and offering the emergency freeze during a stuck reset.
+  const [cur, next, resetDone] = await Promise.all([loadSeason(year), loadSeason(year + 1), prevResetDone(year)]);
   const nextDef = defaultSeasonDates(year + 1);
   return {
     current: {
-      state: resolveSeason(now, cur ?? {}),
+      state: resolveSeason(now, { ...(cur ?? {}), prevResetDone: resetDone }),
       custom: { freezeDate: cur?.freezeDate ?? "", closeDate: cur?.closeDate ?? "" },
       defaults: defaultSeasonDates(year),
     },
@@ -141,7 +143,7 @@ export async function setForceFrozen(adminId: string, on: boolean, now = new Dat
   await connectDb();
   const year = getSeasonYear(now);
   if (on) {
-    const state = resolveSeason(now, (await loadSeason(year)) ?? {});
+    const state = resolveSeason(now, { ...((await loadSeason(year)) ?? {}), prevResetDone: await prevResetDone(year) });
     if (state.phase !== "open") return { ok: false, error: "notOpen" };
   }
   const doc = await ensureSeason(year);

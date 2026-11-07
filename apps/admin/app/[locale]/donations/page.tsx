@@ -16,7 +16,7 @@ import { listDonationSplits, previewDonationSplit } from "@repo/payments/split";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { authOptions } from "@/auth";
-import { RetryReceiptsForm, SplitForm } from "./donation-forms";
+import { RetryReceiptsForm, ClearResetAttentionForm, SplitForm } from "./donation-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Donations");
@@ -115,6 +115,12 @@ async function Content() {
                   retained: formatCents(r.retainedCents),
                   gifts: r.retainedCount,
                 })}
+                {r.needsAttention > 0 && !r.attentionCleared && (
+                  <div className="mt-2 rounded-lg border border-danger p-3" data-testid="reset-attention">
+                    <p className="font-semibold">{t("attentionLine", { kids: r.needsAttention })}</p>
+                    <ClearResetAttentionForm seasonYear={r.seasonYear} />
+                  </div>
+                )}
               </li>
             ))}
           </ul>

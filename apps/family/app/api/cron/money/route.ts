@@ -22,7 +22,7 @@ import { timingSafeEqual } from "node:crypto";
 import { sendPendingReceipts } from "@repo/payments/receipts";
 import { finalizeClosingFamilies } from "@repo/families/erase";
 import { expirePayLaterLinks } from "@repo/deeds/pay-later";
-import { runSeasonReset } from "@repo/payments/season-end";
+import { flaggedSeasonResets, runSeasonReset } from "@repo/payments/season-end";
 import { runDonationSplit } from "@repo/payments/split";
 import { lockFundedItems, sweepAllocations } from "@repo/wishlists/engine";
 import { closeUnfunded } from "@repo/wishlists/payup";
@@ -74,6 +74,7 @@ export async function GET(request: Request): Promise<Response> {
   // "Deliver, then delete" (Phase 8): AFTER the delivery emails (they need the closing family's contact), delete
   // closing families whose gifts all arrived, or that reached their deadline.
   const closing = await settle(() => finalizeClosingFamilies());
+  const flaggedResets = await settle(() => flaggedSeasonResets());
   // Delivery addresses are kept only while a gift is on its way (data minimisation).
   const addresses = await settle(() => purgeUnneededAddresses());
   // Phase 7: parents' daily summary (magic + deeds thanked) and season reminders (email only).
@@ -88,6 +89,8 @@ export async function GET(request: Request): Promise<Response> {
     storeOrders: storeOrders.status === "fulfilled" ? storeOrders.value : "failed",
     familyNotices: familyNotices.status === "fulfilled" ? familyNotices.value : "failed",
     closingFamilies: closing.status === "fulfilled" ? closing.value : "failed",
+    // Ended seasons whose reset flagged kids an admin has not marked handled yet (years only, no personal data).
+    seasonResetFlagged: flaggedResets.status === "fulfilled" ? flaggedResets.value : "failed",
     addressesPurged: addresses.status === "fulfilled" ? addresses.value : "failed",
     digests: digests.status === "fulfilled" ? digests.value : "failed",
     reminders: reminders.status === "fulfilled" ? reminders.value : "failed",
@@ -101,7 +104,11 @@ export async function GET(request: Request): Promise<Response> {
   const closingFailed = closing.status === "fulfilled" && closing.value.failed > 0;
   // The Jan 1 reset ran but didn't finish, or finished with kids flagged for an admin: the family site may be
   // waiting in "resetting". Loud every day until fixed (admin /season has "Run the season reset now").
-  const resetStuck = seasonEnd.status === "fulfilled" && seasonEnd.value.ok && (!seasonEnd.value.done || seasonEnd.value.needsAttention > 0);
+  const resetStuck =
+    (seasonEnd.status === "fulfilled" && seasonEnd.value.ok && !seasonEnd.value.done) ||
+    // STORED flag, not this run's result: loud every day until an admin marks it handled (admin /donations).
+    flaggedResets.status === "rejected" ||
+    (flaggedResets.status === "fulfilled" && flaggedResets.value.length > 0);
   // Gifts PARKED for a human (bad data at lock or at the Dec 25 close) keep failing the job EVERY day until fixed:
   // their magic is neither spent nor forfeited, so it must never sit there quietly past the season (Phase 8 review).
   const parked = wishLists.status === "fulfilled" && (wishLists.value.locked.needsAttention > 0 || wishLists.value.closed.needsAttention > 0);

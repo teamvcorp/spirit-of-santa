@@ -6,7 +6,7 @@ import { formatCents } from "@repo/lib/format";
 import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
 import { useHydrated } from "@repo/ui/use-hydrated";
-import { retryReceiptsAction, runSplitAction, type DonationsFormState } from "./actions";
+import { clearResetAttentionAction, retryReceiptsAction, runSplitAction, type DonationsFormState } from "./actions";
 
 const INITIAL: DonationsFormState = { status: "idle" };
 
@@ -41,6 +41,26 @@ export function RetryReceiptsForm() {
       {state.status === "done" && state.info && <Alert>{t("retried", { requeued: state.info.requeued ?? 0, sent: state.info.sent ?? 0 })}</Alert>}
       <Button type="submit" variant="secondary" pending={pending} disabled={!hydrated} className="self-start">
         {t("retry")}
+      </Button>
+    </form>
+  );
+}
+
+/** A season reset flagged kids for an admin: confirm they've been handled (stops the daily alarm). */
+export function ClearResetAttentionForm({ seasonYear }: { seasonYear: number }) {
+  const t = useTranslations("Donations");
+  const [state, action, pending] = useActionState(clearResetAttentionAction, { status: "idle" } as DonationsFormState);
+  const hydrated = useHydrated();
+  return (
+    <form key={state.nonce ?? "initial"} action={action} className="mt-2 flex flex-col gap-2">
+      {state.status === "error" && state.error && <Alert tone="error">{t(`errors.${state.error}` as never)}</Alert>}
+      <input type="hidden" name="seasonYear" value={seasonYear} />
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="confirm" value="yes" required className="mt-1 size-4" />
+        {t("attentionConfirm")}
+      </label>
+      <Button type="submit" variant="secondary" pending={pending} disabled={!hydrated} className="self-start">
+        {t("attentionClear")}
       </Button>
     </form>
   );

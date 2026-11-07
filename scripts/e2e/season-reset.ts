@@ -13,7 +13,7 @@
  */
 import { randomBytes } from "node:crypto";
 import { chromium } from "playwright-core";
-import { connectDb, DonationSplit, Family, Kid, Payment, SeasonReset, Transaction, trusted, User } from "@repo/db";
+import { AuditLog, connectDb, DonationSplit, Family, Kid, Payment, SeasonReset, Transaction, trusted, User } from "@repo/db";
 import { getSeasonYear } from "@repo/lib/season";
 import { runSeasonReset } from "@repo/payments/season-end";
 import { getSeasonState } from "@repo/stores/season";
@@ -105,6 +105,27 @@ try {
   await page.locator('main:visible [data-testid="resets"]').waitFor({ timeout: 60_000 });
   const line = await page.locator('main:visible [data-testid="resets"] li').first().innerText();
   check("admin 'Season end' card shows the run", line.includes(`Season ${ended}`) && line.includes("$20.00"), line);
+  check("no flag shown when no kid needs attention", (await page.locator('main:visible [data-testid="reset-attention"]').count()) === 0);
+
+  // 5. A reset that flagged kids stays LOUD (cron fails every day) until an admin marks it handled (audited).
+  await SeasonReset.updateOne({ seasonYear: ended }, { $set: { needsAttention: 2 } });
+  const flagged = await fetch(`${familyBase}/api/cron/money`, { headers: { authorization: `Bearer ${cronSecret}` } });
+  const flaggedBody = (await flagged.json()) as { seasonResetFlagged?: number[] };
+  check("flagged reset: the daily job reports a failure and names the season", flagged.status === 500 && flaggedBody.seasonResetFlagged?.includes(ended) === true, JSON.stringify(flaggedBody.seasonResetFlagged));
+  await page.reload();
+  const flagBox = page.locator('main:visible [data-testid="reset-attention"]');
+  await flagBox.waitFor({ timeout: 30_000 });
+  check("admin sees the flag with the number of children", (await flagBox.innerText()).includes("2 children still had Christmas Magic"));
+  // ("Split now" is legitimately disabled on this page: wait for THIS form to hydrate.)
+  await page.waitForFunction(() => !(document.querySelector('main [data-testid="reset-attention"] button[type=submit]') as HTMLButtonElement | null)?.disabled, undefined, { timeout: 60_000 });
+  await flagBox.locator('input[name="confirm"]').check();
+  await flagBox.getByRole("button", { name: "Mark as handled" }).click();
+  await page.locator('main:visible [data-testid="reset-attention"]').waitFor({ state: "detached", timeout: 30_000 });
+  const cleared = await SeasonReset.findOne({ seasonYear: ended }).lean();
+  check("marked handled: stored with who did it", Boolean(cleared?.attentionClearedAt) && String(cleared?.attentionClearedByUserId) === admin.id);
+  check("…and audited", (await AuditLog.countDocuments({ actorUserId: new mongoose.Types.ObjectId(admin.id), action: "season.reset_attention_cleared" })) === 1);
+  const quiet = (await (await fetch(`${familyBase}/api/cron/money`, { headers: { authorization: `Bearer ${cronSecret}` } })).json()) as { seasonResetFlagged?: number[] };
+  check("after handling, the job no longer flags that season", Array.isArray(quiet.seasonResetFlagged) && !quiet.seasonResetFlagged.includes(ended), JSON.stringify(quiet.seasonResetFlagged));
 } catch (err) {
   report();
   console.error("CRASHED:", err);
@@ -117,6 +138,7 @@ try {
     await Transaction.collection.deleteMany({ kidId: s._id as never, type: "season_reset", seasonYear: ended });
   }
   await SeasonReset.collection.deleteOne({ seasonYear: ended });
+  await AuditLog.collection.deleteMany({ actorUserId: new mongoose.Types.ObjectId(admin.id) });
   await DonationSplit.collection.deleteMany({ _id: { $in: splitIds as never[] } });
   await Transaction.collection.deleteMany({ kidId: { $in: [k1._id, k2._id, k3._id] } });
   await Payment.collection.deleteMany({ stripePaymentIntentId: { $in: piIds } });

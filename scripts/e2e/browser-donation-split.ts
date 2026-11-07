@@ -13,7 +13,7 @@
 import { randomBytes } from "node:crypto";
 import { chromium, type Page } from "playwright-core";
 import { AuditLog, connectDb, DonationSplit, Family, Kid, Payment, PlatformSettings, Season, Transaction, trusted, User } from "@repo/db";
-import { getSeasonYear } from "@repo/lib/season";
+import { calendarDateIn, getSeasonYear, isoDay } from "@repo/lib/season";
 import { createMfaAdmin, makeChecks } from "./lib.ts";
 
 const [adminBase, familyBase] = process.argv.slice(2);
@@ -34,7 +34,10 @@ if ((await Payment.countDocuments({ purpose: "donation", fulfilment: "held" })) 
 const savedSettings = await PlatformSettings.collection.findOne({ key: "platform" });
 const savedSeason = await Season.collection.findOne({ year });
 await PlatformSettings.collection.updateOne({ key: "platform" }, { $set: { donationFeeBps: 1000 } }, { upsert: true }); // 10%
-await Season.collection.updateOne({ year }, { $set: { forceFrozen: true } }, { upsert: true });
+// A REAL freeze starting today (review 2026-11-07): the split needs phase "frozen" AND today >= the freeze date,
+// so the emergency freeze alone must not be enough (checked in step 6).
+const today = isoDay(calendarDateIn(new Date()));
+await Season.collection.updateOne({ year }, { $set: { freezeDate: today, forceFrozen: false } }, { upsert: true });
 
 const reg = { status: "registered", registeredAt: new Date(), method: "card" };
 const mk = async (zip: string) => {
@@ -148,11 +151,11 @@ try {
   check("B1 now 6.00 + 9.00 = 15.00 points; others unchanged", (await balance(b1._id)) === 1500 && (await balance(a1._id)) === 1350);
   check("cron run recorded with trigger 'cron'", (await DonationSplit.countDocuments({ seasonYear: year, trigger: "cron", _id: trusted({ $in: (await Payment.find({ stripePaymentIntentId: trusted({ $in: piIds }) }).lean()).map((p) => p.splitId) }) })) === 1);
 
-  // 6. Before the freeze nothing can be shared.
-  await Season.collection.updateOne({ year }, { $set: { forceFrozen: false } });
+  // 6. Before the freeze date nothing can be shared, EVEN under an emergency (forced) freeze.
+  await Season.collection.updateOne({ year }, { $unset: { freezeDate: "" }, $set: { forceFrozen: true } });
   await held("00701", 1000);
   const before = await (await cron(`Bearer ${cronSecret}`)).json() as { split?: { ok?: boolean; error?: string } };
-  check("cron before the freeze: 'notYet', gift stays held", before.split?.ok === false && before.split.error === "notYet" &&
+  check("forced freeze before the freeze date: 'notYet', gift stays held", before.split?.ok === false && before.split.error === "notYet" &&
     (await Payment.findOne({ stripePaymentIntentId: piIds.at(-1) }).lean())?.fulfilment === "held");
   await open();
   check("admin page explains why and disables the button",

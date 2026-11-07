@@ -432,7 +432,8 @@
     "kid_donation_link_reset": "Donation link replaced",
     "settings_update": "Settings changed",
     "donations_split": "Community gifts shared",
-    "season_reset_run": "Season reset run by hand"
+    "season_reset_run": "Season reset run by hand",
+    "season_reset_attention_cleared": "Season reset flag marked handled"
   },
   "Moderation": {
     "title": "Deed text review",
@@ -529,13 +530,17 @@
       "confirmRequired": "Tick the box to confirm.",
       "notYet": "Pools are shared while the season is frozen (Dec 1 to Dec 25).",
       "feeMissing": "Set the platform fee in Settings first.",
-      "seasonOver": "The season is over: pools are no longer shared (Christmas Magic would be reset on Jan 1). Remaining gifts are handled at the season end."
+      "seasonOver": "The season is over: pools are no longer shared (Christmas Magic would be reset on Jan 1). Remaining gifts are handled at the season end.",
+      "changed": "Something changed meanwhile. Reload the page."
     },
     "seasonEndTitle": "Season end (Jan 1)",
     "seasonEndIntro": "Each Jan 1 the daily job resets every child's Christmas Magic to zero (with a ledger entry) and keeps donation money that was never shared, as the platform's.",
     "noResets": "No season has ended yet.",
     "resetLine": "Season {year} (finished {when}): {kids} children reset ({points} Christmas Magic), {retained} unshared donation money kept ({gifts} gifts).",
-    "resetRunning": "Season {year}: in progress since {when} ({kids} children reset so far). It continues with the next daily run."
+    "resetRunning": "Season {year}: in progress since {when} ({kids} children reset so far). It continues with the next daily run.",
+    "attentionLine": "{kids, plural, one {1 child still had Christmas Magic after the reset.} other {# children still had Christmas Magic after the reset.}} Check them, correct their balances if needed, then mark this handled. The daily job reports a failure every day until then.",
+    "attentionConfirm": "I've checked these children and corrected their Christmas Magic where needed.",
+    "attentionClear": "Mark as handled"
   },
   "Fulfilment": {
     "title": "Gift fulfilment",

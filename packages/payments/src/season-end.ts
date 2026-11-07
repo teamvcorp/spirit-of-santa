@@ -21,7 +21,7 @@
  *     gifts PARKED for a human (bad data), and the daily money job keeps failing loudly while any exist.
  */
 import "server-only";
-import { connectDb, DonationSplit, ensureLock, Kid, Payment, SeasonReset, takeLock, Transaction, trusted, withTransaction } from "@repo/db";
+import { AuditLog, connectDb, DonationSplit, ensureLock, Kid, Payment, SeasonReset, takeLock, Transaction, trusted, withTransaction } from "@repo/db";
 import { getSeasonState } from "@repo/stores/season";
 import { cleanHeldDonations } from "./split.ts";
 
@@ -148,7 +148,36 @@ export async function listSeasonResets(limit = 5) {
     centipointsReset: r.centipointsReset,
     retainedCents: r.retainedCents,
     retainedCount: r.retainedCount,
+    needsAttention: r.needsAttention ?? 0,
+    attentionCleared: Boolean(r.attentionClearedAt),
     startedAt: r.createdAt ?? null,
     finishedAt: r.finishedAt ?? null,
   }));
+}
+
+/**
+ * Season resets with kids flagged for an admin and not yet marked handled. The daily money job fails EVERY day
+ * while this is non-empty (review 2026-11-07: an alert on the finishing run alone went quiet the next day while
+ * the flagged kids kept last season's points).
+ */
+export async function flaggedSeasonResets(): Promise<number[]> {
+  await connectDb();
+  const rows = await SeasonReset.find({ needsAttention: trusted({ $gt: 0 }), attentionClearedAt: null }).select("seasonYear").lean<{ seasonYear: number }[]>();
+  return rows.map((r) => r.seasonYear);
+}
+
+/** Admin: the flagged kids of this season's reset have been handled (e.g. an adjustment posted). Audited. */
+export async function clearSeasonResetAttention(adminId: string, seasonYear: number): Promise<boolean> {
+  await connectDb();
+  return withTransaction(async (session) => {
+    const res = await SeasonReset.updateOne(
+      { seasonYear, needsAttention: trusted({ $gt: 0 }), attentionClearedAt: null },
+      { $set: { attentionClearedAt: new Date(), attentionClearedByUserId: adminId } },
+      { session },
+    );
+    if (res.modifiedCount !== 1) return false;
+    const rec = await SeasonReset.findOne({ seasonYear }).select("_id needsAttention").session(session).lean<{ _id: unknown; needsAttention?: number }>();
+    await AuditLog.create([{ actorUserId: adminId, action: "season.reset_attention_cleared", targetType: "season", targetId: String(rec?._id), details: { seasonYear, kids: rec?.needsAttention ?? 0 } }], { session });
+    return true;
+  });
 }

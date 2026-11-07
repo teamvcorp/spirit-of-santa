@@ -18,6 +18,9 @@ const seasonResetSchema = new Schema(
     status: { type: String, enum: ["running", "done"], default: "running" },
     /** Kids still holding points after their reset row (race / bad data): flagged for an admin, never blocking. */
     needsAttention: { type: Number, min: 0 },
+    /** Set (audited) when an admin has handled the flagged kids; until then the daily job fails every day. */
+    attentionClearedAt: Date,
+    attentionClearedByUserId: { type: Schema.Types.ObjectId, ref: "User" },
     kidsReset: { type: Number, default: 0, min: 0 },
     centipointsReset: { ...centipointsField(), default: 0 },
     retainedCents: { ...centsField(), default: 0 },

@@ -762,6 +762,11 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   the cron), finishes even with kids flagged (needsAttention, cron fails loudly), admin /season "Run the season reset
   now" (audited season.reset_run). Webhook: tip/bonus/payup → RetryLaterError while resetting (Stripe redelivers).
   Donation split gated on the freeze DATE (a June force-freeze can't split). `newObjectId()` in @repo/db.
+  Review fixes: `seasonAdminView` + `setForceFrozen` use the same `prevResetDone` gate (else the admin never saw
+  "resetting"). needsAttention is a STORED alarm: `flaggedSeasonResets()` fails the money cron every day (result key
+  `seasonResetFlagged`) until an admin ticks "Mark as handled" on /donations Season-end card
+  (`clearSeasonResetAttention`, SeasonReset.attentionClearedAt/ByUserId, audited season.reset_attention_cleared).
+  Split E2E uses a real freezeDate=today; proves a forced freeze before the freeze date → notYet.
   NEXT slices: 2 closed page · 3+4 TOGETHER lock-at-funding + per-gift ship window · 5 pay-up · 6 DtD deadline ·
   7 store Q1 + stock CAS · 8 docs/legal.
 

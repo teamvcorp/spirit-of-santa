@@ -11,8 +11,9 @@
  */
 import { randomBytes } from "node:crypto";
 import { chromium, type Page } from "playwright-core";
-import { AuditLog, connectDb, Season, User } from "@repo/db";
-import { getSeasonYear, resolveSeason } from "@repo/lib/season";
+import { AuditLog, connectDb, Season, SeasonReset, User } from "@repo/db";
+import { getSeasonYear } from "@repo/lib/season";
+import { getSeasonState } from "@repo/stores/season";
 import { createMfaAdmin, makeChecks } from "./lib.ts";
 
 const [base] = process.argv.slice(2);
@@ -56,7 +57,8 @@ try {
   await page.waitForURL((u) => !u.pathname.includes("signin"), { timeout: 15_000 });
   await page.goto(`${base}/season`);
   await page.locator('[data-testid="season-phase"]').waitFor({ timeout: 15_000 });
-  const expected = resolveSeason(new Date(), before.cur ?? {});
+  // The app's own rule (including the Jan 1 reset gate), not a re-implementation.
+  const expected = await getSeasonState();
   const phaseText = await page.locator('[data-testid="season-phase"]').innerText();
   const phaseWord = { resetting: "Starting the new season", open: "Open", frozen: "Frozen", closed: "Closed for Christmas" }[expected.phase];
   check("status matches the rule book", phaseText.startsWith(phaseWord), phaseText);
@@ -129,6 +131,24 @@ try {
     cleared = await seasonDoc(N);
   }
   check("blank dates = back to the standard calendar", !cleared?.freezeDate && !cleared?.closeDate);
+
+  // 5b. A Jan 1 reset that hasn't finished: the page says "Starting the new season" and offers the manual run.
+  //     (Seeds a RUNNING reset record for last season; skipped if a real one exists or it is Dec 26–31.)
+  if (expected.phase !== "closed" && !(await SeasonReset.exists({ seasonYear: Y - 1 }))) {
+    // Raw insert: the model refuses years before the app existed (2026), and the 2026 season has no "last season".
+    const seeded = { _id: new mongoose.Types.ObjectId(), seasonYear: Y - 1, status: "running", createdAt: new Date(), updatedAt: new Date() };
+    await SeasonReset.collection.insertOne(seeded);
+    try {
+      await page.goto(`${base}/season`);
+      await page.locator('[data-testid="season-resetting"]').waitFor({ timeout: 15_000 });
+      check("unfinished reset: status says 'Starting the new season'", (await page.locator('[data-testid="season-phase"]').innerText()).startsWith("Starting the new season"));
+      check("…and the 'Run the season reset now' button is offered", (await page.getByRole("button", { name: "Run the season reset now" }).count()) === 1);
+    } finally {
+      await SeasonReset.collection.deleteOne({ _id: seeded._id });
+    }
+  } else {
+    console.log("(skipped the resetting check: a real reset record exists or the season is closed)");
+  }
 
   // 6. Spanish.
   await page.goto(`${base}/es/season`);

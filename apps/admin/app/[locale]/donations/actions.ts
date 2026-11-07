@@ -10,6 +10,7 @@ import { z } from "zod";
 import { requireRole } from "@repo/auth";
 import { retryFailedReceipts, sendPendingReceipts } from "@repo/payments/receipts";
 import { runDonationSplit } from "@repo/payments/split";
+import { clearSeasonResetAttention } from "@repo/payments/season-end";
 import { authOptions } from "@/auth";
 
 export type DonationsFormState = {
@@ -38,4 +39,16 @@ export async function retryReceiptsAction(): Promise<DonationsFormState> {
   const { sent } = await sendPendingReceipts({ limit: 10 }); // the rest go out on the daily cron
   refresh();
   return { status: "done", info: { requeued, sent }, nonce: randomUUID() };
+}
+
+const clearForm = z.object({ confirm: z.literal("yes"), seasonYear: z.coerce.number().int().min(2026).max(2100) });
+
+/** The kids flagged by a season reset have been handled: stop the daily alarm. Audited. */
+export async function clearResetAttentionAction(_prev: DonationsFormState, fd: FormData): Promise<DonationsFormState> {
+  const admin = await requireRole(authOptions, "admin");
+  const parsed = clearForm.safeParse({ confirm: fd.get("confirm"), seasonYear: fd.get("seasonYear") });
+  if (!parsed.success) return { status: "error", error: "confirmRequired", nonce: randomUUID() };
+  if (!(await clearSeasonResetAttention(admin.id, parsed.data.seasonYear))) return { status: "error", error: "changed", nonce: randomUUID() };
+  refresh();
+  return { status: "done", nonce: randomUUID() };
 }

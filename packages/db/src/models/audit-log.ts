@@ -58,6 +58,7 @@ export const AUDIT_ACTIONS = [
   "season.store_window",
   "season.force_freeze",
   "season.reset_run",
+  "season.reset_attention_cleared",
   "deed_type.create",
   "deed_type.update",
   "deed_type.activate",

@@ -432,7 +432,8 @@
     "kid_donation_link_reset": "Enlace de donación reemplazado",
     "settings_update": "Ajustes cambiados",
     "donations_split": "Regalos comunitarios repartidos",
-    "season_reset_run": "Reinicio de temporada ejecutado a mano"
+    "season_reset_run": "Reinicio de temporada ejecutado a mano",
+    "season_reset_attention_cleared": "Aviso del reinicio de temporada marcado como resuelto"
   },
   "Moderation": {
     "title": "Revisión de textos de acciones",
@@ -529,13 +530,17 @@
       "confirmRequired": "Marca la casilla para confirmar.",
       "notYet": "Los fondos se reparten mientras la temporada está congelada (del 1 al 25 de diciembre).",
       "feeMissing": "Primero define la comisión en Ajustes.",
-      "seasonOver": "La temporada terminó: los fondos ya no se reparten (la Magia Navideña se reinicia el 1 de enero). Los regalos restantes se manejan al cierre de la temporada."
+      "seasonOver": "La temporada terminó: los fondos ya no se reparten (la Magia Navideña se reinicia el 1 de enero). Los regalos restantes se manejan al cierre de la temporada.",
+      "changed": "Algo cambió mientras tanto. Recarga la página."
     },
     "seasonEndTitle": "Cierre de temporada (1 de enero)",
     "seasonEndIntro": "Cada 1 de enero la tarea diaria pone en cero la Magia Navideña de todos los niños (con un registro) y guarda como de la plataforma el dinero donado que nunca se repartió.",
     "noResets": "Aún no ha terminado ninguna temporada.",
     "resetLine": "Temporada {year} (terminada {when}): {kids} niños en cero ({points} de Magia Navideña), {retained} de donaciones no repartidas guardadas ({gifts} regalos).",
-    "resetRunning": "Temporada {year}: en curso desde {when} ({kids} niños en cero hasta ahora). Continúa con la siguiente tarea diaria."
+    "resetRunning": "Temporada {year}: en curso desde {when} ({kids} niños en cero hasta ahora). Continúa con la siguiente tarea diaria.",
+    "attentionLine": "{kids, plural, one {1 niño todavía tenía Magia Navideña después del reinicio.} other {# niños todavía tenían Magia Navideña después del reinicio.}} Revísalos, corrige sus saldos si hace falta y luego márcalo como resuelto. El trabajo diario reporta una falla cada día hasta entonces.",
+    "attentionConfirm": "Revisé a estos niños y corregí su Magia Navideña donde hacía falta.",
+    "attentionClear": "Marcar como resuelto"
   },
   "Fulfilment": {
     "title": "Entrega de regalos",

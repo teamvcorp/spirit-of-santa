@@ -681,6 +681,15 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   Audit also checks fields at 700px and against <main> when no card (173 checks). EMAIL_COLORS ⊂ theme.css is a
   unit test (`@repo/email#test` input includes theme.css in turbo.json). Other selects still hand-styled → migrate.
 
+## Phase 8 (QA & compliance) — decisions in memory phase8-plan
+
+- **Slice 1a security headers (2026-11-06).** `@repo/lib/security-headers`: `nextSecurityHeaders({ stripe })` is the
+  WHOLE next.config `headers` of each app (family: stripe true). No-nonce CSP (nonces break Partial Prerendering),
+  Stripe origins from Stripe's official list, Vercel toolbar only when VERCEL_ENV=preview, HSTS + upgrade only when
+  VERCEL=1 (local next start on http stays usable), HSTS without includeSubDomains. VERCEL/VERCEL_ENV are build env
+  in turbo.json. Notes: docs/vendor/security-headers.md. Page audit fails on any ENFORCED CSP violation on our page,
+  proves Stripe Embedded Checkout renders (child donation link), and has a CSP negative control (178 checks).
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.

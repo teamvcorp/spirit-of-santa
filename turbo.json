@@ -45,7 +45,9 @@
         "MFA_ENCRYPTION_KEY",
         "ADDRESS_ENCRYPTION_KEY",
         "FAMILY_PROMO_CODE",
-        "DEED_QR_KEY"
+        "DEED_QR_KEY",
+        "VERCEL",
+        "VERCEL_ENV"
       ],
       "outputs": [
         ".next/**",

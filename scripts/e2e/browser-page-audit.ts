@@ -22,7 +22,7 @@
  */
 import { randomBytes } from "node:crypto";
 import { createRequire } from "node:module";
-import { chromium, type Browser, type Page } from "playwright-core";
+import { chromium, type Browser, type BrowserContext, type Page } from "playwright-core";
 import { connectDb, Family, Item, Kid, Store, trusted, User, WishListItem } from "@repo/db";
 import { hashSecret } from "@repo/auth/password";
 import { getSeasonYear } from "@repo/lib/season";
@@ -122,6 +122,21 @@ function fieldsOutsideBox(page: Page): Promise<string[]> {
 
 const errors: string[] = [];
 const cspViolations: string[] = [];
+
+/**
+ * Phase 8: record anything OUR Content-Security-Policy blocks (it must block nothing we use). Only the top
+ * page (Stripe's own frames have their own policies) and only enforced blocks (not "report-only").
+ */
+async function watchCsp(ctx: BrowserContext, label: string) {
+  await ctx.exposeFunction("__cspViolation", (v: string) => cspViolations.push(`${label}: ${v}`));
+  await ctx.addInitScript(() => {
+    if (window.top !== window) return;
+    document.addEventListener("securitypolicyviolation", (e) => {
+      if (e.disposition !== "enforce") return;
+      (window as unknown as { __cspViolation: (v: string) => void }).__cspViolation(`${location.pathname} ${e.violatedDirective} ${e.blockedURI}`);
+    });
+  });
+}
 const incompletes: string[] = [];
 let browser: Browser | undefined;
 try {
@@ -131,13 +146,7 @@ try {
     if (group.login) check(`${group.app}: signed in`, !!cookie);
     for (const scheme of ["light", "dark"] as const) {
       const ctx = await browser.newContext({ colorScheme: scheme, reducedMotion: "reduce" });
-      // Phase 8: report anything our Content-Security-Policy blocks (it must block nothing we use).
-      await ctx.exposeFunction("__cspViolation", (v: string) => cspViolations.push(`${group.app}: ${v}`));
-      await ctx.addInitScript(() =>
-        document.addEventListener("securitypolicyviolation", (e) =>
-          (window as unknown as { __cspViolation: (v: string) => void }).__cspViolation(`${location.pathname} ${e.violatedDirective} ${e.blockedURI}`),
-        ),
-      );
+      await watchCsp(ctx, group.app);
       if (cookie) {
         // "a=1; b=2" -> cookies for this app's origin (dev apps differ only by port; cookies ignore ports,
         // which is why each app gets its own browser context).
@@ -177,6 +186,38 @@ try {
       }
       await ctx.close();
     }
+  }
+
+  // Stripe under our CSP: open a real (test-mode) Embedded Checkout from the child's donation link (/k/<token>,
+  // always open in season; /donate needs admin Settings) and wait until Stripe's form has RENDERED inside its
+  // frame. A frame blocked by frame-src keeps its <iframe> element but stays empty, so "element exists" proves
+  // nothing. Starting a checkout stores nothing in our database (only Stripe's test-mode session).
+  {
+    const parentCtx = await browser.newContext();
+    const cookie = (await signIn(family, parent.email, PW))?.cookie ?? "";
+    await parentCtx.addCookies(cookie.split("; ").map((p) => ({ name: p.slice(0, p.indexOf("=")), value: p.slice(p.indexOf("=") + 1), url: family })));
+    const parentPage = await parentCtx.newPage();
+    await parentPage.goto(`${family}/kids/${kid._id}`);
+    const link = (await parentPage.locator("main:visible img[data-donate-url]").first().getAttribute("data-donate-url", { timeout: 60_000 })) ?? "";
+    await parentCtx.close();
+    check("child's donation link found for the Stripe check", link.startsWith(`${family}/k/`));
+
+    const ctx = await browser.newContext({ reducedMotion: "reduce" }); // a stranger: no cookies
+    await watchCsp(ctx, "family (stripe)");
+    const pay = await ctx.newPage();
+    pay.on("pageerror", (e) => errors.push(`stripe ${e.message}`));
+    await pay.goto(link);
+    await pay.waitForFunction(() => {
+      const b = [...document.querySelectorAll("main button[type=submit]")].filter((x) => x.checkVisibility());
+      return b.length > 0 && b.every((x) => !(x as HTMLButtonElement).disabled); // hydrated
+    }, undefined, { timeout: 60_000 });
+    await pay.locator('main input[name="amount"]').first().check();
+    await pay.locator("main:visible button[type=submit]").click();
+    const form = pay.frameLocator('[data-testid="stripe-checkout"] iframe').first().locator("input").first(); // a real form field (a blocked frame's error page has none)
+    const rendered = await form.waitFor({ timeout: 60_000 }).then(() => true, () => false);
+    await pay.waitForTimeout(3000); // let Stripe start its helper frames/requests
+    check("Stripe Embedded Checkout renders under our CSP", rendered);
+    await ctx.close();
   }
 
   // Negative control: prove the checker CAN fail (a check that never fails proves nothing).

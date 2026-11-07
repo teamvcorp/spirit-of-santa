@@ -35,9 +35,22 @@ We use **Embedded Checkout** (`@stripe/react-stripe-js` EmbeddedCheckout) = Stri
 
 ## Other headers
 
-- `Strict-Transport-Security: max-age=63072000; includeSubDomains` (2 years; no `preload` until the owner decides:
+- `Strict-Transport-Security: max-age=63072000` on Vercel only (2 years, this host; no includeSubDomains/`preload`:
   preload is hard to undo).
 - `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` (old browsers; CSP frame-ancestors is the modern one).
 - `Referrer-Policy: strict-origin-when-cross-origin`: other sites see only our origin, never token paths like
   /k/<token> or /reset-password?token=.
 - `Permissions-Policy: camera=(), microphone=(), geolocation=(), browsing-topics=()` (we use none of them).
+
+## Vercel toolbar on PREVIEW deployments (source: https://vercel.com/docs/vercel-toolbar/managing-toolbar, fetched 2026-11-06)
+
+script-src/frame-src `https://vercel.live`; connect-src `https://vercel.live wss://ws-us3.pusher.com`; img-src
+`https://vercel.live https://vercel.com`; style-src `https://vercel.live`; font-src `https://vercel.live
+https://assets.vercel.com`. Added only when `VERCEL_ENV=preview`. E2E against a preview: send header
+`x-vercel-skip-toolbar: 1` to keep the toolbar out of the way.
+
+## Environment switches (nextSecurityHeaders)
+
+`NODE_ENV=development` → 'unsafe-eval'. `VERCEL=1` → upgrade-insecure-requests + HSTS (local `next start` on http
+stays usable). `VERCEL_ENV=preview` → toolbar origins. HSTS is `max-age=63072000` only (no includeSubDomains/preload:
+review findings 2026-11-06: would lock unknown subdomains to HTTPS for 2 years).

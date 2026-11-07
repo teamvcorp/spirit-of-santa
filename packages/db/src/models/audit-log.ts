@@ -79,7 +79,8 @@ export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 
 const auditLogSchema = new Schema(
   {
-    actorUserId: objectId("User"),
+    /** Who did it. Absent = the system (e.g. the daily job deleting addresses no gift needs). */
+    actorUserId: objectId("User", false),
     action: { type: String, enum: AUDIT_ACTIONS, required: true },
     targetType: { type: String, enum: ["store", "user", "item", "season", "deed_type", "kid", "family", "deed", "settings", "donation_split", "wish_list_item"], required: true },
     targetId: { type: Schema.Types.ObjectId, required: true },

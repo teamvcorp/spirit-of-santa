@@ -13,15 +13,16 @@
 import "server-only";
 import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 import { sealJson, unsealJson } from "@repo/auth/sealed";
-import { AuditLog, Family, trusted, WishListItem, withTransaction } from "@repo/db";
+import { AuditLog, Family, trusted, withTransaction } from "@repo/db";
 import { deliveryAddressSchema, type DeliveryAddress } from "@repo/lib/address";
-import { AWAITING_DELIVERY } from "@repo/wishlists/rules";
+import { ADDRESS_KEY as KEY, clearAddress, familyAwaitingDelivery as awaitingDelivery } from "@repo/wishlists/delivery";
 
-const KEY = "ADDRESS_ENCRYPTION_KEY" as const;
-
-/** Does this family have a funded gift still waiting to be delivered? */
-async function awaitingDelivery(fid: string): Promise<boolean> {
-  return Boolean(await WishListItem.exists({ familyId: fid, status: trusted({ $in: [...AWAITING_DELIVERY] }) }));
+/** Dashboard prompt: a gift is on its way and no address is stored. No decryption, just presence. */
+export async function addressMissing(parent: Parent): Promise<boolean> {
+  const fid = await ownFamilyId(parent);
+  if (!fid) return false;
+  const [needed, has] = await Promise.all([awaitingDelivery(fid), Family.exists({ _id: fid, deliveryAddressEnc: trusted({ $exists: true }) })]);
+  return needed && !has;
 }
 
 export type AddressState = { needed: boolean; saved: DeliveryAddress | null; updatedAt: Date | null; unreadable: boolean };
@@ -57,9 +58,6 @@ export async function saveAddress(parent: Parent, raw: Record<string, unknown>):
 export async function deleteAddress(parent: Parent): Promise<AddressResult> {
   const fid = await ownFamilyId(parent);
   if (!fid) return { ok: false, error: "notFound" };
-  await withTransaction(async (session) => {
-    await Family.updateOne({ _id: fid }, { $unset: { deliveryAddressEnc: 1, deliveryAddressUpdatedAt: 1 } }, { session });
-    await AuditLog.create([{ actorUserId: parent.id, action: "family.address_delete", targetType: "family", targetId: fid, details: { by: "parent" } }], { session });
-  });
+  await clearAddress(fid, "parent", parent.id);
   return { ok: true };
 }

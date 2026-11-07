@@ -562,7 +562,13 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   locked/shipped); audited without content. Parent `/parent/address` (PIN, safeNext) + dashboard prompt. Admin
   Fulfilment "To send" shows label lines (`adminFulfilment(adminId)` audits "family.address_view" per family);
   `markSentToFamily` deletes it when nothing else is on its way; `purgeUnneededAddresses` in the money cron.
-  Privacy page "collect"/"keep" mention it (lawyer review). E2E `browser-family-address.ts` (17).
+  Privacy page "collect"/"keep" mention it (lawyer review). E2E `browser-family-address.ts` (20).
+  Review fixes: `@repo/wishlists/delivery` = the ONE place (ADDRESS_KEY, familyAwaitingDelivery, clearAddress =
+  compare-and-set on deliveryAddressUpdatedAt + audit, purgeUnneededAddresses = distinct + $nin, audited with NO actor
+  = system; AuditLog.actorUserId now optional); unsealJson throws on a MISSING/malformed key (config error ≠ unreadable);
+  admin view audit once per admin+family+day (RateLimit key address-view-audit:...); address text also refuses p{Cf}
+  (bidi overrides, zero-width); line2 of spaces = blank; one AddressPanel for save+delete feedback; dashboard uses
+  `addressMissing` (presence only, no decrypt).
 
 ## Open items / TODO
 

@@ -46,6 +46,7 @@ export function unseal(stored: string, aad: string, keyName: SealKeyName): Buffe
 /** JSON helpers (e.g. an address object). unsealJson returns null when it can't be read. */
 export const sealJson = (value: unknown, aad: string, keyName: SealKeyName) => seal(Buffer.from(JSON.stringify(value)), aad, keyName);
 export function unsealJson<T>(stored: string, aad: string, keyName: SealKeyName): T | null {
+  sealKey(keyName); // outside the try: a MISSING or malformed key is a configuration error, never "unreadable"
   try {
     return JSON.parse(unseal(stored, aad, keyName).toString("utf8")) as T;
   } catch {

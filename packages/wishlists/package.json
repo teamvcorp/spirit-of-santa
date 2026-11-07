@@ -9,7 +9,8 @@
     "./catalog": "./src/catalog.ts",
     "./rules": "./src/rules.ts",
     "./fulfilment": "./src/fulfilment.ts",
-    "./payup": "./src/payup.ts"
+    "./payup": "./src/payup.ts",
+    "./delivery": "./src/delivery.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

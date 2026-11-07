@@ -10,7 +10,7 @@ import { AliasForm, DeleteKidForm, LockButton, VoteButtons } from "./parent-form
 import { getFamilySettings } from "@repo/families/settings";
 import { familyTallies } from "@repo/families/votes";
 import { payUpCount } from "@repo/wishlists/payup";
-import { addressState } from "@repo/families/address";
+import { addressMissing } from "@repo/families/address";
 import { getFormatter } from "next-intl/server";
 import { Alert } from "@repo/ui/alert";
 
@@ -23,8 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 async function Content() {
   await connection();
   const parent = await requireUnlockedPage();
-  const [kids, t, tallies, settings, payUp] = await Promise.all([listKids(parent), getTranslations("Parent"), familyTallies(parent), getFamilySettings(parent), payUpCount(parent)]);
-  const address = await addressState(parent);
+  const [kids, t, tallies, settings, payUp, needAddress] = await Promise.all([listKids(parent), getTranslations("Parent"), familyTallies(parent), getFamilySettings(parent), payUpCount(parent), addressMissing(parent)]);
   const format = await getFormatter();
   return (
     <>
@@ -37,7 +36,7 @@ async function Content() {
           <LockButton label={t("lock")} />
         </div>
       </div>
-      {address?.needed && !address.saved && (
+      {needAddress && (
         <Alert tone="error" className="mb-6">
           <span data-testid="address-alert">{t("addressAlert")}</span>{" "}
           <Link href="/parent/address" className="font-semibold underline underline-offset-4">

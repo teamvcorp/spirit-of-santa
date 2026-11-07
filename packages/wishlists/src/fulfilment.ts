@@ -31,7 +31,8 @@ import { memberStore, type StoreActor } from "@repo/stores/owner";
 import { familyAppOrigin, storeAppOrigin } from "@repo/stores/urls";
 import { unsealJson } from "@repo/auth/sealed";
 import { addressLines, type DeliveryAddress } from "@repo/lib/address";
-import { AWAITING_DELIVERY } from "./rules.ts";
+import { hitRateLimit } from "@repo/auth/rate-limit";
+import { ADDRESS_KEY, clearAddress, familyAwaitingDelivery } from "./delivery.ts";
 
 /** Short reference printed on the package (last 6 hex of the id, upper case). Not secret, not guessable-useful. */
 export const orderRef = (id: string) => id.slice(-6).toUpperCase();
@@ -395,13 +396,13 @@ export async function adminFulfilment(adminId: string, now = new Date()): Promis
     q(filters.delivered, { deliveredAt: -1, _id: 1 }),
   ]);
   const all = [...substitutes[0], ...inTransit[0], ...toSend[0], ...delivered[0]];
-  const [names, stores, whoFor] = await Promise.all([
+  const [names, stores, whoFor, addresses] = await Promise.all([
     itemNames(all.map((r) => r.itemId)),
     Store.find({ _id: trusted({ $in: [...new Set(all.map((r) => String(r.storeId)))] }) }).select("name contact.email").lean<{ _id: unknown; name: string; contact?: { email?: string } }[]>(),
     recipients([...toSend[0], ...delivered[0]]),
+    deliveryAddresses(adminId, toSend[0].map((r) => String(r.familyId))),
   ]);
   const storeBy = new Map(stores.map((x) => [String(x._id), x]));
-  const addresses = await deliveryAddresses(adminId, toSend[0].map((r) => String(r.familyId)));
   const retryUntil = (d: Date | null | undefined) => (d ? new Date(d).getTime() + FAMILY_NOTICE_RETRY_DAYS * DAY_MS : 0);
   const notice = (r: AdminRaw): FamilyNotice =>
     r.familyNotifiedAt ? "emailed" : r.familyNoticeSkippedAt ? "none" : retryUntil(r.deliveredAt) > now.getTime() ? "pending" : "failed";
@@ -492,9 +493,11 @@ export async function markSentToFamily(adminId: string, rawId: string, now = new
 
 // ── Delivery addresses (slice 4b) ─────────────────────────────────────────────────────
 
-const ADDRESS_KEY = "ADDRESS_ENCRYPTION_KEY" as const;
-
-/** Decrypt the addresses of these families for an admin, auditing each one shown. */
+/**
+ * Decrypt the addresses of these families for an admin. Each view is audited ("family.address_view",
+ * never the address), at most ONCE per admin, family and day: refreshing the queue after every
+ * "Sent" click must not flood the append-only audit log.
+ */
 async function deliveryAddresses(adminId: string, familyIds: string[]): Promise<Map<string, string[] | "unreadable">> {
   const ids = [...new Set(familyIds)];
   if (ids.length === 0) return new Map();
@@ -506,8 +509,10 @@ async function deliveryAddresses(adminId: string, familyIds: string[]): Promise<
     const a = unsealJson<DeliveryAddress>(f.deliveryAddressEnc, String(f._id), ADDRESS_KEY);
     out.set(String(f._id), a ? addressLines(a) : "unreadable");
   }
-  if (out.size > 0) {
-    await AuditLog.insertMany([...out.keys()].map((fid) => ({ actorUserId: adminId, action: "family.address_view", targetType: "family", targetId: fid, details: {} })));
+  const toAudit: string[] = [];
+  for (const fid of out.keys()) if (await hitRateLimit(`address-view-audit:${adminId}:${fid}`, 1, 86_400)) toAudit.push(fid);
+  if (toAudit.length > 0) {
+    await AuditLog.insertMany(toAudit.map((fid) => ({ actorUserId: adminId, action: "family.address_view", targetType: "family", targetId: fid, details: {} })));
   }
   return out;
 }
@@ -518,32 +523,17 @@ async function deleteAddressIfDone(adminId: string, wishId: string): Promise<voi
     const w = await WishListItem.findById(wishId).select("familyId").lean<{ familyId: unknown }>();
     if (!w) return;
     const fid = String(w.familyId);
-    if (await WishListItem.exists({ familyId: fid, status: trusted({ $in: [...AWAITING_DELIVERY] }) })) return;
-    const res = await Family.updateOne({ _id: fid, deliveryAddressEnc: trusted({ $exists: true }) }, { $unset: { deliveryAddressEnc: 1, deliveryAddressUpdatedAt: 1 } });
-    if (res.modifiedCount === 1) {
-      await AuditLog.create({ actorUserId: adminId, action: "family.address_delete", targetType: "family", targetId: fid, details: { by: "delivered" } });
-    }
+    const fam = await Family.findById(fid).select("deliveryAddressUpdatedAt").lean<{ deliveryAddressUpdatedAt?: Date | null }>();
+    if (await familyAwaitingDelivery(fid)) return;
+    await clearAddress(fid, "delivered", adminId, fam?.deliveryAddressUpdatedAt ?? null);
   } catch (err) {
     // The daily purge catches anything missed here.
     console.error("[fulfilment] address cleanup failed (daily job retries):", err instanceof Error ? err.name : "unknown");
   }
 }
 
-/**
- * Daily safety net (money cron): delete every stored address whose family has no gift on its way
- * (all delivered, removed, dropped at the close, or the kid deleted). Returns how many.
- */
-export async function purgeUnneededAddresses(): Promise<number> {
-  await connectDb();
-  const fams = await Family.find({ deliveryAddressEnc: trusted({ $exists: true }) }).select("_id").limit(5000).lean<{ _id: unknown }[]>();
-  let purged = 0;
-  for (const f of fams) {
-    if (await WishListItem.exists({ familyId: String(f._id), status: trusted({ $in: [...AWAITING_DELIVERY] }) })) continue;
-    const res = await Family.updateOne({ _id: String(f._id) }, { $unset: { deliveryAddressEnc: 1, deliveryAddressUpdatedAt: 1 } });
-    purged += res.modifiedCount;
-  }
-  return purged;
-}
+/** Daily safety net (money cron). Lives in delivery.ts (the ONE place); re-exported for the cron. */
+export { purgeUnneededAddresses } from "./delivery.ts";
 
 type NoticeTotals = { sent: number; failed: number; none: number };
 

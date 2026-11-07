@@ -10,7 +10,7 @@
  */
 import { randomBytes } from "node:crypto";
 import { chromium, type Page } from "playwright-core";
-import { AuditLog, connectDb, Family, Item, Kid, Store, trusted, User, WishListItem } from "@repo/db";
+import { AuditLog, connectDb, Family, Item, Kid, RateLimit, Store, trusted, User, WishListItem } from "@repo/db";
 import { hashSecret } from "@repo/auth/password";
 import { addressState, saveAddress } from "@repo/families/address";
 import { getSeasonYear } from "@repo/lib/season";
@@ -107,6 +107,17 @@ try {
   await main().locator("[role=status]", { hasText: "Address saved" }).waitFor({ timeout: 60_000 });
   check("valid address saved", true);
 
+  // 2b. Delete from the page: clear feedback, empty form; then save again (service) for the next steps.
+  await hydrated(page);
+  await main().getByRole("button", { name: "Delete address" }).click();
+  await main().locator("[role=status]", { hasText: "Address deleted" }).waitFor({ timeout: 60_000 });
+  check("delete: 'Address deleted.' shown, no stale 'saved' message, form empty",
+    (await main().locator("[role=status]", { hasText: "Address saved" }).count()) === 0 && (await page.inputValue('main:visible [name="line1"]')) === "" && !(await famRaw(A.family._id))?.deliveryAddressEnc);
+  const odd = await saveAddress(A.parent, { name: "Ada Parent", line1: "1 Main\u202E St", line2: "", city: "Austin", state: "TX", zip: "78701" }); // \u202E = right-to-left override
+  check("invisible right-to-left override characters are refused", !odd.ok && odd.error === "invalid" && odd.field === "line1");
+  const spaced = await saveAddress(A.parent, { name: "Ada Parent", line1: STREET, line2: "   ", city: "Austin", state: "TX", zip: "78701" });
+  check("optional apartment line with only spaces is accepted as blank", spaced.ok && (await addressState(A.parent))?.saved?.line2 === "");
+
   // 3. Stored encrypted, hidden from ordinary queries, audited without content.
   const raw = await famRaw(A.family._id);
   check("stored ENCRYPTED: the street never appears in the database", typeof raw?.deliveryAddressEnc === "string" && raw.deliveryAddressEnc.startsWith("v1.") && !JSON.stringify(raw).includes("Candy Cane"));
@@ -129,17 +140,18 @@ try {
   const f = await adminFulfilment(String(admin._id));
   const rowA = f.toSend.rows.find((r) => r.id === wA);
   check("admin 'To send' shows the decrypted address lines", Array.isArray(rowA?.address) && rowA.address.join("|") === `Ada Parent|${STREET}|Austin, TX 78701`);
-  check("each admin view of an address is audited", (await AuditLog.countDocuments({ action: "family.address_view", targetId: A.family._id, actorUserId: admin._id })) === 1);
+  await adminFulfilment(String(admin._id)); // a refresh of the queue
+  check("admin views audited ONCE per admin, family and day (refreshes don't flood the log)", (await AuditLog.countDocuments({ action: "family.address_view", targetId: A.family._id, actorUserId: admin._id })) === 1);
 
   // 6. Sent to family = last gift on its way → address deleted (and audited).
   const sent = await markSentToFamily(String(admin._id), wA);
   const after = await famRaw(A.family._id);
-  check("last gift sent: address deleted automatically", sent.ok && !after?.deliveryAddressEnc && (await AuditLog.countDocuments({ action: "family.address_delete", targetId: A.family._id })) === 1);
+  check("last gift sent: address deleted automatically", sent.ok && !after?.deliveryAddressEnc && (await AuditLog.countDocuments({ action: "family.address_delete", targetId: A.family._id, "details.by": "delivered", actorUserId: admin._id })) === 1);
 
   // 7. Daily purge: an address left behind with no gift on its way is deleted.
   await Family.collection.updateOne({ _id: A.family._id }, { $set: { deliveryAddressEnc: raw!.deliveryAddressEnc } });
   const purged = await purgeUnneededAddresses();
-  check("daily purge deletes addresses no gift needs any more", purged >= 1 && !(await famRaw(A.family._id))?.deliveryAddressEnc);
+  check("daily purge deletes addresses no gift needs any more, audited as the system", purged >= 1 && !(await famRaw(A.family._id))?.deliveryAddressEnc && (await AuditLog.countDocuments({ action: "family.address_delete", targetId: A.family._id, "details.by": "purge", actorUserId: trusted({ $exists: false }) })) === 1);
 
   // 8. Parent can delete it themselves (family B, gift still on its way).
   await saveAddress(B.parent, { name: "Ben Parent", line1: "1 Elf Road", line2: "", city: "Ames", state: "IA", zip: "50010" });
@@ -153,6 +165,7 @@ try {
   await Promise.all([
     WishListItem.collection.deleteMany({ familyId: { $in: fams } }),
     AuditLog.collection.deleteMany({ $or: [{ targetId: { $in: fams } }, { actorUserId: admin._id }] }),
+    RateLimit.collection.deleteMany({ key: { $regex: `^address-view-audit:${String(admin._id)}:` } }),
     Item.collection.deleteOne({ _id: itemId }),
     Store.collection.deleteOne({ _id: storeId }),
     Kid.deleteMany({ _id: trusted({ $in: [kidA._id, kidB._id] }) }),

@@ -1,8 +1,10 @@
 "use client";
 /**
- * Delivery address form. Every rule is enforced on the server (@repo/families/address); the
- * browser attributes (required, maxLength, pattern, autocomplete) only help the parent.
- * Keyed by nonce so it re-mounts with the echoed values after an error (React 19 form reset).
+ * Delivery address panel: the form (while a gift is on its way) + "Delete address". One component
+ * so the feedback is always right: after a delete the form re-mounts empty and only "Address
+ * deleted." shows. Every rule is enforced on the server (@repo/families/address); the browser
+ * attributes (required, maxLength, pattern, autocomplete) only help the parent. Keyed by nonce so it
+ * re-mounts with the echoed values after an error (React 19 resets forms after an action).
  */
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
@@ -14,12 +16,41 @@ import { useHydrated } from "@repo/ui/use-hydrated";
 import { deleteAddressAction, saveAddressAction, type AddressFormState } from "./actions";
 
 const IDLE: AddressFormState = { status: "idle" };
+const EMPTY = { name: "", line1: "", line2: "", city: "", state: "", zip: "" };
 
-export function AddressForm({ saved }: { saved: DeliveryAddress | null }) {
+export function AddressPanel({ needed, saved, unreadable }: { needed: boolean; saved: DeliveryAddress | null; unreadable: boolean }) {
+  const t = useTranslations("Address");
+  const [del, delAction, delPending] = useActionState(deleteAddressAction, IDLE);
+  const hydrated = useHydrated();
+  const deleted = del.status === "deleted";
+  return (
+    <div className="flex flex-col gap-6">
+      {deleted && <Alert>{t("deleted")}</Alert>}
+      {del.status === "error" && del.error && <Alert tone="error">{t(`errors.${del.error}`)}</Alert>}
+      {unreadable && !deleted && <Alert tone="error">{t("unreadable")}</Alert>}
+      {needed ? (
+        // A delete re-mounts the form: its old "saved" message and values are gone.
+        <SaveForm key={del.nonce ?? "initial"} saved={deleted ? null : saved} />
+      ) : (
+        <p className="text-foreground/70" data-testid="not-needed">{t("notNeeded")}</p>
+      )}
+      {(saved || unreadable) && !deleted && (
+        <form action={delAction} className="flex flex-col gap-2 border-t border-foreground/10 pt-4">
+          <p className="text-sm text-foreground/70">{t("deleteHelp")}</p>
+          <Button type="submit" variant="secondary" pending={delPending} disabled={!hydrated} className="self-start">
+            {t("delete")}
+          </Button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function SaveForm({ saved }: { saved: DeliveryAddress | null }) {
   const t = useTranslations("Address");
   const [state, action, pending] = useActionState(saveAddressAction, IDLE);
   const hydrated = useHydrated();
-  const v = state.values ?? saved ?? { name: "", line1: "", line2: "", city: "", state: "", zip: "" };
+  const v = state.values ?? saved ?? EMPTY;
   const err = state.status === "error" && state.error ? (state.error === "invalid" && state.field ? t(`errors.field.${state.field}` as never) : t(`errors.${state.error}`)) : null;
   return (
     <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-4">
@@ -45,21 +76,6 @@ export function AddressForm({ saved }: { saved: DeliveryAddress | null }) {
       </div>
       <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">
         {t("save")}
-      </Button>
-    </form>
-  );
-}
-
-export function DeleteAddressForm() {
-  const t = useTranslations("Address");
-  const [state, action, pending] = useActionState(deleteAddressAction, IDLE);
-  const hydrated = useHydrated();
-  return (
-    <form action={action} className="flex flex-col gap-2">
-      {state.status === "deleted" && <Alert>{t("deleted")}</Alert>}
-      {state.status === "error" && state.error && <Alert tone="error">{t(`errors.${state.error}`)}</Alert>}
-      <Button type="submit" variant="secondary" pending={pending} disabled={!hydrated} className="self-start">
-        {t("delete")}
       </Button>
     </form>
   );

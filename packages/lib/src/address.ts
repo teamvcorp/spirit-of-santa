@@ -12,14 +12,16 @@ export const US_STATES = [
   "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "PR", "GU", "VI", "AS", "MP",
 ] as const;
 
-// No control characters or angle brackets (it ends up on shipping labels and admin pages).
+// No control or invisible FORMAT characters (e.g. right-to-left overrides, zero-width), no angle
+// brackets: it ends up on shipping labels and admin pages and must read exactly as typed.
 const text = (min: number, max: number) =>
-  z.string().trim().min(min).max(max).regex(/^[^<>\p{Cc}]*$/u, "invalid");
+  z.string().trim().min(min).max(max).regex(/^[^<>\p{Cc}\p{Cf}]*$/u, "invalid");
 
 export const deliveryAddressSchema = z.object({
   name: text(2, 80), // who the package is addressed to
   line1: text(3, 100),
-  line2: z.union([z.literal(""), text(1, 100)]),
+  // Optional: blank or only spaces = no second line.
+  line2: z.string().trim().pipe(z.union([z.literal(""), text(1, 100)])),
   city: text(2, 60),
   state: z.string().trim().toUpperCase().pipe(z.enum(US_STATES)),
   zip: z.string().trim().regex(/^\d{5}(-\d{4})?$/, "invalid"),

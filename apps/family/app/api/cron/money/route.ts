@@ -24,6 +24,7 @@ import { finalizeClosingFamilies } from "@repo/families/erase";
 import { expirePayLaterLinks } from "@repo/deeds/pay-later";
 import { flaggedSeasonResets, runSeasonReset } from "@repo/payments/season-end";
 import { runDonationSplit } from "@repo/payments/split";
+import { copyLastSeasonCatalog } from "@repo/stores/catalog-rollover";
 import { lockFundedItems, sweepAllocations } from "@repo/wishlists/engine";
 import { closeUnfunded } from "@repo/wishlists/payup";
 import { sendFamilyDigests, sendSeasonReminders } from "@repo/families/digest";
@@ -64,6 +65,8 @@ export async function GET(request: Request): Promise<Response> {
   // EARLY (right after the split it depends on). It only zeroes unspent (available) magic; the wish-list steps
   // below work on escrow, so the order is safe.
   const seasonEnd = await settle(() => runSeasonReset());
+  // Jan 1 – Mar 31: copy last season's active store items into the new season once (idempotent; no-op otherwise).
+  const catalog = await settle(() => copyLastSeasonCatalog());
   // Wish lists: every fully funded gift → locked + magic spent (year-round, owner 2026-11-07); then a safety sweep of unallocated points.
   // Then the drop-off once pay-up is over (Dec 4; waits for the split): unfinished gifts drop off, their points go to Spirit of Santa.
   const wishLists = await settle(async () => ({ locked: await lockFundedItems(), sweep: await sweepAllocations(), closed: await closeUnfunded() }));
@@ -87,6 +90,7 @@ export async function GET(request: Request): Promise<Response> {
     payLater: payLater.status === "fulfilled" ? payLater.value : "failed",
     wishLists: wishLists.status === "fulfilled" ? wishLists.value : "failed",
     storeOrders: storeOrders.status === "fulfilled" ? storeOrders.value : "failed",
+    catalog: catalog.status === "fulfilled" ? catalog.value : "failed",
     familyNotices: familyNotices.status === "fulfilled" ? familyNotices.value : "failed",
     closingFamilies: closing.status === "fulfilled" ? closing.value : "failed",
     // Ended seasons whose reset flagged kids an admin has not marked handled yet (years only, no personal data).
@@ -115,9 +119,9 @@ export async function GET(request: Request): Promise<Response> {
   const parked = wishLists.status === "fulfilled" && (wishLists.value.locked.needsAttention > 0 || wishLists.value.closed.needsAttention > 0);
   const parentEmailsFailed = (digests.status === "fulfilled" && digests.value.failed > 0) ||
     (reminders.status === "fulfilled" && [reminders.value.cutoff, reminders.value.payUp].some((r) => r !== "notTime" && r.failed > 0));
-  const failed = digestFailed || noticesFailed || closeFailed || lockFailed || parked || closingFailed || resetStuck || parentEmailsFailed || [split, seasonEnd, payLater, wishLists, storeOrders, familyNotices, closing, addresses, digests, reminders, receipts].some((r) => r.status === "rejected");
+  const failed = digestFailed || noticesFailed || closeFailed || lockFailed || parked || closingFailed || resetStuck || parentEmailsFailed || [split, seasonEnd, catalog, payLater, wishLists, storeOrders, familyNotices, closing, addresses, digests, reminders, receipts].some((r) => r.status === "rejected");
   if (failed) {
-    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, closing: closing.status, addresses: addresses.status, digests: digests.status, reminders: reminders.status, receipts: receipts.status, digestFailed, noticesFailed, closeFailed, lockFailed, parked, closingFailed, resetStuck, parentEmailsFailed }));
+    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, catalog: catalog.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, closing: closing.status, addresses: addresses.status, digests: digests.status, reminders: reminders.status, receipts: receipts.status, digestFailed, noticesFailed, closeFailed, lockFailed, parked, closingFailed, resetStuck, parentEmailsFailed }));
     return Response.json(result, { status: 500, headers: { "Cache-Control": "no-store" } });
   }
   console.info("[cron] donations", JSON.stringify(result)); // totals/counts only, no personal data

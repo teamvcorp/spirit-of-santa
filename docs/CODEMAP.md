@@ -819,6 +819,14 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   email+address may now be kept ~11 months (children's data still deleted at once). Privacy text changed → version bump
   in slice 8. `DELIVER_THEN_DELETE_DAYS` removed. Review fixes: preview uses locked/shipped only (same gifts as the real
   deletion); a deadline already past → no deliverFirst (`tooLate`, "willKeepGiftsLate" copy), never a stored past date.
+- **Year-round slice 7: Jan 1 catalogue carry-over + stock compare-and-set (2026-11-07).** Owner: COPY last season's
+  items. `copyLastSeasonCatalog(now)` (@repo/stores/catalog-rollover, money cron step after the season end): calendar Q1
+  only; ACTIVE priced items of approved/pending stores → new season (name, description, category, photo, price, stock
+  left; no payoutCents), bulk UPSERT keyed by new `Item.copiedFromItemId` (unique partial index) + `Season.catalogCopiedAt`.
+  Copies SHARE the photo blob: items.ts `deleteUnusedPhoto` deletes a blob only if no item uses it (index on
+  photo.pathname). Stock: forms send hidden `inventoryWas`; `setInventory`/`updateItem` compare-and-set on it
+  ("stockChanged" → reload); the item form only touches stock when changed. PROD: run `npm run db:sync-indexes` after
+  deploy (2 new Item indexes). E2E: store-catalog (new, service level).
 
 ## Open items / TODO
 

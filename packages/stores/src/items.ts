@@ -7,7 +7,9 @@
  *    (isStoreEditable: the same list the profile/reps gates use).
  *  - Season window: add/edit/price/archive only while the store item window is open
  *    (Jan 1 – Mar 31 by default; an admin Season.storeWindow "open"/"closed" overrides).
- *    Inventory can be updated any time (stock changes all year).
+ *    Inventory can be updated any time (stock changes all year), COMPARE-AND-SET on the number the form showed:
+ *    kids' gifts reserve units at the same time (year-round season), so a stale form must never overwrite a
+ *    reservation ("stockChanged" → reload). The full item form only touches stock when it was actually changed.
  *  - Season: only the CURRENT season's items can be viewed or changed. Earlier seasons are
  *    history (no editing/restoring a 2026 item in 2027 via its URL; review 2026-11-05).
  *  - Limit: STORE_ITEM_LIMIT (50) non-archived items per store per season. Add and restore run
@@ -36,7 +38,7 @@ import type { ItemInput } from "./schemas.ts";
 
 export type ItemResult =
   | { ok: true; itemId?: string }
-  | { ok: false; error: "notFound" | "readOnly" | "windowClosed" | "limitReached" | "priceRequired" | "rateLimited" | ImageUploadErrorCode };
+  | { ok: false; error: "notFound" | "readOnly" | "windowClosed" | "limitReached" | "priceRequired" | "rateLimited" | "stockChanged" | ImageUploadErrorCode };
 
 /** The store as loaded by memberStore() (dashboard pages get it from loadMember()). */
 export type MemberStore = NonNullable<Awaited<ReturnType<typeof memberStore>>>;
@@ -69,6 +71,15 @@ const scopeOf = (g: { store: MemberStore; seasonYear: number }) => ({ storeId: g
 async function lockAndCount(g: { store: MemberStore; seasonYear: number }, session: DbSession): Promise<number> {
   await Store.updateOne({ _id: g.store._id }, { $inc: { itemLockSeq: 1 } }, { session });
   return Item.countDocuments({ ...scopeOf(g), status: NOT_ARCHIVED() }).session(session);
+}
+
+/**
+ * Delete an item photo's blob ONLY if no item still uses it: the Jan 1 carry-over (catalog-rollover.ts) makes the
+ * new season's copy share last season's photo, so replacing it on the copy must not break last season's item.
+ */
+async function deleteUnusedPhoto(pathname: string | undefined | null, storeId: string): Promise<void> {
+  if (!pathname || (await Item.exists({ "photo.pathname": pathname }))) return;
+  await deletePublicImage(pathname, { folder: "items", ownerId: storeId }).catch(() => {});
 }
 
 async function audit(actorId: string, action: AuditAction, itemId: unknown, details: Record<string, unknown> = {}) {
@@ -207,7 +218,8 @@ export async function createItem(actor: StoreActor, input: ItemInput): Promise<I
   return { ok: true, itemId };
 }
 
-export async function updateItem(actor: StoreActor, itemId: string, input: ItemInput): Promise<ItemResult> {
+/** `inventoryWas` = the stock number the form showed (compare-and-set; see the header). */
+export async function updateItem(actor: StoreActor, itemId: string, input: ItemInput, inventoryWas: number): Promise<ItemResult> {
   const g = await gate(actor, true);
   if ("error" in g) return g.error;
   const isOwner = actor.role === "store_owner";
@@ -216,8 +228,10 @@ export async function updateItem(actor: StoreActor, itemId: string, input: ItemI
   const set: Record<string, unknown> = {
     name: input.name,
     description: input.description ?? "",
-    inventory: input.inventory,
   };
+  // Stock only when the store changed it, and only if nothing reserved a unit since the form was loaded.
+  const stockEdited = input.inventory !== inventoryWas;
+  if (stockEdited) set.inventory = input.inventory;
   // Mongoose drops undefined keys from $set, so clearing the category must be an $unset.
   const unset: Record<string, 1> = {};
   if (input.category) set.category = input.category;
@@ -229,24 +243,31 @@ export async function updateItem(actor: StoreActor, itemId: string, input: ItemI
   }
   // Status in the filter: a concurrent archive wins instead of being silently undone.
   const res = await Item.updateOne(
-    { _id: itemId, ...scopeOf(g), status: existing.status },
+    { _id: itemId, ...scopeOf(g), status: existing.status, ...(stockEdited ? { inventory: inventoryWas } : {}) },
     { $set: set, ...(Object.keys(unset).length ? { $unset: unset } : {}) },
     { runValidators: true },
   );
-  if (res.matchedCount !== 1) return { ok: false, error: "notFound" };
+  if (res.matchedCount !== 1) {
+    const still = stockEdited && (await Item.exists({ _id: itemId, ...scopeOf(g), status: existing.status }));
+    return { ok: false, error: still ? "stockChanged" : "notFound" };
+  }
   await audit(actor.id, isOwner && existing.priceCents !== input.priceCents ? "item.price" : "item.update", itemId, {
     ...(isOwner && existing.priceCents !== input.priceCents ? { from: existing.priceCents ?? null, to: input.priceCents } : {}),
   });
   return { ok: true, itemId };
 }
 
-/** Stock count: allowed outside the item window (stock changes all year). */
-export async function setInventory(actor: StoreActor, itemId: string, inventory: number): Promise<ItemResult> {
+/** Stock count: allowed outside the item window (stock changes all year). Compare-and-set on `inventoryWas`. */
+export async function setInventory(actor: StoreActor, itemId: string, inventory: number, inventoryWas: number): Promise<ItemResult> {
   const g = await gate(actor, false);
   if ("error" in g) return g.error;
-  const res = await Item.updateOne({ _id: itemId, ...scopeOf(g), status: NOT_ARCHIVED() }, { $set: { inventory } }, { runValidators: true });
-  if (res.matchedCount !== 1) return { ok: false, error: "notFound" };
-  await audit(actor.id, "item.update", itemId, { inventory });
+  if (inventory === inventoryWas) return { ok: true, itemId }; // nothing to change
+  const res = await Item.updateOne({ _id: itemId, ...scopeOf(g), status: NOT_ARCHIVED(), inventory: inventoryWas }, { $set: { inventory } }, { runValidators: true });
+  if (res.matchedCount !== 1) {
+    const still = await Item.exists({ _id: itemId, ...scopeOf(g), status: NOT_ARCHIVED() });
+    return { ok: false, error: still ? "stockChanged" : "notFound" };
+  }
+  await audit(actor.id, "item.update", itemId, { inventory, from: inventoryWas });
   return { ok: true, itemId };
 }
 
@@ -311,7 +332,7 @@ export async function setItemPhoto(actor: StoreActor, itemId: string, file: Blob
     await deletePublicImage(image.pathname, { folder: "items", ownerId: storeId });
     return { ok: false, error: "notFound" };
   }
-  if (before.photo?.pathname) await deletePublicImage(before.photo.pathname, { folder: "items", ownerId: storeId }).catch(() => {});
+  await deleteUnusedPhoto(before.photo?.pathname, storeId);
   await audit(actor.id, "item.update", itemId, { photo: true });
   return { ok: true, itemId };
 }
@@ -325,7 +346,7 @@ export async function removeItemPhoto(actor: StoreActor, itemId: string): Promis
     .select("photo")
     .lean();
   if (!before) return { ok: false, error: "notFound" };
-  if (before.photo?.pathname) await deletePublicImage(before.photo.pathname, { folder: "items", ownerId: storeId }).catch(() => {});
+  await deleteUnusedPhoto(before.photo?.pathname, storeId);
   await audit(actor.id, "item.update", itemId, { photo: false });
   return { ok: true, itemId };
 }

@@ -107,6 +107,7 @@
       "notApproved": "You can invite reps once Spirit of Santa has approved your store.",
       "emailFailed": "We couldn't send the email. Please try again in a few minutes.",
       "windowClosed": "Item lists are closed for changes right now (they're normally open January 1 – March 31).",
+      "stockChanged": "The stock count changed while you were editing (a child's gift may have just reserved one). Reload the page to see the new number, then try again.",
       "limitReached": "You've reached the item limit. Archive an item to add another.",
       "priceRequired": "Please enter a price."
     },

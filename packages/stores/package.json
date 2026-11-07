@@ -7,6 +7,7 @@
     "./admin": "./src/admin.ts",
     "./owner": "./src/owner.ts",
     "./items": "./src/items.ts",
+    "./catalog-rollover": "./src/catalog-rollover.ts",
     "./engagement": "./src/engagement.ts",
     "./season": "./src/season.ts",
     "./engagement-math": "./src/engagement-math.ts",

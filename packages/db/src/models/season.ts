@@ -28,6 +28,8 @@ const seasonSchema = new Schema(
       enum: ["auto", "open", "closed"],
       default: "auto",
     },
+    /** When last season's active items were copied into this season (@repo/stores/catalog-rollover). Set once. */
+    catalogCopiedAt: { type: Date },
     updatedByUserId: objectId("User", false),
     notes: { type: String, maxlength: 1000 },
   },

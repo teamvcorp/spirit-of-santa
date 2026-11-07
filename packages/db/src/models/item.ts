@@ -54,6 +54,8 @@ const itemSchema = new Schema(
       },
     },
     inventory: { type: Number, default: 0, min: 0 },
+    /** Set on the Jan 1 copy of last season's item (@repo/stores/catalog-rollover): the source item. Unique = idempotent copy. */
+    copiedFromItemId: objectId("Item", false),
     status: {
       type: String,
       enum: ITEM_STATUSES,
@@ -77,6 +79,9 @@ const itemSchema = new Schema(
 
 itemSchema.index({ storeId: 1, seasonYear: 1, status: 1 });
 itemSchema.index({ seasonYear: 1, status: 1 }); // admin dashboard season totals
+// One copy per source item, ever (a retried or concurrent Jan 1 run can't duplicate). Partial: most items aren't copies.
+itemSchema.index({ copiedFromItemId: 1 }, { unique: true, partialFilterExpression: { copiedFromItemId: { $exists: true } } });
+itemSchema.index({ "photo.pathname": 1 }, { partialFilterExpression: { "photo.pathname": { $exists: true } } }); // shared-photo check
 itemSchema.index({ name: "text", description: "text" }); // national item search (Phase 6)
 
 export type ItemDoc = InferSchemaType<typeof itemSchema>;

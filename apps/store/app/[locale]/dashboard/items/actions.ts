@@ -8,7 +8,7 @@ import { refresh } from "next/cache";
 import { requireRole } from "@repo/auth";
 import { fieldErrors } from "@repo/auth/schemas";
 import { archiveItem, createItem, removeItemPhoto, restoreItem, setInventory, setItemPhoto, updateItem, type ItemResult } from "@repo/stores/items";
-import { inventoryFormSchema, itemSchema, objectIdSchema, toItemInput } from "@repo/stores/schemas";
+import { inventoryFormSchema, inventorySchema, itemSchema, objectIdSchema, toItemInput } from "@repo/stores/schemas";
 import { authOptions } from "@/auth";
 import type { DashFormState } from "../form-state";
 
@@ -34,6 +34,11 @@ function formValues(fd: FormData) {
   const echo = Object.fromEntries(Object.entries(full).map(([k, v]) => [k, v.slice(0, 2000)]));
   return { full, echo };
 }
+/** The stock number the form SHOWED (hidden field): the service compare-and-sets on it. null = missing/forged. */
+function inventoryWasOf(fd: FormData): number | null {
+  const was = inventorySchema.safeParse(str(fd, "inventoryWas"));
+  return was.success ? was.data : null;
+}
 function idOf(fd: FormData) {
   const id = objectIdSchema.safeParse(str(fd, "itemId"));
   return id.success ? id.data : null;
@@ -54,7 +59,9 @@ export async function updateItemAction(_prev: ItemFormState, fd: FormData): Prom
   const { full, echo } = formValues(fd);
   const parsed = itemSchema.safeParse(full);
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), values: echo, nonce: randomUUID() };
-  return result(await updateItem(actor, id, toItemInput(parsed.data)), echo);
+  const was = inventoryWasOf(fd);
+  if (was === null) return { status: "error", error: "stockChanged", values: echo, nonce: randomUUID() };
+  return result(await updateItem(actor, id, toItemInput(parsed.data), was), echo);
 }
 
 export async function inventoryAction(_prev: ItemFormState, fd: FormData): Promise<ItemFormState> {
@@ -64,7 +71,9 @@ export async function inventoryAction(_prev: ItemFormState, fd: FormData): Promi
   // Zod like every other form: an empty box is an error, never "0 in stock".
   const parsed = inventoryFormSchema.safeParse({ inventory: str(fd, "inventory") });
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), nonce: randomUUID() };
-  return result(await setInventory(actor, id, parsed.data.inventory));
+  const was = inventoryWasOf(fd);
+  if (was === null) return { status: "error", error: "stockChanged", nonce: randomUUID() };
+  return result(await setInventory(actor, id, parsed.data.inventory, was));
 }
 
 export async function archiveItemAction(_prev: ItemFormState, fd: FormData): Promise<ItemFormState> {

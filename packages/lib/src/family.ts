@@ -13,7 +13,9 @@
 // 2026-11-06b-draft (+ delivery address, missed at Phase 6 slice 4b, + "Christmas Magic" wording).
 // 2026-11-07-draft ("deliver, then delete": what is kept for delivery when an account is deleted).
 // 2026-11-07b-draft (year-round season: gifts held to December, so delivery data kept until Jan 31 after that Christmas).
-// 2026-11-07c (DRAFT label removed by the owner; Spanish audit fixes; ready-made thank-you notes the parent approves).
+// 2026-11-07c (DRAFT label removed by the owner; ready-made thank-you notes the parent approves). NOTE: the Spanish
+// audit fixes landed while the version still read 2026-11-07b-draft, so families stored with 07b-draft may have seen
+// the pre-audit Spanish text (no real families existed then).
 // Families that accepted an older version keep that record (re-consent: Phase 8).
 export const PARENT_CONSENT_VERSION = "2026-11-07c";
 

@@ -133,9 +133,10 @@ export async function thankNoteAction(_prev: ParentFormState, fd: FormData): Pro
   const deedId = str(fd, "deedId");
   const decision = str(fd, "decision");
   if (!OBJECT_ID_RE.test(deedId) || (decision !== "approved" && decision !== "hidden")) return err("notFound");
-  const r = await reviewThankNote(parent, deedId, decision);
+  await reviewThankNote(parent, deedId, decision);
+  // Not ok = already checked (another tab / double click) or not this family's: either way the list just refreshes.
   refresh();
-  return r.ok ? { status: "done", nonce: randomUUID() } : err("notFound");
+  return { status: "done", nonce: randomUUID() };
 }
 
 /** Family nickname for public QR pages (PIN re-checked here). */

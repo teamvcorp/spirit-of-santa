@@ -147,7 +147,7 @@
     "phaseLabel": "Estado",
     "phase": {
       "offseason": "Aún no abierta (fuera de temporada)",
-      "open": "Abierta: las familias ganan puntos y arman listas",
+      "open": "Abierta: las familias ganan Magia Navideña y arman listas",
       "frozen": "Congelada: las listas de deseos no pueden cambiar",
       "closed": "Cerrada"
     },
@@ -357,7 +357,7 @@
     "onLists": "Artículos en listas de deseos",
     "recentTitle": "Actividad reciente de administración y tiendas",
     "recentEmpty": "Aún no hay nada registrado.",
-    "laterNote": "Los puntos, el dinero y las acciones completadas aparecerán aquí cuando las familias puedan ganar y recibir propinas (fases 4–5).",
+    "laterNote": "La Magia Navideña, el dinero y las acciones completadas aparecerán aquí cuando las familias puedan ganar y recibir propinas (fases 4–5).",
     "pendingTexts": "{count, plural, =0 {Nada pendiente de revisión} one {# elemento pendiente de revisión} other {# elementos pendientes de revisión}}"
   },
   "AuditActions": {
@@ -471,7 +471,7 @@
     "total": "Total",
     "fee": "Comisión",
     "kids": "Niños",
-    "each": "Puntos cada uno",
+    "each": "Magia Navideña cada uno",
     "statusCol": "Qué pasa",
     "status": {
       "split": "Se reparte",
@@ -483,9 +483,9 @@
     "reason": {
       "notYet": "Los fondos se reparten mientras la temporada está congelada (del 1 al 25 de diciembre).",
       "feeMissing": "Primero define la comisión en Ajustes.",
-      "seasonOver": "La temporada terminó: los fondos ya no se reparten (los puntos se reinician el 1 de enero). Los regalos restantes se manejan al cierre de la temporada."
+      "seasonOver": "La temporada terminó: los fondos ya no se reparten (la Magia Navideña se reinicia el 1 de enero). Los regalos restantes se manejan al cierre de la temporada."
     },
-    "confirm": "Entiendo que esto acredita los puntos de los niños ahora y no se puede deshacer.",
+    "confirm": "Entiendo que esto acredita la Magia Navideña de los niños ahora y no se puede deshacer.",
     "splitNow": "Repartir ahora",
     "splitDone": "Se repartieron {amount} entre {kids} niños (comisión {fee}).",
     "splitNothing": "No hay nada que repartir.",
@@ -504,12 +504,12 @@
       "confirmRequired": "Marca la casilla para confirmar.",
       "notYet": "Los fondos se reparten mientras la temporada está congelada (del 1 al 25 de diciembre).",
       "feeMissing": "Primero define la comisión en Ajustes.",
-      "seasonOver": "La temporada terminó: los fondos ya no se reparten (los puntos se reinician el 1 de enero). Los regalos restantes se manejan al cierre de la temporada."
+      "seasonOver": "La temporada terminó: los fondos ya no se reparten (la Magia Navideña se reinicia el 1 de enero). Los regalos restantes se manejan al cierre de la temporada."
     },
     "seasonEndTitle": "Cierre de temporada (1 de enero)",
-    "seasonEndIntro": "Cada 1 de enero la tarea diaria pone en cero los puntos de todos los niños (con un registro) y guarda como de la plataforma el dinero donado que nunca se repartió.",
+    "seasonEndIntro": "Cada 1 de enero la tarea diaria pone en cero la Magia Navideña de todos los niños (con un registro) y guarda como de la plataforma el dinero donado que nunca se repartió.",
     "noResets": "Aún no ha terminado ninguna temporada.",
-    "resetLine": "Temporada {year} (terminada {when}): {kids} niños en cero ({points} puntos), {retained} de donaciones no repartidas guardadas ({gifts} regalos).",
+    "resetLine": "Temporada {year} (terminada {when}): {kids} niños en cero ({points} de Magia Navideña), {retained} de donaciones no repartidas guardadas ({gifts} regalos).",
     "resetRunning": "Temporada {year}: en curso desde {when} ({kids} niños en cero hasta ahora). Continúa con la siguiente tarea diaria."
   },
   "Fulfilment": {
@@ -588,7 +588,7 @@
     "retailOut": "Valor de venta de los regalos recibidos ({count})",
     "wholesaleMargin": "Margen mayorista (venta − pagos a tiendas)",
     "paidVsOwed": "Todavía adeudado a tiendas (pagado hasta ahora: {paid})",
-    "breakage": "Puntos nunca usados ({reset} reiniciados el 1 de enero, {forfeit} de regalos incompletos)",
+    "breakage": "Magia Navideña nunca usada ({reset} reiniciada el 1 de enero, {forfeit} de regalos incompletos)",
     "moneyNote": "No incluye las comisiones de tarjeta (ver el panel de Stripe). Los regalos cuentan cuando Spirit of Santa los recibe.",
     "historyTitle": "Pagos realizados",
     "noHistory": "Todavía no hay pagos registrados.",

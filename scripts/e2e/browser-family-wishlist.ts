@@ -118,7 +118,7 @@ try {
 
   // 4. Gift page: price in points; "Add" (no PIN) escrows the kid's 10 points onto the Bike.
   await open(`/kids/${K}/gifts/${bike}`);
-  check("gift page shows the price in points", (await page.locator('main:visible [data-testid="gift-cost"]').innerText()).includes("25 points"));
+  check("gift page shows the price in points", (await page.locator('main:visible [data-testid="gift-cost"]').innerText()).includes("25 Christmas Magic"));
   await hydrated(page);
   await page.locator("main:visible button[type=submit]").click();
   await page.locator("main:visible [role=status]", { hasText: "Added to the wish list" }).waitFor({ timeout: 60_000 });
@@ -140,7 +140,7 @@ try {
   await open(`/kids/${K}/gifts/${book}`);
   await page.locator("main:visible [role=status]").first().waitFor({ timeout: 60_000 });
   check("no spare points: hint shown, Add disabled",
-    (await page.locator("main:visible [role=status]").first().innerText()).includes("at least 1 spare point") && (await page.locator("main:visible button[type=submit]").isDisabled()));
+    (await page.locator("main:visible [role=status]").first().innerText()).includes("at least 1 spare Christmas Magic") && (await page.locator("main:visible button[type=submit]").isDisabled()));
   await open(`/kids/${K}/gifts/${soldOut}`);
   check("sold-out gift: hint shown, Add disabled",
     (await page.locator("main:visible").innerText()).includes("this store has none left") && (await page.locator("main:visible button[type=submit]").isDisabled()));
@@ -150,7 +150,7 @@ try {
   const card = page.locator('main:visible [data-testid="wish-list"]');
   await card.waitFor({ timeout: 60_000 });
   const cardText = await card.innerText();
-  check("kid page lists the Bike with progress '10 of 25 points' and 'Collecting points'", cardText.includes(`Bike ${tag}`) && cardText.includes("10 of 25 points") && cardText.includes("Collecting points"));
+  check("kid page lists the Bike with progress '10 of 25 Christmas Magic' and 'Collecting Christmas Magic'", cardText.includes(`Bike ${tag}`) && cardText.includes("10 of 25 Christmas Magic") && cardText.includes("Collecting Christmas Magic"));
   check("count shows '1 of 2 gifts' (the parent's cap)", (await page.locator('main:visible [data-testid="wish-count"]').innerText()).includes("1 of 2"));
   check("gift name links to its page", (await card.locator(`a[href$="/gifts/${bike}"]`).count()) === 1);
   await Store.collection.updateOne({ _id: approved }, { $set: { status: "suspended" } });
@@ -173,7 +173,7 @@ try {
   await page.waitForURL((u) => u.pathname.endsWith(removePath), { timeout: 60_000 });
   await page.locator("main:visible h1").first().waitFor({ timeout: 60_000 });
   check("after the PIN, back on the remove page showing the points that return",
-    (await page.locator("main:visible").innerText()).includes("Its 10 points go back"));
+    (await page.locator("main:visible").innerText()).includes("Its 10 Christmas Magic goes back"));
   await hydrated(page);
   await page.getByRole("button", { name: "Remove it" }).click();
   await page.waitForURL((u) => u.pathname.endsWith(`/kids/${K}`), { timeout: 60_000 });

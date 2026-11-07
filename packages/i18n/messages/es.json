@@ -13,7 +13,7 @@
       "save": "Guardar",
       "cancel": "Cancelar"
     },
-    "points": "{count, plural, one {# punto} other {# puntos}}",
+    "points": "{count} de Magia Navideña",
     "auth": {
       "code": "Código del autenticador",
       "codeHint": "El código de 6 dígitos de tu app de autenticación, o un código de recuperación. Déjalo en blanco la primera vez, antes de configurarlo.",

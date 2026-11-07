@@ -13,7 +13,7 @@
       "save": "Save",
       "cancel": "Cancel"
     },
-    "points": "{count, plural, one {# point} other {# points}}",
+    "points": "{count} Christmas Magic",
     "auth": {
       "code": "Authenticator code",
       "codeHint": "The 6-digit code from your authenticator app, or a recovery code. Leave blank the first time, before you've set it up.",

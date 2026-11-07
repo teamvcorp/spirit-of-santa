@@ -91,12 +91,13 @@ try {
   const d1 = await capture(() => sendFamilyDigests());
   const a = d1.mails.get(mail("a")) ?? "";
   check("A: summary lists each child's news from OTHER people (tip + donation share)", a.includes(`Maya${tag}: 5 Christmas Magic · 1 good deed thanked`) && a.includes(`Leo${tag}: 2.5 Christmas Magic`));
-  check("A: the parent's own bonus and already-reported news are NOT in it", !a.includes("10 points") && !a.includes("14 points") && !a.includes("9 points"));
+  check("A: the parent's own bonus and already-reported news are NOT in it", !a.includes("10 Christmas Magic") && !a.includes("14 Christmas Magic") && !a.includes("9 Christmas Magic"));
   check("A: one-click unsubscribe (daily summary) + settings links in the footer", a.includes("/unsubscribe?t=") && a.includes(".digest.") && a.includes("/parent/notifications"));
   const b = d1.mails.get(mail("b")) ?? "";
-  check("B (magic off): only the deed, no points", b.includes(`Bo${tag}: 1 good deed thanked`) && !b.includes("Christmas Magic"));
+  // No AMOUNT of Christmas Magic (the email's own intro text may still say the words "Christmas Magic").
+  check("B (magic off): only the deed, no points", b.includes(`Bo${tag}: 1 good deed thanked`) && !/\d Christmas Magic/.test(b));
   check("C (both off) and D (account not active): no email", !d1.mails.has(mail("c")) && !d1.mails.has(mail("d")));
-  check("A: the tip from 2 minutes ago is NOT in today's summary (still settling)", !a.includes("3.5 points") && a.includes(`Leo${tag}: 2.5 Christmas Magic`));
+  check("A: the tip from 2 minutes ago is NOT in today's summary (still settling)", !a.includes("3.5 Christmas Magic") && a.includes(`Leo${tag}: 2.5 Christmas Magic`));
   const fa = await Family.collection.findOne({ _id: A.family._id });
   const upTo = (fa?.notify as { lastDigestAt?: Date })?.lastDigestAt?.getTime() ?? 0;
   check("A: 'reported up to' = the run time minus 10 minutes (settled news only)", upTo <= runAt - 10 * 60_000 + 1000 && upTo >= runAt - 10 * 60_000 - 5000);

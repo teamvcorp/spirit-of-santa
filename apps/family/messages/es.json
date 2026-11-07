@@ -1,16 +1,16 @@
 {
   "Metadata": {
     "title": "Spirit of Santa",
-    "description": "Los niños hacen buenas acciones, ganan puntos y la comunidad ayuda a hacer realidad sus deseos."
+    "description": "Los niños hacen buenas acciones, ganan Magia Navideña y la comunidad ayuda a hacer realidad sus deseos."
   },
   "HomePage": {
     "title": "Bienvenidos a Spirit of Santa",
-    "intro": "Las buenas acciones ganan puntos. Los puntos hacen realidad los deseos.",
+    "intro": "Las buenas acciones dan Magia Navideña. La Magia Navideña hace realidad los deseos.",
     "signUp": "Crear una cuenta familiar",
     "signIn": "Iniciar sesión",
     "whoIsHere": "¿Quién hace buenas acciones hoy?",
     "noKidsYet": "Aún no hay niños. Un padre o madre puede agregarlos en el área de padres.",
-    "points": "{points} puntos",
+    "points": "{points} de Magia Navideña",
     "awaiting": "Registro pendiente",
     "parentArea": "Área de padres (PIN)"
   },
@@ -42,11 +42,11 @@
     "title": "Política de privacidad y Aviso de privacidad infantil",
     "version": "Versión {version} · Aviso de privacidad infantil (lo que aceptan los padres): versión {childVersion}",
     "draft": "BORRADOR: este aviso está en revisión y se finalizará antes del lanzamiento.",
-    "intro": "Esta política cubre a las familias que usan Spirit of Santa y a los visitantes que agradecen a un niño, dan una propina o donación, o piden un mensaje para pagar más tarde. Incluye nuestro Aviso de privacidad infantil. Spirit of Santa permite que los niños ganen puntos por buenas acciones y los usen en una lista de deseos de Navidad. Los niños nunca crean sus propias cuentas: un padre, madre o tutor configura todo y mantiene el control.",
+    "intro": "Esta política cubre a las familias que usan Spirit of Santa y a los visitantes que agradecen a un niño, dan una propina o donación, o piden un mensaje para pagar más tarde. Incluye nuestro Aviso de privacidad infantil. Spirit of Santa permite que los niños ganen Magia Navideña por buenas acciones y la usen en una lista de deseos de Navidad. Los niños nunca crean sus propias cuentas: un padre, madre o tutor configura todo y mantiene el control.",
     "sections": {
       "collect": {
         "title": "Qué recopilamos",
-        "body": "De ti (padre, madre o tutor): tu nombre, correo electrónico, una contraseña (guardada solo en forma cifrada), un apellido familiar privado y, si quieres, tu código postal.\nSobre cada niño, ingresado por ti: un nombre, el año de nacimiento y un nombre para mostrar que tú eliges; las buenas acciones que registras; sus puntos y su lista de deseos.\nSolo cuando uno de los regalos de tus hijos está completo: una dirección de entrega para el regalo (guardada cifrada)."
+        "body": "De ti (padre, madre o tutor): tu nombre, correo electrónico, una contraseña (guardada solo en forma cifrada), un apellido familiar privado y, si quieres, tu código postal.\nSobre cada niño, ingresado por ti: un nombre, el año de nacimiento y un nombre para mostrar que tú eliges; las buenas acciones que registras; su Magia Navideña y su lista de deseos.\nSolo cuando uno de los regalos de tus hijos está completo: una dirección de entrega para el regalo (guardada cifrada)."
       },
       "public": {
         "title": "Qué pueden ver otras personas",
@@ -66,7 +66,7 @@
       },
       "keep": {
         "title": "Cuánto tiempo la guardamos",
-        "body": "Los puntos se reinician cada 1 de enero. Guardamos la información de tu familia mientras tu cuenta esté abierta y borramos la información de un niño cuando nos lo pidas.\nVisitantes: los datos de los recibos de donación se guardan como registros de la organización benéfica; el número de celular para pagar más tarde y la hora en que aceptaste se guardan hasta 13 meses y luego se borran.\nLa dirección de entrega se borra automáticamente en cuanto se entregan todos los regalos completos; puedes borrarla tú cuando quieras."
+        "body": "La Magia Navideña se reinicia cada 1 de enero. Guardamos la información de tu familia mientras tu cuenta esté abierta y borramos la información de un niño cuando nos lo pidas.\nVisitantes: los datos de los recibos de donación se guardan como registros de la organización benéfica; el número de celular para pagar más tarde y la hora en que aceptaste se guardan hasta 13 meses y luego se borran.\nLa dirección de entrega se borra automáticamente en cuanto se entregan todos los regalos completos; puedes borrarla tú cuando quieras."
       },
       "contact": {
         "title": "Contacto",
@@ -189,7 +189,7 @@
   "Kid": {
     "title": "Mis buenas acciones",
     "back": "Todos",
-    "points": "{points} puntos",
+    "points": "{points} de Magia Navideña",
     "record": "Registrar una buena acción",
     "notRegistered": "Este niño aún no está registrado. Un padre o madre puede registrarlo en el área de padres ($5) para empezar a registrar acciones.",
     "deedsTitle": "Buenas acciones",
@@ -232,7 +232,7 @@
   },
   "Gifts": {
     "browseTitle": "Buscar regalos",
-    "browseIntro": "Regalos de tiendas locales. Un regalo cuesta tantos puntos como su precio en dólares.",
+    "browseIntro": "Regalos de tiendas locales. Cada regalo cuesta tanta Magia Navideña como su precio en dólares.",
     "backToKid": "Volver a {name}",
     "searchLabel": "Buscar regalos",
     "searchPlaceholder": "Prueba \"bici\" o \"lego\"",
@@ -251,20 +251,20 @@
     "prev": "Anterior",
     "next": "Siguiente",
     "pageOf": "Página {page} de {pages}",
-    "cost": "{points} puntos",
+    "cost": "{points} de Magia Navideña",
     "soldOut": "Agotado",
     "fromStore": "de {store}",
     "photoAlt": "Foto de {name}",
     "detailTitle": "Regalo",
-    "youHave": "{name} tiene {points} puntos libres.",
-    "howFunding": "Los puntos llenan primero el regalo más antiguo de la lista. Cuando un regalo está completo, la tienda aparta uno.",
+    "youHave": "{name} tiene {points} de Magia Navideña para usar.",
+    "howFunding": "La Magia Navideña llena primero el regalo más antiguo de la lista. Cuando un regalo está completo, la tienda aparta uno.",
     "add": "Agregar a mi lista de deseos",
     "added": "¡Agregado a la lista de deseos!",
     "seeList": "Ver mi lista de deseos",
     "why": {
       "alreadyListed": "Este regalo ya está en la lista de deseos.",
       "cap": "La lista de deseos está llena ({cap} regalos). Un padre o madre puede cambiar el límite.",
-      "noPoints": "Necesitas al menos 1 punto libre para agregar un regalo. ¡Las buenas acciones dan más!",
+      "noPoints": "Necesitas al menos 1 de Magia Navideña libre para agregar un regalo. ¡Las buenas acciones dan más!",
       "soldOut": "Agotado: a esta tienda no le quedan.",
       "seasonNotOpen": "La lista de deseos se puede cambiar mientras la temporada está abierta (del 1 de octubre al 1 de diciembre).",
       "notRegistered": "Primero registra a este niño o niña (área de padres).",
@@ -275,10 +275,10 @@
     "listEmpty": "Todavía no hay nada en la lista.",
     "browse": "Buscar regalos",
     "listCount": "{count} de {cap} regalos",
-    "progress": "{funded} de {cost} puntos",
-    "progressLabel": "Puntos reunidos para {name}",
+    "progress": "{funded} de {cost} de Magia Navideña",
+    "progressLabel": "Magia Navideña reunida para {name}",
     "status": {
-      "active": "Reuniendo puntos",
+      "active": "Reuniendo Magia Navideña",
       "fully_funded": "¡Completo!",
       "locked": "Asegurado",
       "shipped": "En preparación",
@@ -291,7 +291,7 @@
     "shareHint": "¿Quieres ayuda? Comparte el enlace de donación de abajo: cada regalo llena la lista, empezando por el más antiguo.",
     "frozen": "La lista ya está lista para Navidad: no hay cambios después del 1 de diciembre.",
     "removeTitle": "¿Quitar de la lista de deseos?",
-    "removeIntro": "\"{item}\" sale de la lista de {name}. Sus {points} puntos regresan y llenan el siguiente regalo.",
+    "removeIntro": "\"{item}\" sale de la lista de {name}. Su {points} de Magia Navideña regresa y llena el siguiente regalo.",
     "removeConfirm": "Quitarlo",
     "keep": "Dejarlo",
     "removeErrors": {
@@ -310,7 +310,7 @@
     "sayThanksHelp": "Confirma la buena acción. Gratis, no hace falta nada más.",
     "thanked": "¡Gracias! {name} se pondrá muy feliz.",
     "tipTitle": "¿Quieres dejar una propina?",
-    "tipHelp": "Las propinas se convierten en puntos que el niño usa en su lista de deseos de Navidad ({rate} = 1 punto). Pagar también confirma la acción.",
+    "tipHelp": "Las propinas se convierten en Magia Navideña que el niño usa en su lista de deseos de Navidad ({rate} = 1 de Magia Navideña). Pagar también confirma la acción.",
     "other": "Otra",
     "otherAmount": "Cantidad en dólares",
     "tipButton": "Continuar al pago",
@@ -320,8 +320,8 @@
     "used": "Ya se dieron las gracias por esta buena acción. ¡Gracias!",
     "usedPaid": "Esta buena acción ya recibió una propina. ¡Gracias!",
     "expired": "Este código venció.",
-    "tipCredited": "¡Gracias! Recibimos tu propina y se convirtió en puntos para el niño.",
-    "tipProcessing": "¡Gracias! Recibimos tu propina; los puntos aparecen en un minuto.",
+    "tipCredited": "¡Gracias! Recibimos tu propina y se convirtió en Magia Navideña para el niño.",
+    "tipProcessing": "¡Gracias! Recibimos tu propina; la Magia Navideña aparece en un minuto.",
     "tipReview": "¡Gracias! Recibimos tu pago y nuestro equipo lo está revisando.",
     "tipNotPaid": "El pago no se completó. No se te cobró nada.",
     "errors": {
@@ -338,7 +338,7 @@
     "title": "Un regalo de Navidad",
     "heading": "Regala a la lista de deseos de {name}",
     "family": "De la familia {family}",
-    "intro": "Tu regalo se convierte en puntos ({rate} = 1 punto) que {name} usa en regalos de tiendas locales en Navidad.",
+    "intro": "Tu regalo se convierte en Magia Navideña ({rate} = 1 de Magia Navideña) que {name} usa en regalos de tiendas locales en Navidad.",
     "amount": "Cantidad",
     "other": "Otra",
     "otherAmount": "Cantidad en dólares",
@@ -346,8 +346,8 @@
     "total": "Regalo: {amount}",
     "final": "Todos los regalos son definitivos. Stripe procesa los pagos; nunca vemos el número de tu tarjeta.",
     "invalid": "Este enlace no es válido (quizás fue reemplazado). Pide a la familia su enlace actual.",
-    "credited": "¡Gracias! Recibimos tu regalo y se convirtió en puntos.",
-    "processing": "¡Gracias! Recibimos tu regalo; los puntos aparecen en un minuto.",
+    "credited": "¡Gracias! Recibimos tu regalo y se convirtió en Magia Navideña.",
+    "processing": "¡Gracias! Recibimos tu regalo; la Magia Navideña aparece en un minuto.",
     "review": "¡Gracias! Recibimos tu pago y nuestro equipo lo está revisando.",
     "notPaid": "El pago no se completó. No se te cobró nada.",
     "errors": {
@@ -360,7 +360,7 @@
   },
   "Bonus": {
     "title": "Magia extra",
-    "intro": "Dale puntos extra a uno de tus hijos. Tu pago se convierte en puntos ({rate} = 1 punto) que puede usar para regalos de Navidad.",
+    "intro": "Dale Magia Navideña extra a uno de tus hijos. Tu pago se convierte en Magia Navideña ({rate} = 1 de Magia Navideña) que puede usar para regalos de Navidad.",
     "whichKid": "¿Para qué hijo?",
     "noKids": "La magia extra es para niños registrados. Primero registra a un niño.",
     "amount": "Cantidad",
@@ -370,9 +370,9 @@
     "final": "Todos los pagos son definitivos. Los pagos los procesa Stripe; nunca vemos el número de tu tarjeta.",
     "total": "Magia extra: {amount}",
     "back": "Área de padres",
-    "credited": "¡Gracias! Los puntos extra ya se agregaron.",
-    "processing": "¡Gracias! Estamos confirmando tu pago; los puntos aparecerán en breve.",
-    "review": "Recibimos tu pago. Nuestro equipo lo revisará antes de agregar los puntos.",
+    "credited": "¡Gracias! La Magia Navideña extra ya se agregó.",
+    "processing": "¡Gracias! Estamos confirmando tu pago; la Magia Navideña aparecerá en breve.",
+    "review": "Recibimos tu pago. Nuestro equipo lo revisará antes de agregar la Magia Navideña.",
     "notPaid": "El pago no se completó. No se te cobró nada.",
     "unknown": "No encontramos ese pago.",
     "tryAgain": "Intentar de nuevo",
@@ -388,18 +388,18 @@
   },
   "PayUp": {
     "title": "Completar regalos",
-    "intro": "Paga los puntos que le faltan a un regalo ({rate} = 1 punto) y quedará listo para Navidad: se envía como cualquier otro regalo.",
-    "deadline": "Puedes completar regalos hasta el {closes}. Los regalos que sigan incompletos el {close} salen de la lista y sus puntos pasan a Spirit of Santa.",
+    "intro": "Paga la Magia Navideña que le falta a un regalo ({rate} = 1 de Magia Navideña) y quedará listo para Navidad: se envía como cualquier otro regalo.",
+    "deadline": "Puedes completar regalos hasta el {closes}. Los regalos que sigan incompletos el {close} salen de la lista y su Magia Navideña pasa a Spirit of Santa.",
     "closed": "Se pueden completar regalos desde el {opens} hasta el {closes}.",
     "none": "Todos los regalos de las listas de tus hijos están completos. ¡No hay nada que hacer!",
-    "missing": "Le faltan {points} puntos: {amount}",
+    "missing": "Le falta {points} de Magia Navideña: {amount}",
     "button": "Completar por {amount}",
     "buttonFor": "Completar {item} para {kid}",
     "total": "A pagar: {amount}",
     "back": "Área de padres",
-    "credited": "¡Gracias! Tu pago se sumó como puntos al regalo que elegiste (o, si ya estaba completo, al siguiente regalo de tu hijo o hija).",
+    "credited": "¡Gracias! Tu pago se sumó como Magia Navideña al regalo que elegiste (o, si ya estaba completo, al siguiente regalo de tu hijo o hija).",
     "processing": "¡Gracias! Tu pago se está confirmando; el regalo se completará en breve.",
-    "review": "Recibimos tu pago. Nuestro equipo lo revisará antes de sumar los puntos.",
+    "review": "Recibimos tu pago. Nuestro equipo lo revisará antes de sumar la Magia Navideña.",
     "notPaid": "El pago no se completó. No se te cobró nada.",
     "unknown": "No encontramos ese pago.",
     "tryAgain": "Intentar de nuevo",
@@ -447,8 +447,8 @@
   "Community": {
     "navLink": "Donar",
     "title": "Regala a los niños de Spirit of Santa",
-    "intro": "Tu regalo se convierte en puntos mágicos para niños que ganan regalos de Navidad con buenas acciones. Regala a todos los niños o a los niños de un código postal.",
-    "how": "Los regalos se juntan y se reparten en partes iguales entre los niños registrados el {day}. El {fee} de cada regalo ayuda a mantener Spirit of Santa; el resto se convierte en puntos ({rate} = 1 punto).",
+    "intro": "Tu regalo se convierte en Magia Navideña para niños que ganan regalos de Navidad con buenas acciones. Regala a todos los niños o a los niños de un código postal.",
+    "how": "Los regalos se juntan y se reparten en partes iguales entre los niños registrados el {day}. El {fee} de cada regalo ayuda a mantener Spirit of Santa; el resto se convierte en Magia Navideña ({rate} = 1 de Magia Navideña).",
     "charity": "Spirit of Santa es un programa de {orgName} (EIN {ein}), una organización sin fines de lucro 501(c)(3). Recibirás un recibo para impuestos por correo electrónico.",
     "raised": "Donado esta temporada hasta ahora: {amount}",
     "who": "¿A quién quieres ayudar?",
@@ -543,15 +543,15 @@
     "sections": {
       "about": {
         "title": "Sobre Spirit of Santa",
-        "body": "Spirit of Santa es un programa en el que los niños ganan puntos (\"magia navideña\") por buenas acciones y los usan para regalos de Navidad de tiendas locales. Al usar spiritofsanta.com aceptas estos términos."
+        "body": "Spirit of Santa es un programa en el que los niños ganan Magia Navideña por buenas acciones y la usan para regalos de Navidad de tiendas locales. Al usar spiritofsanta.com aceptas estos términos."
       },
       "accounts": {
         "title": "Cuentas",
         "body": "Solo los adultos pueden crear una cuenta. Un padre, madre o tutor crea y controla el perfil de cada niño; los niños nunca tienen cuentas propias. Mantén en privado tu contraseña y tu PIN de padres."
       },
       "points": {
-        "title": "Puntos",
-        "body": "Spirit of Santa calcula los puntos a partir del dinero realmente recibido (actualmente {rate} = 1 punto). Los puntos no tienen valor en efectivo, no se cambian por dinero y vuelven a cero cada 1 de enero."
+        "title": "Magia Navideña",
+        "body": "Spirit of Santa calcula la Magia Navideña a partir del dinero realmente recibido (actualmente {rate} = 1 de Magia Navideña). La Magia Navideña no tiene valor en efectivo, no se cambia por dinero y vuelve a cero cada 1 de enero."
       },
       "payments": {
         "title": "Pagos",
@@ -591,7 +591,7 @@
     "kinds": {
       "magic": {
         "label": "Magia recibida",
-        "help": "Un resumen diario cuando tus hijos reciben puntos (propinas y donaciones de la comunidad)."
+        "help": "Un resumen diario cuando tus hijos reciben Magia Navideña (propinas y donaciones de la comunidad)."
       },
       "deeds": {
         "label": "Buenas acciones agradecidas",

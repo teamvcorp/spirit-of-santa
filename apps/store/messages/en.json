@@ -46,7 +46,7 @@
   },
   "StoreAgreement": {
     "title": "Store discount and guarantee agreement",
-    "p1": "You list items at your normal retail price. Each item's price in magic points equals its retail price in dollars.",
+    "p1": "You list items at your normal retail price. Each item's price in Christmas Magic equals its retail price in dollars.",
     "p2": "Spirit of Santa agrees a discount off retail with your store when we approve it. When a child's item is funded, you bill Spirit of Santa the agreed wholesale cost (retail price minus that discount).",
     "p3": "You guarantee listed items stay available at the listed price for the season, or you offer an equal or better substitute.",
     "p4": "Spirit of Santa keeps the difference between retail and wholesale to run the program.",
@@ -208,7 +208,7 @@
     "category": "Category",
     "noCategory": "No category",
     "price": "Retail price ($)",
-    "priceHint": "Your normal shelf price. Kids need this many magic points.",
+    "priceHint": "Your normal shelf price. Kids need this much Christmas Magic.",
     "repPriceNote": "Only the store owner can set prices.",
     "inventory": "In stock",
     "add": "Add item",

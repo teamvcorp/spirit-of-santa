@@ -122,7 +122,7 @@ try {
   await page.waitForURL((u) => u.pathname.endsWith("/parent/payup"), { timeout: 60_000 });
   await page.locator('main:visible [data-testid="payup-list"]').waitFor({ timeout: 60_000 });
   const list = await page.locator('main:visible [data-testid="payup-list"]').innerText();
-  check("lists both unfinished gifts with the server's price (Bike: 15 points = $22.50)", list.includes(`Bike ${tag}`) && list.includes(`Book ${tag}`) && list.includes("15 more points: $22.50") && list.includes("$15.00"));
+  check("lists both unfinished gifts with the server's price (Bike: 15 Christmas Magic = $22.50)", list.includes(`Bike ${tag}`) && list.includes(`Book ${tag}`) && list.includes("15 more Christmas Magic: $22.50") && list.includes("$15.00"));
   check("another family's gift is not listed", !list.includes("Other"));
   await page.goto(`${base}/parent`);
   await page.locator('main:visible [data-testid="payup-alert"]').waitFor({ timeout: 60_000 });

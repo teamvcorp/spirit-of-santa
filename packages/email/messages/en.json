@@ -85,7 +85,7 @@
     "familyDigest": {
       "subject": "Today's magic on Spirit of Santa",
       "heading": "Good news from today",
-      "body": "Here's what happened for your children:\n\n{lines}\n\nPoints go to the oldest gift on each wish list first.",
+      "body": "Here's what happened for your children:\n\n{lines}\n\nChristmas Magic goes to the oldest gift on each wish list first.",
       "button": "Open the family area",
       "magic": "{points} Christmas Magic",
       "deeds": "{count, plural, one {# good deed thanked} other {# good deeds thanked}}"
@@ -99,7 +99,7 @@
     "payUpReminder": {
       "subject": "Last days to finish gifts: until {date}",
       "heading": "Finish gifts before {date}",
-      "body": "Some gifts on your children's lists aren't fully funded yet. You can pay what's missing until {date}. Gifts still unfinished at the season's close drop off the list, and the points on them go to Spirit of Santa.",
+      "body": "Some gifts on your children's lists aren't fully funded yet. You can pay what's missing until {date}. Gifts still unfinished at the season's close drop off the list, and the Christmas Magic on them goes to Spirit of Santa.",
       "button": "Finish gifts"
     }
   }

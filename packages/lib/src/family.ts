@@ -7,17 +7,19 @@
  * (family app /register and /privacy). Bump whenever that wording changes; each Family records
  * the version it accepted. "-draft": the wording is a DRAFT until a lawyer reviews it (COPPA).
  */
-export const PARENT_CONSENT_VERSION = "2026-11-05-draft";
+// 2026-11-06: delivery address added to what we collect (Phase 6 slice 4b; the bump was missed then) +
+// "Christmas Magic" wording. Families that accepted the older version keep that record (re-consent: Phase 8).
+export const PARENT_CONSENT_VERSION = "2026-11-06-draft";
 
 /**
  * Version of the WHOLE /privacy page (bump with any change). Separate from PARENT_CONSENT_VERSION
  * (what parents agreed to about their children): the visitor + text-message sections added
  * 2026-11-06 don't change anything parents agreed to (review 2026-11-06).
  */
-export const PRIVACY_VERSION = "2026-11-06-draft";
+export const PRIVACY_VERSION = "2026-11-06b-draft"; // b: delivery address + "Christmas Magic" wording
 
 /** Terms of Service version shown on /terms (bump with any change). */
-export const TERMS_VERSION = "2026-11-06-draft";
+export const TERMS_VERSION = "2026-11-06b-draft"; // b: "Christmas Magic" wording
 
 /**
  * Pay-later text consent (registered with the carriers, docs/vendor/twilio.md). Stored with each

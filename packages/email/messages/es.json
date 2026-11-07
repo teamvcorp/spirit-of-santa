@@ -85,7 +85,7 @@
     "familyDigest": {
       "subject": "La magia de hoy en Spirit of Santa",
       "heading": "Buenas noticias de hoy",
-      "body": "Esto pasó hoy para tus hijos:\n\n{lines}\n\nLos puntos van primero al regalo más antiguo de cada lista de deseos.",
+      "body": "Esto pasó hoy para tus hijos:\n\n{lines}\n\nLa Magia Navideña va primero al regalo más antiguo de cada lista de deseos.",
       "button": "Abrir el área familiar",
       "magic": "{points} de Magia Navideña",
       "deeds": "{count, plural, one {# buena acción agradecida} other {# buenas acciones agradecidas}}"
@@ -99,7 +99,7 @@
     "payUpReminder": {
       "subject": "Últimos días para completar regalos: hasta el {date}",
       "heading": "Completa los regalos antes del {date}",
-      "body": "Algunos regalos de las listas de tus hijos todavía no están completos. Puedes pagar lo que falta hasta el {date}. Los regalos que sigan incompletos al cierre de la temporada salen de la lista y sus puntos pasan a Spirit of Santa.",
+      "body": "Algunos regalos de las listas de tus hijos todavía no están completos. Puedes pagar lo que falta hasta el {date}. Los regalos que sigan incompletos al cierre de la temporada salen de la lista y su Magia Navideña pasa a Spirit of Santa.",
       "button": "Completar regalos"
     }
   }

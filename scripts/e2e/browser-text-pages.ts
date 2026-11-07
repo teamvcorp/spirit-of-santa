@@ -42,7 +42,7 @@ try {
   // 2. /terms: public, has the SMS terms.
   const terms = await open(page, `${base}/terms`);
   check("/terms is public (200) with SMS terms", terms.status === 200 && terms.text.includes("Text messages (pay later)") && terms.text.includes("Carriers are not liable") && terms.text.includes("expires after 7 days"));
-  check("/terms shows the points rate from the server constant ($1.50) and the dispute exception", terms.text.includes("currently $1.50 = 1 point") && terms.text.includes("card network requires it"));
+  check("/terms shows the points rate from the server constant ($1.50) and the dispute exception", terms.text.includes("currently $1.50 = 1 Christmas Magic") && terms.text.includes("card network requires it"));
 
   // 3. /privacy: the carrier-required sentence.
   const pv = await open(page, `${base}/privacy`);

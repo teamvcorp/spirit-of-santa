@@ -46,7 +46,7 @@
   },
   "StoreAgreement": {
     "title": "Acuerdo de descuento y garantía para tiendas",
-    "p1": "Publicas los artículos a tu precio normal de venta. El precio de cada artículo en puntos mágicos es igual a su precio de venta en dólares.",
+    "p1": "Publicas los artículos a tu precio normal de venta. El precio de cada artículo en Magia Navideña es igual a su precio de venta en dólares.",
     "p2": "Spirit of Santa acuerda un descuento sobre el precio de venta con tu tienda al aprobarla. Cuando se financia el artículo de un niño, le cobras a Spirit of Santa el costo mayorista acordado (precio de venta menos ese descuento).",
     "p3": "Garantizas que los artículos publicados seguirán disponibles al precio publicado durante la temporada, o ofreces un sustituto igual o mejor.",
     "p4": "Spirit of Santa se queda con la diferencia entre el precio de venta y el mayorista para operar el programa.",
@@ -208,7 +208,7 @@
     "category": "Categoría",
     "noCategory": "Sin categoría",
     "price": "Precio de venta ($)",
-    "priceHint": "Tu precio normal en tienda. Los niños necesitan esa cantidad de puntos mágicos.",
+    "priceHint": "Tu precio normal en tienda. Los niños necesitan esa cantidad de Magia Navideña.",
     "repPriceNote": "Solo el dueño de la tienda puede poner precios.",
     "inventory": "En inventario",
     "add": "Agregar artículo",

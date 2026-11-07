@@ -357,7 +357,7 @@
     "onLists": "Items on wish lists",
     "recentTitle": "Recent admin and store activity",
     "recentEmpty": "Nothing recorded yet.",
-    "laterNote": "Points, money and completed deeds appear here once families can earn and tip (Phases 4–5).",
+    "laterNote": "Christmas Magic, money and completed deeds appear here once families can earn and tip (Phases 4–5).",
     "pendingTexts": "{count, plural, =0 {Nothing waiting for review} one {# item waiting for review} other {# items waiting for review}}"
   },
   "AuditActions": {
@@ -471,7 +471,7 @@
     "total": "Total",
     "fee": "Fee",
     "kids": "Children",
-    "each": "Points each",
+    "each": "Christmas Magic each",
     "statusCol": "What happens",
     "status": {
       "split": "Shared",
@@ -483,9 +483,9 @@
     "reason": {
       "notYet": "Pools are shared while the season is frozen (Dec 1 to Dec 25).",
       "feeMissing": "Set the platform fee in Settings first.",
-      "seasonOver": "The season is over: pools are no longer shared (points would be reset on Jan 1). Remaining gifts are handled at the season end."
+      "seasonOver": "The season is over: pools are no longer shared (Christmas Magic would be reset on Jan 1). Remaining gifts are handled at the season end."
     },
-    "confirm": "I understand this credits the children's points now and can't be undone.",
+    "confirm": "I understand this credits the children's Christmas Magic now and can't be undone.",
     "splitNow": "Split now",
     "splitDone": "Shared {amount} among {kids} children (platform fee {fee}).",
     "splitNothing": "Nothing to share.",
@@ -504,12 +504,12 @@
       "confirmRequired": "Tick the box to confirm.",
       "notYet": "Pools are shared while the season is frozen (Dec 1 to Dec 25).",
       "feeMissing": "Set the platform fee in Settings first.",
-      "seasonOver": "The season is over: pools are no longer shared (points would be reset on Jan 1). Remaining gifts are handled at the season end."
+      "seasonOver": "The season is over: pools are no longer shared (Christmas Magic would be reset on Jan 1). Remaining gifts are handled at the season end."
     },
     "seasonEndTitle": "Season end (Jan 1)",
-    "seasonEndIntro": "Each Jan 1 the daily job resets every child's points to zero (with a ledger entry) and keeps donation money that was never shared, as the platform's.",
+    "seasonEndIntro": "Each Jan 1 the daily job resets every child's Christmas Magic to zero (with a ledger entry) and keeps donation money that was never shared, as the platform's.",
     "noResets": "No season has ended yet.",
-    "resetLine": "Season {year} (finished {when}): {kids} children reset ({points} points), {retained} unshared donation money kept ({gifts} gifts).",
+    "resetLine": "Season {year} (finished {when}): {kids} children reset ({points} Christmas Magic), {retained} unshared donation money kept ({gifts} gifts).",
     "resetRunning": "Season {year}: in progress since {when} ({kids} children reset so far). It continues with the next daily run."
   },
   "Fulfilment": {
@@ -588,7 +588,7 @@
     "retailOut": "Retail value of gifts received ({count})",
     "wholesaleMargin": "Wholesale margin (retail − store payouts)",
     "paidVsOwed": "Still owed to stores (paid so far: {paid})",
-    "breakage": "Breakage: points never spent ({reset} reset Jan 1, {forfeit} from unfinished gifts)",
+    "breakage": "Breakage: Christmas Magic never spent ({reset} reset Jan 1, {forfeit} from unfinished gifts)",
     "moneyNote": "Card processing fees aren't included (see the Stripe dashboard). Gifts count once Spirit of Santa received them.",
     "historyTitle": "Payments made",
     "noHistory": "No payments recorded yet.",

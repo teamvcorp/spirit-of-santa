@@ -1,16 +1,16 @@
 {
   "Metadata": {
     "title": "Spirit of Santa",
-    "description": "Kids do good deeds, earn points, and the community helps make their wishes come true."
+    "description": "Kids do good deeds, earn Christmas Magic, and the community helps make their wishes come true."
   },
   "HomePage": {
     "title": "Welcome to Spirit of Santa",
-    "intro": "Good deeds earn points. Points make wishes come true.",
+    "intro": "Good deeds earn Christmas Magic. Christmas Magic makes wishes come true.",
     "signUp": "Create a family account",
     "signIn": "Sign in",
     "whoIsHere": "Who's doing good deeds today?",
     "noKidsYet": "No children added yet. A parent can add them in the parent area.",
-    "points": "{points} points",
+    "points": "{points} Christmas Magic",
     "awaiting": "Awaiting registration",
     "parentArea": "Parent area (PIN)"
   },
@@ -42,11 +42,11 @@
     "title": "Privacy Policy and Children's Privacy Notice",
     "version": "Version {version} · Children's Privacy Notice (what parents agree to): version {childVersion}",
     "draft": "DRAFT: this notice is being reviewed and will be finalised before launch.",
-    "intro": "This policy covers families who use Spirit of Santa and visitors who thank a child, give a tip or donation, or ask for a pay-later text. It includes our Children's Privacy Notice. Spirit of Santa lets children earn points for good deeds and spend them on a Christmas wish list. Children never create their own accounts: a parent or guardian sets everything up and stays in control.",
+    "intro": "This policy covers families who use Spirit of Santa and visitors who thank a child, give a tip or donation, or ask for a pay-later text. It includes our Children's Privacy Notice. Spirit of Santa lets children earn Christmas Magic for good deeds and spend it on a Christmas wish list. Children never create their own accounts: a parent or guardian sets everything up and stays in control.",
     "sections": {
       "collect": {
         "title": "What we collect",
-        "body": "From you (the parent): your name, email address, a password (stored only in scrambled form), a private family name and, if you choose, your ZIP code.\nAbout each child, entered by you: a first name, birth year and a display name you choose; the good deeds you record; their points and wish list.\nOnly when one of your children's gifts is funded: a delivery address for the gift (stored encrypted)."
+        "body": "From you (the parent): your name, email address, a password (stored only in scrambled form), a private family name and, if you choose, your ZIP code.\nAbout each child, entered by you: a first name, birth year and a display name you choose; the good deeds you record; their Christmas Magic and wish list.\nOnly when one of your children's gifts is funded: a delivery address for the gift (stored encrypted)."
       },
       "public": {
         "title": "What others can see",
@@ -66,7 +66,7 @@
       },
       "keep": {
         "title": "How long we keep it",
-        "body": "Points reset every January 1. We keep your family's information while your account is open, and delete a child's information when you ask us to.\nVisitors: donation receipt details are kept as the charity's records; a pay-later mobile number and the time you agreed are kept up to 13 months, then deleted.\nA delivery address is deleted automatically as soon as every funded gift has been delivered; you can delete it yourself at any time."
+        "body": "Christmas Magic resets every January 1. We keep your family's information while your account is open, and delete a child's information when you ask us to.\nVisitors: donation receipt details are kept as the charity's records; a pay-later mobile number and the time you agreed are kept up to 13 months, then deleted.\nA delivery address is deleted automatically as soon as every funded gift has been delivered; you can delete it yourself at any time."
       },
       "contact": {
         "title": "Contact",
@@ -189,7 +189,7 @@
   "Kid": {
     "title": "My deeds",
     "back": "Everyone",
-    "points": "{points} points",
+    "points": "{points} Christmas Magic",
     "record": "Record a good deed",
     "notRegistered": "This child isn't registered yet. A parent can register them in the parent area ($5) to start recording deeds.",
     "deedsTitle": "Good deeds",
@@ -232,7 +232,7 @@
   },
   "Gifts": {
     "browseTitle": "Find gifts",
-    "browseIntro": "Gifts from local stores. A gift costs as many points as its price in dollars.",
+    "browseIntro": "Gifts from local stores. Each gift costs as much Christmas Magic as its price in dollars.",
     "backToKid": "Back to {name}",
     "searchLabel": "Search gifts",
     "searchPlaceholder": "Try \"bike\" or \"lego\"",
@@ -251,20 +251,20 @@
     "prev": "Previous",
     "next": "Next",
     "pageOf": "Page {page} of {pages}",
-    "cost": "{points} points",
+    "cost": "{points} Christmas Magic",
     "soldOut": "Sold out",
     "fromStore": "from {store}",
     "photoAlt": "Photo of {name}",
     "detailTitle": "Gift",
-    "youHave": "{name} has {points} spare points.",
-    "howFunding": "Points fill the oldest gift on the list first. When a gift is fully funded, the store sets one aside.",
+    "youHave": "{name} has {points} Christmas Magic to spend.",
+    "howFunding": "Christmas Magic fills the oldest gift on the list first. When a gift is fully funded, the store sets one aside.",
     "add": "Add to my wish list",
     "added": "Added to the wish list!",
     "seeList": "See my wish list",
     "why": {
       "alreadyListed": "This gift is already on the wish list.",
       "cap": "The wish list is full ({cap} gifts). A parent can change the limit.",
-      "noPoints": "You need at least 1 spare point to add a gift. Good deeds earn more!",
+      "noPoints": "You need at least 1 spare Christmas Magic to add a gift. Good deeds earn more!",
       "soldOut": "Sold out: this store has none left.",
       "seasonNotOpen": "Wish lists can be changed while the season is open (October 1 to December 1).",
       "notRegistered": "Register this child first (parent area).",
@@ -275,10 +275,10 @@
     "listEmpty": "Nothing on the list yet.",
     "browse": "Find gifts",
     "listCount": "{count} of {cap} gifts",
-    "progress": "{funded} of {cost} points",
-    "progressLabel": "Points collected for {name}",
+    "progress": "{funded} of {cost} Christmas Magic",
+    "progressLabel": "Christmas Magic collected for {name}",
     "status": {
-      "active": "Collecting points",
+      "active": "Collecting Christmas Magic",
       "fully_funded": "Fully funded!",
       "locked": "Locked in",
       "shipped": "Being prepared",
@@ -291,7 +291,7 @@
     "shareHint": "Want help? Share the donation link below: every gift fills the list, oldest gift first.",
     "frozen": "The list is set for Christmas: no changes after December 1.",
     "removeTitle": "Remove from the wish list?",
-    "removeIntro": "\"{item}\" comes off {name}'s list. Its {points} points go back and fill the next gift.",
+    "removeIntro": "\"{item}\" comes off {name}'s list. Its {points} Christmas Magic goes back and fills the next gift.",
     "removeConfirm": "Remove it",
     "keep": "Keep it",
     "removeErrors": {
@@ -310,7 +310,7 @@
     "sayThanksHelp": "Confirms the good deed. Free, nothing else needed.",
     "thanked": "Thank you! {name} will be so happy to hear it.",
     "tipTitle": "Want to leave a tip?",
-    "tipHelp": "Tips become points the child spends on a Christmas wish list ({rate} = 1 point). Paying also confirms the deed.",
+    "tipHelp": "Tips become Christmas Magic the child spends on a Christmas wish list ({rate} = 1 Christmas Magic). Paying also confirms the deed.",
     "other": "Other",
     "otherAmount": "Amount in dollars",
     "tipButton": "Continue to payment",
@@ -320,8 +320,8 @@
     "used": "This good deed was already thanked. Thank you!",
     "usedPaid": "This good deed already received a tip. Thank you!",
     "expired": "This code has expired.",
-    "tipCredited": "Thank you! Your tip was received and turned into points for the child.",
-    "tipProcessing": "Thank you! Your tip was received; the points appear within a minute.",
+    "tipCredited": "Thank you! Your tip was received and turned into Christmas Magic for the child.",
+    "tipProcessing": "Thank you! Your tip was received; the Christmas Magic appears within a minute.",
     "tipReview": "Thank you! Your payment was received and our team is checking it.",
     "tipNotPaid": "The payment wasn't completed. You haven't been charged.",
     "errors": {
@@ -338,7 +338,7 @@
     "title": "A Christmas gift",
     "heading": "Give to {name}'s Christmas wish list",
     "family": "From the {family} family",
-    "intro": "Your gift becomes points ({rate} = 1 point) that {name} spends on gifts from local stores at Christmas.",
+    "intro": "Your gift becomes Christmas Magic ({rate} = 1 Christmas Magic) that {name} spends on gifts from local stores at Christmas.",
     "amount": "Amount",
     "other": "Other",
     "otherAmount": "Amount in dollars",
@@ -346,8 +346,8 @@
     "total": "Gift: {amount}",
     "final": "All gifts are final. Payments are handled by Stripe; we never see your card number.",
     "invalid": "This link isn't valid (it may have been replaced). Ask the family for their current link.",
-    "credited": "Thank you! Your gift was received and turned into points.",
-    "processing": "Thank you! Your gift was received; the points appear within a minute.",
+    "credited": "Thank you! Your gift was received and turned into Christmas Magic.",
+    "processing": "Thank you! Your gift was received; the Christmas Magic appears within a minute.",
     "review": "Thank you! Your payment was received and our team is checking it.",
     "notPaid": "The payment wasn't completed. You haven't been charged.",
     "errors": {
@@ -360,7 +360,7 @@
   },
   "Bonus": {
     "title": "Bonus magic",
-    "intro": "Give one of your children extra points. Your payment becomes points ({rate} = 1 point) they can put toward Christmas gifts.",
+    "intro": "Give one of your children extra Christmas Magic. Your payment becomes Christmas Magic ({rate} = 1 Christmas Magic) they can put toward Christmas gifts.",
     "whichKid": "Which child?",
     "noKids": "Bonus magic is for registered children. Register a child first.",
     "amount": "Amount",
@@ -370,9 +370,9 @@
     "final": "All payments are final. Payments are handled by Stripe; we never see your card number.",
     "total": "Bonus: {amount}",
     "back": "Parent area",
-    "credited": "Thank you! The bonus points have been added.",
-    "processing": "Thank you! Your payment is being confirmed; the points will appear shortly.",
-    "review": "We got your payment. Our team will check it before the points are added.",
+    "credited": "Thank you! The bonus Christmas Magic has been added.",
+    "processing": "Thank you! Your payment is being confirmed; the Christmas Magic will appear shortly.",
+    "review": "We got your payment. Our team will check it before the Christmas Magic is added.",
     "notPaid": "The payment wasn't completed. You haven't been charged.",
     "unknown": "We couldn't find that payment.",
     "tryAgain": "Try again",
@@ -388,18 +388,18 @@
   },
   "PayUp": {
     "title": "Finish gifts",
-    "intro": "Pay the points a gift still needs ({rate} = 1 point) and it's set for Christmas: it ships like any other gift.",
-    "deadline": "You can finish gifts until {closes}. Gifts that still aren't fully funded on {close} drop off the list, and the points on them go to Spirit of Santa.",
+    "intro": "Pay the Christmas Magic a gift still needs ({rate} = 1 Christmas Magic) and it's set for Christmas: it ships like any other gift.",
+    "deadline": "You can finish gifts until {closes}. Gifts that still aren't fully funded on {close} drop off the list, and the Christmas Magic on them goes to Spirit of Santa.",
     "closed": "Finishing gifts is possible from {opens} until {closes}.",
     "none": "Every gift on your children's lists is fully funded. Nothing to do!",
-    "missing": "Needs {points} more points: {amount}",
+    "missing": "Needs {points} more Christmas Magic: {amount}",
     "button": "Finish for {amount}",
     "buttonFor": "Finish {item} for {kid}",
     "total": "To pay: {amount}",
     "back": "Parent area",
-    "credited": "Thank you! Your payment was added as points and went to the gift you chose (or, if it was already finished, to your child's next gift).",
+    "credited": "Thank you! Your payment was added as Christmas Magic and went to the gift you chose (or, if it was already finished, to your child's next gift).",
     "processing": "Thank you! Your payment is being confirmed; the gift will be funded shortly.",
-    "review": "We got your payment. Our team will check it before the points are added.",
+    "review": "We got your payment. Our team will check it before the Christmas Magic is added.",
     "notPaid": "The payment wasn't completed. You haven't been charged.",
     "unknown": "We couldn't find that payment.",
     "tryAgain": "Try again",
@@ -447,8 +447,8 @@
   "Community": {
     "navLink": "Donate",
     "title": "Give to Spirit of Santa kids",
-    "intro": "Your gift becomes magic points for children who earn Christmas gifts with good deeds. Give to every child, or to children in one ZIP code.",
-    "how": "Gifts are pooled and shared equally among registered children on {day}. {fee} of each gift supports running Spirit of Santa; the rest becomes points ({rate} = 1 point).",
+    "intro": "Your gift becomes Christmas Magic for children who earn Christmas gifts with good deeds. Give to every child, or to children in one ZIP code.",
+    "how": "Gifts are pooled and shared equally among registered children on {day}. {fee} of each gift supports running Spirit of Santa; the rest becomes Christmas Magic ({rate} = 1 Christmas Magic).",
     "charity": "Spirit of Santa is a program of {orgName} (EIN {ein}), a 501(c)(3) nonprofit. You'll get a tax receipt by email.",
     "raised": "Given this season so far: {amount}",
     "who": "Who should your gift help?",
@@ -543,15 +543,15 @@
     "sections": {
       "about": {
         "title": "About Spirit of Santa",
-        "body": "Spirit of Santa is a program where children earn points (\"Christmas magic\") for good deeds and use them toward Christmas gifts from local stores. By using spiritofsanta.com you agree to these terms."
+        "body": "Spirit of Santa is a program where children earn Christmas Magic for good deeds and use it toward Christmas gifts from local stores. By using spiritofsanta.com you agree to these terms."
       },
       "accounts": {
         "title": "Accounts",
         "body": "Only adults can create an account. A parent or guardian sets up and controls each child's profile; children never have their own accounts. Keep your password and parent PIN private."
       },
       "points": {
-        "title": "Points",
-        "body": "Points are calculated by Spirit of Santa from money actually received (currently {rate} = 1 point). Points have no cash value, can't be exchanged for money and reset to zero every January 1."
+        "title": "Christmas Magic",
+        "body": "Christmas Magic is calculated by Spirit of Santa from money actually received (currently {rate} = 1 Christmas Magic). Christmas Magic has no cash value, can't be exchanged for money and resets to zero every January 1."
       },
       "payments": {
         "title": "Payments",
@@ -591,7 +591,7 @@
     "kinds": {
       "magic": {
         "label": "Magic received",
-        "help": "A daily summary when your children receive points (tips and community donations)."
+        "help": "A daily summary when your children receive Christmas Magic (tips and community donations)."
       },
       "deeds": {
         "label": "Good deeds thanked",

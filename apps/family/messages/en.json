@@ -600,10 +600,6 @@
       "reminders": {
         "label": "Season reminders",
         "help": "A reminder before wish lists freeze (December 1) and before the deadline to finish gifts."
-      },
-      "digest": {
-        "label": "Daily summary (magic + good deeds)",
-        "help": ""
       }
     },
     "save": "Save",
@@ -618,6 +614,9 @@
     "unsubscribed": "Done: you won't get \"{kind}\" emails any more.",
     "badLink": "This unsubscribe link isn't valid. You can change your email settings in the parent area.",
     "manageHint": "You can turn emails on or off any time in the parent area:",
-    "manageLink": "Email settings"
+    "manageLink": "Email settings",
+    "scopes": {
+      "digest": "Daily summary (magic + good deeds)"
+    }
   }
 }

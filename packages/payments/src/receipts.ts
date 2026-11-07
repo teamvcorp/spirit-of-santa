@@ -21,6 +21,7 @@ import { connectDb, DonationReceipt, Payment, trusted } from "@repo/db";
 import { sendEmail } from "@repo/email";
 import { formatCents } from "@repo/lib/format";
 import { getStripe } from "./client.ts";
+import { formatLongDate } from "@repo/lib/format";
 import { getPlatformSettings } from "./settings.ts";
 
 const MAX_ATTEMPTS = 5;
@@ -100,7 +101,7 @@ export async function sendPendingReceipts(opts: { onlyPiId?: string; limit?: num
     }
     try {
       const issuer = { legalName: settings.charity.legalName, ein: settings.charity.ein, address: settings.charity.address };
-      const date = new Intl.DateTimeFormat(r.locale === "es" ? "es-US" : "en-US", { dateStyle: "long", timeZone: "America/Chicago" }).format(r.donatedAt);
+      const date = formatLongDate(r.donatedAt, r.locale, "long");
       await sendEmail({
         to: r.email,
         locale: r.locale,

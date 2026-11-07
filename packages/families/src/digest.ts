@@ -4,11 +4,14 @@
  *
  *  - Daily SUMMARY ("magic" + "deeds"): one email per family per day at most, listing per child the
  *    points received from OTHERS (tips + community donation shares; a parent's own bonus/pay-up is
- *    not news to them) and the good deeds thanked. Only news newer than notify.lastDigestAt, so
- *    nothing is reported twice; a failed send is simply retried the next day (7-day look-back).
+ *    not news to them) and the good deeds thanked.
+ *    Never twice, never lost (review 2026-11-06): each run reports news in (lastDigestAt, boundary],
+ *    where boundary = now − SETTLE_MS (a ledger/deed write still inside its transaction at read time
+ *    is older than that by the next run, so it can't slip behind the marker), read in time order;
+ *    if a read hits its cap, the boundary moves back to the last row read and the rest waits a day.
  *  - Season REMINDERS ("reminders"): 3 days before the freeze date (lists freeze) and 3 days before
- *    the pay-up deadline (only families with an unfinished gift). Once per season each
- *    (notify.cutoffSentYear / payUpSentYear).
+ *    the last pay-up day (only families with an unfinished gift of a registered child: exactly what
+ *    /parent/payup shows). Once per season each (notify.cutoffSentYear / payUpSentYear).
  * Everything goes through sendEmailBatch (100 per request) with unsubscribe links + headers.
  * Respects each family's settings; skips parents whose account isn't active.
  */
@@ -16,9 +19,9 @@ import "server-only";
 import { Deed, Family, Kid, Transaction, trusted, User, WishListItem } from "@repo/db";
 import { digestLines, sendEmailBatch, type EmailTemplateName, type SendEmailInput } from "@repo/email";
 import { localizePath } from "@repo/i18n/paths";
-import { formatPoints } from "@repo/lib/format";
+import { formatLongDate } from "@repo/lib/format";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@repo/lib/locales";
-import { SEASON_TIME_ZONE, isoDay, calendarDateIn, startOfDayInZone } from "@repo/lib/season";
+import { calendarDateIn, isoDay, startOfDayInZone } from "@repo/lib/season";
 import { DAY_MS } from "@repo/lib/time";
 import { getSeasonState } from "@repo/stores/season";
 import { familyAppOrigin } from "@repo/stores/urls";
@@ -26,12 +29,17 @@ import { payUpWindow } from "@repo/wishlists/payup";
 import { optOutLinksFor, prefsOf } from "./notifications.ts";
 
 const LOOK_BACK_DAYS = 7;
+/** News newer than this isn't reported yet (its write may still be committing). */
+const SETTLE_MS = 10 * 60_000;
+const READ_CAP = 50_000;
 /** Reminders go out this many days before the date they're about. */
 export const REMINDER_DAYS_BEFORE = 3;
 /** Points from OTHER people (a parent's own bonus or pay-up is not news to that parent). */
 const NEWS_TYPES = ["earn_tip", "earn_donation"] as const;
+const FAMILY_PAGE = 5000;
 
-type FamilyRow = { _id: unknown; ownerUserId: unknown; notify?: { magic?: boolean; deeds?: boolean; reminders?: boolean; lastDigestAt?: Date; cutoffSentYear?: number; payUpSentYear?: number } };
+type Notify = { magic?: boolean; deeds?: boolean; reminders?: boolean; lastDigestAt?: Date; cutoffSentYear?: number; payUpSentYear?: number };
+type FamilyRow = { _id: unknown; ownerUserId: unknown; notify?: Notify };
 type Parent = { email: string; locale: Locale };
 
 /** Active parent accounts by family (one query). */
@@ -49,52 +57,72 @@ async function parentsOf(families: FamilyRow[]): Promise<Map<string, Parent>> {
 }
 
 const familyLink = (locale: Locale, path: string) => `${familyAppOrigin()}${localizePath(path, locale)}`;
-const longDate = (d: Date, locale: Locale) => new Intl.DateTimeFormat(locale === "es" ? "es-US" : "en-US", { month: "long", day: "numeric", timeZone: SEASON_TIME_ZONE }).format(d);
+
+/** Push into a Map of arrays. */
+function group<T>(map: Map<string, T[]>, key: string, value: T) {
+  const list = map.get(key);
+  if (list) list.push(value);
+  else map.set(key, [value]);
+}
 
 export type DigestResult = { families: number; sent: number; failed: number };
 
 export async function sendFamilyDigests(now = new Date()): Promise<DigestResult> {
   const since = new Date(now.getTime() - LOOK_BACK_DAYS * DAY_MS);
+  let boundary = new Date(now.getTime() - SETTLE_MS);
   const [money, deeds] = await Promise.all([
-    Transaction.find({ type: trusted({ $in: [...NEWS_TYPES] }), createdAt: trusted({ $gte: since, $lte: now }) })
+    Transaction.find({ type: trusted({ $in: [...NEWS_TYPES] }), createdAt: trusted({ $gte: since, $lte: boundary }) })
       .select("familyId kidId amountCentipoints createdAt")
-      .limit(50_000)
+      .sort({ createdAt: 1, _id: 1 })
+      .limit(READ_CAP)
       .lean<{ familyId: unknown; kidId: unknown; amountCentipoints: number; createdAt: Date }[]>(),
-    Deed.find({ status: "confirmed", confirmedAt: trusted({ $gte: since, $lte: now }) })
+    Deed.find({ status: "confirmed", confirmedAt: trusted({ $gte: since, $lte: boundary }) })
       .select("familyId kidId confirmedAt")
-      .limit(50_000)
+      .sort({ confirmedAt: 1, _id: 1 })
+      .limit(READ_CAP)
       .lean<{ familyId: unknown; kidId: unknown; confirmedAt: Date }[]>(),
   ]);
-  const fids = [...new Set([...money, ...deeds].map((r) => String(r.familyId)))];
+  // Hit a cap → only report up to the last row read (oldest first); the rest is tomorrow's news.
+  if (money.length === READ_CAP) boundary = new Date(Math.min(boundary.getTime(), new Date(money[money.length - 1]!.createdAt).getTime()));
+  if (deeds.length === READ_CAP) boundary = new Date(Math.min(boundary.getTime(), new Date(deeds[deeds.length - 1]!.confirmedAt).getTime()));
+  const end = boundary.getTime();
+
+  // Group ONCE by family (then by kid below).
+  const moneyBy = new Map<string, typeof money>();
+  for (const r of money) if (new Date(r.createdAt).getTime() <= end) group(moneyBy, String(r.familyId), r);
+  const deedsBy = new Map<string, typeof deeds>();
+  for (const r of deeds) if (new Date(r.confirmedAt).getTime() <= end) group(deedsBy, String(r.familyId), r);
+  const fids = [...new Set([...moneyBy.keys(), ...deedsBy.keys()])];
   if (fids.length === 0) return { families: 0, sent: 0, failed: 0 };
+
   const families = await Family.find({ _id: trusted({ $in: fids }) }).select("ownerUserId notify").lean<FamilyRow[]>();
   const [parents, kids] = await Promise.all([
     parentsOf(families),
     Kid.find({ familyId: trusted({ $in: fids }), archivedAt: null }).select("firstName familyId").sort({ createdAt: 1 }).lean<{ _id: unknown; firstName: string; familyId: unknown }[]>(),
   ]);
+  const kidsBy = new Map<string, typeof kids>();
+  for (const k of kids) group(kidsBy, String(k.familyId), k);
 
   const inputs: SendEmailInput<EmailTemplateName>[] = [];
-  const upTo: { fid: string; at: Date }[] = []; // same order as inputs
+  const emailed: string[] = []; // family ids, same order as inputs
   for (const f of families) {
     const fid = String(f._id);
     const parent = parents.get(fid);
     const prefs = prefsOf(f.notify);
     if (!parent || (!prefs.magic && !prefs.deeds)) continue;
     const after = f.notify?.lastDigestAt ? new Date(f.notify.lastDigestAt).getTime() : since.getTime();
-    const m = prefs.magic ? money.filter((r) => String(r.familyId) === fid && new Date(r.createdAt).getTime() > after) : [];
-    const d = prefs.deeds ? deeds.filter((r) => String(r.familyId) === fid && new Date(r.confirmedAt).getTime() > after) : [];
-    const rows = kids
-      .filter((k) => String(k.familyId) === fid)
+    const pts = new Map<string, number>();
+    if (prefs.magic) for (const r of moneyBy.get(fid) ?? []) if (new Date(r.createdAt).getTime() > after) pts.set(String(r.kidId), (pts.get(String(r.kidId)) ?? 0) + r.amountCentipoints);
+    const nDeeds = new Map<string, number>();
+    if (prefs.deeds) for (const r of deedsBy.get(fid) ?? []) if (new Date(r.confirmedAt).getTime() > after) nDeeds.set(String(r.kidId), (nDeeds.get(String(r.kidId)) ?? 0) + 1);
+    const rows = (kidsBy.get(fid) ?? [])
       .map((k) => {
-        const cp = m.filter((r) => String(r.kidId) === String(k._id)).reduce((s, r) => s + r.amountCentipoints, 0);
-        const n = d.filter((r) => String(r.kidId) === String(k._id)).length;
-        return { kid: k.firstName, points: cp > 0 ? formatPoints(cp, parent.locale === "es" ? "es-US" : "en-US") : undefined, deeds: n || undefined };
+        const cp = pts.get(String(k._id)) ?? 0;
+        const n = nDeeds.get(String(k._id)) ?? 0;
+        return { kid: k.firstName, centipoints: cp || undefined, deeds: n || undefined };
       })
-      .filter((r) => r.points || r.deeds);
+      .filter((r) => r.centipoints || r.deeds);
     if (rows.length === 0) continue;
-    // "Reported up to" = the newest item included (not "now"): something written while this run
-    // was reading is reported tomorrow instead of never.
-    const newest = Math.max(...m.map((r) => new Date(r.createdAt).getTime()), ...d.map((r) => new Date(r.confirmedAt).getTime()));
     inputs.push({
       to: parent.email,
       locale: parent.locale,
@@ -102,13 +130,13 @@ export async function sendFamilyDigests(now = new Date()): Promise<DigestResult>
       values: { link: familyLink(parent.locale, "/"), lines: digestLines(parent.locale, rows) },
       optOutLinks: optOutLinksFor(fid, "digest", parent.locale),
     });
-    upTo.push({ fid, at: new Date(newest) });
+    emailed.push(fid);
   }
   if (inputs.length === 0) return { families: 0, sent: 0, failed: 0 };
   const { sent, failed } = await sendEmailBatch(inputs, `digest/${isoDay(calendarDateIn(now))}`);
-  for (const i of sent) {
-    const u = upTo[i]!;
-    await Family.updateOne({ _id: u.fid }, { $set: { "notify.lastDigestAt": u.at } });
+  // One bulk write: everything up to the boundary has now been reported to these families.
+  if (sent.length > 0) {
+    await Family.bulkWrite(sent.map((i) => ({ updateOne: { filter: { _id: emailed[i] }, update: { $set: { "notify.lastDigestAt": boundary } } } })) as never);
   }
   return { families: inputs.length, sent: sent.length, failed: failed.length };
 }
@@ -123,20 +151,27 @@ export async function sendSeasonReminders(now = new Date()): Promise<ReminderRes
   const freezeAt = startOfDayInZone(season.dates.freeze);
   const result: ReminderResult = { cutoff: "notTime", payUp: "notTime" };
 
-  // Lists freeze soon: every family with a registered child.
+  // Lists freeze soon: every family with a registered child (registration is per child, not per season).
   if (season.phase === "open" && dueBefore(freezeAt, now)) {
     const fids = ((await Kid.distinct("familyId", { archivedAt: null, "registration.status": "registered" })) as unknown[]).map(String);
     result.cutoff = await remind(fids, "cutoffSentYear", season.year, "cutoffReminder", "/", freezeAt, now);
   }
-  // Last days to finish gifts: families with an unfinished gift this season.
+  // Last days to finish gifts: families with an unfinished gift of a REGISTERED, non-archived child
+  // (the same gifts /parent/payup offers), counted against the last day pay-ups are possible.
   const win = await payUpWindow(now);
   if (win.open && dueBefore(win.closesAt, now)) {
-    const fids = ((await WishListItem.distinct("familyId", { seasonYear: win.seasonYear, status: "active" })) as unknown[]).map(String);
-    result.payUp = await remind(fids, "payUpSentYear", win.seasonYear, "payUpReminder", "/parent/payup", win.closesAt, now);
+    const rows = await WishListItem.aggregate<{ _id: unknown }>([
+      { $match: { seasonYear: win.seasonYear, status: "active" } },
+      { $lookup: { from: "kids", localField: "kidId", foreignField: "_id", as: "kid", pipeline: [{ $match: { archivedAt: null, "registration.status": "registered" } }, { $project: { _id: 1 } }] } },
+      { $match: { "kid.0": { $exists: true } } },
+      { $group: { _id: "$familyId" } },
+    ]);
+    result.payUp = await remind(rows.map((r) => String(r._id)), "payUpSentYear", win.seasonYear, "payUpReminder", "/parent/payup", win.lastPayDay, now);
   }
   return result;
 }
 
+/** Email every family in `fids` not yet reminded this season, in pages (no cap leaves anyone out). */
 async function remind(
   fids: string[],
   field: "cutoffSentYear" | "payUpSentYear",
@@ -146,20 +181,24 @@ async function remind(
   date: Date,
   now: Date,
 ): Promise<{ sent: number; failed: number }> {
-  if (fids.length === 0) return { sent: 0, failed: 0 };
-  const families = await Family.find({ _id: trusted({ $in: fids }), [`notify.${field}`]: trusted({ $ne: year }) })
-    .select("ownerUserId notify")
-    .limit(20_000)
-    .lean<FamilyRow[]>();
-  const parents = await parentsOf(families);
-  const targets = families.filter((f) => prefsOf(f.notify).reminders && parents.has(String(f._id)));
-  const inputs = targets.map((f): SendEmailInput<EmailTemplateName> => {
-    const p = parents.get(String(f._id))!;
-    return { to: p.email, locale: p.locale, template, values: { link: familyLink(p.locale, path), date: longDate(date, p.locale) }, optOutLinks: optOutLinksFor(String(f._id), "reminders", p.locale) };
-  });
-  if (inputs.length === 0) return { sent: 0, failed: 0 };
-  const { sent, failed } = await sendEmailBatch(inputs, `${template}/${year}/${isoDay(calendarDateIn(now))}`);
-  const done = sent.map((i) => String(targets[i]!._id));
-  if (done.length) await Family.updateMany({ _id: trusted({ $in: done }) }, { $set: { [`notify.${field}`]: year } });
-  return { sent: sent.length, failed: failed.length };
+  let sent = 0;
+  let failed = 0;
+  for (let start = 0; start < fids.length; start += FAMILY_PAGE) {
+    const families = await Family.find({ _id: trusted({ $in: fids.slice(start, start + FAMILY_PAGE) }), [`notify.${field}`]: trusted({ $ne: year }) })
+      .select("ownerUserId notify")
+      .lean<FamilyRow[]>();
+    const parents = await parentsOf(families);
+    const targets = families.filter((f) => prefsOf(f.notify).reminders && parents.has(String(f._id)));
+    if (targets.length === 0) continue;
+    const inputs = targets.map((f): SendEmailInput<EmailTemplateName> => {
+      const p = parents.get(String(f._id))!;
+      return { to: p.email, locale: p.locale, template, values: { link: familyLink(p.locale, path), date: formatLongDate(date, p.locale) }, optOutLinks: optOutLinksFor(String(f._id), "reminders", p.locale) };
+    });
+    const r = await sendEmailBatch(inputs, `${template}/${year}/${isoDay(calendarDateIn(now))}/${start}`);
+    const done = r.sent.map((i) => String(targets[i]!._id));
+    if (done.length) await Family.updateMany({ _id: trusted({ $in: done }) }, { $set: { [`notify.${field}`]: year } });
+    sent += r.sent.length;
+    failed += r.failed.length;
+  }
+  return { sent, failed };
 }

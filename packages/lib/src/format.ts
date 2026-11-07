@@ -2,6 +2,8 @@
  * Display formatting. CLIENT-SAFE: no conversion rates live here, only presentation of
  * values the server already computed.
  */
+import { intlLocale } from "./locales.ts";
+import { SEASON_TIME_ZONE } from "./season.ts";
 
 /** 333 → "3.33", 100 → "1", 150 → "1.5". Trailing zeros dropped for kid-friendly display. */
 export function formatPoints(centipoints: number, locale = "en-US"): string {
@@ -37,4 +39,12 @@ export function parseDollarsToCents(input: string): number | null {
 /** 2999 → "29.99" for pre-filling a price input (no currency symbol, always 2 decimals). */
 export function centsToInput(cents: number): string {
   return `${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, "0")}`;
+}
+/**
+ * "December 17" / "17 de diciembre" in the season's time zone (America/Chicago): the ONE way dates
+ * are written in emails and season messages. `style: "long"` adds the year (receipts).
+ */
+export function formatLongDate(d: Date, locale: unknown, style: "dayMonth" | "long" = "dayMonth"): string {
+  const opts: Intl.DateTimeFormatOptions = style === "long" ? { dateStyle: "long" } : { month: "long", day: "numeric" };
+  return new Intl.DateTimeFormat(intlLocale(locale), { ...opts, timeZone: SEASON_TIME_ZONE }).format(d);
 }

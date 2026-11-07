@@ -11,7 +11,8 @@
  */
 // use-intl/core = next-intl's framework-free translator (works in tests, scripts, emails).
 import { createTranslator } from "use-intl/core";
-import { DEFAULT_LOCALE, isLocale, type Locale } from "@repo/lib/locales";
+import { DEFAULT_LOCALE, intlLocale, isLocale, type Locale } from "@repo/lib/locales";
+import { formatPoints } from "@repo/lib/format";
 import en from "../messages/en.json" with { type: "json" };
 import es from "../messages/es.json" with { type: "json" };
 
@@ -158,14 +159,15 @@ ${showIgnore ? `<p style="margin:0;color:#555;font-size:13px">${e(tt("ignore"))}
 
 /**
  * The per-child lines of a daily summary, in the parent's language, e.g.
- * "Maya: 12.5 points of magic · 2 good deeds thanked". `points` is pre-formatted (formatPoints).
+ * "Maya: 12.5 points of magic · 1 point of magic". Points are formatted HERE (number + correct plural).
  */
-export function digestLines(locale: unknown, rows: { kid: string; points?: string; deeds?: number }[]): string {
+export function digestLines(locale: unknown, rows: { kid: string; centipoints?: number; deeds?: number }[]): string {
   const safeLocale = isLocale(locale) ? locale : DEFAULT_LOCALE;
   const t = createTranslator({ locale: safeLocale, messages: MESSAGES[safeLocale], namespace: "Email" }) as unknown as (key: string, v?: Record<string, string | number>) => string;
   return rows
     .map((r) => {
-      const parts = [r.points ? t("familyDigest.magic", { points: r.points }) : "", r.deeds ? t("familyDigest.deeds", { count: r.deeds }) : ""].filter(Boolean);
+      const n = (r.centipoints ?? 0) / 100;
+      const parts = [n > 0 ? t("familyDigest.magic", { points: formatPoints(r.centipoints!, intlLocale(safeLocale)), n }) : "", r.deeds ? t("familyDigest.deeds", { count: r.deeds }) : ""].filter(Boolean);
       return `${r.kid}: ${parts.join(" · ")}`;
     })
     .join("\n");

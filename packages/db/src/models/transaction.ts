@@ -79,6 +79,7 @@ const transactionSchema = new Schema(
 );
 
 transactionSchema.index({ kidId: 1, seasonYear: 1, createdAt: -1 });
+transactionSchema.index({ type: 1, createdAt: 1 }); // parents' daily summary (Phase 7)
 transactionSchema.index(
   { idempotencyKey: 1 },
   {

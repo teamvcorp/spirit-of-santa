@@ -19,8 +19,12 @@ import { startOfDayInZone } from "@repo/lib/season";
 import { DAY_MS } from "@repo/lib/time";
 import { getSeasonState } from "@repo/stores/season";
 
-/** closesAt = end of pay-ups; closeAt = the season close (gifts drop off then). Both admin-set-date aware. */
-export type PayUpWindow = { open: boolean; seasonYear: number; opensAt: Date; closesAt: Date; closeAt: Date };
+/**
+ * closesAt = the moment pay-ups stop (START of that day); lastPayDay = the last day a parent can pay
+ * (the day before: show THIS to people, "until December 17"); closeAt = the season close (gifts drop
+ * off then). All admin-set-date aware.
+ */
+export type PayUpWindow = { open: boolean; seasonYear: number; opensAt: Date; closesAt: Date; lastPayDay: Date; closeAt: Date };
 
 /**
  * Open from the freeze DATE (never the admin's reversible force-freeze switch) until
@@ -32,7 +36,7 @@ export async function payUpWindow(now = new Date()): Promise<PayUpWindow> {
   const closeAt = startOfDayInZone(s.dates.close);
   const closesAt = new Date(closeAt.getTime() - PAY_UP_CLOSES_DAYS_BEFORE_CLOSE * DAY_MS);
   const t = now.getTime();
-  return { open: s.phase === "frozen" && t >= opensAt.getTime() && t < closesAt.getTime(), seasonYear: s.year, opensAt, closesAt, closeAt };
+  return { open: s.phase === "frozen" && t >= opensAt.getTime() && t < closesAt.getTime(), seasonYear: s.year, opensAt, closesAt, lastPayDay: new Date(closesAt.getTime() - 1), closeAt };
 }
 
 export type PayUpOption = {

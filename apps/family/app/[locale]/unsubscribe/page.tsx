@@ -26,7 +26,8 @@ async function Content({ searchParams }: { searchParams: PageProps<"/[locale]/un
   const parsed = readUnsubscribeToken(token);
   const t = await getTranslations("Notify");
   if (!parsed) return <Alert tone="error">{t("badLink")}</Alert>;
-  const kindLabel = t(`kinds.${parsed.kind}.label`);
+  // "digest" is an unsubscribe scope (magic + deeds), not a setting: its label lives under scopes.
+  const kindLabel = parsed.kind === "digest" ? t("scopes.digest") : t(`kinds.${parsed.kind}.label`);
   return (
     <>
       <p className="mb-4">{t("unsubscribeIntro", { kind: kindLabel })}</p>

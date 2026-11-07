@@ -105,6 +105,7 @@ const deedSchema = new Schema(
 );
 
 deedSchema.index({ kidId: 1, createdAt: -1 }); // a kid's recent deeds + the daily cap
+deedSchema.index({ status: 1, confirmedAt: 1 }); // parents' daily summary (Phase 7)
 deedSchema.index({ customReview: 1, createdAt: 1 }); // admin moderation queue
 
 export type DeedDoc = InferSchemaType<typeof deedSchema>;

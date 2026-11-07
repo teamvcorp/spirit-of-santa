@@ -611,6 +611,13 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   payUpReminder 3 days before the pay-up deadline (families with an unfinished gift); once per season
   (notify.cutoffSentYear / payUpSentYear). All via `sendEmailBatch`; cron alerts on failed sends; cron logs the full
   stack of a failed job in DEVELOPMENT only (production: error type). E2E `family-digest.ts` (13).
+  Review fixes: digest reports news up to now − 10 min (SETTLE_MS: a write still committing can't slip behind the
+  marker), reads in time order, a capped read moves the boundary back (rest tomorrow), lastDigestAt = that boundary
+  (one bulkWrite); grouped once by family/kid; pay-up reminder targets only gifts of REGISTERED, non-archived kids
+  (= /parent/payup) and shows `lastPayDay` (closesAt − 1 ms: "until Dec 17", also on the pay-up page); reminders
+  page through all families (no cap); indexes Transaction{type,createdAt}, Deed{status,confirmedAt} (db:sync-indexes);
+  `intlLocale` + `formatLongDate` (one mapping/formatter, replaced 4 copies); digest scope label under Notify.scopes;
+  point plurals ("1 point") via the number in ICU. E2E family-digest (16). **PHASE 7 COMPLETE.**
   Unexplained once: the digest step failed inside the dev server on its first run after this change (not reproduced
   in 4 runs since): watch the dev log line "[cron] job failed".
 

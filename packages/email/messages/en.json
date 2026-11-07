@@ -87,7 +87,7 @@
       "heading": "Good news from today",
       "body": "Here's what happened for your children:\n\n{lines}\n\nPoints go to the oldest gift on each wish list first.",
       "button": "Open the family area",
-      "magic": "{points} points of magic",
+      "magic": "{points} {n, plural, one {point} other {points}} of magic",
       "deeds": "{count, plural, one {# good deed thanked} other {# good deeds thanked}}"
     },
     "cutoffReminder": {

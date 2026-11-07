@@ -14,10 +14,11 @@ import { Button } from "@repo/ui/button";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { AmountPicker } from "../../../../components/amount-picker";
 import { PayLaterFields } from "../../../../components/pay-later-form";
+import { formatLongDate } from "@repo/lib/format";
 import { payLaterAction, type PayLaterState } from "./actions";
 
 const fmtDay = (iso: string, locale: string) =>
-  new Intl.DateTimeFormat(locale === "es" ? "es-US" : "en-US", { month: "long", day: "numeric", timeZone: "America/Chicago" }).format(new Date(iso));
+  formatLongDate(new Date(iso), locale);
 
 /** `sent`: a text was already sent for this deed (only one per deed). */
 export function PayLaterSection({ token, sent }: { token: string; sent: { masked: string; expiresAt: string } | null }) {

@@ -11,6 +11,8 @@ import { randomBytes } from "node:crypto";
 import { connectDb, Deed, Family, Item, Kid, Season, Store, Transaction, trusted, User, WishListItem } from "@repo/db";
 import { sendFamilyDigests, sendSeasonReminders } from "@repo/families/digest";
 import { calendarDateIn, getSeasonYear, isoDay } from "@repo/lib/season";
+import { formatLongDate } from "@repo/lib/format";
+import { payUpWindow } from "@repo/wishlists/payup";
 import { makeChecks } from "./lib.ts";
 
 const { check, report } = makeChecks();
@@ -37,6 +39,7 @@ const A = await mkFamily("a", { lastDigestAt: new Date(now - 2 * H) });
 const B = await mkFamily("b", { magic: false }); // deeds only
 const C = await mkFamily("c", { magic: false, deeds: false, reminders: false }); // nothing
 const D = await mkFamily("d", {}, "suspended"); // account not active
+const E = await mkFamily("e", {}); // only an UNREGISTERED child with an unfinished gift
 const reg = { status: "registered", registeredAt: new Date(), method: "card" };
 const mkKid = (fam: { _id: unknown }, name: string) => Kid.create({ familyId: fam._id, firstName: `${name}${tag}`, birthYear: 2016, displayName: "X.", registration: reg });
 const maya = await mkKid(A.family, "Maya");
@@ -44,7 +47,8 @@ const leo = await mkKid(A.family, "Leo");
 const bo = await mkKid(B.family, "Bo");
 const cy = await mkKid(C.family, "Cy");
 const di = await mkKid(D.family, "Di");
-const kidIds = [maya._id, leo._id, bo._id, cy._id, di._id];
+const ed = await Kid.create({ familyId: E.family._id, firstName: `Ed${tag}`, birthYear: 2016, displayName: "E." }); // awaiting registration
+const kidIds = [maya._id, leo._id, bo._id, cy._id, di._id, ed._id];
 const tx = (k: { _id: unknown; familyId: unknown }, type: string, cp: number, agoMs: number) =>
   Transaction.collection.insertOne({ kidId: k._id, familyId: k.familyId, seasonYear: year, type, amountCentipoints: cp, createdAt: new Date(now - agoMs) });
 await tx(maya, "earn_tip", 500, 1 * H);
@@ -54,6 +58,7 @@ await tx(maya, "earn_tip", 900, 3 * H); // before lastDigestAt: already reported
 await tx(bo, "earn_tip", 300, 1 * H); // B has magic OFF
 await tx(cy, "earn_tip", 300, 1 * H);
 await tx(di, "earn_tip", 300, 1 * H);
+await tx(leo, "earn_tip", 100, 2 * 60_000); // 2 minutes ago: may still be committing → reported next run
 const deed = (k: { _id: unknown; familyId: unknown }, agoMs: number) =>
   Deed.collection.insertOne({ kidId: k._id, familyId: k.familyId, seasonYear: year, qrTokenHash: randomBytes(32).toString("hex"), status: "confirmed", confirmedAt: new Date(now - agoMs), createdAt: new Date(now - DAY), updatedAt: new Date() });
 await deed(maya, 30 * 60_000);
@@ -82,6 +87,7 @@ const itemId = oid();
 
 try {
   // 1. Daily summary.
+  const runAt = Date.now();
   const d1 = await capture(() => sendFamilyDigests());
   const a = d1.mails.get(mail("a")) ?? "";
   check("A: summary lists each child's news from OTHER people (tip + donation share)", a.includes(`Maya${tag}: 5 points of magic · 1 good deed thanked`) && a.includes(`Leo${tag}: 2.5 points of magic`));
@@ -90,10 +96,16 @@ try {
   const b = d1.mails.get(mail("b")) ?? "";
   check("B (magic off): only the deed, no points", b.includes(`Bo${tag}: 1 good deed thanked`) && !b.includes("points of magic"));
   check("C (both off) and D (account not active): no email", !d1.mails.has(mail("c")) && !d1.mails.has(mail("d")));
+  check("A: the tip from 2 minutes ago is NOT in today's summary (still settling)", !a.includes("3.5 points") && a.includes(`Leo${tag}: 2.5 points of magic`));
   const fa = await Family.collection.findOne({ _id: A.family._id });
-  check("A: 'reported up to' = the newest item included (not the run time)", (fa?.notify as { lastDigestAt?: Date })?.lastDigestAt?.getTime() === now - 30 * 60_000);
+  const upTo = (fa?.notify as { lastDigestAt?: Date })?.lastDigestAt?.getTime() ?? 0;
+  check("A: 'reported up to' = the run time minus 10 minutes (settled news only)", upTo <= runAt - 10 * 60_000 + 1000 && upTo >= runAt - 10 * 60_000 - 5000);
   const d2 = await capture(() => sendFamilyDigests());
   check("second run: nothing reported twice", !d2.mails.has(mail("a")) && !d2.mails.has(mail("b")));
+  // "Tomorrow" (here: 15 minutes later): the settled tip is reported, and only it.
+  const d3 = await capture(() => sendFamilyDigests(new Date(Date.now() + 15 * 60_000)));
+  const a3 = d3.mails.get(mail("a")) ?? "";
+  check("next run: the late tip IS reported (never lost), nothing else repeated", a3.includes(`Leo${tag}: 1 point of magic`) && !a3.includes(`Maya${tag}`));
 
   // 2. Cutoff reminder: due 3 days before the freeze date, once per season.
   await Season.collection.updateOne({ year }, { $set: { year, freezeDate: dayIso(5), forceFrozen: false }, $unset: { closeDate: 1 } }, { upsert: true });
@@ -111,17 +123,20 @@ try {
   await Store.collection.insertOne({ _id: storeId, name: `Dig Shop ${tag}`, slug: `e2e-dig-${tag}`, status: "approved", createdAt: new Date(), updatedAt: new Date() });
   await Item.collection.insertOne({ _id: itemId, storeId, seasonYear: year, name: `Ball ${tag}`, priceCents: 1000, inventory: 2, status: "active", createdAt: new Date(), updatedAt: new Date() });
   await WishListItem.collection.insertOne({ kidId: maya._id, familyId: A.family._id, itemId, storeId, seasonYear: year, costCentipoints: 1000, fundedCentipoints: 400, status: "active", createdAt: new Date(), updatedAt: new Date() });
+  await WishListItem.collection.insertOne({ kidId: ed._id, familyId: E.family._id, itemId, storeId, seasonYear: year, costCentipoints: 1000, fundedCentipoints: 0, status: "active", createdAt: new Date(), updatedAt: new Date() });
   // freeze yesterday, close in 9 days → pay-ups close in 2 days (close − 7).
   await Season.collection.updateOne({ year }, { $set: { freezeDate: dayIso(-1), closeDate: dayIso(9) } });
   const p1 = await capture(() => sendSeasonReminders());
   const pa = p1.mails.get(mail("a")) ?? "";
-  check("pay-up reminder: A (unfinished gift) gets 'Finish gifts before …'; B (no unfinished gift) doesn't", pa.includes("Finish gifts before") && pa.includes("/parent/payup") && !p1.mails.has(mail("b")));
+  check("pay-up reminder: A (unfinished gift) gets it; B (none) and E (gift of an UNREGISTERED child) don't", pa.includes("Finish gifts before") && pa.includes("/parent/payup") && !p1.mails.has(mail("b")) && !p1.mails.has(mail("e")));
+  const last = formatLongDate((await payUpWindow()).lastPayDay, "en");
+  check(`pay-up reminder names the LAST day pay-ups are possible (${last}), not the first closed day`, pa.includes(`until ${last}`));
   const p2 = await capture(() => sendSeasonReminders());
   check("pay-up reminder only once per season", !p2.mails.has(mail("a")));
 } finally {
   await Season.collection.deleteOne({ year });
   if (savedSeason) await Season.collection.insertOne(savedSeason);
-  const fams = [A, B, C, D].map((x) => x.family._id);
+  const fams = [A, B, C, D, E].map((x) => x.family._id);
   await Promise.all([
     Transaction.collection.deleteMany({ kidId: { $in: kidIds } }),
     Deed.collection.deleteMany({ kidId: { $in: kidIds } }),
@@ -130,7 +145,7 @@ try {
     Store.collection.deleteOne({ _id: storeId }),
     Kid.deleteMany({ _id: trusted({ $in: kidIds }) }),
     Family.deleteMany({ _id: trusted({ $in: fams }) }),
-    User.deleteMany({ _id: trusted({ $in: [A, B, C, D].map((x) => x.user._id) }) }),
+    User.deleteMany({ _id: trusted({ $in: [A, B, C, D, E].map((x) => x.user._id) }) }),
   ]);
   await mongoose.disconnect();
 }

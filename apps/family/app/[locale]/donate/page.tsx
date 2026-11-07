@@ -15,6 +15,7 @@ import { donationWindow, seasonDonationTotal } from "@repo/payments/community";
 import { getPlatformSettings } from "@repo/payments/settings";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
+import { intlLocale as toIntlLocale } from "@repo/lib/locales";
 import { CommunityDonateForm } from "./donate-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -29,7 +30,7 @@ async function Content() {
   await connection();
   const [settings, win, total, t, locale] = await Promise.all([getPlatformSettings(), donationWindow(), seasonDonationTotal(), getTranslations("Community"), getLocale()]);
   // The freeze moment is Central-Time midnight: show that calendar day in the page language.
-  const intlLocale = locale === "es" ? "es-US" : "en-US";
+  const intlLocale = toIntlLocale(locale);
   const shareDay = new Intl.DateTimeFormat(intlLocale, { month: "long", day: "numeric", timeZone: "America/Chicago" }).format(win.freezeAt);
   const open = win.open && settings.donationFeeBps !== null;
   return (

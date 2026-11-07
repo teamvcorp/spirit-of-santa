@@ -600,10 +600,6 @@
       "reminders": {
         "label": "Recordatorios de la temporada",
         "help": "Un recordatorio antes de que las listas se cierren (1 de diciembre) y antes de la fecha límite para completar regalos."
-      },
-      "digest": {
-        "label": "Resumen diario (magia + buenas acciones)",
-        "help": ""
       }
     },
     "save": "Guardar",
@@ -618,6 +614,9 @@
     "unsubscribed": "Listo: ya no recibirás correos de \"{kind}\".",
     "badLink": "Este enlace para cancelar la suscripción no es válido. Puedes cambiar tus correos en el área de padres.",
     "manageHint": "Puedes activar o desactivar los correos cuando quieras en el área de padres:",
-    "manageLink": "Correos que recibes"
+    "manageLink": "Correos que recibes",
+    "scopes": {
+      "digest": "Resumen diario (magia + buenas acciones)"
+    }
   }
 }

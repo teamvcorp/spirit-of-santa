@@ -14,3 +14,8 @@ export const LOCALE_LABELS: Record<Locale, string> = { en: "English", es: "EspaÃ
 export function isLocale(value: unknown): value is Locale {
   return typeof value === "string" && (LOCALES as readonly string[]).includes(value);
 }
+
+/** Our locale â†’ the Intl tag for numbers/dates (US formats in both languages). The ONE mapping. */
+export function intlLocale(locale: unknown): "en-US" | "es-US" {
+  return locale === "es" ? "es-US" : "en-US";
+}

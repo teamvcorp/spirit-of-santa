@@ -26,10 +26,10 @@ async function Content() {
   const parent = await requireUnlockedPage("/parent/payup");
   const [{ window, options }, t, format] = await Promise.all([payUpOptions(parent), getTranslations("PayUp"), getFormatter()]);
   const day = (d: Date) => format.dateTime(d, { month: "long", day: "numeric" });
-  if (!window.open) return <Alert>{t("closed", { opens: day(window.opensAt), closes: day(window.closesAt) })}</Alert>;
+  if (!window.open) return <Alert>{t("closed", { opens: day(window.opensAt), closes: day(window.lastPayDay) })}</Alert>;
   return (
     <>
-      <Alert className="mb-4">{t("deadline", { closes: day(window.closesAt), close: day(window.closeAt) })}</Alert>
+      <Alert className="mb-4">{t("deadline", { closes: day(window.lastPayDay), close: day(window.closeAt) })}</Alert>
       {options.length === 0 ? (
         <p className="text-foreground/70">{t("none")}</p>
       ) : (

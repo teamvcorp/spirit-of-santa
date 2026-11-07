@@ -87,7 +87,7 @@
       "heading": "Buenas noticias de hoy",
       "body": "Esto pasó hoy para tus hijos:\n\n{lines}\n\nLos puntos van primero al regalo más antiguo de cada lista de deseos.",
       "button": "Abrir el área familiar",
-      "magic": "{points} puntos de magia",
+      "magic": "{points} {n, plural, one {punto} other {puntos}} de magia",
       "deeds": "{count, plural, one {# buena acción agradecida} other {# buenas acciones agradecidas}}"
     },
     "cutoffReminder": {

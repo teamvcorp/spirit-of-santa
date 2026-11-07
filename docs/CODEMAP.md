@@ -840,6 +840,12 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   SMS is English-only (carrier-registered wording): owner question. Accessibility: browser-page-audit runs EVERY axe
   WCAG 2.0/2.1 A+AA rule on all 46 pages (light) + a broken-page negative control; 0 violations. Keyboard order and
   screen-reader wording still need a human pass (checklist).
+- **Phase 8 slices 5-7: moderation E2E, load test, owner checklist (2026-11-07). PHASE 8 COMPLETE (code side).**
+  scripts/e2e/browser-admin-moderation.ts (12). scripts/load/load-test.ts: public read-only pages, N concurrent users,
+  p50/p95/p99 per page, PASS = <1% errors and p95 < 1.5 s; REFUSES spiritofsanta.com; Vercel preview bypass header from
+  VERCEL_AUTOMATION_BYPASS_SECRET (never printed). docs/checklists/launch-checklist.md: owner settings, preview load
+  test steps (Preview-only vars, no Resend/Twilio keys on Preview: NODE_ENV=production there would really send),
+  phones/browsers, manual a11y, beta, and the Phase 9 season calendar (what is automatic vs the owner's job).
   Copies SHARE the photo blob: items.ts `deleteUnusedPhoto` deletes a blob only if no item uses it (index on
   photo.pathname). Stock: forms send hidden `inventoryWas`; `setInventory`/`updateItem` compare-and-set on it
   ("stockChanged" → reload); the item form only touches stock when changed. PROD: run `npm run db:sync-indexes` after

@@ -1,11 +1,11 @@
 {
   "Metadata": {
     "title": "Spirit of Santa para tiendas",
-    "description": "Publique artículos de regalo para los niños de su comunidad y reciba el pago cuando los ganen."
+    "description": "Publica artículos de regalo para los niños de tu comunidad y recibe el pago cuando los ganen."
   },
   "HomePage": {
     "title": "Spirit of Santa para tiendas",
-    "intro": "Publique hasta 50 artículos de regalo. Los niños los ganan con buenas acciones y usted recibe el pago.",
+    "intro": "Publica hasta 50 artículos de regalo. Los niños los ganan con buenas acciones y tú recibes el pago.",
     "dashboard": "Ir a tu panel",
     "register": "Inscribe tu tienda",
     "signIn": "Iniciar sesión"
@@ -244,11 +244,11 @@
     "title": "Pedidos de regalos",
     "intro": "Regalos que los niños completaron en tu tienda. Nunca compartimos nada sobre los niños: usa el código de referencia para identificar cada paquete.",
     "readyTitle": "Listos para enviar ({count})",
-    "readyIntro": "Envía cada uno a Spirit of Santa {late, select, yes {lo antes posible} other {a más tardar el {shipBy}, para que llegue en Navidad}}. Escribe su código de referencia en el paquete y márcalo como enviado.",
+    "readyIntro": "Envía cada uno a Spirit of Santa {late, select, yes {lo antes posible} other {a más tardar el {shipBy}, para que llegue a tiempo para Navidad}}. Escribe su código de referencia en el paquete y márcalo como enviado.",
     "shipTo": "Enviar a:",
     "noAddress": "Spirit of Santa todavía no tiene dirección de envío. Espera antes de enviar; te avisaremos por correo.",
     "setAsideTitle": "Guardados para diciembre ({count})",
-    "setAsideIntro": "{open, select, yes {Completos hoy: pasan a \"Listos para enviar\" mañana.} other {Asegurados para un niño: aparta uno de cada uno y no los envíes todavía. Pasan a \"Listos para enviar\" el {from}.}}",
+    "setAsideIntro": "{open, select, yes {Completos hoy: pasan a \"Listos para enviar\" mañana.} other {Asegurados para un niño: aparta uno por cada regalo y no los envíes todavía. Pasan a \"Listos para enviar\" el {from}.}}",
     "outTitle": "Agotados ({count})",
     "outIntro": "Se completaron cuando ya no te quedaban. Spirit of Santa te contactará sobre un sustituto.",
     "shippedTitle": "Enviados (últimos 60 días)",
@@ -274,6 +274,6 @@
       "bank_transfer": "transferencia bancaria",
       "other": "otro"
     },
-    "owedPending": "{count, plural, one {# regalo más está recibido} other {# regalos más están recibidos}} y esperan a que Spirit of Santa confirme tu descuento."
+    "owedPending": "{count, plural, one {Recibimos # regalo más, que espera} other {Recibimos # regalos más, que esperan}} a que Spirit of Santa confirme tu descuento."
   }
 }

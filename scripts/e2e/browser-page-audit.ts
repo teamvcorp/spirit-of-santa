@@ -2,6 +2,7 @@
  * Real-browser page audit (Edge), Phase 8.5.4. Every main page of all three apps, in LIGHT and DARK mode:
  * 1. passes the WCAG 2.1 AA colour-contrast rule (4.5:1 normal text, 3:1 large text), measured by
  *    axe-core (the same engine as browser accessibility dev tools);
+ * 1b. passes every other automated WCAG 2.1 A/AA rule axe has (light pass; Phase 8 accessibility);
  * 2. keeps every form field inside its card (no field sliding under the next card: the store profile's
  *    City/State/ZIP row did, see packages/ui/src/layout.ts).
  *
@@ -100,6 +101,23 @@ async function contrast(page: Page): Promise<AxeResult> {
 }
 
 /**
+ * Phase 8 accessibility pass: EVERY axe rule tagged WCAG 2.0/2.1 level A or AA (labels, names, landmarks, ARIA,
+ * headings order rules axe treats as AA, link names, lang, …), except colour contrast (checked per colour scheme
+ * above). Returns "rule-id (impact): first targets" per violated rule. axe only finds what can be detected
+ * automatically (roughly a third of WCAG): keyboard order and screen-reader wording still need a human pass.
+ */
+async function wcag(page: Page): Promise<string[]> {
+  await page.addScriptTag({ path: AXE });
+  const res = (await page.evaluate(() =>
+    (window as unknown as { axe: { run: (o: unknown) => Promise<unknown> } }).axe.run({
+      runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] },
+      rules: { "color-contrast": { enabled: false } },
+    }),
+  )) as { violations: { id: string; impact?: string; nodes: { target: string[] }[] }[] };
+  return res.violations.map((v) => `${v.id} (${v.impact ?? "?"}): ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(", ")}`);
+}
+
+/**
  * Visible form fields poking out of their box: the Card (.shadow-card from @repo/ui/card) when inside one,
  * otherwise <main>. 1px slack for rounding. Returns the field names.
  */
@@ -168,6 +186,8 @@ try {
         const unsure = res.incomplete.flatMap((v) => v.nodes).length;
         if (unsure) incompletes.push(`${scheme} ${group.app} ${path}: ${unsure}`);
         if (scheme === "light") {
+          const a11y = await wcag(page);
+          check(`wcag 2.1 AA ${group.app} ${path}`, a11y.length === 0, a11y.join(" | "));
           // Layout (light pass only: colours don't move boxes). Desktop width, then a tablet width (700px),
           // where three fields share a row in a narrower card: the store profile overflow showed there too.
           for (const width of [1280, 700]) {
@@ -225,6 +245,10 @@ try {
   const probe = await browser.newPage();
   await probe.setContent('<main><p style="color:#aaaaaa;background:#ffffff;font-size:16px">Too faint to read</p></main>');
   check("negative control: axe flags grey-on-white text", (await contrast(probe)).violations.length === 1);
+  // And the full WCAG run must catch an unlabelled field and an image without alt text.
+  await probe.setContent('<html lang="en"><body><main><h1>Probe</h1><input type="text"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw="></main></body></html>');
+  const probeA11y = (await wcag(probe)).join(" ");
+  check("negative control: WCAG run flags a field without a label and an image without alt", probeA11y.includes("label (") && /image-alt/.test(probeA11y), probeA11y);
   await probe.close();
 
   // CSP negative control: on a real app page, an image from an unknown site must be BLOCKED and reported.

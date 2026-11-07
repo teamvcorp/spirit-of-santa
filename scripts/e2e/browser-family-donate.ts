@@ -137,7 +137,7 @@ try {
   const es = await (await browser.newContext()).newPage();
   await es.goto(url2.replace("/k/", "/es/k/"));
   await es.locator("main h1").waitFor({ timeout: 15_000 });
-  check("Spanish donation page", (await es.locator("main").innerText()).includes("Regala a la lista de deseos de M."));
+  check("Spanish donation page", (await es.locator("main").innerText()).includes("Haz un regalo para la lista de deseos de M."));
   check("no browser errors", errors.length === 0, errors.slice(0, 3).join(" || "));
 } catch (err) {
   report();

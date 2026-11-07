@@ -64,14 +64,14 @@
     },
     "donationReceipt": {
       "subject": "Tu recibo de donación de {orgName}",
-      "heading": "Gracias por tu regalo",
-      "body": "Gracias por apoyar a los niños a través de Spirit of Santa, un programa de {orgName}.\n\nNúmero de recibo: {receiptNo}\nFecha: {date}\nCantidad: {amount}\nDonante: {donorName}\n\n{orgName}, EIN {ein}\n{orgAddress}\n\nNo se proporcionaron bienes ni servicios a cambio de esta contribución. {orgName} es una organización exenta de impuestos según la sección 501(c)(3) del Código de Rentas Internas. Guarda este recibo para tus registros de impuestos.",
+      "heading": "Gracias por tu donación",
+      "body": "Gracias por apoyar a los niños a través de Spirit of Santa, un programa de {orgName}.\n\nNúmero de recibo: {receiptNo}\nFecha: {date}\nMonto: {amount}\nDonante: {donorName}\n\n{orgName}, EIN {ein}\n{orgAddress}\n\nNo se proporcionaron bienes ni servicios a cambio de esta contribución. {orgName} es una organización exenta de impuestos según la sección 501(c)(3) del Código de Rentas Internas. Guarda este recibo para tus registros de impuestos.",
       "button": "Visitar Spirit of Santa"
     },
     "storeOrders": {
       "subject": "Pedidos de regalos de Spirit of Santa para {storeName}",
       "heading": "Pedidos de regalos",
-      "body": "¡Hola, {storeName}! Esta es la actualización de hoy sobre los regalos que los niños han completado.\n\n{open, select, yes {COMPLETOS (aparta uno de cada uno: pasan a listos para enviar mañana)} other {GUARDADOS PARA DICIEMBRE (asegurados: aparta uno de cada uno y no los envíes antes del {shipFrom})}}:\n{setAside}\n\nLISTOS PARA ENVIAR (envíalos {late, select, yes {lo antes posible} other {a más tardar el {shipBy}}} y márcalos como enviados en tu página de Pedidos):\n{readyToShip}\n\nEnviar a:\n{address}\n\nEscribe cada código de referencia en el paquete.",
+      "body": "¡Hola, {storeName}! Esta es la actualización de hoy sobre los regalos que los niños han completado.\n\n{open, select, yes {COMPLETOS (aparta uno por cada regalo: pasan a listos para enviar mañana)} other {GUARDADOS PARA DICIEMBRE (asegurados: aparta uno por cada regalo y no los envíes antes del {shipFrom})}}:\n{setAside}\n\nLISTOS PARA ENVIAR (envíalos {late, select, yes {lo antes posible} other {a más tardar el {shipBy}}} y márcalos como enviados en tu página de Pedidos):\n{readyToShip}\n\nEnviar a:\n{address}\n\nEscribe cada código de referencia en el paquete.",
       "button": "Abrir mis pedidos"
     },
     "giftOnItsWay": {
@@ -91,14 +91,14 @@
       "deeds": "{count, plural, one {# buena acción agradecida} other {# buenas acciones agradecidas}}"
     },
     "cutoffReminder": {
-      "subject": "Las listas de deseos se cierran el {date}",
-      "heading": "Las listas de deseos se cierran pronto",
-      "body": "El {date} todas las listas de deseos se cierran para Navidad: después ya no se pueden agregar ni quitar regalos, y las donaciones (propinas, enlaces de donación, magia extra) cierran para que cada regalo llegue a tiempo.\n\nEs un buen momento para revisar las listas con tus hijos.",
+      "subject": "Las listas de deseos se congelan el {date}",
+      "heading": "Las listas de deseos se congelan pronto",
+      "body": "El {date} todas las listas de deseos se congelan para Navidad: después ya no se pueden agregar ni quitar regalos, y las donaciones (propinas, enlaces de donación, magia extra) cierran para que cada regalo llegue a tiempo.\n\nEs un buen momento para revisar las listas con tus hijos.",
       "button": "Abrir el área familiar"
     },
     "payUpReminder": {
       "subject": "Últimos días para completar regalos: hasta el {date}",
-      "heading": "Completa los regalos hasta el {date}",
+      "heading": "Completa los regalos a más tardar el {date}",
       "body": "Algunos regalos de las listas de tus hijos todavía no están completos. Puedes pagar lo que falta hasta el {date}. Los regalos que sigan incompletos después salen de la lista y su Magia Navideña pasa a Spirit of Santa.",
       "button": "Completar regalos"
     },

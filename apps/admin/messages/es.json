@@ -5,7 +5,7 @@
   },
   "HomePage": {
     "title": "Administración de Spirit of Santa",
-    "intro": "Inicie sesión con su cuenta del equipo para continuar.",
+    "intro": "Inicia sesión con tu cuenta del equipo para continuar.",
     "needsAttention": "Requiere tu atención",
     "pendingStores": "{count, plural, =0 {No hay tiendas esperando revisión} one {# tienda esperando revisión} other {# tiendas esperando revisión}}"
   },
@@ -195,7 +195,7 @@
       "changed": "Otra persona cambió estas fechas mientras tanto. Recarga la página e inténtalo de nuevo.",
       "confirmRequired": "Marca la casilla para confirmar la congelación.",
       "notOpen": "La temporada no está abierta, así que no hay nada que congelar.",
-      "freezeRange": "La fecha de congelación debe estar entre el 1 de noviembre y el 3 de diciembre (las tiendas necesitan tiempo para enviar antes del 10 de diciembre).",
+      "freezeRange": "La fecha de congelación debe estar entre el 1 de noviembre y el 3 de diciembre (las tiendas necesitan tiempo para enviar a más tardar el 10 de diciembre).",
       "closeRange": "El primer día cerrado debe estar entre el 26 y el 31 de diciembre (Navidad sigue siendo parte de la temporada).",
       "freezeTooSoon": "Una nueva fecha de congelación debe ser al menos dentro de una semana (puede que ya se haya avisado a las familias la fecha anterior).",
       "reset_notResetTime": "No es momento de un reinicio (la temporada no está esperando uno).",
@@ -428,7 +428,7 @@
     "family_delete": "Cuenta familiar eliminada",
     "family_delete_requested": "Cuenta familiar en cierre (se entrega el regalo primero)",
     "family_delete_finalized": "Cuenta familiar en cierre eliminada",
-    "ledger_backfill_spend": "Corrección del registro (gasto al bloquear)",
+    "ledger_backfill_spend": "Corrección del registro (gasto al asegurar)",
     "kid_donation_link_reset": "Enlace de donación reemplazado",
     "settings_update": "Ajustes cambiados",
     "donations_split": "Regalos comunitarios repartidos",
@@ -538,7 +538,7 @@
     "noResets": "Aún no ha terminado ninguna temporada.",
     "resetLine": "Temporada {year} (terminada {when}): {kids} niños en cero ({points} de Magia Navideña), {retained} de donaciones no repartidas guardadas ({gifts} regalos).",
     "resetRunning": "Temporada {year}: en curso desde {when} ({kids} niños en cero hasta ahora). Continúa con la siguiente tarea diaria.",
-    "attentionLine": "{kids, plural, one {1 niño todavía tenía Magia Navideña después del reinicio.} other {# niños todavía tenían Magia Navideña después del reinicio.}} Revísalos, corrige sus saldos si hace falta y luego márcalo como resuelto. El trabajo diario reporta una falla cada día hasta entonces.",
+    "attentionLine": "{kids, plural, one {1 niño todavía tenía Magia Navideña después del reinicio.} other {# niños todavía tenían Magia Navideña después del reinicio.}} Revísalos, corrige sus saldos si hace falta y luego márcalo como resuelto. La tarea diaria reporta una falla cada día hasta entonces.",
     "attentionConfirm": "Revisé a estos niños y corregí su Magia Navideña donde hacía falta.",
     "attentionClear": "Marcar como resuelto"
   },
@@ -548,7 +548,7 @@
     "from": "de {store}",
     "none": "No hay nada aquí por ahora.",
     "subTitle": "Necesita un sustituto ({count})",
-    "subIntro": "Se completaron cuando a la tienda ya no le quedaban. Acuerda un sustituto con la tienda, escribe lo acordado y márcalo como resuelto: el regalo vuelve a los pedidos de la tienda.",
+    "subIntro": "Se completaron cuando a la tienda ya no le quedaban. Acuerda un sustituto con la tienda, escribe lo acordado y márcalo como acordado: el regalo vuelve a los pedidos de la tienda.",
     "storeContact": "Tienda: {email}",
     "fundedOn": "completo el {date}",
     "note": "Lo acordado con la tienda",
@@ -581,8 +581,8 @@
     "addressMissing": "Todavía no hay dirección de entrega: se le pide al padre o la madre en su área de padres. También puedes escribirle por correo.",
     "addressUnreadable": "La dirección guardada no se puede leer (¿cambió la clave de cifrado?). Pide al padre o la madre que la escriba de nuevo.",
     "familyDeleted": "Esta familia eliminó su cuenta. No hay a quién enviarlo: Spirit of Santa se queda con el regalo.",
-    "markKept": "Lo guarda Spirit of Santa",
-    "closingBy": "Cuenta en cierre: envíalo antes del {date} o Spirit of Santa se lo queda."
+    "markKept": "Guardar para Spirit of Santa",
+    "closingBy": "Cuenta en cierre: envíalo a más tardar el {date} o Spirit of Santa se lo queda."
   },
   "Payouts": {
     "title": "Pagos a tiendas",
@@ -622,7 +622,7 @@
     "retailOut": "Valor de venta de los regalos recibidos ({count})",
     "wholesaleMargin": "Margen mayorista (venta − pagos a tiendas)",
     "paidVsOwed": "Todavía adeudado a tiendas (pagado hasta ahora: {paid})",
-    "breakage": "Magia Navideña nunca usada ({reset} reiniciada el 1 de enero, {forfeit} de regalos incompletos)",
+    "breakage": "Magia no usada: Magia Navideña nunca usada ({reset} reiniciada el 1 de enero, {forfeit} de regalos incompletos)",
     "moneyNote": "No incluye las comisiones de tarjeta (ver el panel de Stripe). Los regalos cuentan cuando Spirit of Santa los recibe.",
     "historyTitle": "Pagos realizados",
     "noHistory": "Todavía no hay pagos registrados.",

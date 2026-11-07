@@ -193,7 +193,7 @@ try {
 
   // 10. Spanish.
   const es = await newPage();
-  check("Spanish donate page", (await text(es, `${base}/es/donate`)).includes("Regala a los niños"));
+  check("Spanish donate page", (await text(es, `${base}/es/donate`)).includes("Dona a los niños"));
   check("no browser errors", errors.length === 0, errors.slice(0, 3).join(" || "));
 } catch (err) {
   report();

@@ -833,6 +833,13 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   `2026-11-07` (+ p6 held items/ship by Dec 10/discount at receipt, p7 Q1 catalogue + Jan 1 copy). Families on older
   consent versions need re-consent (Phase 8 2c, NEXT). CLAUDE.md season line updated. Lawyer packet: docs/legal/lawyer-packet.md.
   en/es key parity checked for all four message sets (0 missing).
+- **Phase 8 slices 3+4: Spanish audit + accessibility (2026-11-07).** Re-consent (2c) DEFERRED by the owner: no users yet;
+  build it before the first consent/privacy wording change after real families exist. Spanish: reviewer pass over all
+  four es.json files; fixed meaning ("by" = "a más tardar", donations ≠ regalo on legal/receipts, Community.how date),
+  ICU plural for "traviesos", freeze = "congelar" everywhere, tú register in store/admin, terminology outliers. Pay-later
+  SMS is English-only (carrier-registered wording): owner question. Accessibility: browser-page-audit runs EVERY axe
+  WCAG 2.0/2.1 A+AA rule on all 46 pages (light) + a broken-page negative control; 0 violations. Keyboard order and
+  screen-reader wording still need a human pass (checklist).
   Copies SHARE the photo blob: items.ts `deleteUnusedPhoto` deletes a blob only if no item uses it (index on
   photo.pathname). Stock: forms send hidden `inventoryWas`; `setInventory`/`updateItem` compare-and-set on it
   ("stockChanged" → reload); the item form only touches stock when changed. PROD: run `npm run db:sync-indexes` after

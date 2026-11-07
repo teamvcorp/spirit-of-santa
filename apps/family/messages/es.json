@@ -136,7 +136,7 @@
     "registerKids": "Registrar niños ($5 cada uno)",
     "itemCap": "Límite de artículos en la lista",
     "itemCapHint": "Cuántos artículos puede poner este niño en su lista de deseos (0–50).",
-    "tally": "Para la Navidad {year}: {nice, plural, one {# día bueno} other {# días buenos}}, {naughty} traviesos",
+    "tally": "Para la Navidad {year}: {nice, plural, one {# día bueno} other {# días buenos}}, {naughty, plural, one {# travieso} other {# traviesos}}",
     "capLine": "hasta {cap} artículos en la lista",
     "voteFor": "Voto de hoy para {name}",
     "vote": {
@@ -184,7 +184,7 @@
       "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde.",
       "locked": "El área de padres se bloqueó sola (15 minutos). Escribe tu PIN otra vez.",
       "rateLimited": "Demasiados intentos. Espera 15 minutos e inténtalo de nuevo.",
-      "seasonClosed": "La inscripción vuelve a abrir el 1 de enero."
+      "seasonClosed": "El registro vuelve a abrir el 1 de enero."
     },
     "processing": "¡Gracias! Recibimos el pago. Tus hijos aparecerán como registrados en un minuto: actualiza el área de padres.",
     "review": "Recibimos el pago, pero algo no coincidió (por ejemplo, un niño ya estaba registrado). Nuestro equipo lo revisará y se comunicará contigo."
@@ -198,7 +198,7 @@
     "deedsTitle": "Buenas acciones",
     "noDeeds": "Aún no hay acciones. ¡Pide a un padre o madre que registre la primera!",
     "aDeed": "Una buena acción",
-    "showQr": "Muestra este código a la persona que ayudaste. Funciona una vez, hasta el {until}.",
+    "showQr": "Muestra este código a la persona a la que ayudaste. Funciona una vez, hasta el {until}.",
     "qrAlt": "Código QR de: {deed}",
     "status": {
       "pending": "Esperando un agradecimiento",
@@ -209,7 +209,7 @@
       "processing": "Código escaneado: en proceso"
     },
     "recordTitle": "Registrar una buena acción",
-    "recordIntro": "¿Qué hizo {name}? Se crea un código QR para la persona que ayudó.",
+    "recordIntro": "¿Qué hizo {name}? Se crea un código QR para la persona a la que ayudó.",
     "whichDeed": "Elige la acción",
     "other": "Otra cosa",
     "otherLabel": "Describe la buena acción",
@@ -224,9 +224,9 @@
       "deedUnavailable": "Esa acción ya no está disponible. Elige otra.",
       "dailyLimit": "Son 10 acciones hoy para este niño. ¡Inténtalo mañana!"
     },
-    "tally": "La lista de Santa para la Navidad {year}: {nice, plural, one {# día bueno} other {# días buenos}}, {naughty} traviesos",
+    "tally": "La lista de Santa para la Navidad {year}: {nice, plural, one {# día bueno} other {# días buenos}}, {naughty, plural, one {# travieso} other {# traviesos}}",
     "donateTitle": "Enlace para donar",
-    "donateIntro": "Compártelo con familiares y amigos: pueden regalar a la lista de este niño sin una buena acción. Solo se muestra el nombre público.",
+    "donateIntro": "Compártelo con familiares y amigos: pueden aportar a la lista de deseos de este niño sin una buena acción. Solo se muestra el nombre público.",
     "donateQrAlt": "Código QR de la página para donar a este niño",
     "newLink": "Crear un enlace nuevo",
     "newLinkHelp": "Después de esto, el enlace anterior ya no abre (requiere el PIN de padres). Un regalo que alguien ya empezó aún puede completarse.",
@@ -292,9 +292,9 @@
     "needsSubstitute": "A la tienda se le acabó. Buscaremos un sustituto.",
     "remove": "Quitar (padres)",
     "shareHint": "¿Quieres ayuda? Comparte el enlace de donación de abajo: cada regalo llena la lista, empezando por el más antiguo.",
-    "frozen": "La lista ya está lista para Navidad: no hay cambios después del 1 de diciembre.",
+    "frozen": "La lista quedó fija para Navidad: no se puede cambiar a partir del 1 de diciembre.",
     "removeTitle": "¿Quitar de la lista de deseos?",
-    "removeIntro": "\"{item}\" sale de la lista de {name}. Su {points} de Magia Navideña regresa y llena el siguiente regalo.",
+    "removeIntro": "\"{item}\" sale de la lista de {name}. Sus {points} de Magia Navideña regresan y llenan el siguiente regalo.",
     "removeConfirm": "Quitarlo",
     "keep": "Dejarlo",
     "removeErrors": {
@@ -339,7 +339,7 @@
   },
   "Donate": {
     "title": "Un regalo de Navidad",
-    "heading": "Regala a la lista de deseos de {name}",
+    "heading": "Haz un regalo para la lista de deseos de {name}",
     "family": "De la familia {family}",
     "intro": "El 100% de tu regalo se convierte en Magia Navideña y ayuda a {name} a tener una Navidad mágica con regalos de tiendas locales, mientras aprende el poder de las buenas acciones.",
     "amount": "Cantidad",
@@ -450,9 +450,9 @@
   },
   "Community": {
     "navLink": "Donar",
-    "title": "Regala a los niños de Spirit of Santa",
+    "title": "Dona a los niños de Spirit of Santa",
     "intro": "Tu regalo se convierte en Magia Navideña para niños que ganan regalos de Navidad con buenas acciones. Regala a todos los niños o a los niños de un código postal.",
-    "how": "Los regalos se juntan y se reparten en partes iguales entre los niños registrados el {day}. El {fee} de cada regalo ayuda a mantener Spirit of Santa; el resto se convierte en Magia Navideña ({rate} = 1 de Magia Navideña).",
+    "how": "El {day}, las donaciones se juntan y se reparten en partes iguales entre los niños registrados. El {fee} de cada regalo ayuda a mantener Spirit of Santa; el resto se convierte en Magia Navideña ({rate} = 1 de Magia Navideña).",
     "charity": "Spirit of Santa es un programa de {orgName} (EIN {ein}), una organización sin fines de lucro 501(c)(3). Recibirás un recibo para impuestos por correo electrónico.",
     "raised": "Donado esta temporada hasta ahora: {amount}",
     "who": "¿A quién quieres ayudar?",
@@ -559,11 +559,11 @@
       },
       "payments": {
         "title": "Pagos",
-        "body": "Las propinas, bonos, registros y donaciones los procesa Stripe. Todos los pagos son definitivos: no ofrecemos reembolsos, salvo cuando la ley o tu red de tarjetas lo exija (por ejemplo, un cargo en disputa)."
+        "body": "Las propinas, la magia extra, las cuotas de registro y las donaciones los procesa Stripe. Todos los pagos son definitivos: no ofrecemos reembolsos, salvo cuando la ley o tu red de tarjetas lo exija (por ejemplo, un cargo en disputa)."
       },
       "donations": {
         "title": "Donaciones de la comunidad",
-        "body": "Los regalos de nuestra página de donaciones se juntan y se reparten en partes iguales entre los niños registrados cuando la temporada se congela (1 de diciembre). Una comisión de la plataforma, que se muestra en la página antes de donar, ayuda a mantener Spirit of Santa."
+        "body": "Las donaciones hechas en nuestra página se juntan y se reparten en partes iguales entre los niños registrados cuando la temporada se congela (1 de diciembre). Una comisión de la plataforma, que se muestra en la página antes de donar, ayuda a mantener Spirit of Santa."
       },
       "season": {
         "title": "La temporada y los regalos",
@@ -583,7 +583,7 @@
       },
       "contact": {
         "title": "Contacto",
-        "body": "Preguntas: los datos de contacto se añadirán aquí antes del lanzamiento."
+        "body": "Preguntas: los datos de contacto se agregarán aquí antes del lanzamiento."
       }
     }
   },
@@ -607,7 +607,7 @@
       },
       "reminders": {
         "label": "Recordatorios de la temporada",
-        "help": "Un recordatorio antes de que las listas se cierren (1 de diciembre) y antes de la fecha límite para completar regalos."
+        "help": "Un recordatorio antes de que las listas se congelen (1 de diciembre) y antes de la fecha límite para completar regalos."
       }
     },
     "save": "Guardar",
@@ -641,7 +641,7 @@
   },
   "DeleteAccount": {
     "title": "Eliminar nuestra cuenta familiar",
-    "back": "Área para padres",
+    "back": "Área de padres",
     "intro": "Esto elimina la cuenta de tu familia y la información de tus hijos de Spirit of Santa, como lo promete nuestra política de privacidad.",
     "willDelete": "{children, plural, =0 {Se eliminan tu acceso, tu PIN y la configuración de tu familia.} one {Se eliminan el nombre, el año de nacimiento, las buenas acciones y la lista de deseos de tu hijo, y también tu acceso, tu PIN y la configuración de tu familia.} other {Se eliminan los nombres, años de nacimiento, buenas acciones y listas de deseos de tus # hijos, y también tu acceso, tu PIN y la configuración de tu familia.}}",
     "willGiveMagic": "Los {magic} de Magia Navideña de tus hijos pasan a Spirit of Santa para ayudar a otros niños.",
@@ -654,7 +654,7 @@
     "confirmWord": "BORRAR",
     "submit": "Eliminar nuestra cuenta familiar",
     "errors": {
-      "locked": "Tu área para padres está bloqueada. Ingresa tu PIN e inténtalo de nuevo.",
+      "locked": "Tu área de padres está bloqueada. Escribe tu PIN e inténtalo de nuevo.",
       "confirmWord": "Escribe la palabra exactamente como se muestra para confirmar.",
       "wrongPassword": "Esa contraseña no es correcta. Después de varios intentos, se pausa por 15 minutos.",
       "notFound": "No encontramos tu cuenta familiar.",
@@ -677,8 +677,8 @@
   },
   "OurData": {
     "title": "Lo que guardamos sobre tu familia",
-    "back": "Área para padres",
-    "intro": "Aquí está lo principal que Spirit of Santa guarda sobre ti y tus hijos. La descarga tiene cada detalle que guardamos. Puedes cambiar casi todo en el área para padres o eliminarlo todo.",
+    "back": "Área de padres",
+    "intro": "Aquí está lo principal que Spirit of Santa guarda sobre ti y tus hijos. La descarga tiene cada detalle que guardamos. Puedes cambiar casi todo en el área de padres o eliminarlo todo.",
     "download": "Descargar una copia (archivo JSON)",
     "notFound": "No encontramos tu cuenta familiar.",
     "none": "Ninguno",
@@ -715,7 +715,7 @@
     "giftLine": "{gift}: {status} ({funded} de {cost} de Magia Navideña)",
     "giftStatus": {
       "active": "reuniendo Magia Navideña",
-      "fully_funded": "financiado por completo",
+      "fully_funded": "completo",
       "locked": "asegurado con la tienda",
       "removed": "quitado",
       "unfunded": "no se completó para Navidad",
@@ -730,7 +730,7 @@
       "naughty": "travieso"
     },
     "historyNote": "Historial de Magia Navideña: {count} movimientos (todo lo ganado, reservado, usado o devuelto; en la descarga).",
-    "changeNote": "¿Algo no está bien? Casi todo se puede cambiar en el área para padres. También puedes",
+    "changeNote": "¿Algo no está bien? Casi todo se puede cambiar en el área de padres. También puedes",
     "deleteLink": "eliminar tu cuenta familiar.",
     "addressUnreadable": "Hay una dirección guardada, pero no podemos mostrarla ahora. Comunícate con nosotros.",
     "paymentsTitle": "Pagos que hiciste ({count})",

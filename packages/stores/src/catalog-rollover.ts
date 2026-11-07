@@ -5,7 +5,7 @@
  * (kids could browse nothing until stores re-entered everything), the daily money job copies every ACTIVE, priced
  * item of last season into the new season for each approved / pending store: name, description, category, photo,
  * price and the stock left. Stores then review and adjust them in their window. Drafts and archived items are not
- * copied; neither is payoutCents (fixed when a gift is funded, from the store's discount at that time).
+ * copied; neither is payoutCents (set when Spirit of Santa RECEIVES a gift, from the store's discount then: owedForGift).
  *
  * Rules (review 2026-11-07):
  *  - Only in the calendar Q1 window, and never while an admin has CLOSED the store window (stores couldn't fix

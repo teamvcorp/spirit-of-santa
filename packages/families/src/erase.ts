@@ -138,7 +138,7 @@ export type EraseFamilyResult = { ok: true; pending: false } | { ok: true; pendi
  * Latest moment a closing family is finalised ("deliver, then delete"): the END of Jan 31 (Chicago time) after the
  * Christmas of its NEWEST gift still on its way (year-round season, owner 2026-11-07: gifts are held by the store
  * and shipped in December, so a deletion asked in March keeps the parent's email + address until that delivery).
- * Never later. Only PARENT data waits; children's data is deleted at once. LAWYER item: up to ~11 months.
+ * Never later. Only PARENT data waits; children's data is deleted at once. LAWYER item: up to ~13 months (gift funded early Jan, deleted next day).
  * A deadline that is very close just means the next daily run finalises it (undelivered gifts → Spirit of Santa).
  * Pure (unit-tested). Replaces "45 days, capped at Jan 31", which forfeited held gifts and used the UTC year.
  */

@@ -4,6 +4,9 @@ Prepared 2026-11-07 for Spirit of Santa's lawyer. Everything below is built and 
 the public pages is marked **DRAFT** until you approve it. Each item says what the site does today, where people
 see it, and the question for you.
 
+Dates below are the defaults; an admin can move the freeze date (Nov 1 – Dec 3) and the first closed day
+(Dec 26 – 31), and the site always shows the current dates.
+
 Current text versions (shown at the top of each page; bump after any change you request):
 - Privacy policy: `2026-11-07b-draft` (spiritofsanta.com/privacy)
 - Parental consent + children's privacy notice: `2026-11-07b-draft` (accepted at sign-up)
@@ -27,13 +30,14 @@ When a family deletes its account while a paid gift is still on its way, the par
 We then delete the children's data at once, and keep only the parent's email, family name and delivery address
 (encrypted) until the gift is delivered, **at the latest January 31 after that Christmas**.
 
-Because gifts are now held by stores until December (see 3), a deletion in March can mean keeping that parent
-data for **up to about 11 months**. *Is that retention acceptable, and is the privacy wording clear enough?*
+Because gifts are now held by stores until December (see 3), this can mean keeping that parent data for **up to
+about 13 months** (a gift funded in early January, account deleted the next day: kept until January 31 of the
+following year). *Is that retention acceptable, and is the privacy wording clear enough?*
 
 ## 3. Money taken now for a gift delivered in December
 
-- Gifts are funded all year. A fully funded gift is **secured**: it can't be removed, its Christmas Magic is spent,
-  and the store holds it until it ships in December.
+- Gifts are funded all year. A fully funded gift is **secured**: it can't be removed, its Christmas Magic is used for
+  it (recorded as spent at the next daily run), and the store holds it until it ships in December.
 - Giving (tips, donation links, bonus magic) **closes December 1** so every gift can arrive by Christmas. Parents
   can then pay what a gift still misses for 3 days after community donations are shared out.
 - Gifts still unfinished after that **drop off**, and the Christmas Magic already on them goes to Spirit of Santa.
@@ -49,8 +53,9 @@ Christmas Magic or to forfeiting it on Jan 1 / at the drop-off?*
 
 - Community donations (spiritofsanta.com/donate) are pooled and shared equally among registered children on
   December 1; an admin-set platform fee is shown before giving.
-- Every donation gets an emailed receipt. Receipts name the receiving charity (Edynsgate: legal name and EIN still
-  to be confirmed by the owner). *Is the receipt wording right for a tax deduction, given donors receive no goods?*
+- Once an admin switches receipts on (it needs the charity's legal name and EIN, still to be confirmed by the owner,
+  and a start date), every donation from that date gets an emailed receipt naming the receiving charity (Edynsgate).
+  Until then no receipts are sent. *Is the receipt wording right for a tax deduction, given donors receive no goods?*
 
 ## 5. Text messages (pay-later links)
 

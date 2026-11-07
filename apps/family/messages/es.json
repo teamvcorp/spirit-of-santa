@@ -565,6 +565,10 @@
         "title": "Donaciones de la comunidad",
         "body": "Los regalos de nuestra página de donaciones se juntan y se reparten en partes iguales entre los niños registrados cuando la temporada se congela (1 de diciembre). Una comisión de la plataforma, que se muestra en la página antes de donar, ayuda a mantener Spirit of Santa."
       },
+      "season": {
+        "title": "La temporada y los regalos",
+        "body": "Spirit of Santa funciona todo el año: la Magia Navideña se puede ganar desde el 1 de enero. El 1 de diciembre (la fecha de congelación; el sitio muestra la fecha vigente) las listas de deseos se congelan y los aportes (propinas, enlaces de donación y magia extra) cierran, para que cada regalo llegue para Navidad; después, los padres pueden completar los regalos incompletos durante tres días tras el reparto de las donaciones de la comunidad. Los regalos que sigan incompletos salen de la lista y su Magia Navideña pasa a Spirit of Santa.\nUn regalo queda asegurado en cuanto está completo: ya no se puede quitar, su Magia Navideña se usa para él y la tienda lo guarda para tu hijo hasta enviarlo en diciembre.\nEl sitio está cerrado después de Navidad (desde el 26 de diciembre) y vuelve a abrir el 1 de enero."
+      },
       "texts": {
         "title": "Mensajes de texto (pagar más tarde)",
         "body": "Programa: enlaces de Spirit of Santa para pagar propinas más tarde. Si eliges \"Pagar más tarde por mensaje de texto\" y aceptas, te enviamos un mensaje de texto con un enlace de pago seguro para la propina que elegiste; el enlace vence a los {days} días. Un mensaje por solicitud; sin publicidad. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para cancelar en cualquier momento, o HELP para ayuda. Las operadoras no son responsables de mensajes retrasados o no entregados. Consulta nuestra Política de privacidad para saber cómo tratamos tu número."
@@ -605,10 +609,6 @@
         "label": "Recordatorios de la temporada",
         "help": "Un recordatorio antes de que las listas se cierren (1 de diciembre) y antes de la fecha límite para completar regalos."
       }
-    },
-    "season": {
-      "title": "La temporada y los regalos",
-      "body": "Spirit of Santa funciona todo el año: la Magia Navideña se puede ganar desde el 1 de enero. El 1 de diciembre las listas de deseos se congelan y las donaciones cierran, para que cada regalo llegue para Navidad; después, los padres pueden completar los regalos incompletos durante tres días tras el reparto de las donaciones de la comunidad. Los regalos que sigan incompletos salen de la lista y su Magia Navideña pasa a Spirit of Santa.\nUn regalo queda asegurado en cuanto está completo: ya no se puede quitar, su Magia Navideña se gasta y la tienda lo guarda para tu hijo hasta enviarlo en diciembre.\nEl sitio está cerrado del 26 al 31 de diciembre y vuelve a abrir el 1 de enero."
     },
     "save": "Guardar",
     "saved": "Guardado.",

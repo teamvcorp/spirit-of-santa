@@ -671,7 +671,7 @@
   "OurData": {
     "title": "What we store about your family",
     "back": "Parent area",
-    "intro": "Everything Spirit of Santa keeps about you and your children. You can download a copy, change most of it in the parent area, or delete it all.",
+    "intro": "Here are the main things Spirit of Santa keeps about you and your children. The download has every detail we store. You can change most of it in the parent area, or delete it all.",
     "download": "Download a copy (JSON file)",
     "notFound": "We couldn't find your family account.",
     "none": "None",
@@ -724,6 +724,15 @@
     },
     "historyNote": "Christmas Magic history: {count} entries (every amount earned, held, spent or returned; in the download).",
     "changeNote": "Something wrong? Most of this can be changed in the parent area. You can also",
-    "deleteLink": "delete your family account."
+    "deleteLink": "delete your family account.",
+    "addressUnreadable": "An address is stored but we can't show it right now. Please contact us.",
+    "paymentsTitle": "Payments you made ({count})",
+    "paymentLine": "{purpose}: {amount} on {date} (for {children})",
+    "refunded": "refunded",
+    "purpose": {
+      "registration": "Registration",
+      "bonus": "Christmas Magic bonus",
+      "payup": "Pay to finish a gift"
+    }
   }
 }

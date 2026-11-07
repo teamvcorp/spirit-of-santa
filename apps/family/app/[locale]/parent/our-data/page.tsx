@@ -61,11 +61,34 @@ async function Content() {
           <Row label={t("familyName")} value={data.family.familyName} />
           <Row label={t("alias")} value={data.family.publicAlias ? `${data.family.publicAlias} (${data.family.showAliasPublicly ? t("shown") : t("hidden")})` : t("none")} />
           <Row label={t("zip")} value={data.family.zip ?? t("none")} />
-          <Row label={t("address")} value={a ? [a.name, a.line1, a.line2, `${a.city}, ${a.state} ${a.zip}`].filter(Boolean).join(", ") : t("none")} />
+          <Row
+            label={t("address")}
+            value={a ? [a.name, a.line1, a.line2, `${a.city}, ${a.state} ${a.zip}`].filter(Boolean).join(", ") : data.family.deliveryAddressUnreadable ? t("addressUnreadable") : t("none")}
+          />
           <Row label={t("emails")} value={Object.entries(data.family.emailSettings).map(([k, on]) => `${t(`emailKinds.${k}` as never)}: ${yes(on)}`).join(" · ")} />
           <Row label={t("consent")} value={t("consentValue", { version: data.family.consent.version ?? "—", date: day(data.family.consent.acceptedAt) })} />
           <Row label={t("pin")} value={yes(data.family.pinSet)} />
         </dl>
+      </Card>
+      <Card data-testid="payments">
+        <h2 className="mb-2 text-lg font-semibold">{t("paymentsTitle", { count: data.payments.length })}</h2>
+        {data.payments.length === 0 ? (
+          <p className="text-sm text-muted">{t("none")}</p>
+        ) : (
+          <ul className="list-disc pl-5 text-sm">
+            {data.payments.map((pm, i) => (
+              <li key={i}>
+                {t("paymentLine", {
+                  purpose: t(`purpose.${pm.purpose}` as never),
+                  amount: (pm.amountCents / 100).toLocaleString(il, { style: "currency", currency: pm.currency.toUpperCase() }),
+                  date: day(pm.paidAt),
+                  children: pm.children.join(", ") || "—",
+                })}
+                {pm.refundedCents > 0 ? ` · ${t("refunded")}` : ""}
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
       {data.children.map((k) => (
         <Card key={k.firstName + k.birthYear} data-testid="child-data">

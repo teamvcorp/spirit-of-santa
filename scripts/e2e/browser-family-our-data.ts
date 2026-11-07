@@ -10,7 +10,7 @@ import { randomBytes } from "node:crypto";
 import { chromium, type Page } from "playwright-core";
 import { hashSecret } from "@repo/auth/password";
 import { sealJson } from "@repo/auth/sealed";
-import { connectDb, Deed, Family, Item, Kid, KidVote, Store, Transaction, trusted, User, WishListItem } from "@repo/db";
+import { connectDb, Deed, Family, Item, Kid, KidVote, Payment, Store, Transaction, trusted, User, WishListItem } from "@repo/db";
 import { getSeasonYear } from "@repo/lib/season";
 import { makeChecks } from "./lib.ts";
 
@@ -43,6 +43,10 @@ await WishListItem.collection.insertOne({ kidId: A.kid._id, familyId: A.fam._id,
 await Deed.collection.insertOne({ kidId: A.kid._id, familyId: A.fam._id, seasonYear: year, locale: "en", status: "pending", customDescription: `Raked leaves ${tag}`, customReview: "pending", qrTokenHash: randomBytes(32).toString("hex"), expiresAt: new Date(Date.now() + 86_400_000), createdAt: new Date(), updatedAt: new Date() });
 await KidVote.collection.insertOne({ kidId: A.kid._id, familyId: A.fam._id, seasonYear: year, day: "2026-11-02", vote: "nice", createdAt: new Date(), updatedAt: new Date() });
 await Transaction.collection.insertOne({ kidId: A.kid._id, familyId: A.fam._id, seasonYear: year, type: "earn_tip", amountCentipoints: 900, createdAt: new Date() });
+// An admin correction WITH a note about the child, and the parent's own $5 registration (its processor id must never show).
+await Transaction.collection.insertOne({ kidId: A.kid._id, familyId: A.fam._id, seasonYear: year, type: "adjustment_credit", amountCentipoints: 100, note: `Duplicate tip fixed ${tag}`, createdAt: new Date() });
+const PI = `pi_e2e${tag}secret`;
+await Payment.collection.insertOne({ stripePaymentIntentId: PI, livemode: false, purpose: "registration", status: "succeeded", familyId: A.fam._id, kidIds: [A.kid._id], amountCents: 500, currency: "usd", fulfilment: "credited", succeededAt: new Date(), createdAt: new Date(), updatedAt: new Date() });
 
 const browser = await chromium.launch({ channel: "msedge", headless: true });
 const errors: string[] = [];
@@ -81,14 +85,16 @@ try {
   check("page shows the child's name, birth year and the deed in their own words", text.includes(`Ivya${tag}`) && text.includes("2017") && text.includes(`Raked leaves ${tag}`));
   check("page shows the wish list gift, the vote, the decrypted address and the consent version", text.includes(`Kazoo ${tag}`) && text.includes("nice") && text.includes("7 Holly Lane") && text.includes("2026-11-07-draft"));
   check("page never shows the other family's child", !text.includes(`Ivyb${tag}`));
+  check("page lists the parent's own payments (the $5 registration)", text.includes("Registration") && text.includes("$5.00"));
 
   const dl = await page.request.get(`${base}/parent/our-data/download`);
   const body = await dl.text();
   check("download works once unlocked: JSON attachment, never cached",
     dl.status() === 200 && (dl.headers()["content-type"] ?? "").includes("application/json") && (dl.headers()["content-disposition"] ?? "").includes("attachment") && (dl.headers()["cache-control"] ?? "").includes("no-store"));
   const json = JSON.parse(body) as { children: { firstName: string; goodDeeds: unknown[]; magicHistory: unknown[] }[]; family: { deliveryAddress: { line1: string } | null } };
-  check("download has the child, their deeds, the Christmas Magic history and the address", json.children.length === 1 && json.children[0]?.firstName === `Ivya${tag}` && json.children[0].goodDeeds.length === 1 && json.children[0].magicHistory.length === 1 && json.family.deliveryAddress?.line1 === "7 Holly Lane");
-  check("download holds NO secrets (hashes, encrypted blobs, token hashes)", !/passwordHash|parentPinHash|argon2|Enc"|qrTokenHash|donationTokenHash|\$argon/.test(body));
+  check("download has the child, their deeds, the Christmas Magic history and the address", json.children.length === 1 && json.children[0]?.firstName === `Ivya${tag}` && json.children[0].goodDeeds.length === 1 && json.children[0].magicHistory.length === 2 && json.family.deliveryAddress?.line1 === "7 Holly Lane");
+  check("download holds NO secrets (hashes, encrypted blobs, token hashes, payment-processor ids)", !/passwordHash|parentPinHash|argon2|Enc"|qrTokenHash|donationTokenHash|\$argon|pi_|cs_|plink_/.test(body) && !body.includes(PI));
+  check("download is complete: the payment, the admin note and the registration method", body.includes('"purpose": "registration"') && body.includes(`Duplicate tip fixed ${tag}`) && body.includes('"registrationMethod": "card"'));
   check("download never includes the other family", !body.includes(`Ivyb${tag}`) && !body.includes(B.user.email));
   check("no browser errors", errors.length === 0, errors.slice(0, 3).join(" | "));
 } finally {
@@ -99,6 +105,7 @@ try {
     Deed.collection.deleteMany({ familyId: { $in: fams } }),
     KidVote.collection.deleteMany({ familyId: { $in: fams } }),
     Transaction.collection.deleteMany({ familyId: { $in: fams } }),
+    Payment.collection.deleteMany({ familyId: { $in: fams } }),
     Kid.collection.deleteMany({ familyId: { $in: fams } }),
     Family.deleteMany({ _id: trusted({ $in: fams }) }),
     User.deleteMany({ _id: trusted({ $in: [A.user._id, B.user._id] }) }),

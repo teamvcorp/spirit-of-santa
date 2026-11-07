@@ -671,7 +671,7 @@
   "OurData": {
     "title": "Lo que guardamos sobre tu familia",
     "back": "Área para padres",
-    "intro": "Todo lo que Spirit of Santa guarda sobre ti y tus hijos. Puedes descargar una copia, cambiar casi todo en el área para padres o eliminarlo todo.",
+    "intro": "Aquí está lo principal que Spirit of Santa guarda sobre ti y tus hijos. La descarga tiene cada detalle que guardamos. Puedes cambiar casi todo en el área para padres o eliminarlo todo.",
     "download": "Descargar una copia (archivo JSON)",
     "notFound": "No encontramos tu cuenta familiar.",
     "none": "Ninguno",
@@ -724,6 +724,15 @@
     },
     "historyNote": "Historial de Magia Navideña: {count} movimientos (todo lo ganado, reservado, usado o devuelto; en la descarga).",
     "changeNote": "¿Algo no está bien? Casi todo se puede cambiar en el área para padres. También puedes",
-    "deleteLink": "eliminar tu cuenta familiar."
+    "deleteLink": "eliminar tu cuenta familiar.",
+    "addressUnreadable": "Hay una dirección guardada, pero no podemos mostrarla ahora. Comunícate con nosotros.",
+    "paymentsTitle": "Pagos que hiciste ({count})",
+    "paymentLine": "{purpose}: {amount} el {date} (para {children})",
+    "refunded": "reembolsado",
+    "purpose": {
+      "registration": "Registro",
+      "bonus": "Bono de Magia Navideña",
+      "payup": "Pago para completar un regalo"
+    }
   }
 }

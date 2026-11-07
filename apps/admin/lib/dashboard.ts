@@ -37,7 +37,7 @@ export async function dashboardStats() {
   return {
     season,
     stores,
-    items: { active: items.active ?? 0, draft: items.draft ?? 0 },
+    items: { active: items.active ?? 0, draft: items.draft ?? 0, hidden: items.hidden ?? 0 },
     users: {
       parent: roles.parent ?? 0,
       store_owner: roles.store_owner ?? 0,

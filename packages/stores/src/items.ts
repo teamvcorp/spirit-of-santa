@@ -281,7 +281,8 @@ export async function archiveItem(actor: StoreActor, itemId: string): Promise<It
   const g = await gate(actor, true);
   if ("error" in g) return g.error;
   // TODO(Phase 6): refuse while the item is on a kid's wish list / funded.
-  const res = await Item.updateOne({ _id: itemId, ...scopeOf(g), status: NOT_ARCHIVED() }, { $set: { status: "archived" } });
+  // Not a HIDDEN item (review 2026-11-07): archive then restore would turn an admin-hidden item active again.
+  const res = await Item.updateOne({ _id: itemId, ...scopeOf(g), status: trusted({ $nin: ["archived", "hidden"] }) }, { $set: { status: "archived" } });
   if (res.matchedCount !== 1) return { ok: false, error: "notFound" };
   await audit(actor.id, "item.archive", itemId);
   return { ok: true, itemId };

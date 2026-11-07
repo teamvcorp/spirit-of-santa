@@ -38,6 +38,11 @@ async function Content({ params, searchParams }: { params: PageProps<"/[locale]/
         <h1 className="text-2xl font-bold">{item.name}</h1>
         <span className="rounded-full border border-foreground/20 px-3 py-1 text-sm">{statusT(item.status)}</span>
       </div>
+      {item.status === "hidden" && item.hiddenReason && (
+        <Alert tone="error" className="mb-4">
+          <span data-testid="item-hidden-reason">{item.hiddenReason}</span>
+        </Alert>
+      )}
       {!data.editable && <Alert className="mb-4">{t("readOnly")}</Alert>}
       {data.editable && !data.window.open && <Alert className="mb-4">{t("windowClosed")}</Alert>}
       {data.isOwner && item.wholesaleCents != null && (
@@ -64,7 +69,8 @@ async function Content({ params, searchParams }: { params: PageProps<"/[locale]/
             <h2 className="mb-4 text-lg font-semibold">{t("photo")}</h2>
             <ItemPhoto itemId={item.id} photo={item.photo} canEdit={canEdit} alt={item.name} />
           </Card>
-          {data.isOwner && data.editable && data.window.open && (
+          {/* No archive for an admin-hidden item: archive + restore would bring it back (only an admin can). */}
+          {data.isOwner && data.editable && data.window.open && item.status !== "hidden" && (
             <Card>
               <h2 className="mb-2 text-lg font-semibold">{archived ? t("restoreTitle") : t("archiveTitle")}</h2>
               <p className="mb-3 text-sm text-muted">{archived ? t("restoreHelp") : t("archiveHelp")}</p>

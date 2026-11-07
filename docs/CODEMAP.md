@@ -850,7 +850,8 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   `listItemsForAdmin`, `hideItem` (active → hidden, reason required, CAS + audit item.hide), `unhideItem` (admin only).
   Every family path already requires status "active" (browser, gift page, addToList, Jan 1 copy), so hidden = gone for
   NEW listings; gifts already on lists keep funding/shipping. Admin store page card "Items this season"; store Items page
-  shows "Hidden by Spirit of Santa: reason" (store may edit, can't unhide). E2E browser-admin-item-hide (11).
+  shows "Hidden by Spirit of Santa: reason" (store may edit, can't unhide; archive REFUSED for hidden items so archive →
+  restore can't bring it back). Admin dashboard counts hidden items. E2E browser-admin-item-hide (12).
   Owner 2026-11-07: Spanish pay-later SMS LATER (after Twilio verification, register as an extra sample).
   Copies SHARE the photo blob: items.ts `deleteUnusedPhoto` deletes a blob only if no item uses it (index on
   photo.pathname). Stock: forms send hidden `inventoryWas`; `setInventory`/`updateItem` compare-and-set on it

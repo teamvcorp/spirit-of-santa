@@ -77,6 +77,7 @@ async function Dashboard() {
           { label: t("stores.suspended"), value: s.stores.suspended, href: { pathname: "/stores", query: { status: "suspended" } } },
           { label: t("items.active"), value: s.items.active },
           { label: t("items.draft"), value: s.items.draft },
+          { label: t("items.hidden"), value: s.items.hidden },
         ]}
       />
       <Tiles

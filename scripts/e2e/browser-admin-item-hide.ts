@@ -13,11 +13,13 @@
  */
 import { randomBytes } from "node:crypto";
 import { chromium, type Page } from "playwright-core";
-import { AuditLog, connectDb, Family, Item, Kid, Store, trusted, User, WishListItem } from "@repo/db";
+import { AuditLog, connectDb, Family, Item, Kid, Season, Store, trusted, User, WishListItem } from "@repo/db";
 import { hashSecret } from "@repo/auth/password";
 import { getSeasonYear } from "@repo/lib/season";
 import { browseGifts, giftDetail, parseGiftQuery } from "@repo/wishlists/catalog";
 import { addToList } from "@repo/wishlists/engine";
+import { archiveItem } from "@repo/stores/items";
+import { getSeasonState } from "@repo/stores/season";
 import { createMfaAdmin, makeChecks, signIn } from "./lib.ts";
 
 const [storeBase, adminBase] = process.argv.slice(2);
@@ -97,6 +99,17 @@ try {
   await sp.locator('main [data-testid="item-hidden"]').first().waitFor({ timeout: 60_000 });
   check("store's Items page shows 'Hidden by Spirit of Santa' with the reason", (await sp.locator('main [data-testid="item-hidden"]').first().innerText()).includes(REASON));
   await sctx.close();
+
+  // A store can't undo a hide by archiving and restoring the item (review 2026-11-07).
+  // Open the store window for this check (it is closed outside Jan 1 – Mar 31), then put it back.
+  const savedSeason = await Season.collection.findOne({ year });
+  await Season.collection.updateOne({ year }, { $set: { year, storeWindow: "open" } }, { upsert: true });
+  {
+    const arch = await archiveItem({ id: String(owner._id), role: "store_owner", storeId: String(store._id) }, String(item._id));
+    check("store can't archive a hidden item (no archive → restore way back)", (await getSeasonState()).storeWindowOpen && !arch.ok && (await Item.findById(item._id).lean())?.status === "hidden");
+  }
+  await Season.collection.deleteOne({ year });
+  if (savedSeason) await Season.collection.insertOne(savedSeason);
 
   // Show again.
   await page.reload();

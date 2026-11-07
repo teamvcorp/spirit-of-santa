@@ -362,7 +362,8 @@
     },
     "items": {
       "active": "Artículos publicados esta temporada",
-      "draft": "Artículos en borrador (sin precio)"
+      "draft": "Artículos en borrador (sin precio)",
+      "hidden": "Artículos ocultos por el equipo"
     },
     "usersTitle": "Cuentas",
     "users": {

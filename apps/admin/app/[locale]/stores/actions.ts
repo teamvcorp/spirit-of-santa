@@ -34,8 +34,8 @@ function finish(r: AdminResult): AdminFormState {
   return { status: "done", storeId: r.storeId, emailFailed: r.emailFailed, nonce: randomUUID() };
 }
 function itemDone(r: ItemModerationResult): AdminFormState {
+  refresh(); // also on "badStatus" (another admin acted first): the list shows the current state
   if (!r.ok) return { status: "error", error: r.error, nonce: randomUUID() };
-  refresh();
   return { status: "done", nonce: randomUUID() };
 }
 

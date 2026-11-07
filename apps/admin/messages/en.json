@@ -362,7 +362,8 @@
     },
     "items": {
       "active": "Items listed this season",
-      "draft": "Draft items (need a price)"
+      "draft": "Draft items (need a price)",
+      "hidden": "Items hidden by an admin"
     },
     "usersTitle": "Accounts",
     "users": {

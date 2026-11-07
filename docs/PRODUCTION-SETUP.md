@@ -18,8 +18,9 @@ Node.js version: 24.x (Project → Settings → General).
 | Variable | family | store | admin | Value / where to get it |
 |---|:-:|:-:|:-:|---|
 | `MONGODB_URI` | ✓ | ✓ | ✓ | Atlas, database **`spiritofsanta`** (not `_dev`), `&appName=sos-<app>` |
+| `MONGODB_DB` | ✓ | ✓ | ✓ | `spiritofsanta`. REQUIRED when the URI has no database name (the Vercel Atlas integration URI has none); the apps refuse to start without one |
 | `NEXTAUTH_SECRET` | ✓ | ✓ | ✓ | NEW random value per app (don't reuse dev ones) |
-| `NEXTAUTH_URL` | `https://spiritofsanta.com` | `https://store.spiritofsanta.com` | `https://admin.spiritofsanta.com` | this app's public URL |
+| `NEXTAUTH_URL` | `https://www.spiritofsanta.com` | `https://store.spiritofsanta.com` | `https://admin.spiritofsanta.com` | this app's public URL |
 | `RESEND_API_KEY` | ✓ | ✓ | ✓ | Resend → API Keys (sending access, fyht4.com only) |
 | `RESEND_FROM` | opt | opt | opt | blank = `Spirit of Santa <no-reply@fyht4.com>` |
 | `RESEND_REPLY_TO` | opt | opt | opt | a monitored inbox (recommended) |
@@ -35,8 +36,9 @@ Node.js version: 24.x (Project → Settings → General).
 | `STRIPE_WEBHOOK_SECRET` | ✓ | – | – | `whsec_` of the endpoint below |
 | `DEED_QR_KEY` | ✓ | – | – | NEW random value (same command as secrets). Key for kids' QR links; changing it voids unused QR codes |
 | `FAMILY_PROMO_CODE` | ✓ | – | – | Optional. Families who enter it pay the $5 child registration once (first child). Blank = promo off |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` | ✓ | – | – | Twilio console. Number in E.164 (`+1…`). Pay-later texts; without them no texts are sent |
 
-Later phases (leave unset for now): `TWILIO_*` (pay-later SMS), `FCM_*` / `NEXT_PUBLIC_FCM_*` (push).
+Later (leave unset for now): `FCM_*` / `NEXT_PUBLIC_FCM_*` (push).
 
 **Vercel UI gotcha:** after saving, the list may not refresh. Retrying then fails with "already exists
 … on branch". Press Ctrl+F5 before re-adding anything; to change a value use ⋯ → Edit.

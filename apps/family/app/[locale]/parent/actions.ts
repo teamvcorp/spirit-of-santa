@@ -15,6 +15,8 @@ import { ownFamilyId } from "@repo/auth/family-owner";
 import { familyAliasSchema, kidSchema, voteSchema } from "@repo/families/schemas";
 import { setFamilyAlias } from "@repo/families/settings";
 import { castVote } from "@repo/families/votes";
+import { reviewThankNote } from "@repo/deeds/deeds";
+import { OBJECT_ID_RE } from "@repo/lib/ids";
 import { redirect } from "next/navigation";
 import { localizePath } from "@repo/i18n/paths";
 import { formString } from "@repo/lib/form";
@@ -122,6 +124,18 @@ export async function voteAction(_prev: ParentFormState, fd: FormData): Promise<
   if (!r.ok) return err(r.error);
   refresh();
   return { status: "done", nonce: randomUUID() };
+}
+
+/** Approve or hide a thank-you note left on a child's good deed (PIN re-checked here). */
+export async function thankNoteAction(_prev: ParentFormState, fd: FormData): Promise<ParentFormState> {
+  const parent = await unlockedParentOrNull();
+  if (!parent) return err("locked");
+  const deedId = str(fd, "deedId");
+  const decision = str(fd, "decision");
+  if (!OBJECT_ID_RE.test(deedId) || (decision !== "approved" && decision !== "hidden")) return err("notFound");
+  const r = await reviewThankNote(parent, deedId, decision);
+  refresh();
+  return r.ok ? { status: "done", nonce: randomUUID() } : err("notFound");
 }
 
 /** Family nickname for public QR pages (PIN re-checked here). */

@@ -42,6 +42,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
   const link = kid.registered ? await donationLink(parent, id, origin) : null;
   const donate = link ? { url: link, image: await qrImage(link) } : null;
   const day = (d?: Date) => (d ? format.dateTime(new Date(d), { month: "short", day: "numeric" }) : "");
+  const notes = await getTranslations("Qr.notes");
   const title = (d: (typeof deeds)[number]) => d.custom || localized(d.title, locale) || t("aDeed");
   return (
     <>
@@ -89,6 +90,12 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
                     {day(d.createdAt)} · {t(`status.${d.status}` as never)}
                   </p>
                   {d.qr && <p className="mt-2 max-w-xs text-sm">{t("showQr", { until: day(d.expiresAt) })}</p>}
+                  {/* Only notes the parent approved ever reach this page. */}
+                  {d.note && (
+                    <p className="mt-2 max-w-xs text-sm font-semibold" data-testid="deed-note">
+                      {t("thankNote", { note: notes(d.note) })}
+                    </p>
+                  )}
                 </div>
                 {d.qr && (
                   // eslint-disable-next-line @next/next/no-img-element -- a data: URL; next/image adds nothing

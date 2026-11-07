@@ -18,6 +18,7 @@ import { closePayLaterForDeed } from "@repo/payments/pay-later-links";
 import { getSeasonState, giftWindow } from "@repo/stores/season";
 import { localized } from "./catalog.ts";
 import { hashDeedToken, isDeedToken } from "./qr.ts";
+import { isThankNote, type ThankNote } from "@repo/lib/thank-notes";
 
 export type PublicDeed =
   | { state: "invalid" }
@@ -92,15 +93,19 @@ export async function getPublicDeed(token: unknown, locale: string): Promise<Pub
 export type ThankResult = { ok: true } | { ok: false; error: "invalid" | "used" | "expired" | "seasonClosed" };
 const viewError = (v: PublicDeed) => (v.state === "used" ? "used" : v.state === "expired" ? "expired" : "invalid") as "used" | "expired" | "invalid";
 
-/** "Say thank you": confirm the deed (no money, no points). Single use: one atomic update. */
-export async function thankDeed(token: unknown): Promise<ThankResult> {
+/**
+ * "Say thank you": confirm the deed (no money, no points). Single use: one atomic update. `note` = an optional
+ * READY-MADE thank-you note (@repo/lib/thank-notes; owner 2026-11-07): stored as a key, shown to the child only once
+ * the parent approves it. The parent may then add Christmas Magic for the deed later (bonus).
+ */
+export async function thankDeed(token: unknown, note?: ThankNote): Promise<ThankResult> {
   const { view: v } = await view(token, "en");
   if (v.state !== "open") return { ok: false, error: viewError(v) };
   if (!v.seasonOpen) return { ok: false, error: "seasonClosed" };
   const now = new Date();
   const res = await Deed.updateOne(
     { qrTokenHash: hashDeedToken(token as string), status: "pending", qrUsedAt: null, expiresAt: trusted({ $gt: now }) },
-    { $set: { status: "confirmed", outcome: "thanked", qrUsedAt: now, confirmedAt: now } },
+    { $set: { status: "confirmed", outcome: "thanked", qrUsedAt: now, confirmedAt: now, ...(isThankNote(note) ? { thankNote: note, thankNoteReview: "pending" } : {}) } },
   );
   if (res.modifiedCount !== 1) return { ok: false, error: "used" };
   // Thanked: a texted pay-later link for this deed must not take money any more.

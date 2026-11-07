@@ -41,7 +41,6 @@
   "Privacy": {
     "title": "Política de privacidad y Aviso de privacidad infantil",
     "version": "Versión {version} · Aviso de privacidad infantil (lo que aceptan los padres): versión {childVersion}",
-    "draft": "BORRADOR: este aviso está en revisión y se finalizará antes del lanzamiento.",
     "intro": "Esta política cubre a las familias que usan Spirit of Santa y a los visitantes que agradecen a un niño, dan una propina o donación, o piden un mensaje para pagar más tarde. Incluye nuestro Aviso de privacidad infantil. Spirit of Santa permite que los niños ganen Magia Navideña por buenas acciones y la usen en una lista de deseos de Navidad. Los niños nunca crean sus propias cuentas: un padre, madre o tutor configura todo y mantiene el control.",
     "sections": {
       "collect": {
@@ -50,7 +49,7 @@
       },
       "public": {
         "title": "Qué pueden ver otras personas",
-        "body": "Cuando alguien escanea el código QR de tu hijo, ve solo el nombre para mostrar que elegiste (por ejemplo \"M.\"), la acción y el apodo de tu familia si lo activas. Nunca el nombre completo, la edad, el pueblo ni una foto de tu hijo."
+        "body": "Cuando alguien escanea el código QR de tu hijo, ve solo el nombre para mostrar que elegiste (por ejemplo \"M.\"), la acción y el apodo de tu familia si lo activas. Nunca el nombre completo, la edad, el pueblo ni una foto de tu hijo. Quienes dan las gracias solo pueden elegir una de unas pocas notas de agradecimiento ya escritas (nunca sus propias palabras), y tu hijo ve una nota solo después de que tú la apruebes."
       },
       "share": {
         "title": "Con quién compartimos información",
@@ -83,6 +82,12 @@
     }
   },
   "Parent": {
+    "notesTitle": "Notas de agradecimiento por revisar",
+    "notesIntro": "Las personas a las que ayudaron tus hijos dejaron estas notas en lugar de una propina. Aprueba una nota para mostrarla en la página de tu hijo. Si quieres, también puedes agregar Magia Navideña por la buena acción.",
+    "noteFor": "Para {name}: {deed}",
+    "noteApprove": "Aprobar",
+    "noteHide": "Ocultar",
+    "noteAddMagic": "Agregar Magia Navideña por esta acción",
     "title": "Área de padres",
     "setupTitle": "Elige tu PIN de padres",
     "unlockTitle": "Escribe tu PIN de padres",
@@ -190,6 +195,7 @@
     "review": "Recibimos el pago, pero algo no coincidió (por ejemplo, un niño ya estaba registrado). Nuestro equipo lo revisará y se comunicará contigo."
   },
   "Kid": {
+    "thankNote": "Nota de agradecimiento: “{note}”",
     "title": "Mis buenas acciones",
     "back": "Todos",
     "points": "{points} de Magia Navideña",
@@ -305,6 +311,15 @@
     }
   },
   "Qr": {
+    "noteLegend": "Agrega una nota de agradecimiento (opcional)",
+    "noNote": "Sin nota",
+    "noteHelp": "¿No puedes dar ahora? Una nota es un lindo agradecimiento. El papá o la mamá del niño la revisa antes de que el niño la vea.",
+    "notes": {
+      "thankYou": "¡Muchas gracias por tu amabilidad!",
+      "madeMyDay": "Me alegraste el día. ¡Gracias!",
+      "soKind": "Fue muy amable de tu parte. ¡Gracias!",
+      "merryChristmas": "¡Gracias y Feliz Navidad!"
+    },
     "title": "Una buena acción",
     "heading": "¡{name} hizo una buena acción por ti!",
     "family": "De la familia {family}",
@@ -543,7 +558,6 @@
   "Terms": {
     "title": "Términos del servicio",
     "version": "Versión {version}",
-    "draft": "BORRADOR: estos términos se están revisando y se finalizarán antes del lanzamiento.",
     "sections": {
       "about": {
         "title": "Sobre Spirit of Santa",

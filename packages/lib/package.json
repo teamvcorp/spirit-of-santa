@@ -9,6 +9,7 @@
     "./season": "./src/season.ts",
     "./roles": "./src/roles.ts",
     "./limits": "./src/limits.ts",
+    "./thank-notes": "./src/thank-notes.ts",
     "./format": "./src/format.ts",
     "./locales": "./src/locales.ts",
     "./cookies": "./src/cookies.ts",

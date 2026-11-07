@@ -24,6 +24,8 @@ import { calendarDateIn, isoDay, startOfDayInZone } from "@repo/lib/season";
 import { getSeasonState } from "@repo/stores/season";
 import mongoose from "mongoose";
 import { deedToken, hashDeedToken, qrDataUrl } from "./qr.ts";
+import { isThankNote, type ThankNote } from "@repo/lib/thank-notes";
+import { localized } from "./catalog.ts";
 
 export type RecordInput = { deedTypeId: string } | { other: string };
 export type RecordResult = { ok: true; deedId: string } | { ok: false; error: "notFound" | "notRegistered" | "seasonClosed" | "deedUnavailable" | "dailyLimit" };
@@ -89,6 +91,47 @@ export async function recordDeed(parent: Parent, rawKidId: string, input: Record
   return created === true ? { ok: true, deedId } : { ok: false, error: "dailyLimit" };
 }
 
+// ── Thank-you notes waiting for the parent (owner 2026-11-07) ─────────────────────────────
+
+export type PendingThankNote = { deedId: string; kidId: string; kidName: string; deed: string; note: ThankNote };
+
+/** The family's thank-you notes waiting for approval (oldest first). Only the parent's OWN family. */
+export async function listPendingThankNotes(parent: Parent, locale: Locale, aDeed: string): Promise<PendingThankNote[]> {
+  const fid = await ownFamilyId(parent);
+  if (!fid) return [];
+  const rows = await Deed.find({ familyId: fid, thankNoteReview: "pending" })
+    .sort({ confirmedAt: 1, _id: 1 })
+    .limit(50)
+    .select("kidId deedTypeId customDescription customReview thankNote")
+    .lean<{ _id: unknown; kidId: unknown; deedTypeId?: unknown; customDescription?: string; customReview?: string; thankNote?: string }[]>();
+  if (rows.length === 0) return [];
+  const [kids, types] = await Promise.all([
+    Kid.find({ _id: trusted({ $in: [...new Set(rows.map((r) => String(r.kidId)))] }), familyId: fid }).select("firstName").lean<{ _id: unknown; firstName: string }[]>(),
+    DeedType.find({ _id: trusted({ $in: rows.map((r) => r.deedTypeId).filter(Boolean).map(String) }) }).select("title").lean(),
+  ]);
+  const kidName = new Map(kids.map((k) => [String(k._id), k.firstName]));
+  const typeTitle = new Map(types.map((t) => [String(t._id), localized(t.title ?? undefined, locale)]));
+  return rows
+    .filter((r) => isThankNote(r.thankNote) && kidName.has(String(r.kidId)))
+    .map((r) => ({
+      deedId: String(r._id),
+      kidId: String(r.kidId),
+      kidName: kidName.get(String(r.kidId))!,
+      // The family's own deed text (their child typed it), or the catalogue title.
+      deed: (r.deedTypeId ? typeTitle.get(String(r.deedTypeId)) : r.customDescription) || aDeed,
+      note: r.thankNote as ThankNote,
+    }));
+}
+
+/** Parent approves (the child sees it) or hides a thank-you note. Compare-and-set on "pending", own family only. */
+export async function reviewThankNote(parent: Parent, rawDeedId: string, decision: "approved" | "hidden"): Promise<{ ok: boolean }> {
+  const id = normalizeObjectId(rawDeedId);
+  const fid = await ownFamilyId(parent);
+  if (!id || !fid) return { ok: false };
+  const r = await Deed.updateOne({ _id: id, familyId: fid, thankNoteReview: "pending" }, { $set: { thankNoteReview: decision } });
+  return { ok: r.modifiedCount === 1 };
+}
+
 export type KidDeedRow = {
   id: string;
   title: { en?: string; es?: string };
@@ -98,6 +141,8 @@ export type KidDeedRow = {
   expiresAt?: Date;
   /** Present only while the QR code can still be used: the link + a QR image (data URL). */
   qr?: { url: string; image: string };
+  /** A thank-you note the PARENT approved (never shown before that). */
+  note?: ThankNote;
 };
 
 /**
@@ -138,6 +183,7 @@ export async function listKidDeeds(parent: Parent, rawKidId: string, origin: str
         createdAt: d.createdAt,
         expiresAt: d.expiresAt ?? undefined,
         qr,
+        note: d.thankNoteReview === "approved" && isThankNote(d.thankNote) ? d.thankNote : undefined,
       };
     }),
   );

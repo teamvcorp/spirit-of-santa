@@ -860,6 +860,13 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   item lock and refuses at 50 ("limitReached"); the email only for editable stores and this season's items; list caps
   raised to 4x the limit. Known gap: the email link loses ?replaces= when the owner must sign in first (Items page has
   the link). E2E browser-admin-item-hide (19, needs the dev log).
+- **Thank-you notes + DRAFT labels removed (owner 2026-11-07).** QR page "Say thank you" takes an optional READY-MADE
+  note (@repo/lib/thank-notes THANK_NOTES keys; text in Qr.notes.*; never free text to a child). Deed.thankNote +
+  thankNoteReview (pending|approved|hidden); thankDeed(token, note) ignores non-keys. Parent area card "Thank-you notes to
+  check" (listPendingThankNotes / reviewThankNote in @repo/deeds/deeds, own family, CAS on pending; thankNoteAction PIN-
+  checked) with "Add Christmas Magic for this deed" → /parent/bonus?kid=. Kid page shows ONLY approved notes. Export
+  includes the note. Legal pages: DRAFT banners removed; versions PARENT_CONSENT/PRIVACY 2026-11-07c, TERMS 2026-11-07b
+  (lawyer review still open). E2E browser-family-thank-notes (9).
   Owner 2026-11-07: Spanish pay-later SMS LATER (after Twilio verification, register as an extra sample).
   Copies SHARE the photo blob: items.ts `deleteUnusedPhoto` deletes a blob only if no item uses it (index on
   photo.pathname). Stock: forms send hidden `inventoryWas`; `setInventory`/`updateItem` compare-and-set on it

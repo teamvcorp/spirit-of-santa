@@ -41,7 +41,6 @@
   "Privacy": {
     "title": "Privacy Policy and Children's Privacy Notice",
     "version": "Version {version} · Children's Privacy Notice (what parents agree to): version {childVersion}",
-    "draft": "DRAFT: this notice is being reviewed and will be finalised before launch.",
     "intro": "This policy covers families who use Spirit of Santa and visitors who thank a child, give a tip or donation, or ask for a pay-later text. It includes our Children's Privacy Notice. Spirit of Santa lets children earn Christmas Magic for good deeds and spend it on a Christmas wish list. Children never create their own accounts: a parent or guardian sets everything up and stays in control.",
     "sections": {
       "collect": {
@@ -50,7 +49,7 @@
       },
       "public": {
         "title": "What others can see",
-        "body": "When someone scans your child's QR code, they see only the display name you chose (for example \"M.\"), the deed, and your family nickname if you switch that on. Never your child's full name, age, town or photo."
+        "body": "When someone scans your child's QR code, they see only the display name you chose (for example \"M.\"), the deed, and your family nickname if you switch that on. Never your child's full name, age, town or photo. People who say thank you can only pick one of a few ready-made thank-you notes (never their own words), and your child sees a note only after you approve it."
       },
       "share": {
         "title": "Who we share information with",
@@ -83,6 +82,12 @@
     }
   },
   "Parent": {
+    "notesTitle": "Thank-you notes to check",
+    "notesIntro": "People your children helped left these notes instead of a tip. Approve a note to show it on your child's page. You can also add Christmas Magic for the good deed yourself if you wish.",
+    "noteFor": "For {name}: {deed}",
+    "noteApprove": "Approve",
+    "noteHide": "Hide",
+    "noteAddMagic": "Add Christmas Magic for this deed",
     "title": "Parent area",
     "setupTitle": "Set your parent PIN",
     "unlockTitle": "Enter your parent PIN",
@@ -190,6 +195,7 @@
     "review": "Payment received, but something didn't match (for example a child was already registered). Our team will check it and contact you."
   },
   "Kid": {
+    "thankNote": "Thank-you note: “{note}”",
     "title": "My deeds",
     "back": "Everyone",
     "points": "{points} Christmas Magic",
@@ -305,6 +311,15 @@
     }
   },
   "Qr": {
+    "noteLegend": "Add a thank-you note (optional)",
+    "noNote": "No note",
+    "noteHelp": "Can't give right now? A note is a lovely thank-you. The child's parent checks it before the child sees it.",
+    "notes": {
+      "thankYou": "Thank you so much for your kindness!",
+      "madeMyDay": "You made my day. Thank you!",
+      "soKind": "That was so kind of you. Thank you!",
+      "merryChristmas": "Thank you, and Merry Christmas!"
+    },
     "title": "A good deed",
     "heading": "{name} did a good deed for you!",
     "family": "From the {family} family",
@@ -543,7 +558,6 @@
   "Terms": {
     "title": "Terms of Service",
     "version": "Version {version}",
-    "draft": "DRAFT: these terms are being reviewed and will be finalised before launch.",
     "sections": {
       "about": {
         "title": "About Spirit of Santa",

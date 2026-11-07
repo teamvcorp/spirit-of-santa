@@ -11,6 +11,7 @@
 import mongoose, { type InferSchemaType, type Model } from "mongoose";
 const { Schema, model, models } = mongoose;
 import { LOCALES, centsField, objectId, seasonYearField } from "./_shared.ts";
+import { THANK_NOTES } from "@repo/lib/thank-notes";
 
 // ── DeedType (catalog) ───────────────────────────────────────────────────────────────
 const deedTypeSchema = new Schema(
@@ -96,6 +97,12 @@ const deedSchema = new Schema(
     expiresAt: Date,
 
     outcome: { type: String, enum: DEED_OUTCOMES },
+    /**
+     * Optional ready-made thank-you note left with a "Say thank you" (owner 2026-11-07; keys in @repo/lib/thank-notes,
+     * never free text). The child sees it only once the PARENT approved it.
+     */
+    thankNote: { type: String, enum: THANK_NOTES },
+    thankNoteReview: { type: String, enum: ["pending", "approved", "hidden"] },
     tipCents: centsField(false),
     confirmedAt: Date,
     /** Pay-later SMS link expiry (PAY_LATER_LINK_DAYS). Phone numbers are NOT stored. */
@@ -107,6 +114,7 @@ const deedSchema = new Schema(
 deedSchema.index({ kidId: 1, createdAt: -1 }); // a kid's recent deeds + the daily cap
 deedSchema.index({ status: 1, confirmedAt: 1 }); // parents' daily summary (Phase 7)
 deedSchema.index({ customReview: 1, createdAt: 1 }); // admin moderation queue
+deedSchema.index({ familyId: 1, thankNoteReview: 1 }, { partialFilterExpression: { thankNoteReview: "pending" } }); // parent's notes to check
 
 export type DeedDoc = InferSchemaType<typeof deedSchema>;
 export const Deed = (models.Deed ??

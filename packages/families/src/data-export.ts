@@ -43,7 +43,7 @@ export type KidExport = {
     droppedAt: Date | null;
     droppedCentipoints: number | null;
   }[];
-  goodDeeds: { deed: string; ownWords: string | null; ownWordsReview: string | null; status: string; outcome: string | null; tipCents: number | null; recordedAt: Date; confirmedAt: Date | null; codeExpiresAt: Date | null }[];
+  goodDeeds: { deed: string; ownWords: string | null; ownWordsReview: string | null; status: string; outcome: string | null; tipCents: number | null; thankNote: string | null; thankNoteReview: string | null; recordedAt: Date; confirmedAt: Date | null; codeExpiresAt: Date | null }[];
   votes: { day: string; vote: string }[];
   magicHistory: { type: string; centipoints: number; at: Date; note: string | null }[];
 };
@@ -90,7 +90,7 @@ export async function familyDataExport(parent: Parent, locale = "en"): Promise<F
       .select("kidId itemId status costCentipoints fundedCentipoints createdAt fullyFundedAt lockedAt shippedAt trackingNote receivedAt deliveredAt substituteNote forfeitedAt forfeitedCentipoints")
       .sort({ createdAt: 1 })
       .lean(),
-    Deed.find({ kidId: trusted({ $in: kidIds }) }).select("kidId deedTypeId customDescription customReview status outcome tipCents createdAt confirmedAt expiresAt").sort({ createdAt: 1 }).lean(),
+    Deed.find({ kidId: trusted({ $in: kidIds }) }).select("kidId deedTypeId customDescription customReview status outcome tipCents thankNote thankNoteReview createdAt confirmedAt expiresAt").sort({ createdAt: 1 }).lean(),
     KidVote.find({ kidId: trusted({ $in: kidIds }) }).select("kidId day vote").sort({ day: 1 }).lean(),
     Transaction.find({ kidId: trusted({ $in: kidIds }) }).select("kidId type amountCentipoints createdAt note").sort({ createdAt: 1 }).lean(),
     // The PARENT's own payments only (visitors' tips/donations are the donors' data).
@@ -168,6 +168,8 @@ export async function familyDataExport(parent: Parent, locale = "en"): Promise<F
         status: d.status,
         outcome: d.outcome ?? null,
         tipCents: d.tipCents ?? null,
+        thankNote: d.thankNote ?? null, // a ready-made note key (Qr.notes.*), never free text
+        thankNoteReview: d.thankNoteReview ?? null,
         recordedAt: d.createdAt,
         confirmedAt: d.confirmedAt ?? null,
         codeExpiresAt: d.expiresAt ?? null,

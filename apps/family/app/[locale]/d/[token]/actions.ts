@@ -9,18 +9,20 @@ import { z } from "zod";
 import { publicLimit, startTip, thankDeed, tipAmountCents, type TipStart } from "@repo/deeds/public";
 import { startPayLater, type PayLaterError } from "@repo/deeds/pay-later";
 import { localizePath } from "@repo/i18n/paths";
+import { THANK_NOTES } from "@repo/lib/thank-notes";
 import { amountFormSchema, echoAmount, formFields, publicTokenSchema, type AmountEcho } from "../../../../lib/amount-form";
 
 export type ThankState = { status: "idle" | "done" | "error"; error?: string };
 export type TipState = ({ status: "idle" } | TipStart | { ok: false; error: "rateLimited" | "invalid" }) & AmountEcho;
 
-const thankSchema = z.object({ token: publicTokenSchema });
+// note: optional ready-made thank-you note KEY (never free text; @repo/lib/thank-notes). "" = no note.
+const thankSchema = z.object({ token: publicTokenSchema, note: z.enum(THANK_NOTES).optional().or(z.literal("").transform(() => undefined)) });
 
 export async function thankAction(_prev: ThankState, fd: FormData): Promise<ThankState> {
   if (!(await publicLimit(await headers(), "act", 30))) return { status: "error", error: "rateLimited" };
   const parsed = thankSchema.safeParse(formFields(fd));
   if (!parsed.success) return { status: "error", error: "invalid" };
-  const r = await thankDeed(parsed.data.token);
+  const r = await thankDeed(parsed.data.token, parsed.data.note);
   return r.ok ? { status: "done" } : { status: "error", error: r.error };
 }
 

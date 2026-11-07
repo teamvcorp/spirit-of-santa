@@ -9,7 +9,6 @@ import { TERMS_VERSION } from "@repo/lib/family";
 import { CENTS_PER_POINT } from "@repo/lib/constants";
 import { formatCents } from "@repo/lib/format";
 import { PAY_LATER_LINK_DAYS } from "@repo/lib/limits";
-import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { LegalSections } from "../../../components/legal-sections";
 
@@ -27,7 +26,6 @@ export default async function TermsPage() {
       <Card>
         <h1 className="text-2xl font-bold">{t("title")}</h1>
         <p className="mb-4 mt-1 text-sm text-muted">{t("version", { version: TERMS_VERSION })}</p>
-        <Alert className="mb-6">{t("draft")}</Alert>
         {/* Rate + days from the server constants (never hard-coded in the wording). */}
         <LegalSections namespace="Terms" keys={SECTIONS} values={{ days: PAY_LATER_LINK_DAYS, rate: formatCents(CENTS_PER_POINT) }} />
       </Card>

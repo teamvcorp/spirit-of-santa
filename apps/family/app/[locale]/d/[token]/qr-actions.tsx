@@ -10,6 +10,7 @@ import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe
 import { LocaleField } from "@repo/auth/forms";
 import { formatCents } from "@repo/lib/format";
 import { MAX_TIP_CENTS, MIN_TIP_CENTS, TIP_PRESETS_CENTS } from "@repo/lib/limits";
+import { THANK_NOTES } from "@repo/lib/thank-notes";
 import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
 import { useHydrated } from "@repo/ui/use-hydrated";
@@ -47,6 +48,21 @@ export function QrActions({ token, kidName, rate, canTip, giving }: { token: str
       <form action={thankFormAction} className="flex flex-col gap-2">
         {thank.status === "error" && thank.error && <Alert tone="error">{t(`errors.${thank.error}` as never)}</Alert>}
         <input type="hidden" name="token" value={token} />
+        {/* Optional READY-MADE note (owner 2026-11-07): never free text to a child; the parent approves it first. */}
+        <fieldset className="flex flex-col gap-1" data-testid="thank-note">
+          <legend className="mb-1 font-medium">{t("noteLegend")}</legend>
+          <label className="flex items-center gap-2">
+            <input type="radio" name="note" value="" defaultChecked className="size-4" />
+            {t("noNote")}
+          </label>
+          {THANK_NOTES.map((n) => (
+            <label key={n} className="flex items-center gap-2">
+              <input type="radio" name="note" value={n} className="size-4" />
+              {t(`notes.${n}`)}
+            </label>
+          ))}
+          <p className="text-sm text-muted">{t("noteHelp")}</p>
+        </fieldset>
         <Button type="submit" pending={thanking} disabled={!hydrated} className="self-start">
           {t("sayThanks")}
         </Button>

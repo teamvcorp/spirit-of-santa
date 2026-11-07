@@ -7,7 +7,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { PARENT_CONSENT_VERSION, PRIVACY_VERSION } from "@repo/lib/family";
-import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { LegalSections } from "../../../components/legal-sections";
 
@@ -27,7 +26,6 @@ export default async function PrivacyPage() {
       <Card>
         <h1 className="text-2xl font-bold">{t("title")}</h1>
         <p className="mb-4 mt-1 text-sm text-muted">{t("version", { version: PRIVACY_VERSION, childVersion: PARENT_CONSENT_VERSION })}</p>
-        <Alert className="mb-6">{t("draft")}</Alert>
         <p className="mb-6">{t("intro")}</p>
         <LegalSections namespace="Privacy" keys={SECTIONS} />
       </Card>

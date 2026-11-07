@@ -14,6 +14,9 @@ import { payUpCount } from "@repo/wishlists/payup";
 import { addressMissing } from "@repo/families/address";
 import { getFormatter } from "next-intl/server";
 import { Alert } from "@repo/ui/alert";
+import { listPendingThankNotes } from "@repo/deeds/deeds";
+import { ThankNotes } from "./thank-notes";
+import { getLocale } from "next-intl/server";
 import { buttonClass } from "@repo/ui/button";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -27,6 +30,8 @@ async function Content() {
   const parent = await requireUnlockedPage();
   const [kids, t, tallies, settings, payUp, needAddress] = await Promise.all([listKids(parent), getTranslations("Parent"), familyTallies(parent), getFamilySettings(parent), payUpCount(parent), addressMissing(parent)]);
   const format = await getFormatter();
+  const kidT = await getTranslations("Kid");
+  const pendingNotes = await listPendingThankNotes(parent, (await getLocale()) as "en" | "es", kidT("aDeed"));
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -56,6 +61,13 @@ async function Content() {
             {t("payUpLink")}
           </Link>
         </Alert>
+      )}
+      {pendingNotes.length > 0 && (
+        <Card className="mb-6">
+          <h2 className="mb-1 text-lg font-semibold">{t("notesTitle")}</h2>
+          <p className="mb-3 text-sm text-muted">{t("notesIntro")}</p>
+          <ThankNotes notes={pendingNotes} />
+        </Card>
       )}
       <Card>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

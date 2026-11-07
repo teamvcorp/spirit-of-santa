@@ -66,11 +66,11 @@ async function signIn(p: Page) {
 
 try {
   const page = await newPage();
-  // 1. Privacy notice exists, marked DRAFT, with the consent version.
+  // 1. Privacy notice exists with the consent version (no DRAFT label since the owner removed it 2026-11-07).
   await page.goto(`${base}/privacy`);
   await page.locator("main h1").waitFor({ timeout: 15_000 });
   const privacy = await page.locator("main").innerText();
-  check("privacy notice shows DRAFT + consent version", privacy.includes("DRAFT") && privacy.includes(PARENT_CONSENT_VERSION));
+  check("privacy notice shows the consent version, no DRAFT label", !privacy.includes("DRAFT") && privacy.includes(PARENT_CONSENT_VERSION));
   await page.goto(`${base}/register`);
   check("consent box links to the privacy notice", (await page.locator('main a[href$="/privacy"]').count()) === 1);
 

@@ -1,16 +1,16 @@
 # Spirit of Santa — items for legal review
 
-Prepared 2026-11-07 for Spirit of Santa's lawyer. Everything below is built and live in the code; the wording on
-the public pages is marked **DRAFT** until you approve it. Each item says what the site does today, where people
+Prepared 2026-11-07 for Spirit of Santa's lawyer. Everything below is built and live in the code; the owner
+removed the public "DRAFT" labels on 2026-11-07; your changes will be published as new versions. Each item says what the site does today, where people
 see it, and the question for you.
 
 Dates below are the defaults; an admin can move the freeze date (Nov 1 – Dec 3) and the first closed day
 (Dec 26 – 31), and the site always shows the current dates.
 
 Current text versions (shown at the top of each page; bump after any change you request):
-- Privacy policy: `2026-11-07b-draft` (spiritofsanta.com/privacy)
-- Parental consent + children's privacy notice: `2026-11-07b-draft` (accepted at sign-up)
-- Terms of service: `2026-11-07-draft` (spiritofsanta.com/terms)
+- Privacy policy: `2026-11-07c` (spiritofsanta.com/privacy)
+- Parental consent + children's privacy notice: `2026-11-07c` (accepted at sign-up)
+- Terms of service: `2026-11-07b` (spiritofsanta.com/terms)
 - Store discount and guarantee agreement: `2026-11-07` (accepted by stores at sign-up)
 - Text-message consent: `sms-2026-11-06b` (registered with the carriers)
 

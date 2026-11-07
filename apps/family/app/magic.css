@@ -3,9 +3,10 @@
  * are calmer and don't load this. Every animation is switched OFF for people whose device asks for
  * reduced motion (accessibility), and none of it carries information (the numbers are always text).
  */
+/* Falls from just above the hero to its bottom edge (top is relative to the hero, the snow layer). */
 @keyframes sos-fall {
-  from { transform: translate3d(0, -20px, 0); }
-  to { transform: translate3d(18px, 105vh, 0); }
+  from { top: -12px; transform: translateX(0); }
+  to { top: 100%; transform: translateX(18px); }
 }
 @keyframes sos-fill {
   from { transform: scaleX(0); }
@@ -30,12 +31,12 @@
   position: absolute;
   top: -12px;
   border-radius: 9999px;
-  background: #ffffff;
+  background: var(--color-snow);
   pointer-events: none;
   animation: sos-fall linear infinite;
 }
 @media (prefers-color-scheme: light) {
-  .sos-flake { background: #b9c9e4; }
+  .sos-flake { background: var(--color-flake-day); }
 }
 
 /* Progress bars fill up once, then a soft shine passes over them. */

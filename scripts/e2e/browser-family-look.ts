@@ -26,6 +26,7 @@ const user = await User.create({ email: `e2e-look-${tag}@spiritofsanta.test`, pa
 const fam = await Family.create({ ownerUserId: user._id, familyName: `Look${tag}`, parentPinHash: await hashSecret("8158"), consent: { version: "test", acceptedAt: new Date() } });
 await User.updateOne({ _id: user._id }, { $set: { familyId: fam._id } });
 const kid = await Kid.create({ familyId: fam._id, firstName: `Mia${tag}`, birthYear: 2017, displayName: "M.", escrowedCentipoints: 1500, registration: { status: "registered", registeredAt: new Date(), method: "card" } });
+const newKid = await Kid.create({ familyId: fam._id, firstName: `Ned${tag}`, birthYear: 2018, displayName: "N." }); // not registered
 const storeId = oid();
 const itemId = oid();
 const year = getSeasonYear();
@@ -88,6 +89,33 @@ try {
   await page.locator('nav[aria-label="Main"] a[aria-current="page"]').waitFor({ timeout: 60_000 });
   check("Gifts tab opens the child's gift browser and is current there", (await tabs(page).locator('a[aria-current="page"]').innerText()).includes("Gifts"));
 
+  // 4. Screen readers hear the same words as the line under the bar (percent + text).
+  await page.goto(`${base}/kids/${kid._id}`);
+  const bar = page.locator('main:visible [role="progressbar"]').first();
+  await bar.waitFor({ timeout: 60_000 });
+  check("progress bar: aria-valuenow is a percent, aria-valuetext = the visible words", (await bar.getAttribute("aria-valuenow")) === "100" && ((await bar.getAttribute("aria-valuetext")) ?? "").includes("15 of 15"));
+
+  // 5. An unregistered child's gift browser says why adding won't work (the tab bar can reach it).
+  await page.goto(`${base}/kids/${newKid._id}/gifts`);
+  await page.locator("main:visible [role=status]").first().waitFor({ timeout: 60_000 });
+  check("unregistered child: gift browser explains 'Register this child first'", (await page.locator("main:visible").innerText()).includes("Register this child first"));
+
+  // 6. Storage blocked (private window): the dialog still closes; Tab stays inside; Escape closes.
+  const blocked = await browser.newContext();
+  await blocked.addInitScript(() => Object.defineProperty(window, "localStorage", { get() { throw new Error("blocked"); } }));
+  await blocked.addCookies(await ctx.cookies());
+  const bp = await blocked.newPage();
+  bp.on("pageerror", (e) => errors.push(e.message));
+  await bp.goto(`${base}/kids/${kid._id}`);
+  await bp.getByRole("dialog").waitFor({ timeout: 60_000 });
+  await bp.keyboard.press("Tab");
+  await bp.keyboard.press("Tab");
+  const focused = await bp.evaluate(() => document.activeElement?.textContent?.trim());
+  check("focus stays on the dialog's button when pressing Tab", focused === "Hooray!");
+  await bp.keyboard.press("Escape");
+  const closed = await bp.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 }).then(() => true, () => false);
+  check("storage blocked: Escape still closes the celebration (no stuck overlay)", closed);
+
   check("no browser errors", errors.length === 0);
   if (errors.length) console.log(errors);
 } finally {
@@ -96,7 +124,7 @@ try {
     WishListItem.collection.deleteMany({ kidId: kid._id }),
     Item.collection.deleteOne({ _id: itemId }),
     Store.collection.deleteOne({ _id: storeId }),
-    Kid.deleteOne({ _id: kid._id }),
+    Kid.deleteMany({ _id: trusted({ $in: [kid._id, newKid._id] }) }),
     Family.deleteOne({ _id: fam._id }),
     User.deleteMany({ _id: trusted({ $in: [user._id] }) }),
   ]);

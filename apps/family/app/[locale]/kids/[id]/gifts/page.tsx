@@ -14,6 +14,8 @@ import { getKid } from "@repo/families/kids";
 import { formatPoints } from "@repo/lib/format";
 import { browseGifts, GIFT_SORTS, parseGiftQuery, type GiftQuery } from "@repo/wishlists/catalog";
 import { Card } from "@repo/ui/card";
+import { Alert } from "@repo/ui/alert";
+import { getSeasonState } from "@repo/stores/season";
 import { Link } from "@/i18n/navigation";
 import { requireParent } from "@/lib/parent";
 import { buttonClass } from "@repo/ui/button";
@@ -40,7 +42,7 @@ async function Content({ params, searchParams }: Pick<Props, "params" | "searchP
   await connection();
   const parent = await requireParent();
   const [{ id }, sp, t] = await Promise.all([params, searchParams, getTranslations("Gifts")]);
-  const kid = await getKid(parent, id);
+  const [kid, season] = await Promise.all([getKid(parent, id), getSeasonState()]);
   if (!kid) notFound(); // another family's kid looks the same as a missing one
   const query = parseGiftQuery(sp);
   const result = await browseGifts(query);
@@ -50,6 +52,8 @@ async function Content({ params, searchParams }: Pick<Props, "params" | "searchP
         ← {t("backToKid", { name: kid.firstName })}
       </Link>
       <h1 className="text-3xl font-bold">{t("browseTitle")}</h1>
+      {/* Browsing is always fine; adding isn't for an unregistered child or outside the open season. */}
+      {!kid.registered ? <Alert className="my-3">{t("why.notRegistered")}</Alert> : season.phase !== "open" ? <Alert className="my-3">{t("why.seasonNotOpen")}</Alert> : null}
       <p className="mb-4 text-muted">{t("browseIntro")}</p>
 
       {/* GET form: the filters live in the URL (no Server Action needed for reading). */}

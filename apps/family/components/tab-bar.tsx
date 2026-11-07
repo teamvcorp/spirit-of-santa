@@ -7,6 +7,7 @@
  * Big touch targets (≥ 56 px), labels under icons, aria-current on the active tab.
  */
 import { Link, usePathname } from "@/i18n/navigation";
+import { kidPath } from "@/lib/kid-path";
 
 type Labels = { home: string; wishlist: string; gifts: string; parent: string; nav: string };
 
@@ -29,8 +30,9 @@ const icon = {
 
 export function TabBar({ labels }: { labels: Labels }) {
   const path = usePathname();
-  const kid = /^\/kids\/([a-f0-9]{24})/.exec(path)?.[1];
-  const onGifts = /^\/kids\/[a-f0-9]{24}\/gifts/.test(path);
+  const at = kidPath(path);
+  const kid = at?.kidId;
+  const onGifts = at?.section === "gifts";
   const tabs = [
     { key: "home", href: "/", active: path === "/" },
     { key: "wishlist", href: kid ? `/kids/${kid}` : "/", active: Boolean(kid) && !onGifts },

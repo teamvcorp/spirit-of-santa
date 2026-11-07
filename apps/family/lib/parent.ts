@@ -11,6 +11,7 @@ import { requireRole } from "@repo/auth";
 import { hasParentPin, isParentUnlocked } from "@repo/auth/parent-pin";
 import { authOptions } from "@/auth";
 import { redirect } from "@/i18n/navigation";
+import { OBJECT_ID_PATTERN } from "@repo/lib/ids";
 
 /** Signed-in parent (else sign-in / 404). */
 export async function requireParent() {
@@ -32,9 +33,12 @@ export async function goTo(href: string): Promise<never> {
  */
 export function safeNext(raw: unknown): string | null {
   if (typeof raw !== "string" || raw.length > 120) return null;
-  const ok = /^\/(?:parent(?:\/(?:kids\/new|kids\/[a-f0-9]{24}|register|payup|address|notifications|bonus(?:\?kid=[a-f0-9]{24})?))?|kids\/[a-f0-9]{24}(?:\/deed|\/wishlist\/[a-f0-9]{24}\/remove)?)$/.test(raw);
-  return ok ? raw : null;
+  return SAFE_NEXT.test(raw) ? raw : null;
 }
+const ID = OBJECT_ID_PATTERN;
+const SAFE_NEXT = new RegExp(
+  `^/(?:parent(?:/(?:kids/new|kids/${ID}|register|payup|address|notifications|bonus(?:\\?kid=${ID})?))?|kids/${ID}(?:/deed|/wishlist/${ID}/remove)?)$`,
+);
 
 /**
  * Parent AND PIN-unlocked (pages). The unlock cookie is checked first (no DB): a valid unlock

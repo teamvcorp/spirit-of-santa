@@ -8,15 +8,14 @@
  */
 import { getFormatter, getTranslations } from "next-intl/server";
 import type { ItemStats } from "@repo/stores/items";
+import { ProgressBar } from "@repo/ui/progress-bar";
 
 /** Thin funding bar + its percentage as text. `label` names it for screen readers. */
 export function FundingMeter({ percent, label }: { percent: number; label: string }) {
   const p = Math.max(0, Math.min(100, Math.floor(percent)));
   return (
     <div className="flex items-center gap-2">
-      <div role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={p} className="h-2 w-24 shrink-0 overflow-hidden rounded-full bg-meter/20">
-        {p > 0 && <div className="h-full rounded-full bg-meter" style={{ width: `${p}%` }} />}
-      </div>
+      <ProgressBar value={p} max={100} label={label} valueText={`${p}%`} className="w-24 shrink-0" />
       <span className="text-sm tabular-nums">{p}%</span>
     </div>
   );

@@ -32,6 +32,11 @@
   --color-gold: #e0a526;
   --color-gold-light: #f5c451;
   --color-berry: #c8102e;
+  /* Home hero sky + snow (family app, Phase 8.5.2). */
+  --color-sky-day: #dde8f7;
+  --color-sky-night: #0b1530;
+  --color-sky-night-mid: #14244a;
+  --color-flake-day: #b9c9e4;
 }
 
 /*

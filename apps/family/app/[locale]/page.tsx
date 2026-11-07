@@ -69,7 +69,7 @@ export default async function Home() {
   return (
     <main className="flex flex-1 flex-col">
       {/* Hero: snowy day by default, starry night when the device is in dark mode. */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#dde8f7] to-background dark:from-[#0b1530] dark:via-[#14244a] dark:to-background">
+      <section className="relative overflow-hidden bg-gradient-to-b from-sky-day to-background dark:from-sky-night dark:via-sky-night-mid dark:to-background">
         <Snowfall />
         <div className="relative mx-auto flex max-w-3xl flex-col items-center gap-4 px-6 pt-8 text-center">
           <h1 className="text-4xl font-bold leading-tight sm:text-5xl">{t("title")}</h1>

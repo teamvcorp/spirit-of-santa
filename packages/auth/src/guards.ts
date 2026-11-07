@@ -13,6 +13,7 @@ import "server-only";
 import type { AuthOptions } from "next-auth";
 import { getServerSession } from "next-auth/next";
 import { notFound, redirect } from "next/navigation";
+import { cache } from "react";
 import type { Role } from "@repo/lib/roles";
 import { safeCallbackPath } from "./redirect.ts";
 
@@ -20,11 +21,15 @@ export type SessionUser = NonNullable<
   NonNullable<Awaited<ReturnType<typeof getServerSession<AuthOptions>>>>["user"]
 >;
 
-/** The raw session user, restricted (mfaSetup) sessions included. Internal. */
-async function sessionUser(options: AuthOptions): Promise<SessionUser | null> {
+/**
+ * The raw session user, restricted (mfaSetup) sessions included. Internal.
+ * React cache(): decoded ONCE per request however many components ask (layout tab bar, page,
+ * guards); a new request always decodes again, so revocation checks still run every request.
+ */
+const sessionUser = cache(async (options: AuthOptions): Promise<SessionUser | null> => {
   const session = await getServerSession(options);
   return session?.user ?? null;
-}
+});
 
 /**
  * The signed-in user, or null (signed out, revoked, or foreign-app token).

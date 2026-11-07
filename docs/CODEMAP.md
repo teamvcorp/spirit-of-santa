@@ -647,7 +647,13 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   `apps/family/app/magic.css` (family only; all off for prefers-reduced-motion). Illustrations: files in
   `apps/family/public/illustrations/` (house-night, house-day, gift-box; placeholders), paths ONLY in
   `apps/family/lib/illustrations.ts`, replacement guide `docs/illustrations.md`. Family text-foreground/70 → text-muted.
-  E2E `browser-family-look.ts` (9).
+  E2E `browser-family-look.ts` (13). Review fixes: Celebration closes even with storage blocked (in-memory set),
+  celebrates shipped/delivered gifts too, focus trap + Escape + scroll lock + focus return; ONE `ProgressBar` in
+  @repo/ui (percent aria-valuenow + aria-valuetext = visible words; tones meter|magic) used by family MagicBar and
+  store FundingMeter; hero/snow/sparkle colours are theme tokens (sky-day, sky-night(-mid), flake-day); snow falls
+  only within the hero; getSessionUser decodes ONCE per request (React cache in @repo/auth guards); kid routes known
+  only by `apps/family/lib/kid-path.ts`, ids via OBJECT_ID_PATTERN (@repo/lib/ids, also safeNext); gift browser
+  explains when the child can't add (unregistered / season not open).
 
 ## Open items / TODO
 

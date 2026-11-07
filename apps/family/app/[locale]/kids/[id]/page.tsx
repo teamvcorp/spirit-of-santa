@@ -57,7 +57,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
           </Link>
         )}
       </div>
-      <Celebration funded={wishes.rows.filter((w) => w.status === "fully_funded" || w.status === "locked").map((w) => ({ id: w.id, name: w.name }))} />
+      <Celebration funded={wishes.rows.filter((w) => ["fully_funded", "locked", "shipped", "delivered"].includes(w.status)).map((w) => ({ id: w.id, name: w.name }))} />
       {!kid.registered && <Alert className="mb-6">{t("notRegistered")}</Alert>}
       <WishListCard kidId={kid.id} registered={kid.registered} cap={kid.itemCap} list={wishes} />
       {donate && (

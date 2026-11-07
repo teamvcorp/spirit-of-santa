@@ -6,7 +6,9 @@
  * normalised form: an upper-case copy of your own id once slipped past such a check
  * (review 2026-11-05). Normalise every id that comes from a request with this.
  */
-export const OBJECT_ID_RE = /^[0-9a-f]{24}$/;
+/** The id pattern (no anchors) for building path patterns; OBJECT_ID_RE is the anchored test. */
+export const OBJECT_ID_PATTERN = "[0-9a-f]{24}";
+export const OBJECT_ID_RE = new RegExp(`^${OBJECT_ID_PATTERN}$`);
 
 /** Lower-case, trimmed ObjectId string, or null if it isn't one. */
 export function normalizeObjectId(value: unknown): string | null {

@@ -51,7 +51,8 @@ export async function WishListCard({ kidId, registered, cap, list }: { kidId: st
                 <p className="text-sm text-muted">
                   {t("fromStore", { store: w.storeName })} · {t(`status.${w.status}` as never)}
                 </p>
-                <MagicBar value={w.fundedCentipoints} max={w.costCentipoints} label={t("progressLabel", { name: w.name })} />
+                {/* Same words for the bar's screen-reader text and the visible line under it. */}
+                <MagicBar value={w.fundedCentipoints} max={w.costCentipoints} label={t("progressLabel", { name: w.name })} valueText={t("progress", { funded: formatPoints(w.fundedCentipoints), cost: formatPoints(w.costCentipoints) })} />
                 <p className="text-sm font-bold">{t("progress", { funded: formatPoints(w.fundedCentipoints), cost: formatPoints(w.costCentipoints) })}</p>
                 {w.status === "fully_funded" && w.lockAt && <p className="text-sm text-muted">{t("lockOn", { date: day(w.lockAt) })}</p>}
                 {w.needsSubstitute && <p className="text-sm">{t("needsSubstitute")}</p>}

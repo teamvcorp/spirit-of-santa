@@ -225,6 +225,10 @@ Where magic points become Christmas presents.
 
 **Sep 2027 (or earlier: development is running months ahead)**
 
+**Starts with questions, not code:** before any design or code change, go through a detailed set of questions
+with the owner about the look and behaviour (mood, colours, fonts, logo, imagery, tone for kids vs parents,
+motion, reference sites) and agree on the answers.
+
 A phase of ONLY look and feel: no new features, no changes to business rules or money logic.
 Every screen keeps its current behaviour; the end-to-end tests must stay green after each change.
 

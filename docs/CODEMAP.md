@@ -693,9 +693,15 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   cron, unsubscribe, CSRF checked OK. Fixed: lockouts could be RACED by parallel guesses → `@repo/auth/attempts`
   (reserveAttempt BEFORE verify / failAttempt / releaseAttempt; `LOGIN_ATTEMPTS` in options.ts replaces
   recordFailedLogin; PIN uses PIN_ATTEMPTS). Every operator wrapped in trusted() on its own (sanitizeFilter checks
-  nested objects). Per-IP sign-in cap 50/15 min/app (off in dev). resetPassword(raw, pw, ctx): keeps an active lock
+  nested objects). Per-IP cap on failed sign-ins 50/15 min/app (off in dev). resetPassword(raw, pw, ctx): keeps an active lock
   on MFA accounts, stamps parent consent.emailVerifiedAt when activating, sends `passwordChanged` alert email.
-  E2E `scripts/e2e/auth-race.ts` (12): 50 parallel tries → exactly 5, real HTTP burst, reset cases.
+  E2E `scripts/e2e/auth-race.ts` (14): 50 parallel tries → exactly 5, real HTTP burst, reset cases.
+  Review fixes: locks only GROW ($max); success update filtered by `unlocked()` (never wipes a lock set meanwhile);
+  a crash mid-check releases the try (`settled` flag); per-IP cap counts only FAILED sign-ins (`overRateLimit` peek
+  + hit on failure; skipped when IP unknown; verified on a prod build: 50 fails block, 60 successes pass); reset
+  keeps only locks longer than LOCKOUT_MINUTES; alert in the owner's locale; PIN_ATTEMPTS lives in attempts.ts
+  (parent-pin.ts needs Next, tests import the real rule). Accepted: a release can cancel one later strike in a rare
+  interleaving (documented in attempts.ts).
 
 ## Open items / TODO
 

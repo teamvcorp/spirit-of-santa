@@ -20,7 +20,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { AuditLog, connectDb, Family, User, withTransaction } from "@repo/db";
-import { failAttempt, releaseAttempt, reserveAttempt, type AttemptRule } from "./attempts.ts";
+import { failAttempt, PIN_ATTEMPTS, releaseAttempt, reserveAttempt, unlocked } from "./attempts.ts";
 import { LOGIN_ATTEMPTS } from "./options.ts";
 import { hitRateLimit } from "./rate-limit.ts";
 import { baseCookieOptions, cookieName } from "./cookies.ts";
@@ -34,10 +34,6 @@ import {
 
 export { pinSchema, PIN_UNLOCK_SECONDS };
 
-export const PIN_MAX_FAILURES = 5;
-export const PIN_LOCKOUT_MINUTES = 15;
-/** PIN lockout rule: tries are RESERVED before verifying (attempts.ts), so parallel guesses can't race past it. */
-const PIN_ATTEMPTS: AttemptRule = { count: "pinFailedCount", lock: "pinLockedUntil", max: PIN_MAX_FAILURES, lockMs: PIN_LOCKOUT_MINUTES * 60_000 };
 
 // ── Session-facing API ─────────────────────────────────────────────────────────────────
 function requireSecret(): string {
@@ -102,11 +98,20 @@ export async function setParentPinWithPassword(user: ParentUser, password: unkno
     await burnVerifyTime(password); // same answer + timing as a wrong password
     return { ok: false, error: "wrongPassword" };
   }
-  if (!(await verifySecret(password, account.passwordHash))) {
+  let right: boolean;
+  try {
+    right = await verifySecret(password, account.passwordHash);
+  } catch (err) {
+    await releaseAttempt(User, me, LOGIN_ATTEMPTS).catch(() => {}); // a crash is not a strike
+    throw err;
+  }
+  if (!right) {
     await failAttempt(User, me, LOGIN_ATTEMPTS);
     return { ok: false, error: "wrongPassword" };
   }
-  await releaseAttempt(User, me, LOGIN_ATTEMPTS); // right password: not a strike
+  // Right password: clears earlier strikes too, like a successful sign-in (only while unlocked: never
+  // undo a lock another request set meanwhile).
+  await User.updateOne({ ...me, ...unlocked(LOGIN_ATTEMPTS) }, { $set: { failedLoginCount: 0 } });
   const hash = await hashSecret(parsedPin.data);
   const saved = await withTransaction(async (session) => {
     const res = await Family.updateOne(
@@ -139,10 +144,17 @@ export async function unlockParentDashboard(
   const mine = { _id: user.familyId, ownerUserId: user.id };
   const family = await Family.findOne(mine).select("+parentPinHash");
   if (!family?.parentPinHash) return false;
-  // Take a try BEFORE the (slow) verify: at most PIN_MAX_FAILURES guesses per lock window, even in parallel.
+  // Take a try BEFORE the (slow) verify: at most PIN_ATTEMPTS.max guesses per lock window, even in parallel.
   if (!(await reserveAttempt(Family, mine, PIN_ATTEMPTS))) return false;
 
-  if (!(await verifySecret(parsed.data, family.parentPinHash))) {
+  let right: boolean;
+  try {
+    right = await verifySecret(parsed.data, family.parentPinHash);
+  } catch (err) {
+    await releaseAttempt(Family, mine, PIN_ATTEMPTS).catch(() => {}); // a crash is not a strike
+    throw err;
+  }
+  if (!right) {
     await failAttempt(Family, mine, PIN_ATTEMPTS);
     return false;
   }

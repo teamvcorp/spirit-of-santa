@@ -21,9 +21,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 import { connectDb, User } from "@repo/db";
 import { isRoleAllowedInApp, type AppName, type Role } from "@repo/lib/roles";
-import { failAttempt, releaseAttempt, reserveAttempt, type AttemptRule } from "./attempts.ts";
+import { failAttempt, releaseAttempt, reserveAttempt, unlocked, type AttemptRule } from "./attempts.ts";
 import { nextAuthCookies } from "./cookies.ts";
-import { clientIp, hitRateLimit, ipKey } from "./rate-limit.ts";
+import { clientIp, hitRateLimit, ipKey, overRateLimit } from "./rate-limit.ts";
 import { recordMfaFailure, verifySecondFactor } from "./mfa.ts";
 import {
   burnVerifyTime,
@@ -72,8 +72,20 @@ declare module "next-auth/jwt" {
 
 export const MAX_FAILED_LOGINS = 5;
 export const LOCKOUT_MINUTES = 15;
-/** Sign-in tries per IP (IPv6: per /64) per app per 15 min, all accounts together. */
-const SIGNIN_PER_IP = 50;
+/** FAILED sign-ins per IP (IPv6: per /64) per app per 15 min, all accounts together (credential stuffing). */
+const SIGNIN_FAILURES_PER_IP = 50;
+const SIGNIN_IP_WINDOW_S = 15 * 60;
+
+/**
+ * Rate-limit key for this sign-in's address, or undefined = no per-IP cap: in development (every local
+ * test signs in from the same address) and when the address is unknown (one shared bucket would let a
+ * single attacker block everyone without a known address). On Vercel the platform sets the address.
+ */
+function signInIpKey(headers: unknown, app: AppName): string | undefined {
+  if (process.env.NODE_ENV === "development") return undefined;
+  const ip = clientIp(new Headers((headers ?? {}) as Record<string, string>));
+  return ip === "unknown" ? undefined : `signin-fail:ip:${ipKey(ip)}:${app}`;
+}
 const RECHECK_MS = 5 * 60 * 1000;
 /**
  * Stamped on every admin token at sign-in. Admin tokens WITHOUT it were issued before admin
@@ -124,14 +136,7 @@ export function createAuthOptions(app: AppName): AuthOptions {
           // (?error=<message>), which would show DB/driver internals to users. So catch
           // everything, log it server-side, and return the generic failure.
           try {
-            // Per-IP cap (Phase 8 audit): the per-account lockout can't see one attacker trying
-            // MANY accounts ("credential stuffing"). Generous for shared/home networks. Off in dev:
-            // every local test signs in from the same address.
-            if (process.env.NODE_ENV !== "development") {
-              const ip = ipKey(clientIp(new Headers((req?.headers ?? {}) as Record<string, string>)));
-              if (!(await hitRateLimit(`signin:ip:${ip}:${app}`, SIGNIN_PER_IP, 15 * 60))) return refuse("rate_limited", app);
-            }
-            return await verifyCredentials(raw, app);
+            return await verifyCredentials(raw, app, signInIpKey(req?.headers, app));
           } catch (err) {
             console.error(
               "[auth] sign-in error:",
@@ -158,18 +163,27 @@ function refuse(reason: RefuseReason, app: AppName, db?: string): null {
   return GENERIC_FAILURE;
 }
 
-/** Email + password check with lockout. Returns the user for the session, or null. */
-async function verifyCredentials(raw: unknown, app: AppName) {
+/**
+ * Email + password check with lockout. Returns the user for the session, or null.
+ * `ipLimitKey` (production): per-IP cap on FAILED sign-ins across all accounts (credential stuffing).
+ * Only failures count, so many families signing in correctly behind one shared address (school, mobile
+ * carrier) are never blocked; the check happens before any password work.
+ */
+async function verifyCredentials(raw: unknown, app: AppName, ipLimitKey?: string) {
   const parsed = credentialsSchema.safeParse(raw);
   if (!parsed.success) return refuse("bad_input", app);
   const { email, password, code } = parsed.data;
 
   const db = (await connectDb()).connection.name;
-  const user = await User.findOne({ email }).select(
-    "+passwordHash +failedLoginCount +lockedUntil",
-  );
+  if (ipLimitKey && (await overRateLimit(ipLimitKey, SIGNIN_FAILURES_PER_IP, SIGNIN_IP_WINDOW_S))) return refuse("rate_limited", app, db);
+  const ipStrike = async () => {
+    if (ipLimitKey) await hitRateLimit(ipLimitKey, SIGNIN_FAILURES_PER_IP, SIGNIN_IP_WINDOW_S);
+  };
+
+  const user = await User.findOne({ email }).select("+passwordHash");
   if (!user) {
     await burnVerifyTime(password); // equalise timing with the "wrong password" path
+    await ipStrike();
     return refuse("no_account", app, db);
   }
   // Take a try BEFORE verifying (attempts.ts): parallel guesses can't race past the limit.
@@ -181,61 +195,75 @@ async function verifyCredentials(raw: unknown, app: AppName) {
     return refuse("locked", app, db);
   }
 
-  const ok = await verifySecret(password, user.passwordHash);
-  if (!ok) {
+  // From here the try is "held". Every outcome settles it exactly once: strike, release or success.
+  // If anything throws before that (DB blip, hashing error), the catch gives the try back, so outages
+  // can't pile up phantom strikes that lock out someone who typed the right password.
+  let settled = false;
+  const strike = async () => {
+    settled = true;
     await failAttempt(User, me, LOGIN_ATTEMPTS);
-    return refuse("bad_password", app, db);
-  }
-
-  // Correct password, but still refuse other apps' roles and any account that isn't active:
-  // "pending" = email not verified yet (sign-up flow), "suspended" = blocked by admin.
-  // Same generic failure, so the response never reveals which case applies. Not a strike.
-  if (user.status !== "active" || !isRoleAllowedInApp(user.role, app)) {
+    await ipStrike();
+  };
+  const release = async () => {
+    settled = true;
     await releaseAttempt(User, me, LOGIN_ATTEMPTS);
-    return refuse(user.status !== "active" ? "not_active" : "wrong_app", app, db);
-  }
-
-  // Second factor. Checked only AFTER the password, so codes can't be guessed without it.
-  // A blank code isn't a strike (they may be reaching for their phone); a wrong one is.
-  const mfaOn = user.mfa?.enabled === true;
-  if (mfaOn) {
-    if (!code) {
-      await releaseAttempt(User, me, LOGIN_ATTEMPTS);
-      return refuse("code_missing", app, db);
-    }
-    const second = await verifySecondFactor(user._id.toString(), code);
-    if (second === "wrong") {
-      await failAttempt(User, me, LOGIN_ATTEMPTS);
-      await recordMfaFailure(user._id.toString()); // 10 in a row → 24 h lock
-      return refuse("code_wrong", app, db);
-    }
-    if (second === "replay") {
-      await releaseAttempt(User, me, LOGIN_ATTEMPTS); // a used-up but correct code: no strike
-      return refuse("code_reused", app, db);
-    }
-  }
-
-  const update: Record<string, unknown> = {
-    failedLoginCount: 0,
-    lastLoginAt: new Date(),
   };
-  if (needsRehash(user.passwordHash))
-    update.passwordHash = await hashSecret(password);
-  await User.updateOne(
-    { _id: user._id },
-    { $set: update, $unset: { lockedUntil: 1 } },
-  );
+  try {
+    if (!(await verifySecret(password, user.passwordHash))) {
+      await strike();
+      return refuse("bad_password", app, db);
+    }
 
-  return {
-    id: user._id.toString(),
-    email: user.email,
-    role: user.role,
-    sessionVersion: user.sessionVersion,
-    familyId: user.familyId?.toString(),
-    storeId: user.storeId?.toString(),
-    // Admins must set up MFA before anything else (guards.ts sends them to /mfa/setup).
-    mfaSetup: user.role === "admin" && !mfaOn ? true : undefined,
-  };
+    // Correct password, but still refuse other apps' roles and any account that isn't active:
+    // "pending" = email not verified yet (sign-up flow), "suspended" = blocked by admin.
+    // Same generic failure, so the response never reveals which case applies. Not a strike.
+    if (user.status !== "active" || !isRoleAllowedInApp(user.role, app)) {
+      await release();
+      return refuse(user.status !== "active" ? "not_active" : "wrong_app", app, db);
+    }
+
+    // Second factor. Checked only AFTER the password, so codes can't be guessed without it.
+    // A blank code isn't a strike (they may be reaching for their phone); a wrong one is.
+    const mfaOn = user.mfa?.enabled === true;
+    if (mfaOn) {
+      if (!code) {
+        await release();
+        return refuse("code_missing", app, db);
+      }
+      const second = await verifySecondFactor(user._id.toString(), code);
+      if (second === "wrong") {
+        await strike();
+        await recordMfaFailure(user._id.toString()); // 10 in a row → 24 h lock
+        return refuse("code_wrong", app, db);
+      }
+      if (second === "replay") {
+        await release(); // a used-up but correct code: no strike
+        return refuse("code_reused", app, db);
+      }
+    }
+
+    const update: Record<string, unknown> = { failedLoginCount: 0, lastLoginAt: new Date() };
+    if (needsRehash(user.passwordHash)) update.passwordHash = await hashSecret(password);
+    // Only while still unlocked: a lock set by a parallel request DURING this check (e.g. the 24 h lock
+    // after wrong authenticator codes) must not be wiped by this success. Then this sign-in is refused too.
+    settled = true;
+    const done = await User.updateOne({ _id: user._id, ...unlocked(LOGIN_ATTEMPTS) }, { $set: update });
+    if (done.matchedCount !== 1) return refuse("locked", app, db);
+
+    return {
+      id: user._id.toString(),
+      email: user.email,
+      role: user.role,
+      sessionVersion: user.sessionVersion,
+      familyId: user.familyId?.toString(),
+      storeId: user.storeId?.toString(),
+      // Admins must set up MFA before anything else (guards.ts sends them to /mfa/setup).
+      mfaSetup: user.role === "admin" && !mfaOn ? true : undefined,
+    };
+  } catch (err) {
+    if (!settled) await releaseAttempt(User, me, LOGIN_ATTEMPTS).catch(() => {});
+    throw err; // authorize() logs it and shows the generic failure
+  }
 }
 
 /**

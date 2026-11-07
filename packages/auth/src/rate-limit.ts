@@ -11,12 +11,27 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { connectDb, RateLimit } from "@repo/db";
 
+/** The fixed window a moment falls in (shared by hitRateLimit and overRateLimit so they always agree). */
+function currentWindow(windowSeconds: number) {
+  const windowMs = windowSeconds * 1000;
+  return { windowMs, windowStart: new Date(Math.floor(Date.now() / windowMs) * windowMs) };
+}
+
+/**
+ * Read-only: has `key` already reached `limit` hits this window? Pair with hitRateLimit when only SOME
+ * events should count (e.g. count failed sign-ins, but check before every try).
+ */
+export async function overRateLimit(key: string, limit: number, windowSeconds: number): Promise<boolean> {
+  await connectDb();
+  const doc = await RateLimit.findOne({ key: key.slice(0, 200), windowStart: currentWindow(windowSeconds).windowStart }).select("count").lean();
+  return (doc?.count ?? 0) >= limit;
+}
+
 /** Count one hit for `key`; returns true if still within `limit` for this window. */
 export async function hitRateLimit(key: string, limit: number, windowSeconds: number): Promise<boolean> {
   // Often the first DB call of a request: make sure the (cached) connection is open.
   await connectDb();
-  const windowMs = windowSeconds * 1000;
-  const windowStart = new Date(Math.floor(Date.now() / windowMs) * windowMs);
+  const { windowMs, windowStart } = currentWindow(windowSeconds);
   const bump = () =>
     RateLimit.findOneAndUpdate(
       { key: key.slice(0, 200), windowStart },

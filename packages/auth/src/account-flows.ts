@@ -26,6 +26,7 @@ import { isRoleAllowedInApp, isSelfSignupRole, type AppName } from "@repo/lib/ro
 import { PARENT_CONSENT_VERSION } from "@repo/lib/family";
 import { STORE_AGREEMENT_VERSION } from "@repo/lib/store";
 import { burnVerifyTime, hashSecret } from "./password.ts";
+import { LOCKOUT_MINUTES } from "./options.ts";
 import { clientIp, emailKey, hitRateLimit, ipKey } from "./rate-limit.ts";
 import type { AcceptInviteInput, AcceptRepInviteInput, ParentRegistrationInput, StoreRegistrationInput } from "./schemas.ts";
 import { slugify } from "./slug.ts";
@@ -300,12 +301,12 @@ export async function resetPassword(raw: unknown, newPassword: string, ctx: Flow
     await burnVerifyTime(newPassword);
     return { ok: false, error: "invalidLink" };
   }
-  const user = await User.findById(token.userId).select("email role status lockedUntil mfa.enabled").lean();
+  const user = await User.findById(token.userId).select("email role status locale lockedUntil").lean();
   if (!user) return { ok: false, error: "invalidLink" };
-  // A reset proves control of the mailbox, which clears a PASSWORD lockout. It must NOT clear a lock on an
-  // account with two-step sign-in: that lock comes from wrong authenticator codes (24 h), and a mailbox
-  // holder could otherwise reset → guess more codes → reset again (Phase 8 audit, 2026-11-06).
-  const keepLock = user.mfa?.enabled === true && !!user.lockedUntil && user.lockedUntil > new Date();
+  // A reset proves control of the mailbox, which clears a PASSWORD lockout (at most LOCKOUT_MINUTES). It must
+  // NOT clear the LONGER lock from wrong authenticator codes (24 h): a mailbox holder could otherwise
+  // reset → guess more codes → reset again (Phase 8 audit, 2026-11-06). Told apart by length, no new field.
+  const keepLock = !!user.lockedUntil && user.lockedUntil.getTime() > Date.now() + LOCKOUT_MINUTES * 60_000;
   const activating = user.status === "pending";
   await withTransaction(async (session) => {
     await User.updateOne(
@@ -323,9 +324,9 @@ export async function resetPassword(raw: unknown, newPassword: string, ctx: Flow
       await Family.updateOne({ ownerUserId: token.userId, "consent.emailVerifiedAt": null }, { $set: { "consent.emailVerifiedAt": new Date() } }, { session });
     }
   });
-  // Tell the owner: if it wasn't them, this is how they find out (sent after the response, never blocks it).
+  // Tell the OWNER (in their language): if it wasn't them, this is how they find out. Sent after the response.
   const link = appLink(ctx, "/signin");
-  await sendLater(() => sendEmail({ to: user.email, locale: ctx.locale, template: "passwordChanged", values: { link } }), "passwordChanged");
+  await sendLater(() => sendEmail({ to: user.email, locale: user.locale ?? ctx.locale, template: "passwordChanged", values: { link } }), "passwordChanged");
   return { ok: true };
 }
 

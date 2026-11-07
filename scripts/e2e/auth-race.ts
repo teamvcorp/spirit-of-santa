@@ -15,7 +15,7 @@ import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { connectDb, Family, trusted, User } from "@repo/db";
 import { hashSecret } from "@repo/auth/password";
-import { failAttempt, releaseAttempt, reserveAttempt } from "../../packages/auth/src/attempts.ts";
+import { failAttempt, PIN_ATTEMPTS, releaseAttempt, reserveAttempt } from "../../packages/auth/src/attempts.ts";
 import { LOGIN_ATTEMPTS } from "../../packages/auth/src/options.ts";
 import { createActionToken } from "@repo/auth/tokens";
 import { createMfaAdmin, makeChecks, signIn, submitForm } from "./lib.ts";
@@ -56,6 +56,13 @@ try {
   await User.updateOne({ _id: b._id }, { $set: { lockedUntil: new Date(Date.now() - 1000) } });
   check("after the lock ends, tries are granted again", await reserveAttempt(User, { _id: b._id }, LOGIN_ATTEMPTS));
 
+  // 1b2. A late 15-min lock never SHORTENS a longer one (e.g. the 24 h code lock): locks only grow.
+  const g = await newParent("g");
+  const long = new Date(Date.now() + 24 * 3_600_000);
+  await User.updateOne({ _id: g._id }, { $set: { lockedUntil: long, failedLoginCount: 5 } });
+  await failAttempt(User, { _id: g._id }, LOGIN_ATTEMPTS);
+  check("a late failure keeps the longer 24 h lock", (await state(g._id))?.lockedUntil?.getTime() === long.getTime());
+
   // 1c. Release gives the slot back; never below 0.
   const c = await newParent("c");
   await reserveAttempt(User, { _id: c._id }, LOGIN_ATTEMPTS);
@@ -65,9 +72,8 @@ try {
 
   // 1d. The PIN uses the same helper on Family.
   const fam = await Family.create({ ownerUserId: c._id, familyName: `Race${tag}`, parentPinHash: await hashSecret("8158"), consent: { version: "test", acceptedAt: new Date() } });
-  const pinRule = { count: "pinFailedCount", lock: "pinLockedUntil", max: 5, lockMs: 15 * 60_000 };
-  const pinGranted = (await Promise.all(Array.from({ length: 40 }, () => reserveAttempt(Family, { _id: fam._id, ownerUserId: c._id }, pinRule)))).filter(Boolean).length;
-  check("40 simultaneous PIN guesses: exactly 5 get through", pinGranted === 5, `granted ${pinGranted}`);
+  const pinGranted = (await Promise.all(Array.from({ length: 40 }, () => reserveAttempt(Family, { _id: fam._id, ownerUserId: c._id }, PIN_ATTEMPTS)))).filter(Boolean).length;
+  check("40 simultaneous PIN guesses: exactly PIN_ATTEMPTS.max get through", pinGranted === PIN_ATTEMPTS.max, `granted ${pinGranted}`);
   await Family.deleteOne({ _id: fam._id });
 
   // 2. Real sign-in over HTTP: burst of wrong passwords, then the right one.
@@ -104,6 +110,14 @@ try {
   await submitForm(adminBase, `/reset-password?token=${tokA.raw}`, { password: `new admin pass ${tag}` });
   const admAfter = await state(adm.id);
   check("MFA admin reset: password changed but the 24 h code lock stays", admAfter?.lockedUntil?.getTime() === lockEnd.getTime() && (await hashOf(adm.id)) !== hashBefore);
+
+  // 3c. A SHORT password lockout (wrong passwords) IS lifted by a reset, even with two-step sign-in on.
+  const adm2 = await createMfaAdmin(`e2e-race-adm2-${tag}@spiritofsanta.test`);
+  made.push(adm2.id);
+  await User.updateOne({ _id: adm2.id }, { $set: { lockedUntil: new Date(Date.now() + 10 * 60_000) } });
+  const tokB = await createActionToken("reset_password", { email: adm2.email, userId: adm2.id });
+  await submitForm(adminBase, `/reset-password?token=${tokB.raw}`, { password: `new admin2 pass ${tag}` });
+  check("MFA admin reset lifts a short (wrong-password) lockout", !(await state(adm2.id))?.lockedUntil);
 } finally {
   await User.deleteMany({ _id: trusted({ $in: made }) });
   await mongoose.disconnect();

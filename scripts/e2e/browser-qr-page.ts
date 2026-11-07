@@ -63,7 +63,7 @@ const hydrated = (p: Page) =>
   });
 const open = async (token: string, lang = "") => {
   await page.goto(`${base}${lang}/d/${token}`);
-  await page.locator("main h1, main [role=alert], main [role=status]").first().waitFor({ timeout: 15_000 });
+  await page.locator("main h1, main [role=alert], main [role=status]:not([aria-busy=true])").first().waitFor({ timeout: 15_000 });
   return page.locator("main").innerText();
 };
 

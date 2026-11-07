@@ -97,7 +97,7 @@ try {
 
   // 5. An unregistered child's gift browser says why adding won't work (the tab bar can reach it).
   await page.goto(`${base}/kids/${newKid._id}/gifts`);
-  await page.locator("main:visible [role=status]").first().waitFor({ timeout: 60_000 });
+  await page.locator("main:visible [role=status]:not([aria-busy=true])").first().waitFor({ timeout: 60_000 });
   check("unregistered child: gift browser explains 'Register this child first'", (await page.locator("main:visible").innerText()).includes("Register this child first"));
 
   // 6. Storage blocked (private window): the dialog still closes; Tab stays inside; Escape closes.

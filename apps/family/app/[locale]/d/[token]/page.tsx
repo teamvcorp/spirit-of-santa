@@ -51,14 +51,14 @@ async function Content({ params }: { params: PageProps<"/[locale]/d/[token]">["p
 
 export default async function QrPage(props: PageProps<"/[locale]/d/[token]">) {
   return (
-    <SeasonGate>
-      <main className="mx-auto w-full max-w-lg flex-1 p-6">
+    <main className="mx-auto w-full max-w-lg flex-1 p-6">
+      <SeasonGate>
         <Card>
           <Suspense fallback={null}>
             <Content params={props.params} />
           </Suspense>
         </Card>
-      </main>
-    </SeasonGate>
+      </SeasonGate>
+    </main>
   );
 }

@@ -775,6 +775,10 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   delete-account, sign-in, sign-up, legal stay open (COPPA rights never close). Server: startRegistration →
   `seasonClosed`; tips/bonus/donate/deeds/wish lists/pay-up already refused via their own windows. Messages
   `SeasonClosed.*`. E2E browser-family-closed.ts (26; simulates closure with closeDate=today, restores Season).
+  Review fixes: the gate sits INSIDE `<main>` after the back link (PPR prerenders the frame; status placeholder while
+  the season loads); the card has no `<main>`. Old "from October 1" copy → January 1 (en/es); unit test
+  packages/lib/test/season-copy.test.ts keeps October out of all apps' copy. Noted for slices 3+4 (review): webhook
+  still credits tips/bonus paid Dec 26–31 from checkouts opened before (giftWindow caps checkout at closeAt).
   NEXT slices: 3+4 TOGETHER lock-at-funding + per-gift ship window · 5 pay-up · 6 DtD deadline ·
   7 store Q1 + stock CAS · 8 docs/legal.
 

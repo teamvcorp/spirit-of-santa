@@ -53,11 +53,11 @@ async function Content() {
 export default async function PayUpPage() {
   const t = await getTranslations("PayUp");
   return (
-    <SeasonGate>
-      <main className="mx-auto w-full max-w-2xl flex-1 p-6">
-        <Link href="/parent" className="mb-4 inline-block text-sm underline underline-offset-4">
-          ← {t("back")}
-        </Link>
+    <main className="mx-auto w-full max-w-2xl flex-1 p-6">
+      <Link href="/parent" className="mb-4 inline-block text-sm underline underline-offset-4">
+        ← {t("back")}
+      </Link>
+      <SeasonGate>
         <Card>
           <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
           {/* Rate from the server constant (never hard-coded). */}
@@ -66,7 +66,7 @@ export default async function PayUpPage() {
             <Content />
           </Suspense>
         </Card>
-      </main>
-    </SeasonGate>
+      </SeasonGate>
+    </main>
   );
 }

@@ -220,7 +220,7 @@
       "pickOne": "Elige una acción o descríbela en \"Otra cosa\".",
       "notFound": "No se encontró a ese niño.",
       "notRegistered": "Primero registra a este niño (área de padres).",
-      "seasonClosed": "Las buenas acciones se pueden registrar mientras la temporada está abierta (desde el 1 de octubre).",
+      "seasonClosed": "Spirit of Santa está cerrado después de Navidad. Las buenas acciones se pueden registrar de nuevo a partir del 1 de enero.",
       "deedUnavailable": "Esa acción ya no está disponible. Elige otra.",
       "dailyLimit": "Son 10 acciones hoy para este niño. ¡Inténtalo mañana!"
     },
@@ -269,7 +269,7 @@
       "cap": "La lista de deseos está llena ({cap} regalos). Un padre o madre puede cambiar el límite.",
       "noPoints": "Necesitas al menos 1 de Magia Navideña libre para agregar un regalo. ¡Las buenas acciones dan más!",
       "soldOut": "Agotado: a esta tienda no le quedan.",
-      "seasonNotOpen": "La lista de deseos se puede cambiar mientras la temporada está abierta (del 1 de octubre al 1 de diciembre).",
+      "seasonNotOpen": "La lista de deseos se puede cambiar mientras la temporada está abierta (del 1 de enero al 30 de noviembre).",
       "notRegistered": "Primero registra a este niño o niña (área de padres).",
       "itemUnavailable": "Este regalo ya no está disponible.",
       "notFound": "No se encontró a ese niño o niña."
@@ -299,7 +299,7 @@
     "keep": "Dejarlo",
     "removeErrors": {
       "locked": "Este regalo está asegurado (completo hace 30 días) y no se puede quitar.",
-      "seasonNotOpen": "La lista de deseos se puede cambiar mientras la temporada está abierta (del 1 de octubre al 1 de diciembre).",
+      "seasonNotOpen": "La lista de deseos se puede cambiar mientras la temporada está abierta (del 1 de enero al 30 de noviembre).",
       "notFound": "Ese regalo ya no está en la lista.",
       "pinLocked": "El área de padres se bloqueó (15 minutos). Escribe tu PIN otra vez."
     }
@@ -356,7 +356,7 @@
     "errors": {
       "rateLimited": "Demasiados intentos. Espera unos minutos.",
       "invalid": "Este enlace no es válido.",
-      "seasonClosed": "Se puede regalar mientras la temporada de Navidad está abierta (desde el 1 de octubre).",
+      "seasonClosed": "Spirit of Santa está cerrado después de Navidad. Se puede regalar de nuevo a partir del 1 de enero.",
       "amount": "Elige una cantidad entre {min} y {max}.",
       "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde."
     }

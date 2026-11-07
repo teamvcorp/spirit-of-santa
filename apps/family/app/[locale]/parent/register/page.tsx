@@ -30,11 +30,11 @@ async function Content() {
 export default async function RegisterKidsPage() {
   const t = await getTranslations("Register");
   return (
-    <SeasonGate>
-      <main className="mx-auto w-full max-w-xl flex-1 p-6">
-        <Link href="/parent" className="mb-4 inline-block text-sm underline underline-offset-4">
-          ← {t("back")}
-        </Link>
+    <main className="mx-auto w-full max-w-xl flex-1 p-6">
+      <Link href="/parent" className="mb-4 inline-block text-sm underline underline-offset-4">
+        ← {t("back")}
+      </Link>
+      <SeasonGate>
         <Card>
           <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
           <p className="mb-6 text-muted">{t("intro")}</p>
@@ -42,7 +42,7 @@ export default async function RegisterKidsPage() {
             <Content />
           </Suspense>
         </Card>
-      </main>
-    </SeasonGate>
+      </SeasonGate>
+    </main>
   );
 }

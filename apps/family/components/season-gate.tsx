@@ -2,8 +2,10 @@
  * Year-round calendar (owner 2026-11-07): the family site is open Jan 1 – Dec 25 and CLOSED Dec 26 – 31. It also
  * waits ("resetting") on Jan 1 until last season's reset has run. See docs/plans/year-round-season.md slice 2.
  *
- *  - <SeasonGate> wraps a page that only makes sense while the season runs (kid pages, QR/donation links, /donate,
- *    pay-up, bonus, registration). While closed it shows a friendly "back January 1" card INSTEAD of the page.
+ *  - <SeasonGate> goes INSIDE a page's <main> (after its back link) around the part that only makes sense while the
+ *    season runs (kid pages, QR/donation links, /donate, pay-up, bonus, registration). While closed it shows a
+ *    friendly "back January 1" card INSTEAD. Keeping <main> + back link outside lets PPR prerender that frame every
+ *    day; only this part waits for the season read (review 2026-11-07).
  *  - <SeasonNotice> is a banner for pages that stay open (home, parent area): parents can still review, download or
  *    delete their family's data at any time (COPPA rights never close), sign in, and read the legal pages.
  *
@@ -24,7 +26,8 @@ import { Link } from "@/i18n/navigation";
 
 export function SeasonGate({ children }: { children: ReactNode }) {
   return (
-    <Suspense fallback={null}>
+    // Reserve the space and tell screen readers something is loading (not an empty hole).
+    <Suspense fallback={<div role="status" aria-busy="true" className="min-h-40" />}>
       <Gate>{children}</Gate>
     </Suspense>
   );
@@ -37,8 +40,7 @@ async function Gate({ children }: { children: ReactNode }) {
   if (!closed) return children;
   const t = await getTranslations("SeasonClosed");
   return (
-    <main className="mx-auto w-full max-w-xl flex-1 p-6">
-      <Card data-testid="season-closed" data-reason={closed}>
+    <Card className="mx-auto w-full max-w-xl" data-testid="season-closed" data-reason={closed}>
         <h1 className="mb-2 text-2xl font-bold">{t(`${closed}.title`)}</h1>
         <p className="mb-4">{t(`${closed}.body`)}</p>
         <p className="mb-6 text-sm text-muted">{t("rights")}</p>
@@ -51,7 +53,6 @@ async function Gate({ children }: { children: ReactNode }) {
           </Link>
         </div>
       </Card>
-    </main>
   );
 }
 

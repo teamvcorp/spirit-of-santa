@@ -90,12 +90,12 @@ async function Content({ params }: Pick<Props, "params">) {
 
 export default function GiftPage(props: Props) {
   return (
-    <SeasonGate>
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <SeasonGate>
         <Suspense fallback={null}>
           <Content params={props.params} />
         </Suspense>
-      </main>
-    </SeasonGate>
+      </SeasonGate>
+    </main>
   );
 }

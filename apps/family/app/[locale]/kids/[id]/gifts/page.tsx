@@ -133,12 +133,12 @@ async function Content({ params, searchParams }: Pick<Props, "params" | "searchP
 
 export default function GiftsPage(props: Props) {
   return (
-    <SeasonGate>
-      <main className="mx-auto w-full max-w-5xl flex-1 p-6">
+    <main className="mx-auto w-full max-w-5xl flex-1 p-6">
+      <SeasonGate>
         <Suspense fallback={null}>
           <Content params={props.params} searchParams={props.searchParams} />
         </Suspense>
-      </main>
-    </SeasonGate>
+      </SeasonGate>
+    </main>
   );
 }

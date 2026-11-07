@@ -38,11 +38,11 @@ async function Content({ searchParams }: { searchParams: PageProps<"/[locale]/pa
 export default async function BonusPage(props: PageProps<"/[locale]/parent/bonus">) {
   const t = await getTranslations("Bonus");
   return (
-    <SeasonGate>
-      <main className="mx-auto w-full max-w-xl flex-1 p-6">
-        <Link href="/parent" className="mb-4 inline-block text-sm underline underline-offset-4">
-          ← {t("back")}
-        </Link>
+    <main className="mx-auto w-full max-w-xl flex-1 p-6">
+      <Link href="/parent" className="mb-4 inline-block text-sm underline underline-offset-4">
+        ← {t("back")}
+      </Link>
+      <SeasonGate>
         <Card>
           <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
           {/* Rate from the server constant (never hard-coded). */}
@@ -51,7 +51,7 @@ export default async function BonusPage(props: PageProps<"/[locale]/parent/bonus
             <Content searchParams={props.searchParams} />
           </Suspense>
         </Card>
-      </main>
-    </SeasonGate>
+      </SeasonGate>
+    </main>
   );
 }

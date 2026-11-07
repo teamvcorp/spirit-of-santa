@@ -50,16 +50,16 @@ async function Content() {
 
 export default function CommunityDonatePage() {
   return (
-    <SeasonGate>
-      <main className="mx-auto w-full max-w-xl flex-1 p-6">
+    <main className="mx-auto w-full max-w-xl flex-1 p-6">
+      <SeasonGate>
         <Card>
           <Heading />
           <Suspense fallback={null}>
             <Content />
           </Suspense>
         </Card>
-      </main>
-    </SeasonGate>
+      </SeasonGate>
+    </main>
   );
 }
 

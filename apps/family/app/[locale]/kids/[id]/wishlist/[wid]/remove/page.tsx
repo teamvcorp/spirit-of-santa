@@ -58,12 +58,12 @@ async function Content({ params }: Pick<Props, "params">) {
 
 export default function RemoveGiftPage(props: Props) {
   return (
-    <SeasonGate>
-      <main className="mx-auto w-full max-w-2xl flex-1 p-6">
+    <main className="mx-auto w-full max-w-2xl flex-1 p-6">
+      <SeasonGate>
         <Suspense fallback={null}>
           <Content params={props.params} />
         </Suspense>
-      </main>
-    </SeasonGate>
+      </SeasonGate>
+    </main>
   );
 }

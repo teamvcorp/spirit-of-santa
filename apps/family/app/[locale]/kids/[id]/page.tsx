@@ -106,15 +106,15 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
 export default async function KidPage(props: PageProps<"/[locale]/kids/[id]">) {
   const t = await getTranslations("Kid");
   return (
-    <SeasonGate>
-      <main className="mx-auto w-full max-w-3xl flex-1 p-6">
-        <Link href="/" className="mb-4 inline-block text-sm underline underline-offset-4">
-          ← {t("back")}
-        </Link>
+    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+      <Link href="/" className="mb-4 inline-block text-sm underline underline-offset-4">
+        ← {t("back")}
+      </Link>
+      <SeasonGate>
         <Suspense fallback={null}>
           <Content params={props.params} />
         </Suspense>
-      </main>
-    </SeasonGate>
+      </SeasonGate>
+    </main>
   );
 }

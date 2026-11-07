@@ -40,17 +40,17 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]/deed
 export default async function RecordDeedPage(props: PageProps<"/[locale]/kids/[id]/deed">) {
   const t = await getTranslations("Kid");
   return (
-    <SeasonGate>
-      <main className="mx-auto w-full max-w-xl flex-1 p-6">
-        <Link href="/" className="mb-4 inline-block text-sm underline underline-offset-4">
-          ← {t("back")}
-        </Link>
+    <main className="mx-auto w-full max-w-xl flex-1 p-6">
+      <Link href="/" className="mb-4 inline-block text-sm underline underline-offset-4">
+        ← {t("back")}
+      </Link>
+      <SeasonGate>
         <Card>
           <Suspense fallback={null}>
             <Content params={props.params} />
           </Suspense>
         </Card>
-      </main>
-    </SeasonGate>
+      </SeasonGate>
+    </main>
   );
 }

@@ -220,7 +220,7 @@
       "pickOne": "Choose a deed, or describe it under \"Something else\".",
       "notFound": "That child wasn't found.",
       "notRegistered": "Register this child first (parent area).",
-      "seasonClosed": "Good deeds can be recorded while the season is open (from October 1).",
+      "seasonClosed": "Spirit of Santa is closed after Christmas. Good deeds can be recorded again from January 1.",
       "deedUnavailable": "That deed isn't available any more. Choose another.",
       "dailyLimit": "That's 10 deeds today for this child. Try again tomorrow!"
     },
@@ -269,7 +269,7 @@
       "cap": "The wish list is full ({cap} gifts). A parent can change the limit.",
       "noPoints": "You need at least 1 spare Christmas Magic to add a gift. Good deeds earn more!",
       "soldOut": "Sold out: this store has none left.",
-      "seasonNotOpen": "Wish lists can be changed while the season is open (October 1 to December 1).",
+      "seasonNotOpen": "Wish lists can be changed while the season is open (January 1 to November 30).",
       "notRegistered": "Register this child first (parent area).",
       "itemUnavailable": "This gift isn't available any more.",
       "notFound": "That child wasn't found."
@@ -299,7 +299,7 @@
     "keep": "Keep it",
     "removeErrors": {
       "locked": "This gift is locked in (fully funded for 30 days) and can't be removed.",
-      "seasonNotOpen": "Wish lists can be changed while the season is open (October 1 to December 1).",
+      "seasonNotOpen": "Wish lists can be changed while the season is open (January 1 to November 30).",
       "notFound": "That gift isn't on the list any more.",
       "pinLocked": "The parent area locked itself (15 minutes). Enter your PIN again."
     }
@@ -356,7 +356,7 @@
     "errors": {
       "rateLimited": "Too many tries. Please wait a few minutes.",
       "invalid": "This link isn't valid.",
-      "seasonClosed": "Gifts can be given while the Christmas season is open (from October 1).",
+      "seasonClosed": "Spirit of Santa is closed after Christmas. Gifts can be given again from January 1.",
       "amount": "Choose an amount between {min} and {max}.",
       "stripe": "Payments aren't available right now. Please try again later."
     }

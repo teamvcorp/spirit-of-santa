@@ -339,7 +339,7 @@
     "title": "A Christmas gift",
     "heading": "Give to {name}'s Christmas wish list",
     "family": "From the {family} family",
-    "intro": "Your gift becomes Christmas Magic ({rate} = 1 Christmas Magic) that {name} spends on gifts from local stores at Christmas.",
+    "intro": "100% of your gift becomes Christmas Magic ({rate} = 1 Christmas Magic), helping {name} have a magical Christmas with gifts from local stores, while learning the power of good deeds.",
     "amount": "Amount",
     "other": "Other",
     "otherAmount": "Amount in dollars",

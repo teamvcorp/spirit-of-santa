@@ -339,7 +339,7 @@
     "title": "Un regalo de Navidad",
     "heading": "Regala a la lista de deseos de {name}",
     "family": "De la familia {family}",
-    "intro": "Tu regalo se convierte en Magia Navideña ({rate} = 1 de Magia Navideña) que {name} usa en regalos de tiendas locales en Navidad.",
+    "intro": "El 100% de tu regalo se convierte en Magia Navideña ({rate} = 1 de Magia Navideña) y ayuda a {name} a tener una Navidad mágica con regalos de tiendas locales, mientras aprende el poder de las buenas acciones.",
     "amount": "Cantidad",
     "other": "Otra",
     "otherAmount": "Cantidad en dólares",

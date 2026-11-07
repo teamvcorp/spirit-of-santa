@@ -11,6 +11,8 @@ import type { Metadata } from "next";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { storeOrders, type OrderRow } from "@repo/wishlists/fulfilment";
+import { storePayoutView } from "@repo/wishlists/payouts";
+import { formatCents } from "@repo/lib/format";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { DashboardNav } from "../dashboard-nav";
@@ -26,7 +28,8 @@ export async function generateMetadata(): Promise<Metadata> {
 async function Content() {
   const { user, store, isOwner } = await loadMember();
   if (!store) return <NoAccess />;
-  const [orders, t, format] = await Promise.all([storeOrders({ id: user.id, role: user.role, storeId: user.storeId }), getTranslations("Orders"), getFormatter()]);
+  // store._id comes from loadMember (membership checked in the DB), never from the request.
+  const [orders, t, format, pay] = await Promise.all([storeOrders({ id: user.id, role: user.role, storeId: user.storeId }), getTranslations("Orders"), getFormatter(), storePayoutView(store._id)]);
   if (!orders) return <NoAccess />;
   const day = (d: Date | null) => (d ? format.dateTime(new Date(d), { month: "short", day: "numeric" }) : "");
   const line = (r: OrderRow) => (
@@ -95,6 +98,22 @@ async function Content() {
           </ul>
         </Card>
       )}
+
+      <Card className="mb-6" data-testid="payments">
+        <h2 className="mb-2 text-lg font-semibold">{t("paymentsTitle")}</h2>
+        {pay.owedCount > 0 && <p className="mb-3" data-testid="owed-now">{t("owedNow", { amount: formatCents(pay.owedCents), count: pay.owedCount })}</p>}
+        {pay.payouts.length === 0 ? (
+          <p className="text-foreground/70">{t("noPayments")}</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-foreground/10 text-sm">
+            {pay.payouts.map((p) => (
+              <li key={p.id} className="py-2">
+                {t("paidLine", { amount: formatCents(p.amountCents), date: p.paidOn, count: p.giftCount, method: t(`methods.${p.method}` as never) })}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
 
       <Card data-testid="shipped">
         <h2 className="mb-3 text-lg font-semibold">{t("shippedTitle")}</h2>

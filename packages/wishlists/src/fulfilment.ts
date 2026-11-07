@@ -33,6 +33,7 @@ import { unsealJson } from "@repo/auth/sealed";
 import { addressLines, type DeliveryAddress } from "@repo/lib/address";
 import { hitRateLimit } from "@repo/auth/rate-limit";
 import { ADDRESS_KEY, clearAddress, familyAwaitingDelivery } from "./delivery.ts";
+import { owedForGift } from "./payout-amount.ts";
 
 /** Short reference printed on the package (last 6 hex of the id, upper case). Not secret, not guessable-useful. */
 export const orderRef = (id: string) => id.slice(-6).toUpperCase();
@@ -469,11 +470,18 @@ export function arrangeSubstitute(adminId: string, rawId: string, note: string, 
   );
 }
 
-/** Spirit O Santa received the store's package. */
-export function markReceived(adminId: string, rawId: string, now = new Date()): Promise<AdminStepResult> {
+/**
+ * Spirit O Santa received the store's package. From now on the store is OWED for it (slice 5): the
+ * amount is fixed here (payoutOwedCents) so a later discount change never rewrites the debt.
+ */
+export async function markReceived(adminId: string, rawId: string, now = new Date()): Promise<AdminStepResult> {
   const id = normalizeObjectId(rawId);
-  if (!id) return Promise.resolve(notFound);
-  return adminStep(adminId, id, { status: "shipped", receivedAt: null }, { receivedAt: now, receivedByUserId: adminId }, {}, "wish.receive", {});
+  if (!id) return notFound;
+  await connectDb();
+  const w = await WishListItem.findById(id).select("storeId costCentipoints").lean<{ storeId: unknown; costCentipoints: number }>();
+  if (!w) return notFound;
+  const owed = await owedForGift(w.storeId, w.costCentipoints);
+  return adminStep(adminId, id, { status: "shipped", receivedAt: null }, { receivedAt: now, receivedByUserId: adminId, ...(owed !== null ? { payoutOwedCents: owed } : {}) }, {}, "wish.receive", { owedCents: owed });
 }
 
 /**

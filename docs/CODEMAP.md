@@ -569,6 +569,18 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   admin view audit once per admin+family+day (RateLimit key address-view-audit:...); address text also refuses p{Cf}
   (bidi overrides, zero-width); line2 of spaces = blank; one AddressPanel for save+delete feedback; dashboard uses
   `addressMissing` (presence only, no decrypt).
+- **Slice 5 store payouts + money summary (2026-11-06).** Roadmap: paid OUTSIDE the app (check/transfer), recorded
+  by admin. Owed once Spirit O Santa RECEIVES a gift: `markReceived` fixes `payoutOwedCents` =
+  `owedForGift` (payout-amount.ts → `wholesaleCents(cost, store discount)`, the ONE formula); null when the store
+  has no discount (filled in later by `fillMissingAmounts`). `StorePayout` model (amount computed, never typed;
+  method/reference/paidOn/note; gifts link via WishListItem.payoutId). `@repo/wishlists/payouts`: `owedByStore`,
+  `recordPayout` (ALL owed gifts of the store in one tx, compare-and-set payoutId; refused while any amount is
+  missing; audited "payout.record"), `listPayouts`, `storePayoutView` (storeId from memberStore), `seasonMoney`
+  (collected by purpose − refunds/lost disputes − wholesale for received gifts = net; wholesale margin; breakage =
+  season_reset + forfeit points at $1.50; Stripe fees NOT included). Admin `/payouts` (?year=, confirm box with the
+  exact amount; action refuses if the amount changed since the page loaded; success = redirect ?paid=<id> because
+  the store's row disappears). Store Orders page: "Payments from Spirit O Santa". E2E `browser-admin-payouts.ts` (17).
+  **PHASE 6 buildable scope COMPLETE** (pending review fixes).
 
 ## Open items / TODO
 

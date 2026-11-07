@@ -1,0 +1,214 @@
+/**
+ * Store payouts + season money summary (Phase 6 slice 5). SERVER-ONLY.
+ *
+ * Roadmap: "Store payouts recorded by admin (paid by check/outside the app; no Stripe Connect)" and
+ * "Platform profit tracked". User decisions (2026-11-04, docs/CODEMAP.md "Platform margin"): margin =
+ * conversion ($1.50/point in vs $1/point retail out) + wholesale (retail − store payout) + breakage
+ * (points never spent), all kept; season total = money collected − store payouts − refunds/disputes.
+ *
+ * A store is OWED for a gift once Spirit O Santa received it (amount fixed then: payoutOwedCents).
+ * Recording a payout covers ALL gifts owed to that store at that moment, in one transaction
+ * (compare-and-set on payoutId), so a double click or two admins can never pay a gift twice.
+ *
+ * CALLERS: admin functions require requireRole("admin") in the page AND the Server Action;
+ * storePayoutView takes a storeId that MUST come from memberStore() (the caller's own store).
+ */
+import "server-only";
+import { z } from "zod";
+import { AuditLog, connectDb, Payment, PAYOUT_METHODS, Store, StorePayout, Transaction, trusted, WishListItem, withTransaction } from "@repo/db";
+import { normalizeObjectId } from "@repo/lib/ids";
+import { centipointsToCents } from "@repo/lib/points";
+import { parseIsoDay } from "@repo/lib/season";
+import { owedForGift } from "./payout-amount.ts";
+
+/** Gifts received by Spirit O Santa and not yet paid for. */
+const OWED = { receivedAt: trusted({ $ne: null }), payoutId: null };
+
+/**
+ * Gifts received before their store had a discount on record have no amount yet: fill it in now
+ * that the discount exists (same formula as markReceived). Small and idempotent.
+ */
+async function fillMissingAmounts(storeId?: string): Promise<void> {
+  const rows = await WishListItem.find({ ...OWED, ...(storeId ? { storeId } : {}), payoutOwedCents: null })
+    .select("storeId costCentipoints")
+    .limit(500)
+    .lean<{ _id: unknown; storeId: unknown; costCentipoints: number }[]>();
+  for (const r of rows) {
+    const owed = await owedForGift(r.storeId, r.costCentipoints);
+    if (owed !== null) await WishListItem.updateOne({ _id: String(r._id), payoutOwedCents: null, payoutId: null }, { $set: { payoutOwedCents: owed } });
+  }
+}
+
+export type OwedRow = { storeId: string; storeName: string; storeEmail: string; giftCount: number; owedCents: number; missingAmount: number };
+
+/** What each store is owed right now (largest first). */
+export async function owedByStore(): Promise<OwedRow[]> {
+  await connectDb();
+  await fillMissingAmounts();
+  const groups = await WishListItem.aggregate<{ _id: unknown; giftCount: number; owedCents: number; missingAmount: number }>([
+    { $match: { receivedAt: { $ne: null }, payoutId: null } },
+    {
+      $group: {
+        _id: "$storeId",
+        giftCount: { $sum: 1 },
+        owedCents: { $sum: { $ifNull: ["$payoutOwedCents", 0] } },
+        missingAmount: { $sum: { $cond: [{ $eq: [{ $ifNull: ["$payoutOwedCents", null] }, null] }, 1, 0] } },
+      },
+    },
+    { $sort: { owedCents: -1 } },
+    { $limit: 1000 },
+  ]);
+  const stores = await Store.find({ _id: trusted({ $in: groups.map((g) => String(g._id)) }) }).select("name contact.email").lean<{ _id: unknown; name: string; contact?: { email?: string } }[]>();
+  const by = new Map(stores.map((s) => [String(s._id), s]));
+  return groups.map((g) => ({
+    storeId: String(g._id),
+    storeName: by.get(String(g._id))?.name ?? "",
+    storeEmail: by.get(String(g._id))?.contact?.email ?? "",
+    giftCount: g.giftCount,
+    owedCents: g.owedCents,
+    missingAmount: g.missingAmount,
+  }));
+}
+
+export const payoutInputSchema = z.object({
+  method: z.enum(PAYOUT_METHODS),
+  reference: z.string().trim().max(60).regex(/^[^<>\p{Cc}\p{Cf}]*$/u),
+  paidOn: z.string().refine((d) => parseIsoDay(d) !== null),
+  note: z.string().trim().max(300).regex(/^[^<>\p{Cc}\p{Cf}]*$/u),
+});
+export type PayoutInput = z.infer<typeof payoutInputSchema>;
+
+export type PayoutResult =
+  | { ok: true; payoutId: string; amountCents: number; giftCount: number }
+  | { ok: false; error: "notFound" | "invalid" | "nothingOwed" | "missingAmount"; field?: string };
+
+/**
+ * Record that the admin paid a store (outside the app) for EVERYTHING it is owed right now.
+ * The amount is computed here from the gifts, never typed. Refused while any of the store's owed
+ * gifts has no amount (store discount missing): fix the discount first, so nothing is paid wrong.
+ */
+export async function recordPayout(adminId: string, rawStoreId: string, raw: Record<string, unknown>): Promise<PayoutResult> {
+  const storeId = normalizeObjectId(rawStoreId);
+  if (!storeId) return { ok: false, error: "notFound" };
+  const parsed = payoutInputSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, error: "invalid", field: String(parsed.error.issues[0]?.path[0] ?? "") };
+  await connectDb();
+  if (!(await Store.exists({ _id: storeId }))) return { ok: false, error: "notFound" };
+  await fillMissingAmounts(storeId);
+  const v = parsed.data;
+  return withTransaction(async (session): Promise<PayoutResult> => {
+    const gifts = await WishListItem.find({ ...OWED, storeId })
+      .select("payoutOwedCents seasonYear")
+      .sort({ receivedAt: 1, _id: 1 })
+      .session(session)
+      .lean<{ _id: unknown; payoutOwedCents?: number | null; seasonYear: number }[]>();
+    if (gifts.length === 0) return { ok: false, error: "nothingOwed" };
+    if (gifts.some((g) => typeof g.payoutOwedCents !== "number")) return { ok: false, error: "missingAmount" };
+    const amountCents = gifts.reduce((s, g) => s + (g.payoutOwedCents ?? 0), 0);
+    if (amountCents < 1) return { ok: false, error: "nothingOwed" };
+    const [p] = await StorePayout.create(
+      [{ storeId, seasonYear: gifts[0]!.seasonYear, amountCents, giftCount: gifts.length, method: v.method, reference: v.reference || undefined, paidOn: v.paidOn, note: v.note || undefined, createdByUserId: adminId }],
+      { session },
+    );
+    const ids = gifts.map((g) => String(g._id));
+    // Compare-and-set: every gift must still be unpaid, or the whole payout rolls back.
+    const res = await WishListItem.updateMany({ _id: trusted({ $in: ids }), payoutId: null }, { $set: { payoutId: p!._id } }, { session });
+    if (res.modifiedCount !== ids.length) throw new Error("gifts changed while recording the payout");
+    await AuditLog.create(
+      [{ actorUserId: adminId, action: "payout.record", targetType: "store", targetId: storeId, details: { payoutId: String(p!._id), amountCents, giftCount: ids.length, method: v.method } }],
+      { session },
+    );
+    return { ok: true, payoutId: String(p!._id), amountCents, giftCount: ids.length };
+  });
+}
+
+export type PayoutRow = { id: string; storeId: string; storeName: string; amountCents: number; giftCount: number; method: string; reference: string; paidOn: string; note: string };
+
+/** Payout history, newest first (one store, or all). */
+export async function listPayouts(storeId?: string, limit = 100): Promise<PayoutRow[]> {
+  await connectDb();
+  const rows = await StorePayout.find(storeId ? { storeId } : {})
+    .sort({ createdAt: -1, _id: -1 })
+    .limit(limit)
+    .lean<{ _id: unknown; storeId: unknown; amountCents: number; giftCount: number; method: string; reference?: string; paidOn: string; note?: string }[]>();
+  const stores = await Store.find({ _id: trusted({ $in: [...new Set(rows.map((r) => String(r.storeId)))] }) }).select("name").lean<{ _id: unknown; name: string }[]>();
+  const name = new Map(stores.map((s) => [String(s._id), s.name]));
+  return rows.map((r) => ({ id: String(r._id), storeId: String(r.storeId), storeName: name.get(String(r.storeId)) ?? "", amountCents: r.amountCents, giftCount: r.giftCount, method: r.method, reference: r.reference ?? "", paidOn: r.paidOn, note: r.note ?? "" }));
+}
+
+/** For the STORE app: what this store is owed now + what it has been paid. */
+export async function storePayoutView(storeId: unknown): Promise<{ owedCents: number; owedCount: number; payouts: PayoutRow[] }> {
+  await connectDb();
+  const sid = String(storeId);
+  const owed = await WishListItem.find({ ...OWED, storeId: sid }).select("payoutOwedCents").lean<{ payoutOwedCents?: number | null }[]>();
+  return { owedCents: owed.reduce((s, g) => s + (g.payoutOwedCents ?? 0), 0), owedCount: owed.length, payouts: await listPayouts(sid, 50) };
+}
+
+// ── Season money summary ───────────────────────────────────────────────────────────────
+
+export type SeasonMoney = {
+  seasonYear: number;
+  /** Money collected through Stripe this season, by purpose (cents). */
+  collected: Record<string, number>;
+  collectedTotal: number;
+  /** Refunded + chargebacks lost (cents): money we had to give back. */
+  givenBack: number;
+  /** Gifts Spirit O Santa received from stores this season. */
+  gifts: { count: number; retailCents: number; wholesaleOwedCents: number; wholesalePaidCents: number };
+  /** Wholesale margin on received gifts = retail − wholesale. */
+  wholesaleMarginCents: number;
+  /** Breakage: points that were never spent, and their money value at $1.50/point. */
+  breakage: { resetCentipoints: number; forfeitCentipoints: number; valueCents: number };
+  /** Net so far = collected − given back − all wholesale for received gifts (paid or still owed). */
+  netCents: number;
+  /** Not yet included: card processing fees (see the Stripe dashboard). */
+};
+
+export async function seasonMoney(seasonYear: number): Promise<SeasonMoney> {
+  await connectDb();
+  const [pay, gifts, ledger] = await Promise.all([
+    Payment.aggregate<{ _id: string; cents: number; refunded: number; lost: number }>([
+      { $match: { seasonYear, status: "succeeded" } },
+      {
+        $group: {
+          _id: "$purpose",
+          cents: { $sum: "$amountCents" },
+          refunded: { $sum: { $ifNull: ["$refundedCents", 0] } },
+          lost: { $sum: { $cond: [{ $eq: ["$dispute.status", "lost"] }, { $ifNull: ["$dispute.amountCents", 0] }, 0] } },
+        },
+      },
+    ]),
+    WishListItem.aggregate<{ count: number; retail: number; owed: number; paid: number }>([
+      { $match: { seasonYear, receivedAt: { $ne: null } } },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          retail: { $sum: "$costCentipoints" },
+          owed: { $sum: { $ifNull: ["$payoutOwedCents", 0] } },
+          paid: { $sum: { $cond: [{ $ne: [{ $ifNull: ["$payoutId", null] }, null] }, { $ifNull: ["$payoutOwedCents", 0] }, 0] } },
+        },
+      },
+    ]),
+    Transaction.aggregate<{ _id: string; centipoints: number }>([
+      { $match: { seasonYear, type: { $in: ["season_reset", "forfeit"] } } },
+      { $group: { _id: "$type", centipoints: { $sum: "$amountCentipoints" } } },
+    ]),
+  ]);
+  const collected = Object.fromEntries(pay.map((p) => [p._id, p.cents]));
+  const collectedTotal = pay.reduce((s, p) => s + p.cents, 0);
+  const givenBack = pay.reduce((s, p) => s + p.refunded + p.lost, 0);
+  const g = gifts[0] ?? { count: 0, retail: 0, owed: 0, paid: 0 };
+  const reset = ledger.find((l) => l._id === "season_reset")?.centipoints ?? 0;
+  const forfeit = ledger.find((l) => l._id === "forfeit")?.centipoints ?? 0;
+  return {
+    seasonYear,
+    collected,
+    collectedTotal,
+    givenBack,
+    gifts: { count: g.count, retailCents: g.retail, wholesaleOwedCents: g.owed - g.paid, wholesalePaidCents: g.paid },
+    wholesaleMarginCents: g.retail - g.owed,
+    breakage: { resetCentipoints: reset, forfeitCentipoints: forfeit, valueCents: centipointsToCents(reset + forfeit) },
+    netCents: collectedTotal - givenBack - g.owed,
+  };
+}

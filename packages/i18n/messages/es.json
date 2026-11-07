@@ -92,7 +92,8 @@
       "moderation": "Revisión",
       "settings": "Ajustes",
       "donations": "Donaciones",
-      "fulfilment": "Entregas"
+      "fulfilment": "Entregas",
+      "payouts": "Pagos"
     },
     "storeStatus": {
       "invited": "Invitada",

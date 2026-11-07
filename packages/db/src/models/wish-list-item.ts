@@ -81,6 +81,13 @@ const wishListItemSchema = new Schema(
     trackingNote: { type: String, trim: true, maxlength: 100 },
     receivedAt: Date, // Spirit O Santa has it
     receivedByUserId: objectId("User", false),
+    /**
+     * What Spirit O Santa owes the store for this gift (slice 5): wholesaleCents(cost, store discount),
+     * FIXED when the gift is received (a later discount change never rewrites an existing debt).
+     */
+    payoutOwedCents: { type: Number, min: 0 },
+    /** The StorePayout that paid it (null = still owed). */
+    payoutId: objectId("StorePayout", false),
     deliveredAt: Date, // sent on to the family (parent emailed)
     deliveredByUserId: objectId("User", false),
     familyNotifiedAt: Date, // the parent's "on its way" email really went out
@@ -94,6 +101,7 @@ wishListItemSchema.index({ kidId: 1, seasonYear: 1, status: 1 });
 wishListItemSchema.index({ status: 1, fullyFundedAt: 1 }); // daily lock cron
 wishListItemSchema.index({ storeId: 1, status: 1 }); // store fulfilment queue
 wishListItemSchema.index({ status: 1, receivedAt: 1 }); // admin fulfilment queue
+wishListItemSchema.index({ storeId: 1, payoutId: 1, receivedAt: 1 }); // payouts owed per store
 wishListItemSchema.index({ storeId: 1, seasonYear: 1, itemId: 1 }); // store engagement totals per item
 wishListItemSchema.index({ seasonYear: 1, status: 1 }); // admin dashboard season totals
 

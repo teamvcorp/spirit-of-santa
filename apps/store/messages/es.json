@@ -260,6 +260,15 @@
       "notFound": "No se encontró ese pedido. Vuelve a cargar la página.",
       "notReady": "Ese regalo no se puede enviar ahora (quizás ya se envió). Vuelve a cargar la página.",
       "tracking": "La nota de rastreo debe tener menos de 100 caracteres."
+    },
+    "paymentsTitle": "Pagos de Spirit O Santa",
+    "owedNow": "Se te debe ahora: {amount} por {count, plural, one {# regalo} other {# regalos}} que ya recibimos.",
+    "paidLine": "{amount} el {date} · {count, plural, one {# regalo} other {# regalos}} · {method}",
+    "noPayments": "Todavía no hay pagos.",
+    "methods": {
+      "check": "cheque",
+      "bank_transfer": "transferencia bancaria",
+      "other": "otro"
     }
   }
 }

@@ -260,6 +260,15 @@
       "notFound": "That order wasn't found. Reload the page.",
       "notReady": "That gift can't be shipped right now (it may have been shipped already). Reload the page.",
       "tracking": "Keep the tracking note under 100 characters."
+    },
+    "paymentsTitle": "Payments from Spirit O Santa",
+    "owedNow": "Owed to you now: {amount} for {count, plural, one {# gift} other {# gifts}} we've received.",
+    "paidLine": "{amount} on {date} · {count, plural, one {# gift} other {# gifts}} · {method}",
+    "noPayments": "No payments yet.",
+    "methods": {
+      "check": "check",
+      "bank_transfer": "bank transfer",
+      "other": "other"
     }
   }
 }

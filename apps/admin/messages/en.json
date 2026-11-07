@@ -549,5 +549,63 @@
     },
     "addressMissing": "No delivery address yet: the parent is asked for it in their parent area. You can also email them.",
     "addressUnreadable": "The saved address can't be read (encryption key changed?). Ask the parent to enter it again."
+  },
+  "Payouts": {
+    "title": "Store payouts",
+    "intro": "Stores are paid outside the app (check or bank transfer). Record each payment here: it covers every gift the store is owed at that moment.",
+    "owedTitle": "Owed to stores",
+    "owedIntro": "A store is owed for a gift once we've received it. The amount is the gift's price minus the store's agreed discount, fixed when the gift was received.",
+    "nothingOwed": "Nothing is owed right now.",
+    "owedLine": "{amount} for {count, plural, one {# gift} other {# gifts}}",
+    "missingAmount": "{count, plural, one {# gift has} other {# gifts have}} no amount yet because this store has no discount on record. Set the store's discount (Stores page) before paying.",
+    "method": "Paid by",
+    "methods": {
+      "check": "Check",
+      "bank_transfer": "Bank transfer",
+      "other": "Other"
+    },
+    "reference": "Check number / reference (optional)",
+    "paidOn": "Date sent",
+    "note": "Note (optional)",
+    "confirm": "I sent {amount} to {store}.",
+    "record": "Record payment",
+    "recorded": "Payment of {amount} to {store} recorded.",
+    "formFor": "Record a payment to {store}",
+    "moneyTitle": "Money for the {year} season",
+    "seasons": "Seasons",
+    "purpose": {
+      "tip": "Tips",
+      "bonus": "Parent bonus magic",
+      "donation": "Community donations",
+      "payup": "Gift pay-ups",
+      "registration": "Child registrations"
+    },
+    "collectedTotal": "Collected",
+    "givenBack": "Refunded or lost chargebacks",
+    "wholesale": "Paid or owed to stores ({count, plural, one {# gift} other {# gifts}})",
+    "net": "Net so far",
+    "marginTitle": "Where the margin comes from",
+    "retailOut": "Retail value of gifts received ({count})",
+    "wholesaleMargin": "Wholesale margin (retail − store payouts)",
+    "paidVsOwed": "Still owed to stores (paid so far: {paid})",
+    "breakage": "Breakage: points never spent ({reset} reset Jan 1, {forfeit} from unfinished gifts)",
+    "moneyNote": "Card processing fees aren't included (see the Stripe dashboard). Gifts count once Spirit O Santa received them.",
+    "historyTitle": "Payments made",
+    "noHistory": "No payments recorded yet.",
+    "gifts": "{count, plural, one {# gift} other {# gifts}}",
+    "errors": {
+      "confirm": "Tick the box to confirm the amount you sent.",
+      "changed": "The amount owed changed (a gift was just received). Check the new amount and try again.",
+      "notFound": "That store wasn't found. Reload the page.",
+      "nothingOwed": "Nothing is owed to this store right now.",
+      "missingAmount": "Some gifts have no amount yet (store discount missing). Set the discount first.",
+      "invalid": "Something was wrong with the form.",
+      "field": {
+        "method": "Choose how it was paid.",
+        "reference": "Keep the reference under 60 characters (no special characters).",
+        "paidOn": "Choose the date the money was sent.",
+        "note": "Keep the note under 300 characters (no special characters)."
+      }
+    }
   }
 }

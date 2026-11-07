@@ -549,5 +549,63 @@
     },
     "addressMissing": "Todavía no hay dirección de entrega: se le pide al padre o la madre en su área de padres. También puedes escribirle por correo.",
     "addressUnreadable": "La dirección guardada no se puede leer (¿cambió la clave de cifrado?). Pide al padre o la madre que la escriba de nuevo."
+  },
+  "Payouts": {
+    "title": "Pagos a tiendas",
+    "intro": "A las tiendas se les paga fuera de la app (cheque o transferencia). Registra aquí cada pago: cubre todos los regalos que se le deben a la tienda en ese momento.",
+    "owedTitle": "Se debe a las tiendas",
+    "owedIntro": "Se le debe a una tienda por un regalo cuando ya lo recibimos. El monto es el precio del regalo menos el descuento acordado, fijado al recibirlo.",
+    "nothingOwed": "Ahora no se debe nada.",
+    "owedLine": "{amount} por {count, plural, one {# regalo} other {# regalos}}",
+    "missingAmount": "{count, plural, one {# regalo todavía no tiene} other {# regalos todavía no tienen}} monto porque esta tienda no tiene descuento registrado. Define el descuento (página de Tiendas) antes de pagar.",
+    "method": "Pagado con",
+    "methods": {
+      "check": "Cheque",
+      "bank_transfer": "Transferencia bancaria",
+      "other": "Otro"
+    },
+    "reference": "Número de cheque / referencia (opcional)",
+    "paidOn": "Fecha de envío",
+    "note": "Nota (opcional)",
+    "confirm": "Envié {amount} a {store}.",
+    "record": "Registrar pago",
+    "recorded": "Pago de {amount} a {store} registrado.",
+    "formFor": "Registrar un pago a {store}",
+    "moneyTitle": "Dinero de la temporada {year}",
+    "seasons": "Temporadas",
+    "purpose": {
+      "tip": "Propinas",
+      "bonus": "Magia extra de los padres",
+      "donation": "Donaciones de la comunidad",
+      "payup": "Pagos para completar regalos",
+      "registration": "Registros de niños"
+    },
+    "collectedTotal": "Recaudado",
+    "givenBack": "Reembolsos o contracargos perdidos",
+    "wholesale": "Pagado o adeudado a tiendas ({count, plural, one {# regalo} other {# regalos}})",
+    "net": "Neto hasta ahora",
+    "marginTitle": "De dónde viene el margen",
+    "retailOut": "Valor de venta de los regalos recibidos ({count})",
+    "wholesaleMargin": "Margen mayorista (venta − pagos a tiendas)",
+    "paidVsOwed": "Todavía adeudado a tiendas (pagado hasta ahora: {paid})",
+    "breakage": "Puntos nunca usados ({reset} reiniciados el 1 de enero, {forfeit} de regalos incompletos)",
+    "moneyNote": "No incluye las comisiones de tarjeta (ver el panel de Stripe). Los regalos cuentan cuando Spirit O Santa los recibe.",
+    "historyTitle": "Pagos realizados",
+    "noHistory": "Todavía no hay pagos registrados.",
+    "gifts": "{count, plural, one {# regalo} other {# regalos}}",
+    "errors": {
+      "confirm": "Marca la casilla para confirmar el monto que enviaste.",
+      "changed": "El monto adeudado cambió (se acaba de recibir un regalo). Revisa el nuevo monto e inténtalo de nuevo.",
+      "notFound": "No se encontró esa tienda. Vuelve a cargar la página.",
+      "nothingOwed": "Ahora no se le debe nada a esta tienda.",
+      "missingAmount": "Algunos regalos todavía no tienen monto (falta el descuento de la tienda). Define el descuento primero.",
+      "invalid": "Algo estaba mal en el formulario.",
+      "field": {
+        "method": "Elige cómo se pagó.",
+        "reference": "La referencia debe tener menos de 60 caracteres (sin caracteres especiales).",
+        "paidOn": "Elige la fecha en que se envió el dinero.",
+        "note": "La nota debe tener menos de 300 caracteres (sin caracteres especiales)."
+      }
+    }
   }
 }

@@ -69,6 +69,9 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
                 <Link href="/fulfilment" className="font-semibold underline-offset-4 hover:underline">
                   {common("nav.fulfilment")}
                 </Link>
+                <Link href="/payouts" className="font-semibold underline-offset-4 hover:underline">
+                  {common("nav.payouts")}
+                </Link>
                 <Link href="/settings" className="font-semibold underline-offset-4 hover:underline">
                   {common("nav.settings")}
                 </Link>

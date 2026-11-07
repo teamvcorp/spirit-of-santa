@@ -21,6 +21,7 @@ export const AUDIT_ACTIONS = [
   "wish.receive",
   "wish.deliver",
   "wish.substitute",
+  "payout.record",
   "family.address_update",
   "family.address_delete",
   "family.address_view",

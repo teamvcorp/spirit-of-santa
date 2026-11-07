@@ -92,7 +92,8 @@
       "moderation": "Review",
       "settings": "Settings",
       "donations": "Donations",
-      "fulfilment": "Fulfilment"
+      "fulfilment": "Fulfilment",
+      "payouts": "Payouts"
     },
     "storeStatus": {
       "invited": "Invited",

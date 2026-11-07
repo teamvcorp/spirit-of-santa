@@ -9,7 +9,8 @@
  *    (releaseGiftInSession: escrow back, store's set-aside unit back to stock), then all the child's magic is
  *    forfeited to Spirit of Santa in one ledger row.
  *  - Gifts locked / shipped / delivered: a store is involved and is owed money, so the row STAYS (payouts read
- *    it) with familyDeletedAt set; the admin queue then says "keep for Spirit of Santa" instead of shipping.
+ *    it). One child deleted: still delivered to the family. Whole family deleted: familyDeletedAt on all of the
+ *    family's rows; the admin queue then says "keep for Spirit of Santa" instead of shipping.
  *  - Finished history rows (removed / unfunded): deleted.
  *  - Deeds (may hold free text), votes, the child: deleted. Live "pay later" text links for the deeds are
  *    switched off at Stripe first (the visitor's own consent record stays: it's theirs, 13-month rule).
@@ -19,7 +20,7 @@
  * Tips arriving later for a deleted child are never credited: the webhook flags them for admin review.
  */
 import "server-only";
-import { ActionToken, AuditLog, connectDb, Deed, ensureLock, Family, Kid, KidVote, takeLock, Transaction, trusted, User, WishListItem, withTransaction, type DbSession } from "@repo/db";
+import { ActionToken, AuditLog, connectDb, Deed, ensureLock, Family, Kid, KidVote, PayLaterRequest, takeLock, Transaction, trusted, User, WishListItem, withTransaction, type DbSession } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { getSeasonYear } from "@repo/lib/season";
 import { sendEmail } from "@repo/email";
@@ -33,10 +34,14 @@ export type EraseKidResult = { ok: true } | { ok: false; error: "notFound" };
 /** Same lock name deed creation uses (packages/deeds/src/deeds.ts): no deed can be added mid-deletion. */
 const deedLock = (kidId: string) => `kid-deeds:${kidId}`;
 
-/** Before the transaction: switch off live "pay later" links of this child's deeds (Stripe call, can't roll back). */
+/**
+ * Switch off this child's live "pay later" text links at Stripe (a network call: can't be in the transaction).
+ * Found through the visitor requests themselves (PayLaterRequest.kidId). Run BEFORE and AFTER the child's
+ * transaction: pay-later creation doesn't take the deed lock, so a link made in between is caught afterwards.
+ */
 async function closeKidPayLater(kidId: string): Promise<void> {
-  const deeds = await Deed.find({ kidId, payLaterExpiresAt: trusted({ $ne: null }) }).select("_id").lean();
-  for (const d of deeds) await closePayLaterForDeed(String(d._id));
+  const deedIds = await PayLaterRequest.distinct("deedId", { kidId, active: true });
+  for (const d of deedIds) await closePayLaterForDeed(String(d));
 }
 
 /**
@@ -55,18 +60,18 @@ async function eraseKidInSession(kidId: string, familyId: string, actorUserId: s
     .lean<ReleasableGift[]>();
   for (const w of open) await releaseGiftInSession(w, session, now);
 
-  // 2. Locked or later: the store is involved (and owed) → keep the row, Spirit of Santa keeps the gift.
-  await WishListItem.updateMany(
-    { kidId, status: trusted({ $in: ["locked", "shipped", "delivered"] }), familyDeletedAt: null },
-    { $set: { familyDeletedAt: now } },
-    { session },
-  );
+  // 2. Locked or later: the store is involved (and owed) → the row always STAYS. Deleting ONE child of a family
+  // that still exists: the gift still goes to the family's address (the "on its way" email is skipped: no child
+  // name left to put in it). Whole family deleted: eraseFamily marks ALL its rows (also earlier-deleted children's).
   // Finished history (incl. the rows just released): nothing a store or the ledger needs.
   await WishListItem.deleteMany({ kidId, status: trusted({ $in: ["removed", "unfunded"] }) }, { session });
 
-  // 3. All of the child's Christmas Magic goes to Spirit of Santa (one ledger row; unique key = never twice).
-  const bal = await Kid.findOne({ _id: kidId }).select("availableCentipoints escrowedCentipoints").session(session).lean();
-  const magic = (bal?.availableCentipoints ?? 0) + (bal?.escrowedCentipoints ?? 0);
+  // 3. The child's UNSPENT Christmas Magic goes to Spirit of Santa (one ledger row; unique key = never twice).
+  // = available AFTER the releases above (they moved open gifts' points into available). What is still in
+  // escrow paid for locked/shipped/delivered store gifts (the engine never books a "spend" at lock: CODEMAP
+  // open item), so it is NOT forfeited again.
+  const bal = await Kid.findOne({ _id: kidId }).select("availableCentipoints").session(session).lean();
+  const magic = bal?.availableCentipoints ?? 0;
   if (magic > 0) {
     await Transaction.create(
       [{ kidId, familyId, seasonYear: getSeasonYear(now), type: "forfeit", amountCentipoints: magic, idempotencyKey: `erase:${kidId}` }],
@@ -92,6 +97,7 @@ export async function eraseKid(parent: Parent, rawKidId: string, now = new Date(
   await closeKidPayLater(kidId);
   await ensureLock(deedLock(kidId));
   const done = await withTransaction((session) => eraseKidInSession(kidId, fid, parent.id, session, now));
+  await closeKidPayLater(kidId);
   return done ? { ok: true } : { ok: false, error: "notFound" };
 }
 
@@ -116,11 +122,19 @@ export async function eraseFamily(parent: Parent, now = new Date()): Promise<Era
     await closeKidPayLater(kidId);
     await ensureLock(deedLock(kidId));
     await withTransaction((session) => eraseKidInSession(kidId, fid, parent.id, session, now));
+    await closeKidPayLater(kidId);
   }
 
   await withTransaction(async (session) => {
     // A child added in the meantime (another device)? Refuse to orphan it: the parent retries.
     if (await Kid.exists({ familyId: fid }).session(session)) throw new Error("family still has children");
+    // Nobody left to send gifts to: every gift a store still holds or sent us for this family (incl. children
+    // deleted earlier one by one) is kept by Spirit of Santa; the store is still paid (rows stay).
+    await WishListItem.updateMany(
+      { familyId: fid, status: trusted({ $in: ["locked", "shipped", "delivered"] }), familyDeletedAt: null },
+      { $set: { familyDeletedAt: now } },
+      { session },
+    );
     await Family.deleteOne({ _id: fid, ownerUserId: parent.id }, { session });
     await ActionToken.deleteMany({ email: user.email }, { session });
     await User.deleteOne({ _id: parent.id }, { session });
@@ -139,10 +153,14 @@ export async function erasePreview(parent: Parent): Promise<ErasePreview | null>
   const fid = await ownFamilyId(parent);
   if (!fid) return null;
   await connectDb();
-  const [kids, giftsKept] = await Promise.all([
-    Kid.find({ familyId: fid }).select("availableCentipoints escrowedCentipoints").lean(),
+  // Same rule as the deletion: available + what open (not yet locked) gifts hold. Never the escrow of gifts
+  // already locked with a store (that magic was spent).
+  const [kids, open, giftsKept] = await Promise.all([
+    Kid.find({ familyId: fid }).select("availableCentipoints").lean(),
+    WishListItem.find({ familyId: fid, status: trusted({ $in: ["active", "fully_funded"] }) }).select("fundedCentipoints").lean(),
     WishListItem.countDocuments({ familyId: fid, status: trusted({ $in: ["locked", "shipped"] }) }),
   ]);
-  const magicCentipoints = kids.reduce((sum, k) => sum + (k.availableCentipoints ?? 0) + (k.escrowedCentipoints ?? 0), 0);
+  const magicCentipoints =
+    kids.reduce((sum, k) => sum + (k.availableCentipoints ?? 0), 0) + open.reduce((sum, w) => sum + (w.fundedCentipoints ?? 0), 0);
   return { children: kids.length, magicCentipoints, giftsKept };
 }

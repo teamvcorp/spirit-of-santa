@@ -48,6 +48,7 @@ async function Content() {
                 <li key={r.id} className="flex flex-col gap-2 py-3" data-ref={r.ref}>
                   {head(r)}
                   <p className="text-sm text-muted">{t("storeContact", { email: r.storeEmail })} · {t("fundedOn", { date: day(r.fullyFundedAt) })}</p>
+                  {r.familyDeletedAt && <p className="text-sm font-semibold" data-testid="family-deleted">{t("familyDeleted")}</p>}
                   <SubstituteForm wishId={r.id} refCode={r.ref} />
                 </li>
               ))}

@@ -14,7 +14,7 @@
 import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { chromium, type Page } from "playwright-core";
-import { AuditLog, connectDb, Deed, Family, Item, Kid, KidVote, Store, Transaction, trusted, User, WishListItem } from "@repo/db";
+import { AuditLog, connectDb, Deed, Family, Item, Kid, KidVote, PayLaterRequest, Store, Transaction, trusted, User, WishListItem } from "@repo/db";
 import { hashSecret } from "@repo/auth/password";
 import { getSeasonYear } from "@repo/lib/season";
 import { makeChecks } from "./lib.ts";
@@ -35,8 +35,9 @@ const user = await User.create({ email: `e2e-erase-${tag}@spiritofsanta.test`, p
 const fam = await Family.create({ ownerUserId: user._id, familyName: `Erase${tag}`, parentPinHash: await hashSecret(PIN), consent: { version: "test", acceptedAt: new Date(), emailVerifiedAt: new Date() } });
 await User.updateOne({ _id: user._id }, { $set: { familyId: fam._id } });
 const reg = { status: "registered", registeredAt: new Date(), method: "card" };
-// Ava: available 500 + escrowed 300 (collecting) + 1500 (fully funded) = 2300 centipoints of magic.
-const ava = await Kid.create({ familyId: fam._id, firstName: `Ava${tag}`, birthYear: 2016, displayName: "A.", availableCentipoints: 500, escrowedCentipoints: 1800, registration: reg });
+// Ava: available 500; escrow 300 (collecting) + 1500 (fully funded) + 2000 (LOCKED: already paid for a store
+// gift; the engine keeps it in escrow). Unspent magic = 500 + 300 + 1500 = 2300, never the locked 2000.
+const ava = await Kid.create({ familyId: fam._id, firstName: `Ava${tag}`, birthYear: 2016, displayName: "A.", availableCentipoints: 500, escrowedCentipoints: 3800, registration: reg });
 const ben = await Kid.create({ familyId: fam._id, firstName: `Ben${tag}`, birthYear: 2018, displayName: "B.", availableCentipoints: 200, registration: reg });
 const storeId = oid();
 await Store.collection.insertOne({ _id: storeId, name: `Erase Shop ${tag}`, slug: `e2e-erase-${tag}`, status: "approved", createdAt: new Date(), updatedAt: new Date() });
@@ -52,7 +53,11 @@ const funded = wish(sledId, { status: "fully_funded", fundedCentipoints: 1500, f
 const locked = wish(bikeId, { status: "locked", fundedCentipoints: 2000, fullyFundedAt: new Date(Date.now() - 40 * 86_400_000), lockedAt: new Date(), inventoryReserved: true });
 await WishListItem.collection.insertMany([collecting, funded, locked]);
 // Unique token hash per deed (index); the free-text description is what deletion must remove.
-await Deed.collection.insertOne({ _id: oid(), kidId: ben._id, familyId: fam._id, seasonYear: year, locale: "en", status: "pending", customDescription: `Helped a neighbour ${tag}`, customReview: "pending", qrTokenHash: randomBytes(32).toString("hex"), expiresAt: new Date(Date.now() + 86_400_000), createdAt: new Date(), updatedAt: new Date() });
+const benDeedId = oid();
+await Deed.collection.insertOne({ _id: benDeedId, kidId: ben._id, familyId: fam._id, seasonYear: year, locale: "en", status: "pending", customDescription: `Helped a neighbour ${tag}`, customReview: "pending", qrTokenHash: randomBytes(32).toString("hex"), expiresAt: new Date(Date.now() + 86_400_000), createdAt: new Date(), updatedAt: new Date() });
+// A visitor's live "pay later" text request for Ben's deed (no Stripe link id: closed without a Stripe call).
+const plrId = oid();
+await PayLaterRequest.collection.insertOne({ _id: plrId, deedId: benDeedId, kidId: ben._id, familyId: fam._id, active: true, status: "sent", phoneKey: "a".repeat(64), consentAt: new Date(), consentVersion: "test", consentLocale: "en", amountCents: 500, expiresAt: new Date(Date.now() + 86_400_000), createdAt: new Date(), updatedAt: new Date() });
 await KidVote.collection.insertOne({ kidId: ben._id, familyId: fam._id, seasonYear: year, day: "2026-11-01", vote: "nice", createdAt: new Date(), updatedAt: new Date() });
 
 const browser = await chromium.launch({ channel: "msedge", headless: true });
@@ -92,16 +97,29 @@ try {
   check("Ava's record is deleted", !(await Kid.exists({ _id: ava._id })));
   const rows = await WishListItem.find({ kidId: ava._id }).lean();
   check("open gifts (collecting + funded) are gone; only the LOCKED gift stays", rows.length === 1 && String(rows[0]?._id) === String(locked._id));
-  check("the locked gift is marked familyDeletedAt (store still owed, Spirit of Santa keeps it)", !!rows[0]?.familyDeletedAt && rows[0]?.status === "locked");
+  check("the locked gift stays deliverable: the family still exists (no familyDeletedAt)", !rows[0]?.familyDeletedAt && rows[0]?.status === "locked");
   const sled = await Item.findById(sledId).lean();
   check("the store's set-aside unit for the funded gift is back in stock (2 → 3)", sled?.inventory === 3);
   const bike = await Item.findById(bikeId).lean();
   check("the locked gift's unit stays with the order (1)", bike?.inventory === 1);
   const forfeit = await Transaction.find({ kidId: ava._id, type: "forfeit" }).lean();
-  check("all of Ava's magic (500 + 300 + 1500) went to Spirit of Santa in ONE forfeit row", forfeit.length === 1 && forfeit[0]?.amountCentipoints === 2300);
+  check("Ava's UNSPENT magic (500 + 300 + 1500) went to Spirit of Santa in ONE forfeit row, not the locked gift's 2000", forfeit.length === 1 && forfeit[0]?.amountCentipoints === 2300, `forfeit ${forfeit[0]?.amountCentipoints}`);
   const releases = await Transaction.countDocuments({ kidId: ava._id, type: "release" });
   check("both open gifts were released through the engine first (2 ledger releases)", releases === 2);
   check("the deletion is audited without names", !!(await AuditLog.exists({ action: "kid.delete", targetId: String(ava._id) })));
+
+  // ── 1b. "Lock" really locks (it now expires the cookie with its own options: __Host- names in production).
+  await page.goto(`${base}/parent`);
+  await ready(page);
+  await main(page).getByRole("button", { name: "Lock (back to kids)" }).click();
+  await page.waitForURL((u) => !u.pathname.startsWith("/parent"), { timeout: 60_000 });
+  await page.goto(`${base}/parent`);
+  await page.waitForURL((u) => u.pathname.endsWith("/parent/pin"), { timeout: 60_000 });
+  check("Lock relocks the parent area (PIN asked again)", true);
+  await ready(page);
+  await page.fill('[name="pin"]', PIN);
+  await page.click("main:visible button[type=submit]");
+  await page.waitForURL((u) => u.pathname.endsWith("/parent"), { timeout: 60_000 });
 
   // ── 2. Delete the WHOLE family.
   await page.goto(`${base}/parent`);
@@ -130,6 +148,9 @@ try {
   check("the header no longer shows a signed-in parent", !(await page.locator("header").innerText()).includes(user.email));
 
   check("family, parent and Ben are deleted", !(await Family.exists({ _id: fam._id })) && !(await User.exists({ _id: user._id })) && !(await Kid.exists({ _id: ben._id })));
+  check("Ava's earlier locked gift is now KEPT by Spirit of Santa (no family left to send it to)", !!(await WishListItem.findById(locked._id).lean())?.familyDeletedAt);
+  const plr = await PayLaterRequest.findById(plrId).lean();
+  check("the visitor's live pay-later link is switched off; their consent record stays", plr?.status === "closed" && !plr.active);
   check("Ben's deed (free text) and vote are deleted", !(await Deed.exists({ kidId: ben._id })) && !(await KidVote.exists({ kidId: ben._id })));
   const benForfeit = await Transaction.find({ kidId: ben._id, type: "forfeit" }).lean();
   check("Ben's 2 Christmas Magic went to Spirit of Santa", benForfeit.length === 1 && benForfeit[0]?.amountCentipoints === 200);
@@ -166,6 +187,7 @@ try {
     Kid.deleteMany({ familyId: fam._id }),
     Deed.collection.deleteMany({ familyId: fam._id }),
     KidVote.collection.deleteMany({ familyId: fam._id }),
+    PayLaterRequest.collection.deleteMany({ familyId: fam._id }),
     Family.deleteOne({ _id: fam._id }),
     User.deleteMany({ _id: trusted({ $in: [user._id] }) }),
   ]);

@@ -62,9 +62,9 @@ export async function recordDeed(parent: Parent, rawKidId: string, input: Record
   const created = await withTransaction(async (session) => {
     await takeLock(lock, session);
     // The child may have been deleted since it was looked up (families/erase.ts takes this same lock).
-    if (!(await Kid.exists({ _id: kid.kidId }).session(session))) return false;
+    if (!(await Kid.exists({ _id: kid.kidId }).session(session))) return "gone" as const;
     const today = await Deed.countDocuments({ kidId: kid.kidId, createdAt: trusted({ $gte: todayStart }) }).session(session);
-    if (today >= MAX_DEEDS_PER_KID_PER_DAY) return false;
+    if (today >= MAX_DEEDS_PER_KID_PER_DAY) return "dailyLimit" as const;
     await Deed.create(
       [
         {
@@ -85,7 +85,8 @@ export async function recordDeed(parent: Parent, rawKidId: string, input: Record
     await AuditLog.create([{ actorUserId: parent.id, action: "deed.create", targetType: "kid", targetId: kid.kidId, details: { deedId, custom: !deedTypeId } }], { session });
     return true;
   });
-  return created ? { ok: true, deedId } : { ok: false, error: "dailyLimit" };
+  if (created === "gone") return { ok: false, error: "notFound" };
+  return created === true ? { ok: true, deedId } : { ok: false, error: "dailyLimit" };
 }
 
 export type KidDeedRow = {

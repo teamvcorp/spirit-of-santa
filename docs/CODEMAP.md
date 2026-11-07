@@ -713,8 +713,19 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   /account-deleted, `accountDeleted` email, `@repo/auth/end-session` (expires __Host- cookies with their options).
   Server redirect, not reloadTo (cookie-changing action re-renders the current page → would bounce to sign-in).
   E2E `browser-family-erase.ts` (25). Stale `apps/*/tsconfig.tsbuildinfo` can hide NEW message namespaces: delete it.
+  Review fixes: forfeit = available AFTER releasing open gifts (escrow of locked/shipped/delivered gifts was spent);
+  one child deleted → locked gifts still go to the family; familyDeletedAt set at FAMILY level (all its rows, incl.
+  earlier-deleted children); pay-later links found via PayLaterRequest.kidId, closed before AND after each child's
+  transaction; part-way failure → "try again, it continues"; deed for a deleted kid → notFound; substitutes queue shows
+  the notice; Lock button + end-session expire __Host- cookies with their options (bare delete() was ignored in prod:
+  the PIN never really re-locked); split session cookies expired too. E2E now 28.
 
 ## Open items / TODO
+
+- **Escrow is never "spent" (found 2026-11-07, Phase 8 2a review):** when a gift locks, the engine books no `spend`
+  ledger row and never lowers `Kid.escrowedCentipoints`, so escrow grows with every gift ever locked (Jan 1 reset only
+  clears available). Balances shown as "escrowed" and ledger-derived totals over-count. Fix in the engine (book `spend`
+  + decrement at lock, plus a one-off correction migration); erase.ts already avoids it (forfeits available only).
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.
   Next: Atlas dev cluster → seed script → sign-in test.

@@ -162,7 +162,11 @@ export async function isParentUnlocked(user: ParentUser): Promise<boolean> {
   );
 }
 
-/** Re-lock (e.g. "Back to kids" button). */
+/**
+ * Re-lock (e.g. "Back to kids" button). Expired with the SAME options it was set with: in production the name has
+ * the "__Host-" prefix, and browsers ignore a Set-Cookie for it without Secure + Path=/, so a bare delete()
+ * left the parent area UNLOCKED until the cookie timed out (Phase 8 review, 2026-11-07).
+ */
 export async function lockParentDashboard(): Promise<void> {
-  (await cookies()).delete(UNLOCK_COOKIE());
+  (await cookies()).set(UNLOCK_COOKIE(), "", { ...baseCookieOptions(), sameSite: "strict", maxAge: 0 });
 }

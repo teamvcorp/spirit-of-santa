@@ -649,7 +649,8 @@
       "locked": "Your parent area is locked. Enter your PIN and try again.",
       "confirmWord": "Type the word exactly as shown to confirm.",
       "wrongPassword": "That password isn't right. After several tries, it's paused for 15 minutes.",
-      "notFound": "We couldn't find your family account."
+      "notFound": "We couldn't find your family account.",
+      "failed": "The deletion didn't finish. Please try again: it continues where it stopped."
     }
   },
   "AccountDeleted": {

@@ -152,7 +152,15 @@ export async function deleteAccountAction(_prev: ParentFormState, fd: FormData):
   if (!parent) return err("locked");
   if (!DELETE_WORDS.has(str(fd, "confirm").trim().toUpperCase())) return err("confirmWord");
   if (!(await verifyAccountPassword(parent.id, str(fd, "password"), { role: "parent" }))) return err("wrongPassword");
-  const r = await eraseFamily(parent);
+  let r;
+  try {
+    r = await eraseFamily(parent);
+  } catch (e) {
+    // Part-way failure (e.g. a child added on another device meanwhile, a database blip): what was finished
+    // stays finished, nothing is half-done per child (one transaction each). Trying again continues.
+    console.error("[family] account deletion stopped part-way:", e instanceof Error ? e.message : "unknown");
+    return err("failed");
+  }
   if (!r.ok) return err("notFound");
   await lockParentDashboard();
   await endSessionCookies("family");

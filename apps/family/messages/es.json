@@ -649,7 +649,8 @@
       "locked": "Tu área para padres está bloqueada. Ingresa tu PIN e inténtalo de nuevo.",
       "confirmWord": "Escribe la palabra exactamente como se muestra para confirmar.",
       "wrongPassword": "Esa contraseña no es correcta. Después de varios intentos, se pausa por 15 minutos.",
-      "notFound": "No encontramos tu cuenta familiar."
+      "notFound": "No encontramos tu cuenta familiar.",
+      "failed": "La eliminación no terminó. Inténtalo de nuevo: continúa donde se detuvo."
     }
   },
   "AccountDeleted": {

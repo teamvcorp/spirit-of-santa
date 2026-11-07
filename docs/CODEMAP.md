@@ -720,12 +720,19 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   the notice; Lock button + end-session expire __Host- cookies with their options (bare delete() was ignored in prod:
   the PIN never really re-locked); split session cookies expired too. E2E now 28.
 
-## Open items / TODO
+- **Spend at lock (2026-11-07, owner: "record magic as spend or we spend the same money twice").** Lock now books a
+  ledger "spend" (key spend:<giftId>, final, never reversed) and lowers escrow in the SAME transaction
+  (`lockGiftsInSession`, engine.ts). lockFundedItems: one transaction per KID, 120 s time budget (freeze day), returns
+  {locked, spentCentipoints, failed, needsAttention, remaining}. Failures via `@repo/wishlists/ledger-errors`
+  (classifyFailure): bad data → park (lockNeedsAttentionAt / closeNeedsAttentionAt), concurrent change → skip, database
+  blip → stop, next run continues (closeUnfunded fixed the same way). Money cron fails while ANY gift is parked.
+  Invariants in ONE place: `@repo/wishlists/ledger-check` (expectedBalances / ledgerProblems), used by E2Es.
+  Old data: `npm run db:backfill-spend` (packages/db/scripts/backfill-spend-at-lock.ts): dry run default, --apply,
+  --apply-production, --kid; never books gifts without escrow history; reports UNEXPLAINED_EXTRA / SHORT for a human.
+  Deletion forfeits available only, logs escrowLeft/shortfall, never blocks. E2E `ledger-invariants.ts` (15).
+  DEPLOY: push → then on production: dry run, read report, `--apply --apply-production` away from the cron time.
 
-- **Escrow is never "spent" (found 2026-11-07, Phase 8 2a review):** when a gift locks, the engine books no `spend`
-  ledger row and never lowers `Kid.escrowedCentipoints`, so escrow grows with every gift ever locked (Jan 1 reset only
-  clears available). Balances shown as "escrowed" and ledger-derived totals over-count. Fix in the engine (book `spend`
-  + decrement at lock, plus a one-off correction migration); erase.ts already avoids it (forfeits available only).
+## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.
   Next: Atlas dev cluster → seed script → sign-in test.

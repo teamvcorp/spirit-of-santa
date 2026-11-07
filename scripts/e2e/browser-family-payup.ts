@@ -18,6 +18,7 @@ import { startPayUp } from "@repo/families/payup";
 import { calendarDateIn, getSeasonYear, isoDay } from "@repo/lib/season";
 import { buildPaymentMetadata } from "@repo/payments/checkout";
 import { lockFundedItems } from "@repo/wishlists/engine";
+import { expectedBalances } from "@repo/wishlists/ledger-check";
 import { closeUnfunded } from "@repo/wishlists/payup";
 import { makeChecks } from "./lib.ts";
 
@@ -141,6 +142,9 @@ try {
   check("ledger 'earn_payup' with the money; kid escrow 20 points", tx?.type === "earn_payup" && tx.cents === 1500 && k1?.escrowedCentipoints === 2000 && k1.availableCentipoints === 0);
   await lockFundedItems();
   check("after the freeze date, the paid-up gift locks (ready to ship)", (await get(book))?.status === "locked");
+  // Phase 8: the lock SPENDS the Book's 10 points (one ledger row), so escrow keeps only the Bike's 10.
+  const bookSpend = await Transaction.find({ wishListItemId: book, type: "spend" }).lean();
+  check("lock books the Book's spend (10 points) and escrow drops 20 → 10", bookSpend.length === 1 && bookSpend[0]?.amountCentipoints === 1000 && (await Kid.findById(kid._id).lean())?.escrowedCentipoints === 1000);
 
   // 3. Refusals: already funded / other family's gift / forged webhook for someone else's gift.
   const s1 = await startPayUp(parentA, book, base, (p) => p);
@@ -148,7 +152,7 @@ try {
   check("server: already-funded gift → notNeeded; other family's gift → notFound", !s1.ok && s1.error === "notNeeded" && !s2.ok && s2.error === "notFound");
   const piX = await paid(otherWish, kid._id, A.family._id, 1500);
   const px = await Payment.findOne({ stripePaymentIntentId: piX }).lean();
-  check("webhook: pay-up naming another kid's gift → flagged for review, no points", px?.fulfilment === "review" && (await Kid.findById(kid._id).lean())?.escrowedCentipoints === 2000);
+  check("webhook: pay-up naming another kid's gift → flagged for review, no points", px?.fulfilment === "review" && (await Kid.findById(kid._id).lean())?.escrowedCentipoints === 1000);
 
   // 3b. Paying the (now locked) Book again: credited as points but FLAGGED for an admin.
   const piDup = await paid(book, kid._id, A.family._id, 1500);
@@ -169,16 +173,17 @@ try {
   const c1 = await closeUnfunded();
   const [cBike, cBook, k2, forfeit] = await Promise.all([get(bike), get(book), Kid.findById(kid._id).lean(), Transaction.findOne({ wishListItemId: bike, type: 'forfeit' }).lean()]);
   check('close: unfinished gift → unfunded, all its points forfeited (ledger forfeit)', bikeAfterDup === 2000 && cBike?.status === 'unfunded' && cBike.forfeitedCentipoints === 2000 && forfeit?.amountCentipoints === 2000);
-  check('close: kid escrow down by exactly the forfeit; the funded gift is untouched', k2?.escrowedCentipoints === 1000 && cBook?.status === 'locked');
+  // Escrow before the close = the Bike's 20 (10 + the duplicate's 10); the Book's points were spent at lock.
+  check('close: kid escrow down by exactly the forfeit (to 0); the locked gift is untouched', k2?.escrowedCentipoints === 0 && cBook?.status === 'locked');
   check('close: an out-of-sync gift fails ONCE and is parked for a human', c1.failed === 1 && !!(await get(bad))?.closeNeedsAttentionAt && (await get(bad))?.status === 'active');
   const c2 = await closeUnfunded();
-  check('close re-run: nothing forfeited twice; the parked gift no longer fails the job', (await Transaction.countDocuments({ wishListItemId: bike, type: 'forfeit' })) === 1 && (await Kid.findById(kid._id).lean())?.escrowedCentipoints === 1000 && c2.failed === 0 && c2.needsAttention >= 1);
+  check('close re-run: nothing forfeited twice; the parked gift no longer fails the job', (await Transaction.countDocuments({ wishListItemId: bike, type: 'forfeit' })) === 1 && (await Kid.findById(kid._id).lean())?.escrowedCentipoints === 0 && c2.failed === 0 && c2.needsAttention >= 1);
 
   // 6. The ledger still explains the kid's balances exactly.
-  const rows = await Transaction.find({ kidId: kid._id }).lean();
-  const sum = (t: string) => rows.filter((r) => r.type === t).reduce((s, r) => s + r.amountCentipoints, 0);
+  // The ONE ledger formula (@repo/wishlists/ledger-check): escrow, release, spend at lock, forfeit.
+  const e = expectedBalances(await Transaction.find({ kidId: kid._id }).lean());
   const k3 = await Kid.findById(kid._id).lean();
-  check("ledger adds up: escrow = escrowed − released − forfeited", k3?.escrowedCentipoints === sum("escrow") - sum("release") - sum("forfeit") && k3.availableCentipoints === 1000 /* earned before the test (its escrow row is the setup row) */ + sum("earn_payup") - sum("escrow") + sum("release"));
+  check("ledger adds up (incl. the spend at lock)", k3?.escrowedCentipoints === e.escrowed && k3.availableCentipoints === 1000 /* earned before the test (its escrow row is the setup row) */ + e.available, `kid ${k3?.availableCentipoints}/${k3?.escrowedCentipoints} ledger ${e.available}/${e.escrowed}`);
 
   check("no browser errors", errors.length === 0);
   if (errors.length) console.log(errors);

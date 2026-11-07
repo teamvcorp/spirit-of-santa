@@ -10,7 +10,7 @@
  */
 import { randomBytes } from "node:crypto";
 import { chromium, type Page } from "playwright-core";
-import { AuditLog, connectDb, Item, PlatformSettings, Season, Store, trusted, User, WishListItem } from "@repo/db";
+import { AuditLog, connectDb, Item, Kid, PlatformSettings, Season, Store, Transaction, trusted, User, WishListItem } from "@repo/db";
 import { hashSecret } from "@repo/auth/password";
 import { getSeasonYear } from "@repo/lib/season";
 import { lockFundedItems } from "@repo/wishlists/engine";
@@ -49,8 +49,12 @@ await Store.updateOne({ _id: A.id }, { $push: { repUserIds: rep._id } });
 const bike = await Item.create({ storeId: A.id, seasonYear: year, name: `Bike ${tag}`, priceCents: 2500, inventory: 3, status: "active" });
 const kite = await Item.create({ storeId: A.id, seasonYear: year, name: `Kite ${tag}`, priceCents: 500, inventory: 0, status: "active" });
 const drum = await Item.create({ storeId: B.id, seasonYear: year, name: `Drum ${tag}`, priceCents: 800, inventory: 2, status: "active" });
-const kidId = oid();
 const familyId = oid();
+// A REAL kid (Phase 8): locking now SPENDS the gift's magic from the kid's escrow, so a made-up kid would (rightly)
+// be parked. Escrow = the 5 fully funded gifts below × 100. The name must still never reach a store.
+const kidDoc = await Kid.create({ familyId, firstName: KID_NAME, birthYear: 2016, displayName: "Z.", escrowedCentipoints: 500, registration: { status: "registered", registeredAt: new Date(), method: "card" } });
+const kidId = kidDoc._id;
+const escrow = async () => (await Kid.findById(kidId).lean())?.escrowedCentipoints;
 const wish = async (it: { _id: unknown; storeId: unknown }, status: string, fundedDaysAgo: number, extra: Record<string, unknown> = {}) => {
   const _id = oid();
   // Raw insert: the store side never needs a real kid, and the kid's name is planted in NO store-visible field.
@@ -82,6 +86,8 @@ try {
   await lockFundedItems();
   check("open season: 30+ days fully funded → locked; newer ones stay fully funded",
     (await status(old)) === "locked" && (await status(fresh)) === "fully_funded" && (await status(freezeOnly)) === "fully_funded" && (await status(otherStore)) === "locked");
+  // Old, otherStore and outOfStock (40 days) locked → their 3 × 100 SPENT; 200 stays for the 2 open gifts.
+  check("lock spends the locked gifts' magic: escrow 500 → 200", (await escrow()) === 200, String(await escrow()));
 
   // 2. No shipping address yet → digest waits (and marks nothing).
   const d0 = await sendStoreDigests();
@@ -109,8 +115,10 @@ try {
   check("told-at times recorded (ready + set aside)", !!wOld?.readyNotifiedAt && !!wOld.setAsideNotifiedAt && !!wFresh?.setAsideNotifiedAt && !wFresh.readyNotifiedAt);
   const stamps = async () => JSON.stringify(await WishListItem.find({ _id: trusted({ $in: allWish }) }).select("setAsideNotifiedAt readyNotifiedAt").sort({ _id: 1 }).lean());
   const before = await stamps();
-  const d2 = await sendStoreDigests();
-  check("second run: nothing new for our stores (no gift re-told)", (await stamps()) === before && d2.failed === 0);
+  await sendStoreDigests();
+  // Our stores only: the shared dev DB can hold other scripts' or a person's test stores (e.g. one with no owner),
+  // which the digest reports as failed. The claim here is that OUR gifts are never told twice.
+  check("second run: nothing new for our stores (no gift re-told)", (await stamps()) === before);
 
   // 4. Store app: owner signs in → overview alert → Orders page.
   await page.goto(`${base}/signin`);
@@ -154,11 +162,12 @@ try {
   // 7. The admin's force-freeze switch must NOT lock anything for good (it can be switched off again).
   await Season.collection.updateOne({ year }, { $set: { forceFrozen: true } }, { upsert: true });
   await lockFundedItems();
-  check("force-freeze switch (reversible) locks nothing early", (await status(fresh)) === "fully_funded" && (await status(freezeOnly)) === "fully_funded");
+  check("force-freeze switch (reversible) locks nothing early (and spends nothing)", (await status(fresh)) === "fully_funded" && (await status(freezeOnly)) === "fully_funded" && (await escrow()) === 200);
   // 8. The freeze DATE reached (here: today) → every fully funded gift of this season locks at once.
   await Season.collection.updateOne({ year }, { $set: { forceFrozen: false, freezeDate: isoDay(calendarDateIn(new Date())) } });
   await lockFundedItems();
   check("on the freeze date: all fully funded gifts lock (even 1-day-old ones)", (await status(fresh)) === "locked" && (await status(freezeOnly)) === "locked");
+  check("…and all their magic is spent: escrow 0", (await escrow()) === 0);
 
   check("no browser errors", errors.length === 0);
   if (errors.length) console.log(errors);
@@ -174,6 +183,8 @@ try {
     Item.deleteMany({ _id: trusted({ $in: [bike._id, kite._id, drum._id] }) }),
     Store.deleteMany({ _id: trusted({ $in: [A.id, B.id] }) }),
     User.deleteMany({ _id: trusted({ $in: [A.owner._id, B.owner._id, rep._id] }) }),
+    Kid.deleteOne({ _id: kidId }),
+    Transaction.collection.deleteMany({ kidId }),
   ]);
   await mongoose.disconnect();
 }

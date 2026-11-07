@@ -6,7 +6,8 @@
  * Each part checks the season itself and does nothing when it isn't its time, IN ORDER:
  *  1. Split held donation pools (only while frozen, fee set). Daily runs share late gifts too.
  *  2. Switch off expired pay-later text links (Phase 5 slice 4b), BEFORE the season end.
- *     Then wish lists (Phase 6): lock items (30 days funded, or all at the freeze); sweep unallocated
+ *     Then wish lists (Phase 6): lock items (30 days funded, or all at the freeze) and SPEND their magic (ledger
+ *     "spend", Phase 8); sweep unallocated
  *     points; Dec 25 close (unfinished gifts drop off, points → Spirit of Santa); then email each store its new gifts to set aside / ready to ship (needs STORE_APP_URL);
  *     then retry failed "gift on its way" parent emails (needs FAMILY_APP_URL); delete addresses no gift needs;
  *     Phase 7: each parent's daily summary (magic + deeds) and the season reminders (email only).
@@ -57,7 +58,7 @@ export async function GET(request: Request): Promise<Response> {
   const split = await settle(() => runDonationSplit({ trigger: "cron" }));
   // Expired pay-later links off BEFORE the season end, so none is payable after points reset.
   const payLater = await settle(() => expirePayLaterLinks());
-  // Wish lists (Phase 6): fully funded 30+ days → locked; then a safety sweep of unallocated points.
+  // Wish lists (Phase 6): fully funded 30+ days → locked + magic spent (Phase 8); then a safety sweep of unallocated points.
   // Then the Dec 25 close: unfinished gifts drop off, their points go to Spirit of Santa (BEFORE the Jan 1 reset).
   const wishLists = await settle(async () => ({ locked: await lockFundedItems(), sweep: await sweepAllocations(), closed: await closeUnfunded() }));
   // After locking, so gifts locked today are in today's "ready to ship" email.
@@ -87,11 +88,15 @@ export async function GET(request: Request): Promise<Response> {
   const digestFailed = storeOrders.status === "fulfilled" && storeOrders.value.failed > 0;
   const noticesFailed = familyNotices.status === "fulfilled" && familyNotices.value.failed > 0;
   const closeFailed = wishLists.status === "fulfilled" && wishLists.value.closed.failed > 0;
+  const lockFailed = wishLists.status === "fulfilled" && wishLists.value.locked.failed > 0;
+  // Gifts PARKED for a human (bad data at lock or at the Dec 25 close) keep failing the job EVERY day until fixed:
+  // their magic is neither spent nor forfeited, so it must never sit there quietly past the season (Phase 8 review).
+  const parked = wishLists.status === "fulfilled" && (wishLists.value.locked.needsAttention > 0 || wishLists.value.closed.needsAttention > 0);
   const parentEmailsFailed = (digests.status === "fulfilled" && digests.value.failed > 0) ||
     (reminders.status === "fulfilled" && [reminders.value.cutoff, reminders.value.payUp].some((r) => r !== "notTime" && r.failed > 0));
-  const failed = digestFailed || noticesFailed || closeFailed || parentEmailsFailed || [split, seasonEnd, payLater, wishLists, storeOrders, familyNotices, addresses, digests, reminders, receipts].some((r) => r.status === "rejected");
+  const failed = digestFailed || noticesFailed || closeFailed || lockFailed || parked || parentEmailsFailed || [split, seasonEnd, payLater, wishLists, storeOrders, familyNotices, addresses, digests, reminders, receipts].some((r) => r.status === "rejected");
   if (failed) {
-    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, addresses: addresses.status, digests: digests.status, reminders: reminders.status, receipts: receipts.status, digestFailed, noticesFailed, closeFailed, parentEmailsFailed }));
+    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, addresses: addresses.status, digests: digests.status, reminders: reminders.status, receipts: receipts.status, digestFailed, noticesFailed, closeFailed, lockFailed, parked, parentEmailsFailed }));
     return Response.json(result, { status: 500, headers: { "Cache-Control": "no-store" } });
   }
   console.info("[cron] donations", JSON.stringify(result)); // totals/counts only, no personal data

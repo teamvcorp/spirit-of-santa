@@ -10,6 +10,7 @@
     "test": "turbo run test",
     "admin:create": "node --conditions=react-server packages/auth/scripts/create-admin.ts",
     "db:sync-indexes": "node --conditions=react-server packages/db/scripts/sync-indexes.ts",
+    "db:backfill-spend": "node --conditions=react-server packages/db/scripts/backfill-spend-at-lock.ts",
     "seed:dev": "node --conditions=react-server --env-file=apps/family/.env.local packages/auth/scripts/seed-dev.ts",
     "admin:check": "node --conditions=react-server packages/auth/scripts/check-admin.ts"
   },

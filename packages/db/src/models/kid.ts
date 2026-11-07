@@ -6,8 +6,11 @@
  * nothing about an awaiting kid appears on any public page.
  *
  * Balances are a CACHE of the Transaction ledger. Only the ledger service may change them,
- * and only inside the same DB transaction that inserts the matching ledger rows, so
- *   available + escrowed == sum(ledger for this kid this season)   always holds.
+ * and only inside the same DB transaction that inserts the matching ledger rows, so (all seasons):
+ *   available + escrowed == Σearn_* − Σseason_reset − Σforfeit − Σspend + Σadjustment_credit − Σadjustment_debit
+ *   escrowed             == Σ fundedCentipoints of the kid's active + fully_funded gifts
+ * (checked by @repo/wishlists/ledger-check). Before Phase 8 (2026-11) lock booked no "spend", so escrow kept
+ * growing: scripts/backfill-spend-at-lock.ts corrects old data.
  */
 // Default import: mongoose is CommonJS, so named runtime imports fail under plain Node ESM.
 import mongoose, { type InferSchemaType, type Model } from "mongoose";

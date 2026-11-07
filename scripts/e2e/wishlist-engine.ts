@@ -15,6 +15,7 @@ import { connectDb, Family, Item, Kid, Payment, Season, Store, StripeEvent, Tran
 import { getSeasonYear } from "@repo/lib/season";
 import { buildPaymentMetadata } from "@repo/payments/checkout";
 import { addToList, lockFundedItems, removeFromList } from "@repo/wishlists/engine";
+import { expectedBalances } from "@repo/wishlists/ledger-check";
 import { makeChecks } from "./lib.ts";
 
 const [base] = process.argv.slice(2);
@@ -68,11 +69,10 @@ const tip = async (cents: number) => {
 };
 /** Ledger must explain both balances exactly (escrow moves points, it never creates them). */
 const ledgerAddsUp = async () => {
-  const rows = await Transaction.find({ kidId: kid._id }).lean();
-  const sum = (t: string) => rows.filter((r) => r.type === t).reduce((s, r) => s + r.amountCentipoints, 0);
+  // The ONE ledger formula (@repo/wishlists/ledger-check): escrow, release, spend at lock, forfeits all included.
+  const e = expectedBalances(await Transaction.find({ kidId: kid._id }).lean());
   const k = await kidState();
-  const earned = 1000 /* starting balance (test setup) */ + sum("earn_tip");
-  return k.availableCentipoints === earned - sum("escrow") + sum("release") && k.escrowedCentipoints === sum("escrow") - sum("release");
+  return k.availableCentipoints === 1000 /* starting balance (test setup) */ + e.available && k.escrowedCentipoints === e.escrowed;
 };
 
 try {
@@ -124,9 +124,20 @@ try {
   // Even BEFORE the daily lock job runs, 30+ days funded means locked.
   const early = await removeFromList(parent, String(wb!._id));
   check("past 30 days → can't be removed even before the lock job runs", !early.ok && early.error === "locked" && (await wl(B))?.status === "fully_funded");
+  const before8 = await kidState();
   const locked = await lockFundedItems();
   const rb = await removeFromList(parent, String(wb!._id));
-  check("fully funded 30+ days → locked, and can't be removed", locked >= 1 && (await wl(B))?.status === "locked" && !rb.ok && rb.error === "locked");
+  check("fully funded 30+ days → locked, and can't be removed", locked.locked >= 1 && (await wl(B))?.status === "locked" && !rb.ok && rb.error === "locked");
+  // Phase 8: the lock SPENDS the gift's magic: one ledger row with a unique key, escrow lowered, available untouched.
+  const spends = await Transaction.find({ kidId: kid._id, type: "spend" }).lean();
+  const after8 = await kidState();
+  check("lock books ONE spend (key spend:<gift>) and lowers escrow by it; available unchanged",
+    spends.length === 1 && spends[0]?.amountCentipoints === wb!.costCentipoints && spends[0]?.idempotencyKey === `spend:${String(wb!._id)}` &&
+      after8.escrowedCentipoints === before8.escrowedCentipoints - wb!.costCentipoints && after8.availableCentipoints === before8.availableCentipoints,
+    `escrow ${before8.escrowedCentipoints}→${after8.escrowedCentipoints}`);
+  await lockFundedItems();
+  check("running the lock again books nothing more (never spent twice)", (await Transaction.countDocuments({ kidId: kid._id, type: "spend" })) === 1 && (await kidState()).escrowedCentipoints === after8.escrowedCentipoints);
+  check("ledger adds up after the spend", await ledgerAddsUp());
 
   // 9. Sold out at the moment it fills → flagged for a substitute (stock reserved at full funding).
   const E = await mkItem("Kite", 5000, 1);
@@ -162,8 +173,10 @@ try {
   // so make the fixture consistent first: it has done its job (check above).
   await WishListItem.collection.updateOne({ _id: oldItem._id }, { $set: { fundedCentipoints: 0 } });
   const cron = await fetch(`${base}/api/cron/money`, { headers: { authorization: `Bearer ${cronSecret}` } });
-  const cj = (await cron.json()) as { wishLists?: { locked?: number } };
-  check("daily cron includes wish-list lock + sweep", cron.status === 200 && typeof cj.wishLists?.locked === "number", JSON.stringify(cj.wishLists));
+  const cj = (await cron.json()) as { wishLists?: { locked?: { locked: number; failed: number } } };
+  // Status not asserted: other scripts' leftover fixtures (made-up kids) can park a gift in the shared dev DB.
+  check("daily cron includes wish-list lock (+ spend) and sweep", typeof cj.wishLists?.locked?.locked === "number", JSON.stringify(cj.wishLists));
+  check("none of THIS kid's gifts were parked by the cron", (await WishListItem.countDocuments({ kidId: kid._id, lockNeedsAttentionAt: trusted({ $ne: null }) })) === 0);
 
   // 14. Another family can't touch this list.
   const stranger = { id: String(oid()), familyId: String(fam._id) };

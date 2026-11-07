@@ -35,9 +35,9 @@ const user = await User.create({ email: `e2e-erase-${tag}@spiritofsanta.test`, p
 const fam = await Family.create({ ownerUserId: user._id, familyName: `Erase${tag}`, parentPinHash: await hashSecret(PIN), consent: { version: "test", acceptedAt: new Date(), emailVerifiedAt: new Date() } });
 await User.updateOne({ _id: user._id }, { $set: { familyId: fam._id } });
 const reg = { status: "registered", registeredAt: new Date(), method: "card" };
-// Ava: available 500; escrow 300 (collecting) + 1500 (fully funded) + 2000 (LOCKED: already paid for a store
-// gift; the engine keeps it in escrow). Unspent magic = 500 + 300 + 1500 = 2300, never the locked 2000.
-const ava = await Kid.create({ familyId: fam._id, firstName: `Ava${tag}`, birthYear: 2016, displayName: "A.", availableCentipoints: 500, escrowedCentipoints: 3800, registration: reg });
+// Ava: available 500; escrow 300 (collecting) + 1500 (fully funded). The LOCKED gift's 2000 was SPENT at lock
+// (Phase 8: ledger "spend", not in escrow). Unspent magic = 500 + 300 + 1500 = 2300, never the locked 2000.
+const ava = await Kid.create({ familyId: fam._id, firstName: `Ava${tag}`, birthYear: 2016, displayName: "A.", availableCentipoints: 500, escrowedCentipoints: 1800, registration: reg });
 const ben = await Kid.create({ familyId: fam._id, firstName: `Ben${tag}`, birthYear: 2018, displayName: "B.", availableCentipoints: 200, registration: reg });
 const storeId = oid();
 await Store.collection.insertOne({ _id: storeId, name: `Erase Shop ${tag}`, slug: `e2e-erase-${tag}`, status: "approved", createdAt: new Date(), updatedAt: new Date() });
@@ -52,6 +52,8 @@ const collecting = wish(kiteId, { status: "active", fundedCentipoints: 300 });
 const funded = wish(sledId, { status: "fully_funded", fundedCentipoints: 1500, fullyFundedAt: new Date(), inventoryReserved: true });
 const locked = wish(bikeId, { status: "locked", fundedCentipoints: 2000, fullyFundedAt: new Date(Date.now() - 40 * 86_400_000), lockedAt: new Date(), inventoryReserved: true });
 await WishListItem.collection.insertMany([collecting, funded, locked]);
+// The locked gift's spend, as the engine books it at lock.
+await Transaction.collection.insertOne({ kidId: ava._id, familyId: fam._id, seasonYear: year, type: "spend", amountCentipoints: 2000, wishListItemId: locked._id, idempotencyKey: `spend:${String(locked._id)}`, createdAt: new Date() });
 // Unique token hash per deed (index); the free-text description is what deletion must remove.
 const benDeedId = oid();
 await Deed.collection.insertOne({ _id: benDeedId, kidId: ben._id, familyId: fam._id, seasonYear: year, locale: "en", status: "pending", customDescription: `Helped a neighbour ${tag}`, customReview: "pending", qrTokenHash: randomBytes(32).toString("hex"), expiresAt: new Date(Date.now() + 86_400_000), createdAt: new Date(), updatedAt: new Date() });
@@ -106,7 +108,9 @@ try {
   check("Ava's UNSPENT magic (500 + 300 + 1500) went to Spirit of Santa in ONE forfeit row, not the locked gift's 2000", forfeit.length === 1 && forfeit[0]?.amountCentipoints === 2300, `forfeit ${forfeit[0]?.amountCentipoints}`);
   const releases = await Transaction.countDocuments({ kidId: ava._id, type: "release" });
   check("both open gifts were released through the engine first (2 ledger releases)", releases === 2);
-  check("the deletion is audited without names", !!(await AuditLog.exists({ action: "kid.delete", targetId: String(ava._id) })));
+  const avaAudit = await AuditLog.findOne({ action: "kid.delete", targetId: String(ava._id) }).lean();
+  check("the deletion is audited without names, and found the books in order (no escrow left over)", !!avaAudit && !(avaAudit.details as { escrowLeftCentipoints?: number } | undefined)?.escrowLeftCentipoints);
+  check("the locked gift keeps its ONE spend (deletion never forfeits spent magic again)", (await Transaction.countDocuments({ wishListItemId: locked._id, type: "spend" })) === 1 && (await Transaction.countDocuments({ wishListItemId: locked._id, type: "forfeit" })) === 0);
 
   // ── 1b. "Lock" really locks (it now expires the cookie with its own options: __Host- names in production).
   await page.goto(`${base}/parent`);
@@ -188,6 +192,7 @@ try {
     Deed.collection.deleteMany({ familyId: fam._id }),
     KidVote.collection.deleteMany({ familyId: fam._id }),
     PayLaterRequest.collection.deleteMany({ familyId: fam._id }),
+    Transaction.collection.deleteMany({ familyId: fam._id }),
     Family.deleteOne({ _id: fam._id }),
     User.deleteMany({ _id: trusted({ $in: [user._id] }) }),
   ]);

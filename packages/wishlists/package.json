@@ -11,7 +11,8 @@
     "./fulfilment": "./src/fulfilment.ts",
     "./payup": "./src/payup.ts",
     "./delivery": "./src/delivery.ts",
-    "./payouts": "./src/payouts.ts"
+    "./payouts": "./src/payouts.ts",
+    "./ledger-check": "./src/ledger-check.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

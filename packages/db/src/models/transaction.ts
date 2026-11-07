@@ -26,7 +26,9 @@ import {
  *   earn_*        +available           (money came in: tip, parent bonus, donation)
  *   escrow        available → escrowed (item added to wish list)
  *   release       escrowed  → available(item removed before lock)
- *   spend         −escrowed            (item locked & sent for fulfilment)
+ *   spend         −escrowed            (fully funded gift LOCKED: final, never reversed; key spend:<giftId>)
+ *   forfeit       −escrowed            (Dec 25: unfunded gift's points to Spirit of Santa; key forfeit:<giftId>)
+ *                 −available           (account/child deletion: unspent points to Spirit of Santa; key erase:<kidId>)
  *   season_reset  −available           (Jan 1 reset)
  *   adjustment_*  ±available           (admin correction; note required)
  */

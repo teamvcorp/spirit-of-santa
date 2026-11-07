@@ -67,6 +67,11 @@ const wishListItemSchema = new Schema(
     forfeitedCentipoints: { type: Number, min: 0 },
     /** The Dec 25 close failed on this gift (data needs a human); skipped until cleared. */
     closeNeedsAttentionAt: Date,
+    /**
+     * Lock + spend failed on BAD DATA (kid missing, escrow lower than the gift holds, amounts off): the daily job
+     * skips the gift until a human fixes the data and clears this field (Phase 8, engine.ts lockFundedItems).
+     */
+    lockNeedsAttentionAt: Date,
 
     /** Daily store digest: when the store was told to set it aside / that it's ready to ship. */
     setAsideNotifiedAt: Date,

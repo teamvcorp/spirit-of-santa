@@ -67,6 +67,7 @@ export const AUDIT_ACTIONS = [
   "kid.update",
   "kid.delete",
   "family.delete",
+  "ledger.backfill_spend",
   "family.pin_set",
   "family.alias",
   "family.alias_review",

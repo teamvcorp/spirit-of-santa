@@ -11,6 +11,7 @@
  *    Nothing is ever taken from points the kid has spare (those are zeroed by the Jan 1 reset).
  */
 import "server-only";
+import { classifyFailure, LedgerDataError, RowChangedError } from "./ledger-errors.ts";
 import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 import { connectDb, Item, Kid, Transaction, trusted, WishListItem, withTransaction } from "@repo/db";
 import { MIN_STRIPE_CHARGE_CENTS, PAY_UP_CLOSES_DAYS_BEFORE_CLOSE } from "@repo/lib/limits";
@@ -128,7 +129,7 @@ export async function closeUnfunded(now = new Date()): Promise<CloseResult> {
           { $set: { status: "unfunded", forfeitedAt: now, forfeitedCentipoints: r.fundedCentipoints } },
           { session },
         );
-        if (res.modifiedCount !== 1) throw new Error("wish list item changed during close");
+        if (res.modifiedCount !== 1) throw new RowChangedError("wish list item changed during close");
         if (r.fundedCentipoints > 0) {
           await Transaction.create(
             [
@@ -151,17 +152,26 @@ export async function closeUnfunded(now = new Date()): Promise<CloseResult> {
             { session },
           );
           // Kid deleted (COPPA deletion removes their list too) or escrow out of sync: stop, don't guess.
-          if (k.modifiedCount !== 1) throw new Error("kid escrow out of sync during close");
+          if (k.modifiedCount !== 1) throw new LedgerDataError("kid escrow out of sync during close");
         }
       });
       result.dropped += 1;
       result.forfeitedCentipoints += r.fundedCentipoints;
     } catch (err) {
+      // ledger-errors.ts: park ONLY on bad data; a concurrent change is skipped; a database blip stops this run
+      // (tomorrow continues) instead of parking healthy gifts for good (Phase 8 review 2026-11-07).
+      const kind = classifyFailure(err);
+      if (kind === "changed") continue;
+      if (kind === "transient") {
+        console.error("[wishlists] close stopped (database unavailable), continues next run:", err instanceof Error ? err.name : "unknown");
+        break;
+      }
       result.failed += 1;
+      result.needsAttention += 1;
       // Park it (outside the failed transaction) so tomorrow's run doesn't fail on it again.
       await WishListItem.updateOne({ _id: String(r._id), status: "active" }, { $set: { closeNeedsAttentionAt: new Date() } }).catch(() => undefined);
       // Error TYPE only: driver messages can contain connection details.
-      console.error("[wishlists] close of an unfunded gift failed (retried next run):", err instanceof Error ? err.name : "unknown");
+      console.error("[wishlists] close of an unfunded gift failed, parked for a human:", err instanceof Error ? err.name : "unknown");
     }
   }
   return result;

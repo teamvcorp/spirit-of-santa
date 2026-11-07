@@ -35,6 +35,7 @@ import { itemPriceCentsToCentipoints } from "@repo/lib/points";
 import { getSeasonState } from "@repo/stores/season";
 import { planAllocation } from "./plan.ts";
 import { CAP_STATUSES, isRemovable } from "./rules.ts";
+import { classifyFailure, LedgerDataError, RowChangedError } from "./ledger-errors.ts";
 
 import { DAY_MS } from "@repo/lib/time";
 import { startOfDayInZone } from "@repo/lib/season";
@@ -380,25 +381,130 @@ export async function removeFromList(
   }
 }
 
+/** A gift picked for locking. */
+type LockCandidate = { _id: unknown; kidId: unknown; familyId: unknown; seasonYear: number; fundedCentipoints: number; costCentipoints: number };
+
 /**
- * Daily: fully funded items → LOCKED (can't be removed; the store may now ship them).
+ * failed = gifts parked THIS run (data problems: alert); needsAttention = all gifts parked so far (a human must
+ * fix their data, then clear lockNeedsAttentionAt); remaining = gifts left for the next run (time budget used
+ * up, or the database was briefly unreachable).
+ */
+export type LockResult = { locked: number; spentCentipoints: number; failed: number; needsAttention: number; remaining: number };
+
+/** Gifts per run (a partial run just continues the next day) and the run's time budget (cron limit is 300 s). */
+const LOCK_BATCH = 5000;
+const LOCK_TIME_BUDGET_MS = 120_000;
+
+/**
+ * Lock these gifts of ONE kid and SPEND their magic, inside the caller's transaction (Phase 8, owner decision
+ * 2026-11-07: "record magic as spend or we will be spending the same money twice").
+ * Per gift: compare-and-set fully_funded → locked, plus one ledger "spend" row with the unique key
+ * `spend:<giftId>` (the database refuses a second one, so a gift can never be spent twice: cron retries, two
+ * runs at once, the one-off correction script). Then the kid's escrow goes down by the total, guarded so it can
+ * never go negative. A spend is FINAL: there is no "unspend" (after lock the money and present are secured).
+ */
+export async function lockGiftsInSession(gifts: LockCandidate[], session: DbSession, now: Date): Promise<number> {
+  const kidId = String(gifts[0]!.kidId);
+  let total = 0;
+  for (const w of gifts) {
+    const id = String(w._id);
+    const f = w.fundedCentipoints;
+    // A gift is only ever fully_funded when funded === cost (planAllocation); anything else is bad data.
+    if (f < 1 || f !== w.costCentipoints) throw new LedgerDataError("lock: funded != cost");
+    const res = await WishListItem.updateOne(
+      { _id: id, status: "fully_funded", fundedCentipoints: f, costCentipoints: f },
+      { $set: { status: "locked", lockedAt: now } },
+      { session },
+    );
+    if (res.modifiedCount !== 1) throw new RowChangedError("gift changed during lock");
+    await Transaction.create(
+      [{ kidId, familyId: String(w.familyId), seasonYear: w.seasonYear, type: "spend", amountCentipoints: f, wishListItemId: id, idempotencyKey: `spend:${id}` }],
+      { session },
+    );
+    total += f;
+  }
+  const k = await Kid.updateOne({ _id: kidId, escrowedCentipoints: trusted({ $gte: total }) }, { $inc: { escrowedCentipoints: -total } }, { session });
+  // Kid missing (deleted) or escrow lower than what these gifts hold: the records disagree. Don't guess.
+  if (k.modifiedCount !== 1) throw new LedgerDataError("kid escrow out of sync during lock");
+  return total;
+}
+
+/**
+ * Daily: fully funded items → LOCKED (can't be removed; the store may now ship them), and their magic SPENT.
  *  - after ITEM_LOCK_DAYS (30) fully funded, any time; and
  *  - from the Dec 1 FREEZE DATE on, every fully funded item of that season at once: lists can't
  *    change any more, so waiting out the 30 days would only delay shipping (user decision
  *    2026-11-06: "ship at lock-in: 30 days or the freeze, whichever first").
  * The freeze DATE (admin-set dates included), NOT the admin's emergency "force freeze" switch:
  * that switch can be turned off again, but locking can't be undone (review 2026-11-06).
+ *
+ * One transaction per KID (freeze day locks thousands of gifts: per kid is about 5x fewer round trips and
+ * free of write conflicts on the same kid), within a time budget so the rest of the daily job still runs.
+ * If a kid's group fails, its gifts are retried ONE BY ONE so only a bad gift is parked.
  */
-export async function lockFundedItems(now = new Date()): Promise<number> {
+export async function lockFundedItems(now = new Date(), opts: { timeBudgetMs?: number } = {}): Promise<LockResult> {
   await connectDb();
+  const startedAt = Date.now();
+  const outOfTime = () => Date.now() - startedAt > (opts.timeBudgetMs ?? LOCK_TIME_BUDGET_MS);
   const season = await getSeasonState(now);
   const byAge = { fullyFundedAt: trusted({ $lte: new Date(now.getTime() - ITEM_LOCK_DAYS * DAY_MS) }) };
   const frozen = (season.phase === "frozen" || season.phase === "closed") && now.getTime() >= startOfDayInZone(season.dates.freeze).getTime();
-  const res = await WishListItem.updateMany(
-    frozen ? { status: "fully_funded", $or: [byAge, { seasonYear: season.year }] } : { status: "fully_funded", ...byAge },
-    { $set: { status: "locked", lockedAt: now } },
-  );
-  return res.modifiedCount;
+  const base = frozen ? { status: "fully_funded" as const, $or: [byAge, { seasonYear: season.year }] } : { status: "fully_funded" as const, ...byAge };
+  const [rows, needsAttention] = await Promise.all([
+    WishListItem.find({ ...base, lockNeedsAttentionAt: null })
+      .select("kidId familyId seasonYear fundedCentipoints costCentipoints")
+      .sort({ kidId: 1, _id: 1 })
+      .limit(LOCK_BATCH)
+      .lean<LockCandidate[]>(),
+    WishListItem.countDocuments({ ...base, lockNeedsAttentionAt: trusted({ $ne: null }) }),
+  ]);
+  const out: LockResult = { locked: 0, spentCentipoints: 0, failed: 0, needsAttention, remaining: 0 };
+  const byKid = new Map<string, LockCandidate[]>();
+  for (const r of rows) byKid.set(String(r.kidId), [...(byKid.get(String(r.kidId)) ?? []), r]);
+  const groups = [...byKid.values()];
+  const left = (from: number) => groups.slice(from).reduce((n, x) => n + x.length, 0);
+
+  for (let g = 0; g < groups.length; g++) {
+    const gifts = groups[g]!;
+    if (outOfTime()) {
+      out.remaining = left(g);
+      break;
+    }
+    try {
+      // Counted only AFTER the commit (a retried transaction callback must not count twice).
+      const spent = await withTransaction((session) => lockGiftsInSession(gifts, session, now));
+      out.locked += gifts.length;
+      out.spentCentipoints += spent;
+      continue;
+    } catch (err) {
+      if (classifyFailure(err) === "transient") {
+        console.error("[wishlists] lock stopped (database unavailable), continues next run:", err instanceof Error ? err.name : "unknown");
+        out.remaining = left(g);
+        break;
+      }
+    }
+    // Bad data or a concurrent change somewhere in this kid's group: one gift at a time.
+    for (const r of gifts) {
+      try {
+        const spent = await withTransaction((session) => lockGiftsInSession([r], session, now));
+        out.locked += 1;
+        out.spentCentipoints += spent;
+      } catch (err) {
+        const kind = classifyFailure(err);
+        if (kind === "changed") continue; // removed / deleted meanwhile: nothing to do
+        if (kind === "transient") {
+          out.remaining += 1;
+          continue;
+        }
+        // Error TYPE only: driver messages can contain connection details.
+        console.error("[wishlists] lock+spend failed, gift parked for a human:", err instanceof Error ? err.name : "unknown");
+        out.failed += 1;
+        out.needsAttention += 1;
+        await WishListItem.updateOne({ _id: String(r._id), status: "fully_funded" }, { $set: { lockNeedsAttentionAt: new Date() } }).catch(() => undefined);
+      }
+    }
+  }
+  return out;
 }
 
 /**

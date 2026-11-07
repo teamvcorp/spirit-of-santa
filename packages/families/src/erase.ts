@@ -58,7 +58,18 @@ async function eraseKidInSession(kidId: string, familyId: string, actorUserId: s
     .select("kidId familyId itemId status fundedCentipoints inventoryReserved seasonYear")
     .session(session)
     .lean<ReleasableGift[]>();
-  for (const w of open) await releaseGiftInSession(w, session, now);
+  // Escrow out of sync (the case that parks a gift at lock): the release's guard would throw on every retry and
+  // block a COPPA deletion. Then drop the gift WITHOUT the impossible escrow move and log the shortfall instead.
+  let shortfallCentipoints = 0;
+  for (const w of open) {
+    const k = await Kid.findOne({ _id: kidId }).select("escrowedCentipoints").session(session).lean();
+    if ((k?.escrowedCentipoints ?? 0) >= w.fundedCentipoints) {
+      await releaseGiftInSession(w, session, now);
+    } else {
+      shortfallCentipoints += w.fundedCentipoints;
+      await WishListItem.updateOne({ _id: String(w._id), status: w.status }, { $set: { status: "removed", removedAt: now } }, { session });
+    }
+  }
 
   // 2. Locked or later: the store is involved (and owed) → the row always STAYS. Deleting ONE child of a family
   // that still exists: the gift still goes to the family's address (the "on its way" email is skipped: no child
@@ -66,12 +77,17 @@ async function eraseKidInSession(kidId: string, familyId: string, actorUserId: s
   // Finished history (incl. the rows just released): nothing a store or the ledger needs.
   await WishListItem.deleteMany({ kidId, status: trusted({ $in: ["removed", "unfunded"] }) }, { session });
 
-  // 3. The child's UNSPENT Christmas Magic goes to Spirit of Santa (one ledger row; unique key = never twice).
-  // = available AFTER the releases above (they moved open gifts' points into available). What is still in
-  // escrow paid for locked/shipped/delivered store gifts (the engine never books a "spend" at lock: CODEMAP
-  // open item), so it is NOT forfeited again.
-  const bal = await Kid.findOne({ _id: kidId }).select("availableCentipoints").session(session).lean();
+  // 3. The child's UNSPENT Christmas Magic goes to Spirit of Santa (one ledger row; unique key = never twice)
+  // = available AFTER the releases above (they moved open gifts' points into available). Locked gifts' magic was
+  // already SPENT at lock (Phase 8). Escrow still left now means the records disagree (old data before the
+  // spend backfill, or a parked gift): never forfeited (it could count spent money twice), never blocking the
+  // deletion (COPPA): logged for a human.
+  const bal = await Kid.findOne({ _id: kidId }).select("availableCentipoints escrowedCentipoints").session(session).lean();
   const magic = bal?.availableCentipoints ?? 0;
+  const escrowLeftCentipoints = bal?.escrowedCentipoints ?? 0;
+  if (escrowLeftCentipoints > 0 || shortfallCentipoints > 0) {
+    console.error("[families] deletion: escrow out of sync for a child (logged in the audit row)");
+  }
   if (magic > 0) {
     await Transaction.create(
       [{ kidId, familyId, seasonYear: getSeasonYear(now), type: "forfeit", amountCentipoints: magic, idempotencyKey: `erase:${kidId}` }],
@@ -83,7 +99,7 @@ async function eraseKidInSession(kidId: string, familyId: string, actorUserId: s
   await Deed.deleteMany({ kidId }, { session });
   await KidVote.deleteMany({ kidId }, { session });
   await Kid.deleteOne({ _id: kidId, familyId }, { session });
-  await AuditLog.create([{ actorUserId, action: "kid.delete", targetType: "kid", targetId: kidId, details: { forfeitedCentipoints: magic, giftsReleased: open.length } }], { session });
+  await AuditLog.create([{ actorUserId, action: "kid.delete", targetType: "kid", targetId: kidId, details: { forfeitedCentipoints: magic, giftsReleased: open.length, ...(escrowLeftCentipoints > 0 ? { escrowLeftCentipoints } : {}), ...(shortfallCentipoints > 0 ? { shortfallCentipoints } : {}) } }], { session });
   return true;
 }
 

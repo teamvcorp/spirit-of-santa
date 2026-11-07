@@ -16,7 +16,9 @@
  *     per transaction. Inside the transaction the balances are re-read on the session, so a
  *     concurrent change aborts and retries the batch (no blind wipe). Ledger key per (season, kid).
  *  3. Marked "done" (inside the lock) only once NO kid has points left; otherwise it stays
- *     "running" and the next run continues. Escrowed points (wish lists) are left to Phase 6.
+ *     "running" and the next run continues. Escrowed points are NOT reset here: by Jan 1 a gift's escrow has
+ *     left through spend (locked, Phase 8), forfeit (Dec 25 close) or release. What remains is only escrow of
+ *     gifts PARKED for a human (bad data), and the daily money job keeps failing loudly while any exist.
  */
 import "server-only";
 import { connectDb, DonationSplit, ensureLock, Kid, Payment, SeasonReset, takeLock, Transaction, trusted, withTransaction } from "@repo/db";

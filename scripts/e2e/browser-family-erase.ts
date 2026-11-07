@@ -138,7 +138,7 @@ try {
   const preview = await main(page).getByTestId("erase-preview").innerText();
   // Ben (2 available) + Cy (open gift holding 15) = 17 Christmas Magic; 2 children left.
   check("the page says what happens: 2 children, 17 Christmas Magic to Spirit of Santa", preview.includes("2 children") && preview.includes("17 Christmas Magic"), preview.replace(/s+/g, " ").slice(0, 200));
-  check("…and that the 1 gift already on its way is kept", preview.includes("One gift is already on its way"));
+  check("…and that the 1 gift already secured with a store is kept", preview.includes("One gift is already secured with a store"));
   const submit = async (password: string, word: string) => {
     await ready(page);
     await page.fill('main:visible [name="password"]', password);

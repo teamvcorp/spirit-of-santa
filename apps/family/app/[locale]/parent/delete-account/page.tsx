@@ -33,10 +33,16 @@ async function Content() {
         {preview.giftsOnTheirWay > 0 && !preview.canDeliverFirst && (
           // No usable address: the gift can't be sent. Say so, and how to get it (add the address first).
           <li data-testid="gifts-kept">
-            {t("willKeepGifts", { count: preview.giftsOnTheirWay })}{" "}
-            <Link href="/parent/address" className="underline underline-offset-4">
-              {t("addAddressFirst")}
-            </Link>
+            {preview.tooLate ? (
+              t("willKeepGiftsLate", { count: preview.giftsOnTheirWay })
+            ) : (
+              <>
+                {t("willKeepGifts", { count: preview.giftsOnTheirWay })}{" "}
+                <Link href="/parent/address" className="underline underline-offset-4">
+                  {t("addAddressFirst")}
+                </Link>
+              </>
+            )}
           </li>
         )}
         <li>{t("willKeepRecords")}</li>

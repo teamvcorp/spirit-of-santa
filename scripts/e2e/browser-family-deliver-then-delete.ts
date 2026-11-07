@@ -16,7 +16,7 @@ import { hashSecret } from "@repo/auth/password";
 import { sealJson } from "@repo/auth/sealed";
 import { AuditLog, connectDb, Family, Item, Kid, Store, Transaction, trusted, User, WishListItem } from "@repo/db";
 import { saveAddress } from "@repo/families/address";
-import { deletionDeadline, eraseFamily, finalizeClosingFamilies } from "@repo/families/erase";
+import { deletionDeadline, eraseFamily, erasePreview, finalizeClosingFamilies } from "@repo/families/erase";
 import { getSeasonYear } from "@repo/lib/season";
 import { adminFulfilment, markSentToFamily } from "@repo/wishlists/fulfilment";
 import { makeChecks } from "./lib.ts";
@@ -142,7 +142,7 @@ try {
   const f3 = await finalizeClosingFamilies();
   check("running the finaliser again does nothing (no second email)", !(await Family.exists({ _id: A.fam._id })) && f3.failed === 0 && !mailSince(m5).includes(`to=${A.user.email}`));
 
-  // ── 5. 45-day cap: family B closing with a locked gift that never ships → deleted, Spirit of Santa keeps it.
+  // ── 5. Deadline cap: family B closing with a locked gift that never ships → deleted, Spirit of Santa keeps it.
   const B = await mkFamily("b", true);
   const rb = await eraseFamily(B.parent, { mode: "deliverFirst" });
   check("family B goes 'closing'", rb.ok && rb.pending === true);
@@ -158,6 +158,15 @@ try {
   const D = await mkFamily("d", false);
   const rd = await eraseFamily(D.parent, { mode: "deliverFirst" });
   check("no address on file: 'deliver first' isn't possible → deleted now, gift kept", rd.ok && rd.pending === false && !(await Family.exists({ _id: D.fam._id })));
+
+  // ── 7. A late gift of an OLDER season whose Jan 31 deadline has passed (review 2026-11-07): no 'deliver first'
+  //       (never a stored past deadline): the preview says why, and the deletion happens at once.
+  const L = await mkFamily("l", true);
+  await WishListItem.collection.updateOne({ _id: L.giftId }, { $set: { seasonYear: year - 2, status: "shipped" } });
+  const pl = await erasePreview(L.parent);
+  check("deadline passed: preview says too late, no 'deliver first'", !!pl && pl.tooLate && !pl.canDeliverFirst && pl.deliverBy === null, JSON.stringify(pl));
+  const rl = await eraseFamily(L.parent, { mode: "deliverFirst" });
+  check("deadline passed: deleted at once (no closing family with a past date)", rl.ok && rl.pending === false && !(await Family.exists({ _id: L.fam._id })));
 
   check("no browser errors", errors.length === 0, errors.slice(0, 3).join(" | "));
 } finally {

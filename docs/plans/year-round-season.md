@@ -201,7 +201,7 @@ No reordering is needed, because the gate removes the sweep-before-reset race. U
   - Alternative: open the store window for year Y+1 from Dec 1, with items stamped `year+1`.
   - Separate slice.
 - **Deliver-then-delete** (erase.ts:144): today's cap is min(45 days, Jan 31), so a deletion requested in March means the gifts go to Spirit of Santa.
-  - Recommendation: if the family has AWAITING_DELIVERY gifts, the deadline is Jan 31 after that Christmas (Chicago time). Otherwise use 45 days.
+  - BUILT (slice 6): with AWAITING_DELIVERY gifts the deadline is the end of Jan 31 after that Christmas (Chicago time). Without them there is nothing to deliver: everything is deleted at once. A deadline already past (a late gift of an older season after Jan 31) → no "deliver first", Spirit of Santa keeps the gift.
   - Fix the year calculation, which uses UTC instead of Chicago time.
   - Lawyer item: parent contact and address could now be kept for up to about 11 months. Only parent data is involved; children's data is still deleted straight away.
 - **Delivery addresses** (delivery.ts:20, :43): kept until December. Mention this on the privacy page.
@@ -262,7 +262,7 @@ No reordering is needed, because the gate removes the sweep-before-reset race. U
   - `defaultSeasonDates(2030)` = 2030-01-01 / 12-01 / 12-26.
   - `shipping` window edges.
 - **packages/wishlists/test/rules.test.ts:8–21:** isRemovable is true only for `active`; delete the lockAt tests.
-- **New `deletionDeadline` tests:** held gifts give Jan 31 Chicago time; none gives 45 days.
+- **New `deletionDeadline` tests:** held gifts give the end of Jan 31 Chicago time.
 
 **End-to-end tests (inject `now` or set Season dates):**
 - **scripts/e2e/season-reset.ts:**

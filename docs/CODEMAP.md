@@ -739,7 +739,7 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
 - **Deliver, then delete (2026-11-07, owner decision).** eraseFamily(parent, { mode }) — children ALWAYS erased now.
   mode "deliverFirst" (default; only if gifts locked/shipped AND an address that DECRYPTS): Family REBUILT by
   allow-list (familyName, address, deletionContactEnc = sealed {email, locale} with AAD deletionContactAad(fid),
-  deletionRequestedAt, deletionDeadline = min(45 days, Jan 31) hard cap); User + ActionTokens deleted now (sessions
+  deletionRequestedAt, deletionDeadline = min(45 days, Jan 31) hard cap; SUPERSEDED by year-round slice 6 below); User + ActionTokens deleted now (sessions
   die at next check, email free to re-register). `ownFamilyId` refuses closing families (every family action, even
   old sessions). Delivery email for a closing family = `giftOnItsWayClosing` (no child name, no sign-in link) to the
   kept contact. `finalizeClosingFamilies` in the money cron AFTER family notices: deletes once nothing awaits delivery
@@ -817,7 +817,8 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   forfeited gifts held since March). eraseFamily/erasePreview use the newest AWAITING_DELIVERY season; delete-account
   form shows "at the latest {date}"; privacy keep-section + chooseLabel ("secured with a store") in en/es. LAWYER: parent
   email+address may now be kept ~11 months (children's data still deleted at once). Privacy text changed → version bump
-  in slice 8. `DELIVER_THEN_DELETE_DAYS` removed.
+  in slice 8. `DELIVER_THEN_DELETE_DAYS` removed. Review fixes: preview uses locked/shipped only (same gifts as the real
+  deletion); a deadline already past → no deliverFirst (`tooLate`, "willKeepGiftsLate" copy), never a stored past date.
 
 ## Open items / TODO
 

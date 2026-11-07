@@ -146,9 +146,13 @@ export function deletionDeadline(newestGiftSeasonYear: number): Date {
   return new Date(startOfDayInZone(`${newestGiftSeasonYear + 1}-02-01`).getTime() - 1);
 }
 
-/** Season of the family's newest gift still on its way (fully funded / locked / shipped), or null if none. */
-async function newestAwaitingSeason(fid: string): Promise<number | null> {
-  const w = await WishListItem.findOne({ familyId: fid, status: trusted({ $in: [...AWAITING_DELIVERY] }) })
+/**
+ * Season of the family's newest gift still on its way, or null if none. eraseFamily asks AFTER the children are
+ * erased (their fully funded, not-yet-locked gifts are released then), so the preview passes ONLY locked/shipped:
+ * both must name the same gifts, or the page could promise a different date (review 2026-11-07).
+ */
+async function newestAwaitingSeason(fid: string, statuses: readonly (typeof AWAITING_DELIVERY)[number][] = AWAITING_DELIVERY): Promise<number | null> {
+  const w = await WishListItem.findOne({ familyId: fid, status: trusted({ $in: [...statuses] }) })
     .sort({ seasonYear: -1 })
     .select("seasonYear")
     .lean<{ seasonYear: number }>();
@@ -190,9 +194,11 @@ export async function eraseFamily(parent: Parent, opts: { mode?: EraseMode } = {
   }
 
   const giftSeason = await newestAwaitingSeason(fid);
-  const deliver = (opts.mode ?? "deliverFirst") === "deliverFirst" && giftSeason !== null && (await usableAddress(fid));
-  if (deliver) {
-    const deadline = deletionDeadline(giftSeason);
+  // Jan 31 is a hard cap (owner): a late gift of an older season whose deadline has PASSED can't be delivered
+  // first (review 2026-11-07: never store a closing family with an expired deadline / email a past date).
+  const deadline = giftSeason === null ? null : deletionDeadline(giftSeason);
+  const deliver = (opts.mode ?? "deliverFirst") === "deliverFirst" && deadline !== null && deadline.getTime() > now.getTime() && (await usableAddress(fid));
+  if (deliver && deadline) {
     const contactEnc = sealJson({ email: user.email, locale } satisfies DeletionContact, deletionContactAad(fid), ADDRESS_KEY);
     await withTransaction(async (session) => {
       // A child added in the meantime (another device)? Refuse to orphan it: the parent retries.
@@ -332,6 +338,8 @@ export type ErasePreview = {
   canDeliverFirst: boolean;
   /** When "deliver, then delete" would delete everything at the latest (deletionDeadline), or null. */
   deliverBy: Date | null;
+  /** Gifts are on their way but their Jan 31 deadline has already passed: they can't be delivered first. */
+  tooLate: boolean;
 };
 
 /** What deleting the family would do, shown BEFORE the parent confirms (read-only). */
@@ -346,9 +354,11 @@ export async function erasePreview(parent: Parent): Promise<ErasePreview | null>
     WishListItem.find({ familyId: fid, status: trusted({ $in: ["active", "fully_funded"] }) }).select("fundedCentipoints").lean(),
     WishListItem.countDocuments({ familyId: fid, status: trusted({ $in: ["locked", "shipped"] }) }),
     usableAddress(fid),
-    newestAwaitingSeason(fid),
+    newestAwaitingSeason(fid, ["locked", "shipped"]),
   ]);
   const magicCentipoints =
     kids.reduce((sum, k) => sum + (k.availableCentipoints ?? 0), 0) + open.reduce((sum, w) => sum + (w.fundedCentipoints ?? 0), 0);
-  return { children: kids.length, magicCentipoints, giftsOnTheirWay, canDeliverFirst: giftsOnTheirWay > 0 && address, deliverBy: giftSeason === null ? null : deletionDeadline(giftSeason) };
+  const deliverBy = giftSeason === null ? null : deletionDeadline(giftSeason);
+  const tooLate = deliverBy !== null && deliverBy.getTime() <= Date.now();
+  return { children: kids.length, magicCentipoints, giftsOnTheirWay, canDeliverFirst: giftsOnTheirWay > 0 && address && !tooLate, deliverBy: tooLate ? null : deliverBy, tooLate };
 }

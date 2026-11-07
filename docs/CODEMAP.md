@@ -827,6 +827,12 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   SKIPPED; `Store.catalogCopiedYear` marks each store (reinstated stores copied later); skipped while an admin closed
   the window; 60 s budget + `remaining`; runs LAST in the money job; "stockChanged" returns `inventoryNow` so the
   form resubmits without losing edits.
+- **Year-round slice 8: docs + legal (2026-11-07). YEAR-ROUND SEASON COMPLETE.** Terms gain a "season" section
+  (giving closes Dec 1, pay-up, secured gifts held to December, closed Dec 26-31; en+es). Versions bumped (never reuse):
+  PARENT_CONSENT_VERSION + PRIVACY_VERSION `2026-11-07b-draft`, TERMS_VERSION `2026-11-07-draft`, STORE_AGREEMENT_VERSION
+  `2026-11-07` (+ p6 held items/ship by Dec 10/discount at receipt, p7 Q1 catalogue + Jan 1 copy). Families on older
+  consent versions need re-consent (Phase 8 2c, NEXT). CLAUDE.md season line updated. Lawyer packet: docs/legal/lawyer-packet.md.
+  en/es key parity checked for all four message sets (0 missing).
   Copies SHARE the photo blob: items.ts `deleteUnusedPhoto` deletes a blob only if no item uses it (index on
   photo.pathname). Stock: forms send hidden `inventoryWas`; `setInventory`/`updateItem` compare-and-set on it
   ("stockChanged" → reload); the item form only touches stock when changed. PROD: run `npm run db:sync-indexes` after

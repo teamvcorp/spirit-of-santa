@@ -11,6 +11,7 @@
  * Server Action fields React renders into each form and POST the form. So this also proves
  * the forms work before JS loads. Only touches *_dev databases; cleans up after itself.
  */
+import { STORE_AGREEMENT_VERSION } from "@repo/lib/store";
 import { readFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { ActionToken, connectDb, RateLimit, Store, trusted, User } from "@repo/db";
@@ -71,7 +72,7 @@ try {
   const store = user?.storeId ? await Store.findById(user.storeId).lean() : null;
   check("user created as pending store_owner", user?.status === "pending" && user.role === "store_owner");
   check("store created as pending with agreement recorded",
-    store?.status === "pending" && store.ownerUserId?.toString() === user?._id.toString() && !!store?.discountAgreement?.acceptedAt && store.discountAgreement.version === "2026-11-05",
+    store?.status === "pending" && store.ownerUserId?.toString() === user?._id.toString() && !!store?.discountAgreement?.acceptedAt && store.discountAgreement.version === STORE_AGREEMENT_VERSION,
     store?.slug ?? "");
   check("password stored only as an argon2id hash",
     ((await User.findOne({ email }).select("+passwordHash").lean())?.passwordHash ?? "").startsWith("$argon2id$"));

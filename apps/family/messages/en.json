@@ -606,6 +606,10 @@
         "help": "A reminder before wish lists freeze (December 1) and before the deadline to finish gifts."
       }
     },
+    "season": {
+      "title": "The season and gifts",
+      "body": "Spirit of Santa runs all year: Christmas Magic can be earned from January 1. On December 1 wish lists freeze and giving closes, so every gift can arrive by Christmas; parents can then finish unfinished gifts for three days after community donations are shared. Gifts still unfinished after that drop off, and the Christmas Magic on them goes to Spirit of Santa.\nA gift is secured as soon as it is fully funded: it can no longer be removed, its Christmas Magic is spent, and the store keeps it for your child until it ships in December.\nThe site is closed December 26–31 and opens again on January 1."
+    },
     "save": "Save",
     "saved": "Saved.",
     "errors": {

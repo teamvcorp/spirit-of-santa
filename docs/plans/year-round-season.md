@@ -1,4 +1,4 @@
-# Year-round season — plan (2026-11-07)
+# Year-round season — plan (2026-11-07) — ALL SLICES BUILT (1-8), see docs/CODEMAP.md
 
 Owner decisions: app open ALL YEAR (Jan 1 – Dec 25), CLOSED Dec 26 – 31; Dec 1 freeze kept; Jan 1 reset kept; gifts LOCK
 when secured and are HELD, stores ship in December; STORES add/change merchandise only Jan 1 – Mar 31 (catalogue fixed

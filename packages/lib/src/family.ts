@@ -11,8 +11,9 @@
 // History: 2026-11-05-draft (first) · 2026-11-06-draft (+ text-message & visitor sections, fd24a91) ·
 // 2026-11-06b-draft (+ delivery address, missed at Phase 6 slice 4b, + "Christmas Magic" wording).
 // 2026-11-07-draft ("deliver, then delete": what is kept for delivery when an account is deleted).
+// 2026-11-07b-draft (year-round season: gifts held to December, so delivery data kept until Jan 31 after that Christmas).
 // Families that accepted an older version keep that record (re-consent: Phase 8).
-export const PARENT_CONSENT_VERSION = "2026-11-07-draft";
+export const PARENT_CONSENT_VERSION = "2026-11-07b-draft";
 
 /**
  * Version of the WHOLE /privacy page (bump with any change). Separate from PARENT_CONSENT_VERSION
@@ -20,10 +21,11 @@ export const PARENT_CONSENT_VERSION = "2026-11-07-draft";
  * 2026-11-06 don't change anything parents agreed to (review 2026-11-06).
  */
 // c (2026-11-07): "deliver, then delete" retention when an account is deleted with a paid gift on its way.
-export const PRIVACY_VERSION = "2026-11-07-draft";
+// d (2026-11-07b): year-round season (delivery data kept until Jan 31 after that Christmas).
+export const PRIVACY_VERSION = "2026-11-07b-draft";
 
 /** Terms of Service version shown on /terms (bump with any change). */
-export const TERMS_VERSION = "2026-11-06b-draft"; // b: "Christmas Magic" wording
+export const TERMS_VERSION = "2026-11-07-draft"; // 2026-11-06b: "Christmas Magic" · 2026-11-07: year-round season section
 
 /**
  * Pay-later text consent (registered with the carriers, docs/vendor/twilio.md). Stored with each

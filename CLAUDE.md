@@ -17,7 +17,7 @@ All apps share one MongoDB cluster (env var: MONGODB_URI).
 
 ## Key constants (never hard-code)
 - DOLLARS_PER_POINT = 1.50  (server-side only — packages/lib/constants.ts)
-- Season (year-round, owner 2026-11-07): open Jan 1 | Freeze Dec 1 | Stores ship by Dec 10 | Last day Dec 25 | Closed Dec 26–31 | Reset + reopen Jan 1 | Store items editable Jan 1–Mar 31 only (plan: docs/plans/year-round-season.md)
+- Season (year-round, owner 2026-11-07): open Jan 1 | Freeze + giving closes Dec 1 | Pay-up 3 days after the Dec 1 share-out, then unfinished gifts drop off | Stores ship by Dec 10 | Last day Dec 25 | Closed Dec 26–31 | Reset + reopen Jan 1 | Gifts lock (secured) at full funding, held by stores, ship in December | Store items editable Jan 1–Mar 31 only; last season's items copied Jan 1 (plan: docs/plans/year-round-season.md)
 
 ## Conventions
 - TypeScript strict mode everywhere

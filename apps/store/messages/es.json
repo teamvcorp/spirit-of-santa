@@ -51,6 +51,8 @@
     "p3": "Garantizas que los artículos publicados seguirán disponibles al precio publicado durante la temporada, o ofreces un sustituto igual o mejor.",
     "p4": "Spirit of Santa se queda con la diferencia entre el precio de venta y el mayorista para operar el programa.",
     "p5": "Spirit of Santa paga tus facturas con cheque u otro método fuera de la aplicación. No se guardan datos bancarios en la aplicación.",
+    "p6": "Cuando el artículo de un niño está completo, queda asegurado: aparta uno para ese niño. Envía los artículos apartados a Spirit of Santa en diciembre, a más tardar el 10 de diciembre (los de una temporada anterior, lo antes posible). El descuento que se usa para facturar es el vigente cuando Spirit of Santa recibe el artículo.",
+    "p7": "Los artículos y precios solo se pueden agregar o cambiar del 1 de enero al 31 de marzo; después el catálogo queda fijo para la temporada (el inventario se puede actualizar en cualquier momento). El 1 de enero tus artículos activos se copian a la nueva temporada para que los revises.",
     "version": "Versión del acuerdo {version}",
     "accept": "He leído y acepto el acuerdo de descuento y garantía para tiendas."
   },

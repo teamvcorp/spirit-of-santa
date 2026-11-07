@@ -13,7 +13,7 @@ import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { LegalSections } from "../../../components/legal-sections";
 
-const SECTIONS = ["about", "accounts", "points", "payments", "donations", "texts", "conduct", "changes", "contact"] as const;
+const SECTIONS = ["about", "accounts", "points", "payments", "donations", "season", "texts", "conduct", "changes", "contact"] as const;
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Terms");

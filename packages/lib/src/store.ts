@@ -40,7 +40,8 @@ export function isStoreEditable(status: string): boolean {
  * Version of the store discount + guarantee agreement text (StoreAgreement messages).
  * Bump this whenever the wording changes; each store records the version it accepted.
  */
-export const STORE_AGREEMENT_VERSION = "2026-11-05";
+// History: 2026-11-05 (first) · 2026-11-07 (year-round: gifts held to December, ship by Dec 10, discount at receipt, Q1 catalogue).
+export const STORE_AGREEMENT_VERSION = "2026-11-07";
 
 /**
  * Discounts are integer BASIS POINTS (1 bp = 0.01%): 2000 = 20%, 1750 = 17.5%.

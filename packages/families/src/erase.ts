@@ -22,13 +22,14 @@
 import "server-only";
 import { ActionToken, AuditLog, connectDb, Deed, ensureLock, Family, Item, Kid, KidVote, PayLaterRequest, takeLock, Transaction, trusted, User, WishListItem, withTransaction, type DbSession } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
-import { getSeasonYear } from "@repo/lib/season";
+import { getSeasonYear, startOfDayInZone } from "@repo/lib/season";
 import { sendEmail } from "@repo/email";
 import { closePayLaterForDeed } from "@repo/payments/pay-later-links";
 import { sealJson, unsealJson } from "@repo/auth/sealed";
 import { formatLongDate } from "@repo/lib/format";
 import { DAY_MS } from "@repo/lib/time";
 import { ADDRESS_KEY, deletionContactAad, familyAwaitingDelivery, type DeletionContact } from "@repo/wishlists/delivery";
+import { AWAITING_DELIVERY } from "@repo/wishlists/rules";
 import { FAMILY_NOTICE_RETRY_DAYS } from "@repo/wishlists/fulfilment";
 import { familyAppOrigin } from "@repo/stores/urls";
 import { releaseGiftInSession, type ReleasableGift } from "@repo/wishlists/engine";
@@ -133,19 +134,25 @@ export async function eraseKid(parent: Parent, rawKidId: string, now = new Date(
 export type EraseMode = "deliverFirst" | "now";
 export type EraseFamilyResult = { ok: true; pending: false } | { ok: true; pending: true; deadline: Date } | { ok: false; error: "notFound" };
 
-/** Longest a closing family's contact + address are kept for delivery (review 2026-11-07: 90 days was too long). */
-export const DELIVER_THEN_DELETE_DAYS = 45;
-
 /**
- * Latest date a closing family is finalised: 45 days after the request, and NEVER past Jan 31 after that
- * Christmas (owner rule; hard cap, review 2026-11-07: an earlier "at least 14 days" floor could break it).
+ * Latest moment a closing family is finalised ("deliver, then delete"): the END of Jan 31 (Chicago time) after the
+ * Christmas of its NEWEST gift still on its way (year-round season, owner 2026-11-07: gifts are held by the store
+ * and shipped in December, so a deletion asked in March keeps the parent's email + address until that delivery).
+ * Never later. Only PARENT data waits; children's data is deleted at once. LAWYER item: up to ~11 months.
  * A deadline that is very close just means the next daily run finalises it (undelivered gifts → Spirit of Santa).
+ * Pure (unit-tested). Replaces "45 days, capped at Jan 31", which forfeited held gifts and used the UTC year.
  */
-export function deletionDeadline(now: Date): Date {
-  const byDays = now.getTime() + DELIVER_THEN_DELETE_DAYS * DAY_MS;
-  const janYear = now.getUTCMonth() >= 1 ? now.getUTCFullYear() + 1 : now.getUTCFullYear(); // Feb..Dec → next Jan
-  const jan31 = Date.UTC(janYear, 0, 31, 23, 59, 59);
-  return new Date(Math.min(byDays, jan31));
+export function deletionDeadline(newestGiftSeasonYear: number): Date {
+  return new Date(startOfDayInZone(`${newestGiftSeasonYear + 1}-02-01`).getTime() - 1);
+}
+
+/** Season of the family's newest gift still on its way (fully funded / locked / shipped), or null if none. */
+async function newestAwaitingSeason(fid: string): Promise<number | null> {
+  const w = await WishListItem.findOne({ familyId: fid, status: trusted({ $in: [...AWAITING_DELIVERY] }) })
+    .sort({ seasonYear: -1 })
+    .select("seasonYear")
+    .lean<{ seasonYear: number }>();
+  return w?.seasonYear ?? null;
 }
 
 /** A delivery address that actually DECRYPTS (a stored but unreadable one can't ship anything). */
@@ -182,9 +189,10 @@ export async function eraseFamily(parent: Parent, opts: { mode?: EraseMode } = {
     await closeKidPayLater(kidId);
   }
 
-  const deliver = (opts.mode ?? "deliverFirst") === "deliverFirst" && (await familyAwaitingDelivery(fid)) && (await usableAddress(fid));
+  const giftSeason = await newestAwaitingSeason(fid);
+  const deliver = (opts.mode ?? "deliverFirst") === "deliverFirst" && giftSeason !== null && (await usableAddress(fid));
   if (deliver) {
-    const deadline = deletionDeadline(now);
+    const deadline = deletionDeadline(giftSeason);
     const contactEnc = sealJson({ email: user.email, locale } satisfies DeletionContact, deletionContactAad(fid), ADDRESS_KEY);
     await withTransaction(async (session) => {
       // A child added in the meantime (another device)? Refuse to orphan it: the parent retries.
@@ -322,6 +330,8 @@ export type ErasePreview = {
   giftsOnTheirWay: number;
   /** A readable delivery address is on file, so "deliver, then delete" is possible. */
   canDeliverFirst: boolean;
+  /** When "deliver, then delete" would delete everything at the latest (deletionDeadline), or null. */
+  deliverBy: Date | null;
 };
 
 /** What deleting the family would do, shown BEFORE the parent confirms (read-only). */
@@ -331,13 +341,14 @@ export async function erasePreview(parent: Parent): Promise<ErasePreview | null>
   await connectDb();
   // Same rule as the deletion: available + what open (not yet locked) gifts hold. Never the escrow of gifts
   // already locked with a store (that magic was spent).
-  const [kids, open, giftsOnTheirWay, address] = await Promise.all([
+  const [kids, open, giftsOnTheirWay, address, giftSeason] = await Promise.all([
     Kid.find({ familyId: fid }).select("availableCentipoints").lean(),
     WishListItem.find({ familyId: fid, status: trusted({ $in: ["active", "fully_funded"] }) }).select("fundedCentipoints").lean(),
     WishListItem.countDocuments({ familyId: fid, status: trusted({ $in: ["locked", "shipped"] }) }),
     usableAddress(fid),
+    newestAwaitingSeason(fid),
   ]);
   const magicCentipoints =
     kids.reduce((sum, k) => sum + (k.availableCentipoints ?? 0), 0) + open.reduce((sum, w) => sum + (w.fundedCentipoints ?? 0), 0);
-  return { children: kids.length, magicCentipoints, giftsOnTheirWay, canDeliverFirst: giftsOnTheirWay > 0 && address };
+  return { children: kids.length, magicCentipoints, giftsOnTheirWay, canDeliverFirst: giftsOnTheirWay > 0 && address, deliverBy: giftSeason === null ? null : deletionDeadline(giftSeason) };
 }

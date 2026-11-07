@@ -66,7 +66,7 @@
       },
       "keep": {
         "title": "How long we keep it",
-        "body": "Christmas Magic resets every January 1. We keep your family's information while your account is open, and delete a child's information when you ask us to.\nVisitors: donation receipt details are kept as the charity's records; a pay-later mobile number and the time you agreed are kept up to 13 months, then deleted.\nA delivery address is deleted automatically as soon as every funded gift has been delivered; you can delete it yourself at any time.\nIf you delete your account while a paid gift is on its way, you can choose to receive it first: we then delete your children's information right away and keep only your email, family name and delivery address until it arrives (at most 45 days), then delete those too."
+        "body": "Christmas Magic resets every January 1. We keep your family's information while your account is open, and delete a child's information when you ask us to.\nVisitors: donation receipt details are kept as the charity's records; a pay-later mobile number and the time you agreed are kept up to 13 months, then deleted.\nA delivery address is deleted automatically as soon as every funded gift has been delivered; you can delete it yourself at any time.\nIf you delete your account while a paid gift is on its way, you can choose to receive it first: we then delete your children's information right away and keep only your email, family name and delivery address until it arrives (gifts ship in December; at the latest January 31 after that Christmas), then delete those too."
       },
       "contact": {
         "title": "Contact",
@@ -656,8 +656,8 @@
       "failed": "The deletion didn't finish. Please try again: it continues where it stopped."
     },
     "addAddressFirst": "Want it? Add your delivery address first.",
-    "chooseLabel": "{count, plural, one {One gift is already on its way from a store. What should happen to it?} other {# gifts are already on their way from stores. What should happen to them?}}",
-    "deliverFirst": "Deliver it first (recommended). We keep only your email, family name and delivery address until it arrives, at most {days} days, then delete them too.",
+    "chooseLabel": "{count, plural, one {One gift is already secured with a store. What should happen to it?} other {# gifts are already secured with stores. What should happen to them?}}",
+    "deliverFirst": "Deliver it first (recommended). Gifts ship in December. We keep only your email, family name and delivery address until it arrives (at the latest {date}), then delete them too.",
     "deleteNow": "Delete everything now. Spirit of Santa keeps the gift."
   },
   "AccountDeleted": {

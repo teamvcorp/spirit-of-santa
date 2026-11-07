@@ -16,7 +16,7 @@ import { hashSecret } from "@repo/auth/password";
 import { sealJson } from "@repo/auth/sealed";
 import { AuditLog, connectDb, Family, Item, Kid, Store, Transaction, trusted, User, WishListItem } from "@repo/db";
 import { saveAddress } from "@repo/families/address";
-import { eraseFamily, finalizeClosingFamilies } from "@repo/families/erase";
+import { deletionDeadline, eraseFamily, finalizeClosingFamilies } from "@repo/families/erase";
 import { getSeasonYear } from "@repo/lib/season";
 import { adminFulfilment, markSentToFamily } from "@repo/wishlists/fulfilment";
 import { makeChecks } from "./lib.ts";
@@ -105,7 +105,8 @@ try {
   check("the family record keeps ONLY the allow-list (name, address, contact, dates)", keys === "_id,deletionContactEnc,deletionDeadline,deletionRequestedAt,deliveryAddressEnc,deliveryAddressUpdatedAt,familyName,ownerUserId,updatedAt", keys);
   check("the child and the sign-in account are deleted now", !(await Kid.exists({ _id: A.kid._id })) && !(await User.exists({ _id: A.user._id })));
   const deadline = famA?.deletionDeadline as Date | undefined;
-  check("deletion deadline is set within 45 days", !!deadline && deadline.getTime() <= Date.now() + 45 * DAY + 60_000 && deadline.getTime() > Date.now());
+  // Year-round (owner 2026-11-07): at the latest the END of Jan 31 (Chicago) after the gift's Christmas.
+  check("deletion deadline = end of Jan 31 (Chicago) after this season's Christmas", !!deadline && deadline.toISOString() === deletionDeadline(year).toISOString() && deadline.getTime() > Date.now(), deadline?.toISOString());
   check("every family action refuses the closing family (even an old session)", (await ownFamilyId(A.parent)) === null && (await saveAddress(A.parent, ADDRESS)).ok === false);
   check("the request is audited (ids only)", !!(await AuditLog.exists({ action: "family.delete_requested", targetId: String(A.fam._id) })));
   await new Promise((r) => setTimeout(r, 1500));

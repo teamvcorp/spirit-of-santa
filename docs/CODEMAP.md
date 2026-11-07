@@ -812,6 +812,12 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   (cron 500 alert daily, admin "feeMissing" copy says so); `cleanHeldDonations` moved to @repo/db (shared by
   split, season end and pay-up, no cycle). Webhook flags tips/bonus paid after giving closed (needsReview).
   Force-freeze pauses giving: `giftWindow().paused` → GivingClosed says "paused", not "opens Jan 1".
+- **Year-round slice 6: deliver-then-delete deadline for held gifts (2026-11-07).** `deletionDeadline(newestGiftSeasonYear)`
+  (erase.ts, pure) = END of Jan 31 Chicago time after that gift's Christmas (was 45 days capped at a UTC Jan 31, which
+  forfeited gifts held since March). eraseFamily/erasePreview use the newest AWAITING_DELIVERY season; delete-account
+  form shows "at the latest {date}"; privacy keep-section + chooseLabel ("secured with a store") in en/es. LAWYER: parent
+  email+address may now be kept ~11 months (children's data still deleted at once). Privacy text changed → version bump
+  in slice 8. `DELIVER_THEN_DELETE_DAYS` removed.
 
 ## Open items / TODO
 

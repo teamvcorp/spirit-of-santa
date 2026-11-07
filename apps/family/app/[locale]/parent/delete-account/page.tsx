@@ -6,8 +6,8 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
-import { DELIVER_THEN_DELETE_DAYS, erasePreview } from "@repo/families/erase";
-import { formatPoints } from "@repo/lib/format";
+import { erasePreview } from "@repo/families/erase";
+import { formatPoints, formatLongDate } from "@repo/lib/format";
 import { intlLocale } from "@repo/lib/locales";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
@@ -43,7 +43,7 @@ async function Content() {
       </ul>
       <Alert tone="error">{t("cannotUndo")}</Alert>
       <div className="mt-4">
-        <DeleteAccountForm giftsOnTheirWay={preview.canDeliverFirst ? preview.giftsOnTheirWay : 0} days={DELIVER_THEN_DELETE_DAYS} />
+        <DeleteAccountForm giftsOnTheirWay={preview.canDeliverFirst ? preview.giftsOnTheirWay : 0} deliverBy={preview.deliverBy ? formatLongDate(preview.deliverBy, locale, "long") : ""} />
       </div>
     </>
   );

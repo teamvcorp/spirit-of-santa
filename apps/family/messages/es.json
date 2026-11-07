@@ -66,7 +66,7 @@
       },
       "keep": {
         "title": "Cuánto tiempo la guardamos",
-        "body": "La Magia Navideña se reinicia cada 1 de enero. Guardamos la información de tu familia mientras tu cuenta esté abierta y borramos la información de un niño cuando nos lo pidas.\nVisitantes: los datos de los recibos de donación se guardan como registros de la organización benéfica; el número de celular para pagar más tarde y la hora en que aceptaste se guardan hasta 13 meses y luego se borran.\nLa dirección de entrega se borra automáticamente en cuanto se entregan todos los regalos completos; puedes borrarla tú cuando quieras.\nSi eliminas tu cuenta mientras un regalo pagado va en camino, puedes elegir recibirlo primero: entonces eliminamos de inmediato la información de tus hijos y guardamos solo tu correo, tu apellido familiar y tu dirección de entrega hasta que llegue (como máximo 45 días), y luego también los eliminamos."
+        "body": "La Magia Navideña se reinicia cada 1 de enero. Guardamos la información de tu familia mientras tu cuenta esté abierta y borramos la información de un niño cuando nos lo pidas.\nVisitantes: los datos de los recibos de donación se guardan como registros de la organización benéfica; el número de celular para pagar más tarde y la hora en que aceptaste se guardan hasta 13 meses y luego se borran.\nLa dirección de entrega se borra automáticamente en cuanto se entregan todos los regalos completos; puedes borrarla tú cuando quieras.\nSi eliminas tu cuenta mientras un regalo pagado va en camino, puedes elegir recibirlo primero: entonces eliminamos de inmediato la información de tus hijos y guardamos solo tu correo, tu apellido familiar y tu dirección de entrega hasta que llegue (los regalos se envían en diciembre; a más tardar el 31 de enero después de esa Navidad), y luego también los eliminamos."
       },
       "contact": {
         "title": "Contacto",
@@ -656,8 +656,8 @@
       "failed": "La eliminación no terminó. Inténtalo de nuevo: continúa donde se detuvo."
     },
     "addAddressFirst": "¿Lo quieres? Agrega primero tu dirección de entrega.",
-    "chooseLabel": "{count, plural, one {Un regalo ya viene en camino desde una tienda. ¿Qué hacemos con él?} other {# regalos ya vienen en camino desde tiendas. ¿Qué hacemos con ellos?}}",
-    "deliverFirst": "Entregarlo primero (recomendado). Guardamos solo tu correo, tu apellido familiar y tu dirección de entrega hasta que llegue, como máximo {days} días, y luego también los eliminamos.",
+    "chooseLabel": "{count, plural, one {Un regalo ya está asegurado con una tienda. ¿Qué hacemos con él?} other {# regalos ya están asegurados con tiendas. ¿Qué hacemos con ellos?}}",
+    "deliverFirst": "Entregarlo primero (recomendado). Los regalos se envían en diciembre. Guardamos solo tu correo, tu apellido familiar y tu dirección de entrega hasta que llegue (a más tardar el {date}), y luego también los eliminamos.",
     "deleteNow": "Eliminar todo ahora. Spirit of Santa se queda con el regalo."
   },
   "AccountDeleted": {

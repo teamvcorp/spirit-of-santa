@@ -2,17 +2,17 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { deletionDeadline } from "../src/erase.ts";
 
-// "Deliver, then delete": contact + address are kept at most 45 days and NEVER past Jan 31 (owner rule).
-const at = (iso: string) => new Date(iso);
-const JAN31 = (y: number) => new Date(Date.UTC(y, 0, 31, 23, 59, 59)).toISOString();
+// "Deliver, then delete" (year-round, owner 2026-11-07): contact + address are kept until the gifts are delivered,
+// at the latest the END of Jan 31 (Chicago time) after the Christmas of the newest gift on its way.
 
-test("45 days when that is before Jan 31", () => {
-  assert.equal(deletionDeadline(at("2026-11-07T12:00:00Z")).toISOString(), "2026-12-22T12:00:00.000Z");
-  assert.equal(deletionDeadline(at("2027-02-10T00:00:00Z")).toISOString(), "2027-03-27T00:00:00.000Z");
+test("deadline = end of Jan 31 Chicago time after that gift's Christmas", () => {
+  // 2027 gifts (held since e.g. March 2027) → Jan 31 2028 23:59:59.999 CST = Feb 1 2028 05:59:59.999 UTC.
+  assert.equal(deletionDeadline(2027).toISOString(), "2028-02-01T05:59:59.999Z");
+  assert.equal(deletionDeadline(2026).toISOString(), "2027-02-01T05:59:59.999Z");
 });
 
-test("Jan 31 is a hard cap (never later, even very close to it)", () => {
-  assert.equal(deletionDeadline(at("2026-12-20T12:00:00Z")).toISOString(), JAN31(2027));
-  assert.equal(deletionDeadline(at("2027-01-25T12:00:00Z")).toISOString(), JAN31(2027));
-  assert.equal(deletionDeadline(at("2027-01-31T20:00:00Z")).toISOString(), JAN31(2027));
+test("not the UTC day: Jan 31 evening in Chicago is still before the deadline", () => {
+  const d = deletionDeadline(2027).getTime();
+  assert.ok(new Date("2028-02-01T03:00:00Z").getTime() < d); // 9 pm Jan 31 CST
+  assert.ok(new Date("2028-02-01T06:00:00Z").getTime() > d); // midnight Feb 1 CST
 });

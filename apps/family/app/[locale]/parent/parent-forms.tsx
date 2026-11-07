@@ -180,7 +180,8 @@ export function AliasForm({ alias, show }: { alias: string; show: boolean }) {
  * `giftsOnTheirWay` > 0 (and a readable address on file): the parent CHOOSES what happens to paid gifts already with a
  * store (review 2026-11-07: it's their child's address, so it's their call). Default = deliver first.
  */
-export function DeleteAccountForm({ giftsOnTheirWay, days }: { giftsOnTheirWay: number; days: number }) {
+/** deliverBy = the latest deletion date (server-formatted, season time zone) for "deliver it first". */
+export function DeleteAccountForm({ giftsOnTheirWay, deliverBy }: { giftsOnTheirWay: number; deliverBy: string }) {
   const t = useTranslations("DeleteAccount");
   const [state, action, pending] = useActionState(deleteAccountAction, INITIAL);
   const hydrated = useHydrated();
@@ -194,7 +195,7 @@ export function DeleteAccountForm({ giftsOnTheirWay, days }: { giftsOnTheirWay: 
           <legend className="mb-1 font-semibold">{t("chooseLabel", { count: giftsOnTheirWay })}</legend>
           <label className="flex items-start gap-2">
             <input type="radio" name="mode" value="deliverFirst" defaultChecked className="mt-1 size-4" />
-            <span>{t("deliverFirst", { days })}</span>
+            <span>{t("deliverFirst", { date: deliverBy })}</span>
           </label>
           <label className="flex items-start gap-2">
             <input type="radio" name="mode" value="now" className="mt-1 size-4" />

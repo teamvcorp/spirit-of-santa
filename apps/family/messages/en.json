@@ -283,12 +283,12 @@
     "status": {
       "active": "Collecting Christmas Magic",
       "fully_funded": "Fully funded!",
-      "locked": "Locked in",
+      "locked": "Secured",
       "shipped": "Being prepared",
       "delivered": "On its way!",
       "unfunded": "Not funded"
     },
-    "lockOn": "Locks in on {date}",
+    "secured": "Secured: the store keeps it and ships it in December.",
     "needsSubstitute": "The store ran out. We'll find a substitute.",
     "remove": "Remove (parent)",
     "shareHint": "Want help? Share the donation link below: every gift fills the list, oldest gift first.",
@@ -298,7 +298,7 @@
     "removeConfirm": "Remove it",
     "keep": "Keep it",
     "removeErrors": {
-      "locked": "This gift is locked in (fully funded for 30 days) and can't be removed.",
+      "locked": "This gift is fully funded and secured, so it can't be removed.",
       "seasonNotOpen": "Wish lists can be changed while the season is open (January 1 to November 30).",
       "notFound": "That gift isn't on the list any more.",
       "pinLocked": "The parent area locked itself (15 minutes). Enter your PIN again."

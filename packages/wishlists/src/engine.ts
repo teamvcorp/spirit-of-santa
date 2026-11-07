@@ -30,15 +30,13 @@ import {
   type DbSession,
 } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
-import { ITEM_LOCK_DAYS, MIN_CENTIPOINTS_TO_ADD_ITEM } from "@repo/lib/limits";
+import { MIN_CENTIPOINTS_TO_ADD_ITEM } from "@repo/lib/limits";
 import { itemPriceCentsToCentipoints } from "@repo/lib/points";
 import { getSeasonState } from "@repo/stores/season";
 import { planAllocation } from "./plan.ts";
 import { CAP_STATUSES, isRemovable } from "./rules.ts";
 import { classifyFailure, LedgerDataError, RowChangedError } from "./ledger-errors.ts";
 
-import { DAY_MS } from "@repo/lib/time";
-import { startOfDayInZone } from "@repo/lib/season";
 
 /**
  * Points move onto items only while the season is OPEN or FROZEN (December tips + the Dec 1
@@ -354,21 +352,19 @@ export async function removeFromList(
           seasonYear: number;
           fullyFundedAt?: Date | null;
         }>();
-      if (!w || (w.status !== "active" && w.status !== "fully_funded")) {
+      // Shared rule: only "active" gifts come off. Fully funded = secured (locks at the next daily job).
+      if (!w || !isRemovable(w.status)) {
         return {
           ok: false,
           error:
-            w && ["locked", "shipped", "delivered"].includes(w.status)
+            w && ["fully_funded", "locked", "shipped", "delivered"].includes(w.status)
               ? "locked"
               : "notFound",
         };
       }
-      // Past its 30 days even if the daily lock job hasn't run yet: it's locked (shared rule).
-      if (!isRemovable(w.status, w.fullyFundedAt, now))
-        return { ok: false, error: "locked" };
       const kidId = String(w.kidId);
-      // Status narrowed by the check above (only active / fully_funded reach here).
-      await releaseGiftInSession({ ...w, status: w.status as "active" | "fully_funded", _id: id, familyId: fid }, session, now);
+      // Status narrowed by the check above (only "active" reaches here).
+      await releaseGiftInSession({ ...w, status: "active", _id: id, familyId: fid }, session, now);
       await allocateForKid(kidId, session, now); // released points flow to the next oldest item
       if ((await getSeasonState(new Date())).phase !== "open")
         throw new SeasonChanged(); // freeze landed mid-request: undo
@@ -430,13 +426,11 @@ export async function lockGiftsInSession(gifts: LockCandidate[], session: DbSess
 }
 
 /**
- * Daily: fully funded items → LOCKED (can't be removed; the store may now ship them), and their magic SPENT.
- *  - after ITEM_LOCK_DAYS (30) fully funded, any time; and
- *  - from the Dec 1 FREEZE DATE on, every fully funded item of that season at once: lists can't
- *    change any more, so waiting out the 30 days would only delay shipping (user decision
- *    2026-11-06: "ship at lock-in: 30 days or the freeze, whichever first").
- * The freeze DATE (admin-set dates included), NOT the admin's emergency "force freeze" switch:
- * that switch can be turned off again, but locking can't be undone (review 2026-11-06).
+ * Daily: EVERY fully funded item → LOCKED and its magic SPENT (owner 2026-11-07, year-round season:
+ * "lock when secured"). Locked does NOT mean "ship now": the store HOLDS it until the December ship
+ * window (canShipGift in @repo/lib/season, used by fulfilment). Not done inside allocateForKid on purpose:
+ * that would put spend + ledger writes inside every credit transaction. Removal is already refused from
+ * the moment a gift is fully funded (isRemovable), so the gap until this job runs changes nothing.
  *
  * One transaction per KID (freeze day locks thousands of gifts: per kid is about 5x fewer round trips and
  * free of write conflicts on the same kid), within a time budget so the rest of the daily job still runs.
@@ -446,10 +440,7 @@ export async function lockFundedItems(now = new Date(), opts: { timeBudgetMs?: n
   await connectDb();
   const startedAt = Date.now();
   const outOfTime = () => Date.now() - startedAt > (opts.timeBudgetMs ?? LOCK_TIME_BUDGET_MS);
-  const season = await getSeasonState(now);
-  const byAge = { fullyFundedAt: trusted({ $lte: new Date(now.getTime() - ITEM_LOCK_DAYS * DAY_MS) }) };
-  const frozen = (season.phase === "frozen" || season.phase === "closed") && now.getTime() >= startOfDayInZone(season.dates.freeze).getTime();
-  const base = frozen ? { status: "fully_funded" as const, $or: [byAge, { seasonYear: season.year }] } : { status: "fully_funded" as const, ...byAge };
+  const base = { status: "fully_funded" as const };
   const [rows, needsAttention] = await Promise.all([
     WishListItem.find({ ...base, lockNeedsAttentionAt: null })
       .select("kidId familyId seasonYear fundedCentipoints costCentipoints")

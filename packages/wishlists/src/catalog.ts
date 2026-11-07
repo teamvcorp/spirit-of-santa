@@ -20,7 +20,7 @@ import { connectDb, Item, Kid, toObjectId, WishListItem } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { itemPriceCentsToCentipoints } from "@repo/lib/points";
 import { getSeasonState } from "@repo/stores/season";
-import { countsTowardCap, isRemovable, lockAt } from "./rules.ts";
+import { countsTowardCap, isRemovable } from "./rules.ts";
 
 export const GIFT_SORTS = ["price_asc", "price_desc", "name", "store"] as const;
 export type GiftSort = (typeof GIFT_SORTS)[number];
@@ -169,9 +169,8 @@ export type WishRow = {
   costCentipoints: number;
   fundedCentipoints: number;
   status: string;
-  lockAt: Date | null;
   needsSubstitute: boolean;
-  /** Parent may remove it now (status, 30-day lock date AND season open). The engine re-checks. */
+  /** Parent may remove it now (still collecting magic AND season open). The engine re-checks. */
   removable: boolean;
   /** The gift page still opens (item active, store approved): otherwise show the name without a link. */
   viewable: boolean;
@@ -197,7 +196,6 @@ export async function kidWishList(parent: Parent, rawKidId: string, now = new Da
     costCentipoints: number;
     fundedCentipoints: number;
     status: string;
-    fullyFundedAt?: Date | null;
     needsSubstitute?: boolean;
     item?: { name: string; status?: string; photo?: { url?: string } | null };
     store?: { name: string; status?: string };
@@ -219,9 +217,8 @@ export async function kidWishList(parent: Parent, rawKidId: string, now = new Da
       costCentipoints: w.costCentipoints,
       fundedCentipoints: w.fundedCentipoints,
       status: w.status,
-      lockAt: lockAt(w.fullyFundedAt),
       needsSubstitute: Boolean(w.needsSubstitute),
-      removable: seasonOpen && isRemovable(w.status, w.fullyFundedAt, now),
+      removable: seasonOpen && isRemovable(w.status),
       viewable: w.item?.status === "active" && w.store?.status === "approved",
     }),
   );

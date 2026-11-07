@@ -24,9 +24,6 @@ export const MAX_KIDS_PER_FAMILY = 10;
 /** Kids are under 18: birth year between (this year - 17) and this year. */
 export const MAX_KID_AGE_YEARS = 17;
 
-/** A fully funded item locks (can't be removed) after this many days on the list. */
-export const ITEM_LOCK_DAYS = 30;
-
 /** Adding a wish-list item needs at least this many AVAILABLE centipoints (1 point; roadmap). */
 export const MIN_CENTIPOINTS_TO_ADD_ITEM = 100;
 

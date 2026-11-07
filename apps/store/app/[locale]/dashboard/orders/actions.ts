@@ -1,8 +1,8 @@
 "use server";
 /**
  * "Mark shipped" (owner or rep). requireRole → Zod → @repo/wishlists/fulfilment.markShipped,
- * which re-checks store membership in the DB, that the gift is THIS store's, LOCKED and not
- * waiting for a substitute (compare-and-set: a double click ships once) → refresh().
+ * which re-checks store membership in the DB, that the gift is THIS store's, LOCKED, in its December
+ * ship window (else "notYet") and not waiting for a substitute (compare-and-set: a double click ships once) → refresh().
  */
 import { randomUUID } from "node:crypto";
 import { refresh } from "next/cache";
@@ -18,7 +18,7 @@ const schema = z.object({
   tracking: z.string().trim().max(100),
 });
 
-export type ShipState = { status: "idle" | "done" | "error"; error?: "notFound" | "notReady" | "tracking"; nonce?: string };
+export type ShipState = { status: "idle" | "done" | "error"; error?: "notFound" | "notReady" | "notYet" | "tracking"; nonce?: string };
 
 export async function markShippedAction(_prev: ShipState, fd: FormData): Promise<ShipState> {
   const u = await requireRole(authOptions, "store_owner", "store_rep");

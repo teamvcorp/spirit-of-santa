@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { defaultSeasonDates, getSeasonPhase, getSeasonYear, isStoreItemWindowOpen, parseIsoDay, resolveSeason, santaListStart, santaListYear, startOfDayInZone, validateSeasonDates } from "../src/season.ts";
+import { canShipGift, defaultSeasonDates, getSeasonPhase, getSeasonYear, isStoreItemWindowOpen, newestShippableYear, parseIsoDay, shipLate, resolveSeason, santaListStart, santaListYear, startOfDayInZone, validateSeasonDates } from "../src/season.ts";
 
 // Instants are given in UTC. Chicago is UTC-6 in Dec (CST) and UTC-5 in Oct (CDT).
 const at = (iso: string) => new Date(iso);
@@ -126,4 +126,37 @@ test("parseIsoDay / defaultSeasonDates", () => {
   assert.deepEqual(parseIsoDay("2028-02-29"), { year: 2028, month: 2, day: 29 });
   assert.equal(parseIsoDay("2027-02-29"), null);
   assert.deepEqual(defaultSeasonDates(2030), { open: "2030-01-01", freeze: "2030-12-01", close: "2030-12-26" });
+});
+
+// ── December ship window (year-round slices 3+4) ─────────────────────────────────────
+
+test("ship window opens at the freeze date (Chicago midnight) and stays open after Christmas", () => {
+  const before = resolveSeason(at("2027-12-01T05:59:00Z")); // 11:59 pm Nov 30 CST
+  assert.deepEqual(before.shipping, { open: false, from: "2027-12-01", by: "2027-12-10" });
+  assert.equal(resolveSeason(at("2027-12-01T06:00:00Z")).shipping.open, true);
+  assert.equal(resolveSeason(at("2027-12-27T12:00:00Z")).shipping.open, true); // closed days: late beats never
+  assert.equal(resolveSeason(at("2027-06-01T12:00:00Z")).shipping.open, false);
+  // An admin-moved freeze date moves the window; the emergency force-freeze does NOT open it.
+  assert.equal(resolveSeason(at("2027-11-26T12:00:00Z"), { freezeDate: "2027-11-25" }).shipping.open, true);
+  assert.equal(resolveSeason(at("2027-06-01T12:00:00Z"), { forceFrozen: true }).shipping.open, false);
+});
+
+test("canShipGift decides per gift: last season always, this season only in its window", () => {
+  const june = resolveSeason(at("2028-06-01T12:00:00Z"));
+  assert.equal(canShipGift(2027, june), true); // locked Dec 26 2027, still unshipped: never held a year
+  assert.equal(canShipGift(2028, june), false); // held for December
+  assert.equal(newestShippableYear(june), 2027);
+  const dec = resolveSeason(at("2028-12-02T12:00:00Z"));
+  assert.equal(canShipGift(2028, dec), true);
+  assert.equal(newestShippableYear(dec), 2028);
+  const jan2 = resolveSeason(at("2028-01-02T12:00:00Z"));
+  assert.equal(canShipGift(2027, jan2), true);
+});
+
+test("shipLate: 'by Dec 10' through Dec 10 Chicago time, then 'as soon as possible'; outside the window always late", () => {
+  const st = (iso: string) => resolveSeason(at(iso));
+  assert.equal(shipLate(st("2027-12-02T12:00:00Z"), at("2027-12-02T12:00:00Z")), false);
+  assert.equal(shipLate(st("2027-12-11T05:59:00Z"), at("2027-12-11T05:59:00Z")), false); // 11:59 pm Dec 10 CST
+  assert.equal(shipLate(st("2027-12-11T06:00:00Z"), at("2027-12-11T06:00:00Z")), true);
+  assert.equal(shipLate(st("2028-01-05T12:00:00Z"), at("2028-01-05T12:00:00Z")), true); // only last season's gifts are ready
 });

@@ -18,7 +18,7 @@ import { hitRateLimit } from "@repo/auth/rate-limit";
 import { Kid, User } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_CHECKOUT_MS, MAX_TIP_CENTS, MIN_CHECKOUT_MS, MIN_TIP_CENTS } from "@repo/lib/limits";
-import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, getStripe } from "@repo/payments/checkout";
+import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, DELAYED_PAYMENT_METHODS, getStripe } from "@repo/payments/checkout";
 import { giftWindow } from "@repo/stores/season";
 import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 
@@ -51,6 +51,7 @@ export async function startBonus(parent: Parent, rawKidId: string, amountCents: 
     const session = await getStripe().checkout.sessions.create({
       ui_mode: "embedded_page",
       mode: "payment",
+      excluded_payment_method_types: [...DELAYED_PAYMENT_METHODS], // money must arrive while the magic is spendable
       expires_at: Math.floor(endsAt / 1000),
       line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: amountCents, product_data: { name: "Spirit of Santa bonus magic" } } }],
       // Metadata on BOTH the session and the PaymentIntent (the webhook reads the PaymentIntent).

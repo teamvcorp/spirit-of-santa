@@ -22,11 +22,8 @@ import { hitRateLimit } from "@repo/auth/rate-limit";
 import { Kid, User, WishListItem } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_CHECKOUT_MS, MIN_CHECKOUT_MS } from "@repo/lib/limits";
-import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, getStripe } from "@repo/payments/checkout";
+import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, DELAYED_PAYMENT_METHODS, getStripe } from "@repo/payments/checkout";
 import { payUpCents, payUpWindow } from "@repo/wishlists/payup";
-
-/** Methods whose money arrives days later (asynchronous). Instant methods (cards, wallets) stay allowed. */
-const DELAYED_PAYMENT_METHODS = ["us_bank_account", "acss_debit", "customer_balance", "sepa_debit", "bacs_debit", "au_becs_debit", "nz_bank_account", "payto", "boleto", "oxxo", "konbini", "multibanco"] as const;
 
 export type PayUpStart =
   | { ok: true; clientSecret: string; amountCents: number }

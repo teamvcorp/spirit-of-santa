@@ -781,6 +781,22 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   still credits tips/bonus paid Dec 26–31 from checkouts opened before (giftWindow caps checkout at closeAt).
   NEXT slices: 3+4 TOGETHER lock-at-funding + per-gift ship window · 5 pay-up · 6 DtD deadline ·
   7 store Q1 + stock CAS · 8 docs/legal.
+- **Year-round slices 3+4: lock at full funding + per-gift December ship window (2026-11-07).**
+  Fully funded = SECURED: `isRemovable(status)` = "active" only (rules.ts; `lockAt`/`ITEM_LOCK_DAYS` deleted);
+  `lockFundedItems` locks EVERY fully_funded gift at the next daily run (same spend-at-lock code). Ship rule, ONE
+  place: `SeasonState.shipping {open, from=freeze date, by=Dec 10}` + pure `canShipGift(giftYear, s)` /
+  `newestShippableYear(s)` / `shipLate(s, at)` in @repo/lib/season (last season = always shippable; force-freeze
+  does NOT open the window). fulfilment.ts: storeOrders/orderCounts split ready vs held by it; `markShipped`
+  filters `seasonYear <= newest` → `notYet`; `sendStoreDigests` covers this + last season, held gifts get ONLY
+  setAsideNotifiedAt (Dec 1 "ship now" still fires), hash adds ship|hold + late, `remaining` when the 5000 cap
+  is hit; email/store copy "Held for December" + "by {shipBy}" | "as soon as possible". Family card: "Secured:
+  ships in December". Defaults kept: needsSubstitute gifts lock too (money secured, SoS finds a substitute).
+  Webhook payments completed before Dec 26 00:00 but delivered later are still credited (correct: paid while
+  open; Checkout expires_at is capped at close and EVERY magic checkout now excludes delayed methods via the
+  shared `DELAYED_PAYMENT_METHODS` in @repo/payments/checkout — tips/donation links/bonus did not before); unspendable after Dec 25,
+  they are wiped at the Jan 1 reset like any leftover magic. Backlog: "store can't supply a LOCKED gift" admin
+  action, chargeback hold on held gifts, suspendStore vs held gifts. E2E: browser-store-orders (29) rewritten,
+  wishlist-engine step 7/8.
 
 ## Open items / TODO
 

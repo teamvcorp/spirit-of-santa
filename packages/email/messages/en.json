@@ -71,7 +71,7 @@
     "storeOrders": {
       "subject": "Spirit of Santa gift orders for {storeName}",
       "heading": "Gift orders",
-      "body": "Hi {storeName}! Here's today's update on gifts children have funded.\n\nSET ASIDE (fully funded: please keep these for us, don't ship yet):\n{setAside}\n\nREADY TO SHIP (locked in: please ship now and mark them shipped on your Orders page):\n{readyToShip}\n\nShip to:\n{address}\n\nPlease write each reference code on the package.",
+      "body": "Hi {storeName}! Here's today's update on gifts children have funded.\n\nHELD FOR DECEMBER (secured: please keep one aside for each, don't ship before {shipFrom}):\n{setAside}\n\nREADY TO SHIP (please ship {late, select, yes {as soon as possible} other {by {shipBy}}} and mark them shipped on your Orders page):\n{readyToShip}\n\nShip to:\n{address}\n\nPlease write each reference code on the package.",
       "button": "Open my orders"
     },
     "giftOnItsWay": {

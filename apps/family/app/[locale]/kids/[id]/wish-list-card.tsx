@@ -4,7 +4,7 @@
  * <progress> element (screen readers announce it). "Remove (parent)" goes to a PIN page.
  */
 import Image from "next/image";
-import { getFormatter, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { formatPoints } from "@repo/lib/format";
 import type { KidWishList } from "@repo/wishlists/catalog";
 import { Card } from "@repo/ui/card";
@@ -13,8 +13,7 @@ import { MagicBar } from "../../../../components/magic-bar";
 import { buttonClass } from "@repo/ui/button";
 
 export async function WishListCard({ kidId, registered, cap, list }: { kidId: string; registered: boolean; cap: number; list: KidWishList }) {
-  const [t, format] = await Promise.all([getTranslations("Gifts"), getFormatter()]);
-  const day = (d: Date) => format.dateTime(d, { month: "short", day: "numeric" });
+  const t = await getTranslations("Gifts");
   return (
     <Card className="mb-6">
       <div id="wishlist" className="mb-3 flex flex-wrap items-center justify-between gap-3 scroll-mt-6">
@@ -54,7 +53,8 @@ export async function WishListCard({ kidId, registered, cap, list }: { kidId: st
                 {/* Same words for the bar's screen-reader text and the visible line under it. */}
                 <MagicBar value={w.fundedCentipoints} max={w.costCentipoints} label={t("progressLabel", { name: w.name })} valueText={t("progress", { funded: formatPoints(w.fundedCentipoints), cost: formatPoints(w.costCentipoints) })} />
                 <p className="text-sm font-bold">{t("progress", { funded: formatPoints(w.fundedCentipoints), cost: formatPoints(w.costCentipoints) })}</p>
-                {w.status === "fully_funded" && w.lockAt && <p className="text-sm text-muted">{t("lockOn", { date: day(w.lockAt) })}</p>}
+                {/* Fully funded = secured (owner 2026-11-07): held by the store, shipped in the December window. */}
+                {(w.status === "fully_funded" || w.status === "locked") && !w.needsSubstitute && <p className="text-sm text-muted" data-testid="secured">{t("secured")}</p>}
                 {w.needsSubstitute && <p className="text-sm">{t("needsSubstitute")}</p>}
                 {w.removable && (
                   <Link href={`/kids/${kidId}/wishlist/${w.id}/remove`} className="self-start text-sm underline underline-offset-4">

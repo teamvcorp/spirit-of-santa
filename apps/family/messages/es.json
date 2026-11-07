@@ -288,7 +288,7 @@
       "delivered": "¡Va en camino!",
       "unfunded": "Sin completar"
     },
-    "lockOn": "Se asegura el {date}",
+    "secured": "Asegurado: la tienda lo guarda y lo envía en diciembre.",
     "needsSubstitute": "A la tienda se le acabó. Buscaremos un sustituto.",
     "remove": "Quitar (padres)",
     "shareHint": "¿Quieres ayuda? Comparte el enlace de donación de abajo: cada regalo llena la lista, empezando por el más antiguo.",
@@ -298,7 +298,7 @@
     "removeConfirm": "Quitarlo",
     "keep": "Dejarlo",
     "removeErrors": {
-      "locked": "Este regalo está asegurado (completo hace 30 días) y no se puede quitar.",
+      "locked": "Este regalo está completo y asegurado, así que no se puede quitar.",
       "seasonNotOpen": "La lista de deseos se puede cambiar mientras la temporada está abierta (del 1 de enero al 30 de noviembre).",
       "notFound": "Ese regalo ya no está en la lista.",
       "pinLocked": "El área de padres se bloqueó (15 minutos). Escribe tu PIN otra vez."

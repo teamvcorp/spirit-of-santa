@@ -2,14 +2,14 @@
  * WishListItem = one store Item on one kid's Christmas list, plus its funding progress.
  *
  * Lifecycle (SpiritOfSanta.md Phase 6):
- *   active ──(funded == cost)──▶ fully_funded ──(30 days, ITEM_LOCK_DAYS)──▶ locked
- *     │                              │                                        │
- *     └──removed (escrow released)◀──┘ (only before lock)          shipped ─▶ delivered
+ *   active ──(funded == cost)──▶ fully_funded ──(next daily job: magic spent)──▶ locked
+ *     │                                                                          │
+ *     └──removed (escrow released; ACTIVE only)                       shipped ─▶ delivered
  *   Dec 25 with funded < cost ──▶ unfunded (parent may pay up)
  *
- * Fulfilment (slice 3, user decisions 2026-11-06): the store is told to SET ASIDE the item at full
- * funding, but ships only once it's LOCKED (30 days, or at the Dec 1 freeze, when nothing can be
- * removed any more) → "shipped" (store → Spirit of Santa) → admin marks it received (receivedAt) →
+ * Fulfilment (year-round season, owner 2026-11-07): fully funded = SECURED. It locks at the next daily
+ * job (can't be removed, magic spent) and the store HOLDS it until the December ship window (the
+ * freeze date; @repo/lib/season canShipGift: last season's gifts may always ship) → "shipped" (store → Spirit of Santa) → admin marks it received (receivedAt) →
  * admin sends it to the family → "delivered" + the parent is emailed. The store never sees
  * anything about the child: only the item, a reference code and Spirit of Santa's address.
  */

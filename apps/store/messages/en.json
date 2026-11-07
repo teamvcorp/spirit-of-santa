@@ -110,7 +110,7 @@
       "limitReached": "You've reached the item limit. Archive an item to add another.",
       "priceRequired": "Please enter a price."
     },
-    "ordersAlert": "{ready, plural, =0 {} one {# gift is ready to ship.} other {# gifts are ready to ship.}} {setAside, plural, =0 {} one {# gift to set aside.} other {# gifts to set aside.}}"
+    "ordersAlert": "{ready, plural, =0 {} one {# gift is ready to ship.} other {# gifts are ready to ship.}} {setAside, plural, =0 {} one {# gift held for December.} other {# gifts held for December.}}"
   },
   "Profile": {
     "title": "Store profile",
@@ -241,11 +241,11 @@
     "title": "Gift orders",
     "intro": "Gifts children have fully funded at your store. We never share anything about the children: use the reference code to match each package.",
     "readyTitle": "Ready to ship ({count})",
-    "readyIntro": "These gifts are locked in. Please ship each one to Spirit of Santa, write its reference code on the package, then mark it shipped.",
+    "readyIntro": "Please ship each one to Spirit of Santa {late, select, yes {as soon as possible} other {by {shipBy}, so it arrives for Christmas}}. Write its reference code on the package, then mark it shipped.",
     "shipTo": "Ship to:",
     "noAddress": "Spirit of Santa hasn't set its shipping address yet. Please wait before shipping; we'll email you.",
-    "setAsideTitle": "Set aside ({count})",
-    "setAsideIntro": "Fully funded, but the family can still change the list. Please keep one aside for each and don't ship yet: they move to \"Ready to ship\" when they lock in (30 days, or December 1).",
+    "setAsideTitle": "Held for December ({count})",
+    "setAsideIntro": "{open, select, yes {Fully funded today: they move to \"Ready to ship\" tomorrow.} other {Secured for a child: please keep one aside for each and don't ship yet. They move to \"Ready to ship\" on {from}.}}",
     "outTitle": "Out of stock ({count})",
     "outIntro": "These were funded when you had none left. Spirit of Santa will contact you about a substitute.",
     "shippedTitle": "Shipped (last 60 days)",
@@ -259,6 +259,7 @@
     "errors": {
       "notFound": "That order wasn't found. Reload the page.",
       "notReady": "That gift can't be shipped right now (it may have been shipped already). Reload the page.",
+      "notYet": "That gift is held for December: it can be shipped from the date shown under \"Held for December\".",
       "tracking": "Keep the tracking note under 100 characters."
     },
     "paymentsTitle": "Payments from Spirit of Santa",

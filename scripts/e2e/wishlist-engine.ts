@@ -112,28 +112,27 @@ try {
   check("parent's item cap enforced", JSON.stringify(await addToList(parent, String(kid._id), D)) === JSON.stringify({ ok: false, error: "cap" }));
   await Kid.updateOne({ _id: kid._id }, { $set: { itemCap: 6 } });
 
-  // 7. Remove the funded Bike: 25 points come back and flow to the Book (needs 5); stock unit returned.
-  const r = await removeFromList(parent, String(wa!._id));
+  // 7. Fully funded = SECURED (owner 2026-11-07): the Bike can't come off, even before the lock job runs.
+  const early = await removeFromList(parent, String(wa!._id));
+  check("fully funded Bike can't be removed (secured), even before the daily lock job", !early.ok && early.error === "locked" && (await wl(A))?.status === "fully_funded");
+  // A gift still collecting CAN come off: the Book's 5 points come back to the kid.
+  const r = await removeFromList(parent, String((await wl(B))!._id));
   k = await kidState();
-  const wb = await wl(B);
-  check("remove Bike: 25 points released, Book filled (5), 20 left; Bike's unit back in stock",
-    r.ok && r.releasedCentipoints === 2500 && wb?.status === "fully_funded" && k.availableCentipoints === 2000 && k.escrowedCentipoints === 1000 && (await inv(A)) === 2 && (await inv(B)) === 0);
+  check("remove the active Book: its 5 points come back (available 5, Bike's 25 still held)",
+    r.ok && r.releasedCentipoints === 500 && !(await wl(B)) && k.availableCentipoints === 500 && k.escrowedCentipoints === 2500 && (await inv(A)) === 1,
+    JSON.stringify({ r, k: [k.availableCentipoints, k.escrowedCentipoints], invA: await inv(A) }));
 
-  // 8. 30-day lock: a locked item can't be removed.
-  await WishListItem.updateOne({ _id: wb!._id }, { $set: { fullyFundedAt: new Date(Date.now() - 31 * 86_400_000) } });
-  // Even BEFORE the daily lock job runs, 30+ days funded means locked.
-  const early = await removeFromList(parent, String(wb!._id));
-  check("past 30 days → can't be removed even before the lock job runs", !early.ok && early.error === "locked" && (await wl(B))?.status === "fully_funded");
+  // 8. Lock at full funding: the next daily job locks the Bike whatever its age (it was funded minutes ago).
   const before8 = await kidState();
   const locked = await lockFundedItems();
-  const rb = await removeFromList(parent, String(wb!._id));
-  check("fully funded 30+ days → locked, and can't be removed", locked.locked >= 1 && (await wl(B))?.status === "locked" && !rb.ok && rb.error === "locked");
+  const rb = await removeFromList(parent, String(wa!._id));
+  check("fully funded minutes ago → locked by the next run, and can't be removed", locked.locked >= 1 && (await wl(A))?.status === "locked" && !rb.ok && rb.error === "locked");
   // Phase 8: the lock SPENDS the gift's magic: one ledger row with a unique key, escrow lowered, available untouched.
   const spends = await Transaction.find({ kidId: kid._id, type: "spend" }).lean();
   const after8 = await kidState();
   check("lock books ONE spend (key spend:<gift>) and lowers escrow by it; available unchanged",
-    spends.length === 1 && spends[0]?.amountCentipoints === wb!.costCentipoints && spends[0]?.idempotencyKey === `spend:${String(wb!._id)}` &&
-      after8.escrowedCentipoints === before8.escrowedCentipoints - wb!.costCentipoints && after8.availableCentipoints === before8.availableCentipoints,
+    spends.length === 1 && spends[0]?.amountCentipoints === wa!.costCentipoints && spends[0]?.idempotencyKey === `spend:${String(wa!._id)}` &&
+      after8.escrowedCentipoints === before8.escrowedCentipoints - wa!.costCentipoints && after8.availableCentipoints === before8.availableCentipoints,
     `escrow ${before8.escrowedCentipoints}→${after8.escrowedCentipoints}`);
   await lockFundedItems();
   check("running the lock again books nothing more (never spent twice)", (await Transaction.countDocuments({ kidId: kid._id, type: "spend" })) === 1 && (await kidState()).escrowedCentipoints === after8.escrowedCentipoints);
@@ -141,9 +140,9 @@ try {
 
   // 9. Sold out at the moment it fills → flagged for a substitute (stock reserved at full funding).
   const E = await mkItem("Kite", 5000, 1);
-  const e = await addToList(parent, String(kid._id), E); // takes the 20 available points
+  const e = await addToList(parent, String(kid._id), E); // takes the 5 available points
   await Item.updateOne({ _id: E }, { $set: { inventory: 0 } }); // the store sells out meanwhile
-  await tip(4500); // 30 points: Kite needs 30 → complete
+  await tip(6750); // 45 points: Kite needs 45 → complete
   const we = await wl(E);
   check("item fills after the store sold out → needs a substitute", e.ok && we?.status === "fully_funded" && we.needsSubstitute === true && !we.inventoryReserved);
 

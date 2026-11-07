@@ -3,9 +3,6 @@
  * safe to unit-test. The engine stays the authority: screens use these only to decide which
  * buttons to show, and every action re-checks inside its transaction.
  */
-import { ITEM_LOCK_DAYS } from "@repo/lib/limits";
-import { DAY_MS } from "@repo/lib/time";
-
 /** Does a row with this status count toward the cap? */
 export const countsTowardCap = (status: string) => (CAP_STATUSES as readonly string[]).includes(status);
 
@@ -16,22 +13,13 @@ export const countsTowardCap = (status: string) => (CAP_STATUSES as readonly str
  */
 export const CAP_STATUSES = ["active", "fully_funded", "locked", "shipped", "delivered"] as const;
 
-/** When a fully funded item locks (30 days after full funding), or null if not funded yet. */
-export function lockAt(fullyFundedAt: Date | null | undefined): Date | null {
-  return fullyFundedAt ? new Date(new Date(fullyFundedAt).getTime() + ITEM_LOCK_DAYS * DAY_MS) : null;
-}
-
 /**
- * May a parent remove this item now? Only active / fully funded items, and a fully funded one
- * only before its 30-day lock date (checked by DATE, so a late daily lock job can't open a gap).
+ * May a parent remove this item now? Only while it's still collecting magic ("active").
+ * Fully funded = SECURED (owner 2026-11-07): it can't be undone, even before the daily job locks it,
+ * so the check is on STATUS alone and a late lock job never opens a gap.
  * The season must be open as well: the caller checks that.
  */
-export function isRemovable(status: string, fullyFundedAt: Date | null | undefined, now = new Date()): boolean {
-  if (status === "active") return true;
-  if (status !== "fully_funded") return false;
-  const lock = lockAt(fullyFundedAt);
-  return !lock || lock.getTime() > now.getTime();
-}
+export const isRemovable = (status: string): boolean => status === "active";
 
 /**
  * Gifts still on their way to a family (funded, not yet delivered). While a family has any, it

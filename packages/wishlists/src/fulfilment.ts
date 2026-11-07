@@ -1,14 +1,15 @@
 /**
  * Gift fulfilment (Phase 6 slice 3). SERVER-ONLY.
  *
- *   fully_funded ──(lock: 30 days or the Dec 1 freeze; engine.lockFundedItems)──▶ locked
- *   locked ──(store marks shipped: markShipped)──▶ shipped ──(admin: received)──▶ shipped+receivedAt
+ *   fully_funded ──(next daily job; engine.lockFundedItems)──▶ locked (HELD by the store)
+ *   locked + ship window open ──(store marks shipped: markShipped)──▶ shipped ──(admin: received)──▶ shipped+receivedAt
  *   ──(admin: sent to family + parent emailed)──▶ delivered                         [admin part: slice 3b]
  *   needsSubstitute ──(admin: substitute arranged with the store)──▶ back in the store's queue
  *
- * User decisions 2026-11-06: the store is told to SET ASIDE a gift at full funding but ships only
- * once it's LOCKED (it can't be removed any more); the family is emailed only when the admin sends
- * the gift on to them.
+ * Year-round season (owner 2026-11-07): fully funded = SECURED. The store keeps one aside ("held for
+ * December") and ships it only when its ship window is open: canShipGift() in @repo/lib/season, decided
+ * PER GIFT (this season's gifts from the freeze date; an older season's gift always, so a gift locked on
+ * Dec 26 is never held another year). The family is emailed only when the admin sends the gift on.
  *
  * Privacy (kids are minors; COPPA): stores see ONLY the item, a reference code and Spirit of Santa's
  * address. Never a child's or family's name, and never which family a gift is for.
@@ -27,6 +28,8 @@ import { localizePath } from "@repo/i18n/paths";
 import { DEFAULT_LOCALE, isLocale } from "@repo/lib/locales";
 import { DAY_MS } from "@repo/lib/time";
 import { getSeasonState } from "@repo/stores/season";
+import { canShipGift, newestShippableYear, shipLate, startOfDayInZone } from "@repo/lib/season";
+import { formatLongDate } from "@repo/lib/format";
 import { memberStore, type StoreActor } from "@repo/stores/owner";
 import { familyAppOrigin, storeAppOrigin } from "@repo/stores/urls";
 import { unsealJson } from "@repo/auth/sealed";
@@ -60,15 +63,19 @@ export type OrderRow = {
   trackingNote: string;
 };
 export type StoreOrders = {
-  /** Fully funded, may still be removed by the parent: keep one aside, don't ship. */
+  /** Secured (fully funded or locked) but its ship window isn't open: keep one aside, don't ship yet. */
   setAside: OrderRow[];
-  /** Locked: ship now. */
+  /** Locked AND its ship window is open: ship now. */
   ready: OrderRow[];
   /** Funded but the store had none left: Spirit of Santa arranges a substitute (admin). */
   outOfStock: OrderRow[];
   /** Shipped in the last 60 days (newest first). */
   shipped: OrderRow[];
   shippingAddress: string;
+  /** THIS season's December ship window ("YYYY-MM-DD"): set-aside gifts become "ready" on `from`. */
+  shipping: { open: boolean; from: string; by: string };
+  /** Ready gifts are late: ask for "as soon as possible" instead of "by {shipBy}" (shipLate). */
+  late: boolean;
 };
 
 const SHIPPED_HISTORY_DAYS = 60;
@@ -80,6 +87,7 @@ type RawWish = {
   _id: unknown;
   itemId: unknown;
   status: string;
+  seasonYear: number;
   needsSubstitute?: boolean | null;
   fullyFundedAt?: Date | null;
   lockedAt?: Date | null;
@@ -100,7 +108,8 @@ export async function storeOrders(actor: StoreActor, now = new Date()): Promise<
   const store = await memberStore(actor);
   if (!store) return null;
   const since = new Date(now.getTime() - SHIPPED_HISTORY_DAYS * DAY_MS);
-  const fields = "itemId status needsSubstitute fullyFundedAt lockedAt shippedAt trackingNote";
+  const fields = "itemId status seasonYear needsSubstitute fullyFundedAt lockedAt shippedAt trackingNote";
+  const season = await getSeasonState(now);
   // Two queries so a long shipped history can never push open orders off the page.
   const [open, shipped] = await Promise.all([
     WishListItem.find({ storeId: store._id, status: trusted({ $in: ["fully_funded", "locked"] }) })
@@ -125,12 +134,12 @@ export async function storeOrders(actor: StoreActor, now = new Date()): Promise<
     shippedAt: r.shippedAt ?? null,
     trackingNote: r.trackingNote ?? "",
   });
-  const out: StoreOrders = { setAside: [], ready: [], outOfStock: [], shipped: [], shippingAddress: await shippingAddress() };
+  const out: StoreOrders = { setAside: [], ready: [], outOfStock: [], shipped: [], shippingAddress: await shippingAddress(), shipping: season.shipping, late: shipLate(season, now) };
   for (const r of rows) {
     if (r.status === "shipped") out.shipped.push(toRow(r));
     else if (r.needsSubstitute) out.outOfStock.push(toRow(r));
-    else if (r.status === "locked") out.ready.push(toRow(r));
-    else out.setAside.push(toRow(r));
+    else if (r.status === "locked" && canShipGift(r.seasonYear, season)) out.ready.push(toRow(r));
+    else out.setAside.push(toRow(r)); // fully funded (locks tonight) or held for December
   }
   return out;
 }
@@ -139,35 +148,42 @@ export async function storeOrders(actor: StoreActor, now = new Date()): Promise<
  * Just the two numbers for the dashboard overview alert (cheap counts).
  * `storeId` MUST come from memberStore() (the caller's own store), never from user input.
  */
-export async function orderCounts(storeId: unknown): Promise<{ ready: number; setAside: number }> {
+export async function orderCounts(storeId: unknown, now = new Date()): Promise<{ ready: number; setAside: number }> {
   await connectDb();
   const base = { storeId: String(storeId), needsSubstitute: trusted({ $ne: true }) };
-  const [ready, setAside] = await Promise.all([
-    WishListItem.countDocuments({ ...base, status: "locked" }),
-    WishListItem.countDocuments({ ...base, status: "fully_funded" }),
+  // Same split as storeOrders (canShipGift): seasonYear <= newestShippableYear ⇔ shippable now.
+  const newest = newestShippableYear(await getSeasonState(now));
+  const [ready, secured] = await Promise.all([
+    WishListItem.countDocuments({ ...base, status: "locked", seasonYear: trusted({ $lte: newest }) }),
+    WishListItem.countDocuments({ ...base, status: trusted({ $in: ["fully_funded", "locked"] }) }),
   ]);
-  return { ready, setAside };
+  return { ready, setAside: secured - ready };
 }
 
-export type ShipResult = { ok: true } | { ok: false; error: "notFound" | "notReady" };
+export type ShipResult = { ok: true } | { ok: false; error: "notFound" | "notReady" | "notYet" };
 
 /**
  * Store marks one gift shipped to Spirit of Santa. Only LOCKED gifts of the actor's OWN store that
- * don't wait for a substitute; compare-and-set on the status, so a double click ships once.
+ * don't wait for a substitute AND whose ship window is open (canShipGift, checked in the filter itself:
+ * a crafted request can't ship a held gift early → "notYet"). Shipping after Dec 10 is still allowed
+ * (a late gift beats none). Compare-and-set on the status, so a double click ships once.
  */
 export async function markShipped(actor: StoreActor, rawWishId: string, trackingNote: string, now = new Date()): Promise<ShipResult> {
   const id = normalizeObjectId(rawWishId);
   const store = await memberStore(actor);
   if (!id || !store) return { ok: false, error: "notFound" };
+  const newest = newestShippableYear(await getSeasonState(now));
   return withTransaction(async (session): Promise<ShipResult> => {
     const res = await WishListItem.updateOne(
-      { _id: id, storeId: store._id, status: "locked", needsSubstitute: trusted({ $ne: true }) },
+      { _id: id, storeId: store._id, status: "locked", needsSubstitute: trusted({ $ne: true }), seasonYear: trusted({ $lte: newest }) },
       { $set: { status: "shipped", shippedAt: now, shippedByUserId: actor.id, ...(trackingNote ? { trackingNote } : {}) } },
       { session, runValidators: true },
     );
     if (res.modifiedCount !== 1) {
-      const exists = await WishListItem.exists({ _id: id, storeId: store._id }).session(session);
-      return { ok: false, error: exists ? "notReady" : "notFound" };
+      const w = await WishListItem.findOne({ _id: id, storeId: store._id }).select("status seasonYear needsSubstitute").session(session).lean<{ status: string; seasonYear: number; needsSubstitute?: boolean }>();
+      if (!w) return { ok: false, error: "notFound" };
+      const held = w.status === "locked" && !w.needsSubstitute && w.seasonYear > newest;
+      return { ok: false, error: held ? "notYet" : "notReady" };
     }
     await AuditLog.create(
       [{ actorUserId: actor.id, action: "wish.ship", targetType: "wish_list_item", targetId: id, details: { storeId: String(store._id), tracking: Boolean(trackingNote) } }],
@@ -179,7 +195,7 @@ export async function markShipped(actor: StoreActor, rawWishId: string, tracking
 
 // ── Daily store digest ─────────────────────────────────────────────────────────────────
 
-type DigestWish = { _id: unknown; storeId: unknown; itemId: unknown; status: string };
+type DigestWish = { _id: unknown; storeId: unknown; itemId: unknown; status: string; seasonYear: number };
 
 /** "2 × Bike (refs AB12CD, EF34GH)" lines, one per item; "-" when empty. */
 function listLines(rows: DigestWish[], names: Map<string, string>): string {
@@ -198,9 +214,13 @@ export type DigestResult = {
   failedRecipients: number;
   /** Stores left for the next run because this run's time budget ran out. */
   deferred: number;
+  /** Gifts not even read this run (query cap, e.g. Dec 1 when months of held gifts become "ship now"). */
+  remaining: number;
   skipped?: "noAddress";
 };
 
+/** Gifts read per run (the rest go out on the next run; `remaining` reports them). */
+const DIGEST_ROW_CAP = 5000;
 /** Resend's default limit is 2 requests/second: stay under it. */
 const SEND_GAP_MS = 600;
 /** Leave the rest of the daily job (5 min max) its time: unsent stores go out on the next run. */
@@ -209,6 +229,11 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * Email each store its NEW gifts to set aside and gifts now ready to ship (owner + active reps).
+ *  - Gift NOT shippable yet (this season, before the December window): reported once as "held for
+ *    December" and ONLY setAsideNotifiedAt is set. Never readyNotifiedAt, or the Dec 1 "ship now" email
+ *    would find nothing (year-round critique).
+ *  - Gift shippable (canShipGift): fully funded → "set aside" (it locks tonight); locked → "ship now".
+ *  So on the freeze date every held gift is announced once more as "ship now, by {shipBy}".
  * Waits (sends nothing) until the admin has saved Spirit of Santa's shipping address.
  * Gifts waiting for a substitute are left out (the admin deals with them; once a substitute is
  * arranged they appear in the next digest).
@@ -216,29 +241,43 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export async function sendStoreDigests(now = new Date()): Promise<DigestResult> {
   const started = Date.now();
   await connectDb();
-  const empty = { stores: 0, emails: 0, failed: 0, failedRecipients: 0, deferred: 0 };
+  const empty = { stores: 0, emails: 0, failed: 0, failedRecipients: 0, deferred: 0, remaining: 0 };
   const address = await shippingAddress();
   if (!address) return { ...empty, skipped: "noAddress" };
-  // THIS season only: older seasons' gifts (e.g. before this feature existed) are never re-announced.
-  const { year } = await getSeasonState(now);
-  const pending = await WishListItem.find({
-    seasonYear: year,
+  // This season and LAST season only (last season's late gifts still ship in January); anything older
+  // (e.g. before this feature existed) is never re-announced.
+  const season = await getSeasonState(now);
+  const { year } = season;
+  const newest = newestShippableYear(season);
+  const shippableNews = [
+    { status: "fully_funded" as const, setAsideNotifiedAt: null },
+    { status: "locked" as const, readyNotifiedAt: null },
+  ];
+  const filter = {
     needsSubstitute: trusted({ $ne: true }),
     $or: [
-      { status: "fully_funded", setAsideNotifiedAt: null },
-      { status: "locked", readyNotifiedAt: null },
+      // Shippable seasons: the usual set-aside / ready news.
+      { seasonYear: trusted({ $gte: year - 1, $lte: newest }), $or: shippableNews },
+      // Held seasons (this season before its window): "held for December", told once.
+      ...(newest < year ? [{ seasonYear: year, status: trusted({ $in: ["fully_funded", "locked"] as ("fully_funded" | "locked")[] }), setAsideNotifiedAt: null }] : []),
     ],
-  })
-    .select("storeId itemId status")
-    .limit(5000)
+  };
+  const pending = await WishListItem.find(filter)
+    .select("storeId itemId status seasonYear")
+    .sort({ _id: 1 })
+    .limit(DIGEST_ROW_CAP)
     .lean<DigestWish[]>();
   if (pending.length === 0) return empty;
+  const remaining = pending.length === DIGEST_ROW_CAP ? Math.max(0, (await WishListItem.countDocuments(filter)) - pending.length) : 0;
   const names = await itemNames(pending.map((p) => p.itemId));
   const byStore = new Map<string, DigestWish[]>();
   for (const p of pending) byStore.set(String(p.storeId), [...(byStore.get(String(p.storeId)) ?? []), p]);
   const link = `${storeAppOrigin()}/dashboard/orders`;
 
-  const r: DigestResult = { ...empty, stores: byStore.size };
+  const r: DigestResult = { ...empty, stores: byStore.size, remaining };
+  const shipByDay = startOfDayInZone(season.shipping.by);
+  const late = shipLate(season, now) ? "yes" : "no"; // "by {shipBy}" or "as soon as possible"
+  const shipFromDay = startOfDayInZone(season.shipping.from);
   for (const [storeId, rows] of byStore) {
     if (Date.now() - started > DIGEST_BUDGET_MS) {
       r.deferred += 1; // stays pending: next run
@@ -254,20 +293,26 @@ export async function sendStoreDigests(now = new Date()): Promise<DigestResult> 
         console.error("[fulfilment] store has funded gifts but no active owner/rep to email:", storeId);
         continue;
       }
-      const setAside = rows.filter((w) => w.status === "fully_funded");
-      const ready = rows.filter((w) => w.status === "locked");
-      const values = { link, storeName: store.name, setAside: listLines(setAside, names), readyToShip: listLines(ready, names), address };
-      // Key = the exact email CONTENT (gift ids + statuses + address): same news is never sent twice,
-      // different news never collides with an old key (review 2026-11-06).
+      // ONE rule (canShipGift): locked + shippable = ready; everything else is set aside / held.
+      const isReady = (w: DigestWish) => w.status === "locked" && canShipGift(w.seasonYear, season);
+      const setAside = rows.filter((w) => !isReady(w));
+      const ready = rows.filter(isReady);
+      const values = { link, storeName: store.name, setAside: listLines(setAside, names), readyToShip: listLines(ready, names), address, late };
+      // Key = the exact email CONTENT (gift ids + statuses + ship/hold + address): same news is never sent
+      // twice, different news never collides with an old key (a gift held in March and the same gift
+      // "ship now" in December are different news).
       const batch = createHash("sha256")
-        .update(rows.map((w) => `${String(w._id)}:${w.status}`).sort().join(","))
+        .update(rows.map((w) => `${String(w._id)}:${w.status}:${isReady(w) ? "ship" : "hold"}`).sort().join(","))
+        .update(`|${late}`)
         .update(`|${address}`)
         .digest("base64url")
         .slice(0, 16);
       let sent = 0;
       for (const person of people) {
         try {
-          await sendEmail({ to: person.email, locale: person.locale ?? DEFAULT_LOCALE, template: "storeOrders", values, idempotencyKey: `store-orders/${storeId}/${batch}/${String(person._id)}` });
+          const locale = person.locale ?? DEFAULT_LOCALE;
+          const dates = { shipBy: formatLongDate(shipByDay, locale), shipFrom: formatLongDate(shipFromDay, locale) };
+          await sendEmail({ to: person.email, locale, template: "storeOrders", values: { ...values, ...dates }, idempotencyKey: `store-orders/${storeId}/${batch}/${String(person._id)}` });
           sent += 1;
           r.emails += 1;
         } catch (err) {
@@ -283,7 +328,8 @@ export async function sendStoreDigests(now = new Date()): Promise<DigestResult> 
         continue;
       }
       const at = new Date();
-      // Ready-to-ship also counts as "told to set aside" (a gift locked at the freeze skips that step).
+      // Held / set-aside rows: ONLY setAsideNotifiedAt (so the window's "ship now" news still goes out).
+      // Ready-to-ship also counts as "told to set aside".
       await WishListItem.updateMany({ _id: trusted({ $in: setAside.map((w) => w._id) }) }, { $set: { setAsideNotifiedAt: at } });
       await WishListItem.updateMany({ _id: trusted({ $in: ready.map((w) => w._id) }) }, { $set: { readyNotifiedAt: at, setAsideNotifiedAt: at } });
     } catch (err) {

@@ -129,6 +129,12 @@ export type SeasonState = {
   dates: { open: string; freeze: string; close: string };
   /** Stores' last ship day ("YYYY-MM-DD") so gifts arrive by Christmas. */
   shipBy: string;
+  /**
+   * THIS season's December ship window. Gifts lock (magic spent) as soon as they're fully funded and are
+   * HELD by the store until `from` (the freeze date, admin changes included). open = today >= from. It stays
+   * open after Dec 25 (a late gift beats none) and LAST season's gifts may always ship: use canShipGift().
+   */
+  shipping: { open: boolean; from: string; by: string };
   /** True once this season's freeze date is reached: its dates can't change any more. */
   datesLocked: boolean;
   forceFrozen: boolean;
@@ -189,12 +195,34 @@ export function resolveSeason(at: Date = new Date(), o: SeasonOverrides = {}): S
     phaseSource,
     dates,
     shipBy: shipByDate(year),
+    shipping: { open: today >= dates.freeze, from: dates.freeze, by: shipByDate(year) },
     datesLocked: today >= dates.freeze,
     forceFrozen,
     storeWindowOpen: mode === "open" ? true : mode === "closed" ? false : isStoreItemWindowOpen(at),
     storeWindowMode: mode,
   };
 }
+
+/**
+ * May a store ship a LOCKED gift of season `giftSeasonYear` now? Decided PER GIFT (year-round critique):
+ * an older season's gift is always shippable (never held another 11 months after Christmas); this
+ * season's only once its December window opens. The ONE rule for the store pages, counts, digest and markShipped.
+ */
+export function canShipGift(giftSeasonYear: number, s: Pick<SeasonState, "year" | "shipping">): boolean {
+  return giftSeasonYear < s.year || (giftSeasonYear === s.year && s.shipping.open);
+}
+
+/**
+ * Is a gift that's ready to ship now LATE (ask the store for "as soon as possible", not "by Dec 10")?
+ * True once this season's ship-by day is over, and outside this season's window (then every ready gift is
+ * last season's). The ONE rule for the store Orders page and the store digest email.
+ */
+export function shipLate(s: Pick<SeasonState, "shipping">, at: Date = new Date()): boolean {
+  return !s.shipping.open || at.getTime() >= startOfDayInZone(s.shipping.by).getTime() + 86_400_000;
+}
+
+/** The newest season whose gifts may ship now (for database filters: `seasonYear <= newestShippableYear`). */
+export const newestShippableYear = (s: Pick<SeasonState, "year" | "shipping">) => (s.shipping.open ? s.year : s.year - 1);
 
 export type SeasonDatesError = "invalidDate" | "wrongYear" | "freezeRange" | "closeRange" | "freezeTooSoon" | "locked";
 

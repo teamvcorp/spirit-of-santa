@@ -1,18 +1,19 @@
 /**
  * /dashboard/orders (Phase 6 slice 3): gifts children have funded at this store.
- *  - Set aside: fully funded, the parent can still remove it → keep one, don't ship.
- *  - Ready to ship: locked → ship to Spirit of Santa's address, write the reference on the package,
- *    then "Mark shipped".
+ *  - Held for December: secured (fully funded / locked) but its ship window isn't open → keep one, don't ship.
+ *  - Ready to ship: locked AND its window is open (canShipGift; last season's gifts always) → ship to
+ *    Spirit of Santa's address, write the reference on the package, then "Mark shipped".
  *  - Out of stock: funded but none left → Spirit of Santa contacts the store about a substitute.
  *  - Shipped: the last 60 days.
  * Owners AND reps. Shows only the item + reference code: never anything about the child.
  */
 import type { Metadata } from "next";
-import { getFormatter, getTranslations } from "next-intl/server";
+import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { storeOrders, type OrderRow } from "@repo/wishlists/fulfilment";
 import { storePayoutView } from "@repo/wishlists/payouts";
-import { formatCents } from "@repo/lib/format";
+import { formatCents, formatLongDate } from "@repo/lib/format";
+import { startOfDayInZone } from "@repo/lib/season";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { DashboardNav } from "../dashboard-nav";
@@ -32,6 +33,10 @@ async function Content() {
   const [orders, t, format, pay] = await Promise.all([storeOrders({ id: user.id, role: user.role, storeId: user.storeId }), getTranslations("Orders"), getFormatter(), isOwner ? storePayoutView(store._id) : null]);
   if (!orders) return <NoAccess />;
   const day = (d: Date | null) => (d ? format.dateTime(new Date(d), { month: "short", day: "numeric" }) : "");
+  // Season dates are Chicago calendar days: format them in the season time zone (never the server's).
+  const locale = await getLocale();
+  const seasonDay = (iso: string) => formatLongDate(startOfDayInZone(iso), locale);
+
   const line = (r: OrderRow) => (
     <>
       <span className="font-semibold">{r.itemName}</span> · <span className="font-mono" data-ref>{r.ref}</span>
@@ -45,7 +50,7 @@ async function Content() {
 
       <Card className="mb-6" data-testid="ready">
         <h2 className="mb-1 text-lg font-semibold">{t("readyTitle", { count: orders.ready.length })}</h2>
-        <p className="mb-3 text-sm text-muted">{t("readyIntro")}</p>
+        <p className="mb-3 text-sm text-muted">{t("readyIntro", { late: orders.late ? "yes" : "no", shipBy: seasonDay(orders.shipping.by) })}</p>
         {orders.shippingAddress ? (
           <div className="mb-4 rounded-lg bg-foreground/5 p-3">
             <p className="text-sm font-semibold">{t("shipTo")}</p>
@@ -70,7 +75,7 @@ async function Content() {
 
       <Card className="mb-6" data-testid="set-aside">
         <h2 className="mb-1 text-lg font-semibold">{t("setAsideTitle", { count: orders.setAside.length })}</h2>
-        <p className="mb-3 text-sm text-muted">{t("setAsideIntro")}</p>
+        <p className="mb-3 text-sm text-muted">{t("setAsideIntro", { open: orders.shipping.open ? "yes" : "no", from: seasonDay(orders.shipping.from) })}</p>
         {orders.setAside.length === 0 ? (
           <p className="text-muted">{t("none")}</p>
         ) : (

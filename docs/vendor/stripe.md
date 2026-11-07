@@ -59,7 +59,8 @@ Test: `scripts/e2e/stripe-return-fulfil.ts` (real test PaymentIntent with `pm_ca
 - `payment_method_types` was removed from PaymentIntent/Checkout create params in this API
   version: use dynamic payment methods (`automatic_payment_methods`).
 - To keep DELAYED methods (bank debits, vouchers) off a Checkout Session, use
-  `excluded_payment_method_types` (pay-ups do this: money must arrive before the Dec 25 close).
+  `excluded_payment_method_types`. EVERY checkout that credits Christmas Magic (tips, donation links, bonus,
+  pay-up) does this via `DELAYED_PAYMENT_METHODS` (@repo/payments/checkout): money must arrive before the Dec 25 close.
 - `Stripe.webhooks.generateTestHeaderString({ payload, secret, timestamp? })` signs test events.
 - `Stripe.Event` is a union discriminated by `type`, so `event.data.object` is typed per case.
 - Field shapes: `charge.payment_intent` and `dispute.payment_intent` are `string | PaymentIntent | null`;

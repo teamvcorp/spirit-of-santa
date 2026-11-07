@@ -18,12 +18,13 @@ import { hashSecret } from "@repo/auth/password";
 import { getSeasonYear } from "@repo/lib/season";
 import { browseGifts, giftDetail, parseGiftQuery } from "@repo/wishlists/catalog";
 import { addToList } from "@repo/wishlists/engine";
-import { archiveItem } from "@repo/stores/items";
+import { readFileSync } from "node:fs";
+import { archiveItem, createItem } from "@repo/stores/items";
 import { getSeasonState } from "@repo/stores/season";
 import { createMfaAdmin, makeChecks, signIn } from "./lib.ts";
 
-const [storeBase, adminBase] = process.argv.slice(2);
-if (!storeBase || !adminBase) throw new Error("usage: browser-admin-item-hide.ts <storeUrl> <adminUrl>");
+const [storeBase, adminBase, logFile] = process.argv.slice(2);
+if (!storeBase || !adminBase || !logFile) throw new Error("usage: browser-admin-item-hide.ts <storeUrl> <adminUrl> <dev-log-file>");
 const { check, report } = makeChecks();
 const tag = randomBytes(4).toString("hex");
 const mongoose = await connectDb();
@@ -43,6 +44,9 @@ const kid = await Kid.create({ familyId: fam._id, firstName: `Hidekid${tag}`, bi
 const parent = { id: String(parentUser._id), familyId: String(fam._id) };
 const admin = await createMfaAdmin(`e2e-hide-admin-${tag}@spiritofsanta.test`);
 const REASON = `Not suitable for children ${tag}`;
+const rep = await User.create({ email: `e2e-hide-r-${tag}@spiritofsanta.test`, passwordHash: "x", role: "store_rep", status: "active", storeId: store._id, name: "Rep" });
+await Store.updateOne({ _id: store._id }, { $push: { repUserIds: rep._id } });
+const logStart = readFileSync(logFile, "utf8").length;
 
 const browser = await chromium.launch({ channel: "msedge", headless: true });
 const errors: string[] = [];
@@ -100,6 +104,24 @@ try {
   check("store's Items page shows 'Hidden by Spirit of Santa' with the reason", (await sp.locator('main [data-testid="item-hidden"]').first().innerText()).includes(REASON));
   await sctx.close();
 
+  // The owner was emailed (dev servers print emails to the log): item, reason, and a link to the replace form.
+  await page.waitForTimeout(1500);
+  const mail = readFileSync(logFile, "utf8").slice(logStart);
+  check("owner emailed: 'Please replace an item' with the reason and a replace link", mail.includes(`Please replace an item: Rude Mug ${tag}`) && mail.includes(REASON) && mail.includes(`/dashboard/items/new?replaces=${item._id}`) && mail.includes(owner.email));
+
+  // Replacement: allowed for the OWNER even outside Jan 1 - Mar 31; one per hidden item; reps only in the window.
+  const ownerActor = { id: String(owner._id), role: "store_owner", storeId: String(store._id) };
+  const repActor = { id: String(rep._id), role: "store_rep", storeId: String(store._id) };
+  const windowOpen = (await getSeasonState()).storeWindowOpen;
+  const repTry = await createItem(repActor, { name: `Rep Swap ${tag}`, inventory: 2 }, String(item._id));
+  check("a rep cannot add the replacement outside the item window", windowOpen || (!repTry.ok && repTry.error === "windowClosed"), JSON.stringify(repTry));
+  const swap = await createItem(ownerActor, { name: `Snow Globe ${tag}`, priceCents: 1500, inventory: 3 }, String(item._id));
+  const linked = await Item.findById(item._id).lean();
+  check("owner adds the replacement any time of year, linked to the hidden item", swap.ok && String(linked?.replacedByItemId) === swap.itemId, JSON.stringify(swap));
+  check("the replacement is in the gift browser", await inBrowser(`Snow Globe ${tag}`));
+  const again = await createItem(ownerActor, { name: `Second Swap ${tag}`, priceCents: 1500, inventory: 3 }, String(item._id));
+  check("a second replacement for the same hidden item is refused", !again.ok && !(await Item.exists({ name: `Second Swap ${tag}` })));
+
   // A store can't undo a hide by archiving and restoring the item (review 2026-11-07).
   // Open the store window for this check (it is closed outside Jan 1 – Mar 31), then put it back.
   const savedSeason = await Season.collection.findOne({ year });
@@ -133,7 +155,7 @@ try {
   await Kid.collection.deleteOne({ _id: kid._id });
   await Family.collection.deleteOne({ _id: fam._id });
   await Store.collection.deleteOne({ _id: store._id });
-  await User.collection.deleteMany({ _id: { $in: [owner._id, parentUser._id, new mongoose.Types.ObjectId(admin.id)] } });
+  await User.collection.deleteMany({ _id: { $in: [owner._id, parentUser._id, rep._id, new mongoose.Types.ObjectId(admin.id)] } });
   await mongoose.disconnect();
 }
 process.exit(report());

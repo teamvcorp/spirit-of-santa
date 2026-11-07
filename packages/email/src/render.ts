@@ -31,6 +31,7 @@ export type EmailTemplates = {
   /** Sent to the VERIFIED owner of the store, about their own store. */
   storeApproved: { storeName: string; link: string };
   storeRejected: { storeName: string; reason: string; link: string };
+  itemHidden: { storeName: string; itemName: string; reason: string; link: string };
   /** Only APPROVED (admin-reviewed) stores can send this; storeName is in the body, not the subject. */
   inviteRep: { storeName: string; link: string };
   /** Security alert to an admin: two-step sign-in was just turned on (catches a hijacked enrolment). */

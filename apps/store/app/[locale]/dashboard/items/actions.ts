@@ -50,7 +50,11 @@ export async function createItemAction(_prev: ItemFormState, fd: FormData): Prom
   const { full, echo } = formValues(fd);
   const parsed = itemSchema.safeParse(full);
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), values: echo, nonce: randomUUID() };
-  return result(await createItem(actor, toItemInput(parsed.data)), echo);
+  // Optional: the hidden item this one replaces (the service checks it is this store's, hidden and not replaced).
+  const rep = str(fd, "replacesItemId");
+  const replaces = rep ? objectIdSchema.safeParse(rep) : null;
+  if (replaces && !replaces.success) return { status: "error", error: "notFound", values: echo, nonce: randomUUID() };
+  return result(await createItem(actor, toItemInput(parsed.data), replaces?.data), echo);
 }
 
 export async function updateItemAction(_prev: ItemFormState, fd: FormData): Promise<ItemFormState> {

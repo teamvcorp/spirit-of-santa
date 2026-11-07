@@ -851,7 +851,11 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   Every family path already requires status "active" (browser, gift page, addToList, Jan 1 copy), so hidden = gone for
   NEW listings; gifts already on lists keep funding/shipping. Admin store page card "Items this season"; store Items page
   shows "Hidden by Spirit of Santa: reason" (store may edit, can't unhide; archive REFUSED for hidden items so archive →
-  restore can't bring it back). Admin dashboard counts hidden items. E2E browser-admin-item-hide (12).
+  restore can't bring it back). Admin dashboard counts hidden items. Owner 2026-11-07: hiding EMAILS the store owner
+  (template itemHidden: item, reason, link /dashboard/items/new?replaces=<id>, sent after the commit); the OWNER may add
+  ONE replacement per hidden item any time of year (createItem(actor, input, replacesItemId): window skipped for owners,
+  CAS links hidden.replacedByItemId; reps only inside the window); hidden items no longer count toward the 50 limit
+  (COUNTS_TOWARD_LIMIT). E2E browser-admin-item-hide (17, needs the dev log).
   Owner 2026-11-07: Spanish pay-later SMS LATER (after Twilio verification, register as an extra sample).
   Copies SHARE the photo blob: items.ts `deleteUnusedPhoto` deletes a blob only if no item uses it (index on
   photo.pathname). Stock: forms send hidden `inventoryWas`; `setInventory`/`updateItem` compare-and-set on it

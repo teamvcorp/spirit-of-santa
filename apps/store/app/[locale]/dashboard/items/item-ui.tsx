@@ -62,12 +62,15 @@ import type { ItemFormValues } from "./item-values";
 /** Create (no itemId) or edit an item. */
 export function ItemForm({
   itemId,
+  replacesItemId,
   initial,
   isOwner,
   canEdit,
   priceCents,
 }: {
   itemId?: string;
+  /** Create mode: the admin-hidden item this new one replaces (owner 2026-11-07). */
+  replacesItemId?: string;
   initial: ItemFormValues;
   isOwner: boolean;
   canEdit: boolean;
@@ -97,6 +100,7 @@ export function ItemForm({
         {state.status === "error" && state.error && <Alert tone="error">{errorsT(state.error as never)}</Alert>}
         {state.status === "error" && !state.error && <Alert tone="error">{reg("fixErrors")}</Alert>}
         {itemId && <input type="hidden" name="itemId" value={itemId} />}
+        {!itemId && replacesItemId && <input type="hidden" name="replacesItemId" value={replacesItemId} />}
         {/* The stock number as LOADED (not the echoed one): the server compare-and-sets on it. */}
         {itemId && <input type="hidden" name="inventoryWas" value={state.inventoryNow != null ? String(state.inventoryNow) : initial.inventory} />}
         <fieldset disabled={!canEdit} className="flex flex-col gap-4">

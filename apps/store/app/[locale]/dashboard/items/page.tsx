@@ -77,6 +77,12 @@ async function Content() {
                         {statusT("hidden")}: {i.hiddenReason}
                       </span>
                     )}
+                    {/* One replacement per hidden item, any time of year (owner only; the server re-checks). */}
+                    {i.replaceable && isOwner && (
+                      <Link href={`/dashboard/items/new?replaces=${i.id}`} className="mt-1 block text-sm font-semibold underline underline-offset-4" data-testid="add-replacement">
+                        {t("addReplacement")}
+                      </Link>
+                    )}
                   </td>
                   <td className="py-2 pr-4">{i.priceCents != null ? formatCents(i.priceCents) : t("needsPrice")}</td>
                   {isOwner && <td className="py-2 pr-4">{i.wholesaleCents != null ? formatCents(i.wholesaleCents) : "—"}</td>}

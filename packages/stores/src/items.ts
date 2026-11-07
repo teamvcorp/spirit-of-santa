@@ -43,6 +43,11 @@ export type ItemResult =
 /** The store as loaded by memberStore() (dashboard pages get it from loadMember()). */
 export type MemberStore = NonNullable<Awaited<ReturnType<typeof memberStore>>>;
 
+/**
+ * Items that count toward STORE_ITEM_LIMIT: not archived, and not HIDDEN by an admin (owner 2026-11-07: a hidden
+ * item stops taking a slot, so the store can add its replacement).
+ */
+const COUNTS_TOWARD_LIMIT = () => trusted({ $nin: ["archived", "hidden"] as ("archived" | "hidden")[] });
 /** `status` filter for listed items. A function: each query gets its own trusted() object. */
 const NOT_ARCHIVED = () => trusted({ $ne: "archived" as const });
 
@@ -70,8 +75,11 @@ const scopeOf = (g: { store: MemberStore; seasonYear: number }) => ({ storeId: g
  */
 async function lockAndCount(g: { store: MemberStore; seasonYear: number }, session: DbSession): Promise<number> {
   await Store.updateOne({ _id: g.store._id }, { $inc: { itemLockSeq: 1 } }, { session });
-  return Item.countDocuments({ ...scopeOf(g), status: NOT_ARCHIVED() }).session(session);
+  return Item.countDocuments({ ...scopeOf(g), status: COUNTS_TOWARD_LIMIT() }).session(session);
 }
+
+/** The hidden item a replacement points at was already replaced (or isn't hidden): roll the add back. */
+class ReplacementTaken extends Error {}
 
 /**
  * Delete an item photo's blob ONLY if no item still uses it: the Jan 1 carry-over (catalog-rollover.ts) makes the
@@ -98,6 +106,8 @@ export type ItemRow = {
   status: "draft" | "active" | "archived" | "hidden";
   /** Why Spirit of Santa hid it (status "hidden"; the store may fix the item, only an admin can show it again). */
   hiddenReason?: string;
+  /** Hidden and not replaced yet: the owner may add ONE replacement, any time of year. */
+  replaceable: boolean;
   photo?: { url: string; pathname: string };
   /** Engagement (slice 5): views counter + wish-list totals. Totals only, never who. */
   stats: ItemStats;
@@ -123,6 +133,7 @@ function toRow(item: Record<string, unknown> & { _id: unknown }, isOwner: boolea
     inventory: (item.inventory as number) ?? 0,
     status: item.status as ItemRow["status"],
     hiddenReason: (item.hiddenReason as string) || undefined,
+    replaceable: item.status === "hidden" && !item.replacedByItemId,
     photo: photo?.url ? { url: photo.url, pathname: photo.pathname } : undefined,
     stats: toStats(stats.views ?? 0, lists),
   };
@@ -145,7 +156,7 @@ export async function listStoreItems(store: MemberStore, isOwner: boolean) {
     storeItemWindow(now),
     Item.find({ ...scope, status: NOT_ARCHIVED() }).sort({ createdAt: 1 }).limit(STORE_ITEM_LIMIT + 10).lean(),
     Item.find({ ...scope, status: "archived" }).sort({ updatedAt: -1 }).limit(100).lean(),
-    Item.countDocuments({ ...scope, status: NOT_ARCHIVED() }),
+    Item.countDocuments({ ...scope, status: COUNTS_TOWARD_LIMIT() }),
     wishListTotals(scope.storeId, scope.seasonYear),
     // Views summed over EVERY item this season (the lists above are capped), so the summary
     // covers the same items as the wish-list totals (review 2026-11-05). Values are ours, not input.
@@ -189,35 +200,53 @@ export async function getStoreItem(store: MemberStore, isOwner: boolean, itemId:
   };
 }
 
-export async function createItem(actor: StoreActor, input: ItemInput): Promise<ItemResult> {
-  const g = await gate(actor, true);
-  if ("error" in g) return g.error;
+/**
+ * `replacesItemId` (owner 2026-11-07): the OWNER adds the one replacement for an item an admin hid. Allowed even
+ * outside the item window; the hidden item is linked to it in the same transaction (compare-and-set, so a second
+ * replacement for the same item is refused). Reps add replacements only inside the window (their items are drafts
+ * the owner must price, and pricing needs the window).
+ */
+export async function createItem(actor: StoreActor, input: ItemInput, replacesItemId?: string): Promise<ItemResult> {
   const isOwner = actor.role === "store_owner";
+  const g = await gate(actor, !(replacesItemId && isOwner));
+  if ("error" in g) return g.error;
   if (isOwner && input.priceCents == null) return { ok: false, error: "priceRequired" };
   // Bounds create/archive churn (archived items are kept for history).
   if (!(await hitRateLimit(`item-create:store:${g.store._id}`, 100, 86_400))) return { ok: false, error: "rateLimited" };
   // Lock → count → insert, all-or-nothing. If another add commits first, MongoDB reports a
   // write conflict and withTransaction re-runs this function, which then counts its item too.
-  const itemId = await withTransaction(async (session) => {
-    if ((await lockAndCount(g, session)) >= STORE_ITEM_LIMIT) return null;
-    const [doc] = await Item.create(
-      [
-        {
-          ...scopeOf(g),
-          name: input.name,
-          description: input.description,
-          category: input.category,
-          inventory: input.inventory,
-          // Reps never set prices: their items wait for the owner.
-          ...(isOwner ? { priceCents: input.priceCents, status: "active" } : { status: "draft" }),
-        },
-      ],
-      { session },
-    );
-    return String(doc!._id);
-  });
+  let itemId: string | null;
+  try {
+    itemId = await withTransaction(async (session) => {
+      if ((await lockAndCount(g, session)) >= STORE_ITEM_LIMIT) return null;
+      const [doc] = await Item.create(
+        [
+          {
+            ...scopeOf(g),
+            name: input.name,
+            description: input.description,
+            category: input.category,
+            inventory: input.inventory,
+            // Reps never set prices: their items wait for the owner.
+            ...(isOwner ? { priceCents: input.priceCents, status: "active" } : { status: "draft" }),
+            ...(replacesItemId ? { replacesItemId } : {}),
+          },
+        ],
+        { session },
+      );
+      if (replacesItemId) {
+        // This store's hidden item, this season, not replaced yet: link it (one replacement per hidden item).
+        const link = await Item.updateOne({ _id: replacesItemId, ...scopeOf(g), status: "hidden", replacedByItemId: null }, { $set: { replacedByItemId: doc!._id } }, { session });
+        if (link.modifiedCount !== 1) throw new ReplacementTaken();
+      }
+      return String(doc!._id);
+    });
+  } catch (err) {
+    if (err instanceof ReplacementTaken) return { ok: false, error: "notFound" };
+    throw err;
+  }
   if (!itemId) return { ok: false, error: "limitReached" };
-  await audit(actor.id, "item.create", itemId, { status: isOwner ? "active" : "draft" });
+  await audit(actor.id, "item.create", itemId, { status: isOwner ? "active" : "draft", ...(replacesItemId ? { replaces: replacesItemId } : {}) });
   return { ok: true, itemId };
 }
 

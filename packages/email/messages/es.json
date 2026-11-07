@@ -36,6 +36,12 @@
       "body": "Buenas noticias: {storeName} fue aprobada. Las familias ya pueden ver tu tienda y tus artículos. Inicia sesión para administrar tu lista de artículos.",
       "button": "Iniciar sesión"
     },
+    "itemHidden": {
+      "subject": "Reemplaza un artículo: {itemName}",
+      "heading": "Un artículo salió de la lista de regalos de Santa",
+      "body": "¡Hola, {storeName}! Ocultamos \"{itemName}\" a las familias porque no encaja con la lista de regalos de Santa.\n\nMotivo: {reason}\n\nAgrega un artículo de reemplazo. Puedes agregar un reemplazo en cualquier momento del año, incluso fuera del 1 de enero al 31 de marzo. Los regalos que los niños ya completaron no cambian.",
+      "button": "Agregar un reemplazo"
+    },
     "storeRejected": {
       "subject": "Sobre tu solicitud en Spirit of Santa",
       "heading": "Solicitud no aprobada",

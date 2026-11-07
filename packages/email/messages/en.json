@@ -36,6 +36,12 @@
       "body": "Good news: {storeName} is approved. Families can now see your store and items. Sign in to manage your item list.",
       "button": "Sign in"
     },
+    "itemHidden": {
+      "subject": "Please replace an item: {itemName}",
+      "heading": "An item was taken off Santa's gift list",
+      "body": "Hi {storeName}! We've hidden \"{itemName}\" from families because it isn't a good fit for Santa's gift list.\n\nReason: {reason}\n\nPlease add a replacement item. You can add one replacement for it at any time of year, even outside January 1 – March 31. Gifts children have already funded are not affected.",
+      "button": "Add a replacement"
+    },
     "storeRejected": {
       "subject": "About your Spirit of Santa application",
       "heading": "Application not approved",

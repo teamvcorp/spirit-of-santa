@@ -203,6 +203,8 @@
       "hidden": "Oculto por Spirit of Santa (las familias no lo ven). Edítalo y pídenos que lo mostremos de nuevo"
     },
     "newTitle": "Agregar un artículo",
+    "replacing": "Este artículo reemplaza \"{name}\", que Spirit of Santa ocultó ({reason}). Puedes agregarlo en cualquier momento del año.",
+    "addReplacement": "Agregar un reemplazo",
     "editTitle": "Editar artículo",
     "backToItems": "Volver a artículos",
     "repDraftNote": "El dueño de tu tienda pondrá el precio antes de que se publique el artículo.",

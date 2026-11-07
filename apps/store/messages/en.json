@@ -203,6 +203,8 @@
       "hidden": "Hidden by Spirit of Santa (families can't see it). Edit it, then ask us to show it again"
     },
     "newTitle": "Add an item",
+    "replacing": "This item replaces \"{name}\", which Spirit of Santa hid ({reason}). You can add it any time of year.",
+    "addReplacement": "Add a replacement",
     "editTitle": "Edit item",
     "backToItems": "Back to items",
     "repDraftNote": "Your store owner will set the price before the item is listed.",

@@ -59,6 +59,9 @@ const itemSchema = new Schema(
     hiddenReason: { type: String, trim: true, maxlength: 500 },
     hiddenAt: { type: Date },
     hiddenByAdminId: objectId("User", false),
+    /** Replacement link (owner 2026-11-07): a hidden item may get ONE replacement, added even outside Jan 1 – Mar 31. */
+    replacedByItemId: objectId("Item", false),
+    replacesItemId: objectId("Item", false),
     /** Set on the Jan 1 copy of last season's item (@repo/stores/catalog-rollover): the source item. Unique = idempotent copy. */
     copiedFromItemId: objectId("Item", false),
     status: {

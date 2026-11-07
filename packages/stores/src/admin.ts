@@ -52,6 +52,7 @@ async function audit(
 async function emailOwner(
   ownerUserId: unknown,
   build: (link: string) => Omit<Parameters<typeof sendEmail>[0], "to" | "locale">,
+  path = "/signin",
 ) {
   try {
     const owner = await User.findById(ownerUserId).select("email locale status").lean();
@@ -59,7 +60,7 @@ async function emailOwner(
     // emails contain the store name a stranger typed (review finding 2026-11-05: spam relay).
     if (!owner || owner.status !== "active") return;
     const locale = isLocale(owner.locale) ? owner.locale : DEFAULT_LOCALE;
-    const link = new URL(localizePath("/signin", locale), storeAppOrigin()).toString();
+    const link = new URL(localizePath(path, locale), storeAppOrigin()).toString();
     await sendEmail({ ...build(link), to: owner.email, locale } as Parameters<typeof sendEmail>[0]);
   } catch (err) {
     console.error("[stores] owner email failed:", err instanceof Error ? err.message : "unknown");
@@ -119,18 +120,30 @@ export async function listItemsForAdmin(actor: AdminActor, storeId: string): Pro
 export async function hideItem(actor: AdminActor, itemId: string, reason: string): Promise<ItemModerationResult> {
   assertAdmin(actor);
   await connectDb();
-  return withTransaction(async (session): Promise<ItemModerationResult> => {
+  const hidden = await withTransaction(async (session) => {
     const before = await Item.findOneAndUpdate(
       { _id: itemId, status: "active" },
       { $set: { status: "hidden", hiddenReason: reason, hiddenAt: new Date(), hiddenByAdminId: actor.id } },
       { session, runValidators: true },
     )
-      .select("storeId")
-      .lean<{ _id: unknown; storeId: unknown }>();
-    if (!before) return { ok: false, error: (await Item.exists({ _id: itemId }).session(session)) ? "badStatus" : "notFound" };
+      .select("storeId name")
+      .lean<{ _id: unknown; storeId: unknown; name: string }>();
+    if (!before) return null;
     await AuditLog.create([{ actorUserId: actor.id, action: "item.hide", targetType: "item", targetId: itemId, details: { storeId: String(before.storeId), reason } }], { session });
-    return { ok: true };
+    return before;
   });
+  if (!hidden) return { ok: false, error: (await Item.exists({ _id: itemId })) ? "badStatus" : "notFound" };
+  // AFTER the commit (never email from inside a transaction that could still roll back): ask the owner for a
+  // replacement, linking straight to the "replace" form (owner 2026-11-07). A failed email never undoes the hide.
+  const store = await Store.findById(hidden.storeId).select("name ownerUserId").lean<{ name: string; ownerUserId?: unknown }>();
+  if (store?.ownerUserId) {
+    await emailOwner(
+      store.ownerUserId,
+      (link) => ({ template: "itemHidden", values: { storeName: store.name, itemName: hidden.name, reason, link } }),
+      `/dashboard/items/new?replaces=${itemId}`,
+    );
+  }
+  return { ok: true };
 }
 
 /** Show a hidden item again (back to "active"). Only admins: a store can edit a hidden item but not unhide it. */

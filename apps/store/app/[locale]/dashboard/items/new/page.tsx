@@ -15,22 +15,30 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("newTitle"), robots: { index: false, follow: false } };
 }
 
-async function Content() {
+async function Content({ searchParams }: { searchParams: PageProps<"/[locale]/dashboard/items/new">["searchParams"] }) {
   const { store, isOwner } = await loadMember();
   if (!store) return <NoAccess />;
   const data = await listStoreItems(store, isOwner); // store already loaded + membership-checked
   const t = await getTranslations("Items");
-  const canAdd = data.editable && data.window.open && data.count < data.limit;
+  // ?replaces=<id>: the owner replaces an item an admin hid (allowed any time of year; the server re-checks).
+  const rep = (await searchParams).replaces;
+  const target = isOwner && typeof rep === "string" ? data.items.find((i) => i.id === rep && i.replaceable) : undefined;
+  const canAdd = data.editable && (data.window.open || !!target) && data.count < data.limit;
   return (
     <>
+      {target && (
+        <div data-testid="replacing">
+          <Alert className="mb-4">{t("replacing", { name: target.name, reason: target.hiddenReason ?? "" })}</Alert>
+        </div>
+      )}
       {!canAdd && <Alert className="mb-4">{!data.window.open ? t("windowClosed") : data.count >= data.limit ? t("limitNote", { limit: data.limit }) : t("readOnly")}</Alert>}
       {!isOwner && <Alert className="mb-4">{t("repDraftNote")}</Alert>}
-      <ItemForm initial={initialValues()} isOwner={isOwner} canEdit={canAdd} />
+      <ItemForm initial={initialValues()} isOwner={isOwner} canEdit={canAdd} replacesItemId={target?.id} />
     </>
   );
 }
 
-export default async function NewItemPage() {
+export default async function NewItemPage(props: PageProps<"/[locale]/dashboard/items/new">) {
   const [t, d] = await Promise.all([getTranslations("Items"), getTranslations("Dashboard")]);
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 p-6">
@@ -40,7 +48,7 @@ export default async function NewItemPage() {
       <Card>
         <h1 className="mb-4 text-2xl font-bold">{t("newTitle")}</h1>
         <Suspense fallback={<p className="text-muted">{d("loading")}</p>}>
-          <Content />
+          <Content searchParams={props.searchParams} />
         </Suspense>
       </Card>
     </main>

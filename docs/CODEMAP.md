@@ -689,13 +689,20 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   VERCEL=1 (local next start on http stays usable), HSTS without includeSubDomains. VERCEL/VERCEL_ENV are build env
   in turbo.json. Notes: docs/vendor/security-headers.md. Page audit fails on any ENFORCED CSP violation on our page,
   proves Stripe Embedded Checkout renders (child donation link), and has a CSP negative control (178 checks).
+- **Slice 1b audit fixes (2026-11-06).** Independent audit: no critical/high; IDOR, webhook, injection, uploads,
+  cron, unsubscribe, CSRF checked OK. Fixed: lockouts could be RACED by parallel guesses → `@repo/auth/attempts`
+  (reserveAttempt BEFORE verify / failAttempt / releaseAttempt; `LOGIN_ATTEMPTS` in options.ts replaces
+  recordFailedLogin; PIN uses PIN_ATTEMPTS). Every operator wrapped in trusted() on its own (sanitizeFilter checks
+  nested objects). Per-IP sign-in cap 50/15 min/app (off in dev). resetPassword(raw, pw, ctx): keeps an active lock
+  on MFA accounts, stamps parent consent.emailVerifiedAt when activating, sends `passwordChanged` alert email.
+  E2E `scripts/e2e/auth-race.ts` (12): 50 parallel tries → exactly 5, real HTTP burst, reset cases.
 
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.
   Next: Atlas dev cluster → seed script → sign-in test.
 - **Security TODO:** Atlas DB user for the apps should have only `find`/`insert` on `transactions`
-  (real ledger immutability); per-IP rate limiting on sign-in & tip endpoints (Vercel Firewall/Upstash);
+  (real ledger immutability); per-IP sign-in limit DONE (Phase 8 1b), tip endpoints limited per IP;
   admin MFA (roadmap); production `syncIndexes` script (autoIndex is off in prod).
 - **Account lockout can be abused** to lock out a known email for 15 min. Acceptable now; per-IP limiting mitigates.
 - `npm audit`: 10 moderate (minimatch ReDoS) in the ESLint dev toolchain only, not shipped. Not force-fixed.

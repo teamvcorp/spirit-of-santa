@@ -87,7 +87,7 @@ export async function resendVerificationEmail(app: AppName, _prev: FormState, fd
 export async function resetPasswordWithToken(_prev: FormState, fd: FormData): Promise<FormState> {
   const password = newPasswordSchema.safeParse(str(fd, "password"));
   if (!password.success) return { status: "error", fieldErrors: { password: password.error.issues[0]?.message ?? "invalid" } };
-  const r = await resetPassword(str(fd, "token"), password.data);
+  const r = await resetPassword(str(fd, "token"), password.data, await context(fd));
   return r.ok ? { status: "done" } : { status: "error", error: r.error };
 }
 

@@ -20,7 +20,8 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { AuditLog, connectDb, Family, User, withTransaction } from "@repo/db";
-import { recordFailedLogin } from "./options.ts";
+import { failAttempt, releaseAttempt, reserveAttempt, type AttemptRule } from "./attempts.ts";
+import { LOGIN_ATTEMPTS } from "./options.ts";
 import { hitRateLimit } from "./rate-limit.ts";
 import { baseCookieOptions, cookieName } from "./cookies.ts";
 import { burnVerifyTime, hashSecret, verifySecret } from "./password.ts";
@@ -35,6 +36,8 @@ export { pinSchema, PIN_UNLOCK_SECONDS };
 
 export const PIN_MAX_FAILURES = 5;
 export const PIN_LOCKOUT_MINUTES = 15;
+/** PIN lockout rule: tries are RESERVED before verifying (attempts.ts), so parallel guesses can't race past it. */
+const PIN_ATTEMPTS: AttemptRule = { count: "pinFailedCount", lock: "pinLockedUntil", max: PIN_MAX_FAILURES, lockMs: PIN_LOCKOUT_MINUTES * 60_000 };
 
 // ── Session-facing API ─────────────────────────────────────────────────────────────────
 function requireSecret(): string {
@@ -91,16 +94,19 @@ export async function setParentPinWithPassword(user: ParentUser, password: unkno
   if ((await hasParentPin(user)) && !(await isParentUnlocked(user))) return { ok: false, error: "locked" };
   await connectDb();
   if (!(await hitRateLimit(`pin-set:${user.id}`, 5, 900))) return { ok: false, error: "rateLimited" };
-  const account = await User.findOne({ _id: user.id, role: "parent", status: "active" }).select("+passwordHash +lockedUntil").lean();
+  const account = await User.findOne({ _id: user.id, role: "parent", status: "active" }).select("+passwordHash").lean();
   if (!account) return { ok: false, error: "wrongPassword" };
-  if (account.lockedUntil && account.lockedUntil > new Date()) {
+  // Same lockout as sign-in, reserved before verifying (attempts.ts).
+  const me = { _id: account._id };
+  if (!(await reserveAttempt(User, me, LOGIN_ATTEMPTS))) {
     await burnVerifyTime(password); // same answer + timing as a wrong password
     return { ok: false, error: "wrongPassword" };
   }
   if (!(await verifySecret(password, account.passwordHash))) {
-    await recordFailedLogin(account._id);
+    await failAttempt(User, me, LOGIN_ATTEMPTS);
     return { ok: false, error: "wrongPassword" };
   }
+  await releaseAttempt(User, me, LOGIN_ATTEMPTS); // right password: not a strike
   const hash = await hashSecret(parsedPin.data);
   const saved = await withTransaction(async (session) => {
     const res = await Family.updateOne(
@@ -130,30 +136,14 @@ export async function unlockParentDashboard(
   if (!parsed.success || !user.familyId) return false;
 
   await connectDb();
-  const family = await Family.findOne({
-    _id: user.familyId,
-    ownerUserId: user.id,
-  }).select("+parentPinHash +pinFailedCount +pinLockedUntil");
+  const mine = { _id: user.familyId, ownerUserId: user.id };
+  const family = await Family.findOne(mine).select("+parentPinHash");
   if (!family?.parentPinHash) return false;
-  if (family.pinLockedUntil && family.pinLockedUntil > new Date()) return false;
+  // Take a try BEFORE the (slow) verify: at most PIN_MAX_FAILURES guesses per lock window, even in parallel.
+  if (!(await reserveAttempt(Family, mine, PIN_ATTEMPTS))) return false;
 
   if (!(await verifySecret(parsed.data, family.parentPinHash))) {
-    const after = await Family.findOneAndUpdate(
-      { _id: family._id },
-      { $inc: { pinFailedCount: 1 } },
-      { returnDocument: "after", projection: { pinFailedCount: 1 } },
-    ).select("+pinFailedCount");
-    if ((after?.pinFailedCount ?? 0) >= PIN_MAX_FAILURES) {
-      await Family.updateOne(
-        { _id: family._id },
-        {
-          $set: {
-            pinLockedUntil: new Date(Date.now() + PIN_LOCKOUT_MINUTES * 60_000),
-            pinFailedCount: 0,
-          },
-        },
-      );
-    }
+    await failAttempt(Family, mine, PIN_ATTEMPTS);
     return false;
   }
 

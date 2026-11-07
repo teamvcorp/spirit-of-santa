@@ -21,7 +21,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 import { connectDb, User } from "@repo/db";
 import { isRoleAllowedInApp, type AppName, type Role } from "@repo/lib/roles";
+import { failAttempt, releaseAttempt, reserveAttempt, type AttemptRule } from "./attempts.ts";
 import { nextAuthCookies } from "./cookies.ts";
+import { clientIp, hitRateLimit, ipKey } from "./rate-limit.ts";
 import { recordMfaFailure, verifySecondFactor } from "./mfa.ts";
 import {
   burnVerifyTime,
@@ -70,6 +72,8 @@ declare module "next-auth/jwt" {
 
 export const MAX_FAILED_LOGINS = 5;
 export const LOCKOUT_MINUTES = 15;
+/** Sign-in tries per IP (IPv6: per /64) per app per 15 min, all accounts together. */
+const SIGNIN_PER_IP = 50;
 const RECHECK_MS = 5 * 60 * 1000;
 /**
  * Stamped on every admin token at sign-in. Admin tokens WITHOUT it were issued before admin
@@ -115,11 +119,18 @@ export function createAuthOptions(app: AppName): AuthOptions {
           password: { label: "Password", type: "password" },
           code: { label: "Authenticator code", type: "text" },
         },
-        async authorize(raw) {
+        async authorize(raw, req) {
           // next-auth v4 copies any error thrown here into the redirect URL
           // (?error=<message>), which would show DB/driver internals to users. So catch
           // everything, log it server-side, and return the generic failure.
           try {
+            // Per-IP cap (Phase 8 audit): the per-account lockout can't see one attacker trying
+            // MANY accounts ("credential stuffing"). Generous for shared/home networks. Off in dev:
+            // every local test signs in from the same address.
+            if (process.env.NODE_ENV !== "development") {
+              const ip = ipKey(clientIp(new Headers((req?.headers ?? {}) as Record<string, string>)));
+              if (!(await hitRateLimit(`signin:ip:${ip}:${app}`, SIGNIN_PER_IP, 15 * 60))) return refuse("rate_limited", app);
+            }
             return await verifyCredentials(raw, app);
           } catch (err) {
             console.error(
@@ -141,7 +152,7 @@ export function createAuthOptions(app: AppName): AuthOptions {
  * reason + the database searched, so "it says wrong password but the account exists" is
  * diagnosable (2026-11-06). Never logs the email, password or code.
  */
-type RefuseReason = "bad_input" | "no_account" | "locked" | "bad_password" | "not_active" | "wrong_app" | "code_missing" | "code_wrong" | "code_reused";
+type RefuseReason = "rate_limited" | "bad_input" | "no_account" | "locked" | "bad_password" | "not_active" | "wrong_app" | "code_missing" | "code_wrong" | "code_reused";
 function refuse(reason: RefuseReason, app: AppName, db?: string): null {
   console.warn(`[auth] sign-in refused (${app}): ${reason}${db ? ` · db=${db}` : ""}`);
   return GENERIC_FAILURE;
@@ -161,7 +172,9 @@ async function verifyCredentials(raw: unknown, app: AppName) {
     await burnVerifyTime(password); // equalise timing with the "wrong password" path
     return refuse("no_account", app, db);
   }
-  if (user.lockedUntil && user.lockedUntil > new Date()) {
+  // Take a try BEFORE verifying (attempts.ts): parallel guesses can't race past the limit.
+  const me = { _id: user._id };
+  if (!(await reserveAttempt(User, me, LOGIN_ATTEMPTS))) {
     // Same cost as the other failure paths, so a fast answer can't reveal "this email exists
     // and is locked" (review finding 2026-11-05).
     await burnVerifyTime(password);
@@ -170,28 +183,36 @@ async function verifyCredentials(raw: unknown, app: AppName) {
 
   const ok = await verifySecret(password, user.passwordHash);
   if (!ok) {
-    await recordFailedLogin(user._id);
+    await failAttempt(User, me, LOGIN_ATTEMPTS);
     return refuse("bad_password", app, db);
   }
 
   // Correct password, but still refuse other apps' roles and any account that isn't active:
   // "pending" = email not verified yet (sign-up flow), "suspended" = blocked by admin.
-  // Same generic failure, so the response never reveals which case applies.
-  if (user.status !== "active") return refuse("not_active", app, db);
-  if (!isRoleAllowedInApp(user.role, app)) return refuse("wrong_app", app, db);
+  // Same generic failure, so the response never reveals which case applies. Not a strike.
+  if (user.status !== "active" || !isRoleAllowedInApp(user.role, app)) {
+    await releaseAttempt(User, me, LOGIN_ATTEMPTS);
+    return refuse(user.status !== "active" ? "not_active" : "wrong_app", app, db);
+  }
 
   // Second factor. Checked only AFTER the password, so codes can't be guessed without it.
   // A blank code isn't a strike (they may be reaching for their phone); a wrong one is.
   const mfaOn = user.mfa?.enabled === true;
   if (mfaOn) {
-    if (!code) return refuse("code_missing", app, db);
+    if (!code) {
+      await releaseAttempt(User, me, LOGIN_ATTEMPTS);
+      return refuse("code_missing", app, db);
+    }
     const second = await verifySecondFactor(user._id.toString(), code);
     if (second === "wrong") {
-      await recordFailedLogin(user._id);
+      await failAttempt(User, me, LOGIN_ATTEMPTS);
       await recordMfaFailure(user._id.toString()); // 10 in a row → 24 h lock
       return refuse("code_wrong", app, db);
     }
-    if (second === "replay") return refuse("code_reused", app, db); // a used-up but correct code: no strike
+    if (second === "replay") {
+      await releaseAttempt(User, me, LOGIN_ATTEMPTS); // a used-up but correct code: no strike
+      return refuse("code_reused", app, db);
+    }
   }
 
   const update: Record<string, unknown> = {
@@ -218,23 +239,16 @@ async function verifyCredentials(raw: unknown, app: AppName) {
 }
 
 /**
- * One failed try (password or code). Atomic, so parallel guesses can't race past the limit.
- * Exported: EVERY place that checks an account password must count failures here (e.g. the
- * parent PIN setup), or it becomes a guessing endpoint that skips the lockout.
+ * The account-password lockout rule. EVERY place that checks an account password must use it with
+ * reserveAttempt/failAttempt (attempts.ts), e.g. the parent PIN setup, or it becomes a guessing
+ * endpoint that skips the lockout.
  */
-export async function recordFailedLogin(userId: unknown) {
-  const after = await User.findOneAndUpdate(
-    { _id: userId },
-    { $inc: { failedLoginCount: 1 } },
-    { returnDocument: "after", projection: { failedLoginCount: 1 } },
-  ).select("+failedLoginCount");
-  if ((after?.failedLoginCount ?? 0) >= MAX_FAILED_LOGINS) {
-    await User.updateOne(
-      { _id: userId },
-      { $set: { lockedUntil: new Date(Date.now() + LOCKOUT_MINUTES * 60_000), failedLoginCount: 0 } },
-    );
-  }
-}
+export const LOGIN_ATTEMPTS: AttemptRule = {
+  count: "failedLoginCount",
+  lock: "lockedUntil",
+  max: MAX_FAILED_LOGINS,
+  lockMs: LOCKOUT_MINUTES * 60_000,
+};
 
 function authCallbacks(app: AppName): AuthOptions["callbacks"] {
   return {

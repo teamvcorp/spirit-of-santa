@@ -101,6 +101,12 @@
       "heading": "Finish gifts before {date}",
       "body": "Some gifts on your children's lists aren't fully funded yet. You can pay what's missing until {date}. Gifts still unfinished at the season's close drop off the list, and the Christmas Magic on them goes to Spirit of Santa.",
       "button": "Finish gifts"
+    },
+    "passwordChanged": {
+      "subject": "Your Spirit of Santa password was changed",
+      "heading": "Your password was changed",
+      "body": "The password for this Spirit of Santa account was just changed using a reset link, and every device was signed out. If this was you, there's nothing else to do. If it wasn't you, reset your password again right away and contact the Spirit of Santa team.",
+      "button": "Sign in"
     }
   }
 }

@@ -291,7 +291,7 @@ export async function requestPasswordReset(email: string, app: AppName, ctx: Flo
   return { ok: true };
 }
 
-export async function resetPassword(raw: unknown, newPassword: string): Promise<FlowResult> {
+export async function resetPassword(raw: unknown, newPassword: string, ctx: FlowContext): Promise<FlowResult> {
   await connectDb();
   // Hash first so a bad token and a good one take similar time.
   const passwordHash = await hashSecret(newPassword);
@@ -300,16 +300,32 @@ export async function resetPassword(raw: unknown, newPassword: string): Promise<
     await burnVerifyTime(newPassword);
     return { ok: false, error: "invalidLink" };
   }
-  const user = await User.findById(token.userId).select("status").lean();
+  const user = await User.findById(token.userId).select("email role status lockedUntil mfa.enabled").lean();
   if (!user) return { ok: false, error: "invalidLink" };
-  await User.updateOne(
-    { _id: token.userId },
-    {
-      $set: { passwordHash, failedLoginCount: 0, ...(user.status === "pending" ? { status: "active" } : {}) },
-      $unset: { lockedUntil: 1 },
-      $inc: { sessionVersion: 1 }, // sign out everywhere
-    },
-  );
+  // A reset proves control of the mailbox, which clears a PASSWORD lockout. It must NOT clear a lock on an
+  // account with two-step sign-in: that lock comes from wrong authenticator codes (24 h), and a mailbox
+  // holder could otherwise reset → guess more codes → reset again (Phase 8 audit, 2026-11-06).
+  const keepLock = user.mfa?.enabled === true && !!user.lockedUntil && user.lockedUntil > new Date();
+  const activating = user.status === "pending";
+  await withTransaction(async (session) => {
+    await User.updateOne(
+      { _id: token.userId },
+      {
+        $set: { passwordHash, failedLoginCount: 0, ...(activating ? { status: "active" } : {}) },
+        ...(keepLock ? {} : { $unset: { lockedUntil: 1 } }),
+        $inc: { sessionVersion: 1 }, // sign out everywhere
+      },
+      { session },
+    );
+    // pending → active: for a parent, the clicked reset link proves the email just like the confirm link,
+    // so stamp the COPPA consent record in the same transaction (an active parent always has the stamp).
+    if (activating && user.role === "parent") {
+      await Family.updateOne({ ownerUserId: token.userId, "consent.emailVerifiedAt": null }, { $set: { "consent.emailVerifiedAt": new Date() } }, { session });
+    }
+  });
+  // Tell the owner: if it wasn't them, this is how they find out (sent after the response, never blocks it).
+  const link = appLink(ctx, "/signin");
+  await sendLater(() => sendEmail({ to: user.email, locale: ctx.locale, template: "passwordChanged", values: { link } }), "passwordChanged");
   return { ok: true };
 }
 

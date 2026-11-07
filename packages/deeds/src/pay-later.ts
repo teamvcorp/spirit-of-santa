@@ -20,7 +20,7 @@ import { connectDb, ensureLock, PayLaterRequest, takeLock, trusted, withTransact
 import { SMS_CONSENT_VERSION } from "@repo/lib/family";
 import { MAX_TIP_CENTS, MIN_TIP_CENTS, PAY_LATER_LINK_DAYS } from "@repo/lib/limits";
 import { maskPhone, toUsE164 } from "@repo/lib/phone";
-import { buildPaymentMetadata, getStripe } from "@repo/payments/checkout";
+import { buildPaymentMetadata, getStripe, INSTANT_PAYMENT_LINK_METHODS } from "@repo/payments/checkout";
 import { deactivateLink, LIVE_PAY_LATER } from "@repo/payments/pay-later-links";
 import { sendSms, SmsError, smsFailureFor } from "@repo/sms";
 import { tipTarget } from "./public.ts";
@@ -122,6 +122,8 @@ export async function startPayLater(
       metadata, // copied to the Checkout Session (onCheckoutSessionPaid switches the link off once paid)
       payment_intent_data: { metadata }, // on the PaymentIntent (the webhook credits points from it)
       restrictions: { completed_sessions: { limit: 1 } }, // can be paid once
+      // Instant methods only: a bank debit paid Dec 24 could settle after Christmas, when the magic can't fill a gift.
+      payment_method_types: [...INSTANT_PAYMENT_LINK_METHODS],
       inactive_message: "This payment link has expired or was already used. Thank you!",
       after_completion: { type: "hosted_confirmation", hosted_confirmation: { custom_message: "Thank you! Your tip is on its way to the child's Christmas wish list." } },
     });

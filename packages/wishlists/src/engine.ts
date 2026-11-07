@@ -6,7 +6,7 @@
  *  - Allocation (allocateForKid): the kid's available points fill their OLDEST unfunded item
  *    first (planAllocation). Runs when an item is added, removed, and inside every credit
  *    transaction (tips/bonuses in the webhook; donation splits via the daily sweep). An item that
- *    reaches 100% → "fully_funded" (30-day lock clock starts) and reserves ONE unit of store stock;
+ *    reaches 100% → "fully_funded" (secured: no longer removable; locked at the next daily job) and reserves ONE unit of store stock;
  *    none left → `needsSubstitute` (store/admin find a substitute).
  *  - Add (kid, on the family device, no PIN): season OPEN (no list changes after the Dec 1
  *    freeze), registered kid of this family, active item of an approved store this season, in

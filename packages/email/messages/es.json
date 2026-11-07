@@ -71,7 +71,7 @@
     "storeOrders": {
       "subject": "Pedidos de regalos de Spirit of Santa para {storeName}",
       "heading": "Pedidos de regalos",
-      "body": "¡Hola, {storeName}! Esta es la actualización de hoy sobre los regalos que los niños han completado.\n\nGUARDADOS PARA DICIEMBRE (asegurados: aparta uno de cada uno y no los envíes antes del {shipFrom}):\n{setAside}\n\nLISTOS PARA ENVIAR (envíalos {late, select, yes {lo antes posible} other {antes del {shipBy}}} y márcalos como enviados en tu página de Pedidos):\n{readyToShip}\n\nEnviar a:\n{address}\n\nEscribe cada código de referencia en el paquete.",
+      "body": "¡Hola, {storeName}! Esta es la actualización de hoy sobre los regalos que los niños han completado.\n\n{open, select, yes {COMPLETOS (aparta uno de cada uno: pasan a listos para enviar mañana)} other {GUARDADOS PARA DICIEMBRE (asegurados: aparta uno de cada uno y no los envíes antes del {shipFrom})}}:\n{setAside}\n\nLISTOS PARA ENVIAR (envíalos {late, select, yes {lo antes posible} other {a más tardar el {shipBy}}} y márcalos como enviados en tu página de Pedidos):\n{readyToShip}\n\nEnviar a:\n{address}\n\nEscribe cada código de referencia en el paquete.",
       "button": "Abrir mis pedidos"
     },
     "giftOnItsWay": {

@@ -2,7 +2,8 @@
 /**
  * Parent removes a gift from a kid's list (PIN unlock re-checked HERE: an action is a public
  * POST endpoint, so the page's check alone wouldn't stop a direct call). The engine checks
- * family ownership, the season, the 30-day lock (by date) and returns the points.
+ * family ownership, the season, that the gift is still collecting ("active": fully funded = secured)
+ * and returns the points.
  */
 import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";

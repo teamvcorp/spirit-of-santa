@@ -485,14 +485,14 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   or `needsSubstitute`), `addToList` (season OPEN, registered kid of own family, active item of an APPROVED store this
   season, in stock, not listed, under itemCap, ≥ 1 available point), `removeFromList` (caller checks PIN; only
   active/fully_funded while OPEN; ledger `release`; reserved unit back; released points re-allocated),
-  `lockFundedItems` (30 days), `sweepAllocations` (safety net). Concurrency: every change writes the Kid doc inside a
+  `lockFundedItems` (30 days (superseded 2026-11-07: see "Year-round slices 3+4" below)), `sweepAllocations` (safety net). Concurrency: every change writes the Kid doc inside a
   transaction → MongoDB write conflict → retry. Hooks: webhook tip/bonus credit calls `allocateForKid` in the same tx;
   donation split ends with `sweepAllocations`; daily money cron: lock + sweep. NOTE roadmap rule: with eager oldest-first
   allocation, a kid can only add another item once they have spare (available) points.
   `ownFamilyId`/`Parent` live ONLY in `@repo/auth/family-owner` (import from there). E2E `wishlist-engine.ts` (18).
   Review fixes: points move ONLY while the season is open or frozen and ONLY onto THIS season's items (`fundingSeason`):
   after Dec 25 nothing moves (available is zeroed Jan 1; last season's items never absorb new points); removal checks
-  the 30-day lock by DATE (not only the cron's status); add/remove re-check the season before commit (freeze mid-request
+  the 30-day lock by DATE (superseded 2026-11-07: see "Year-round slices 3+4" below); add/remove re-check the season before commit (freeze mid-request
   → rolled back, "seasonNotOpen"); sweep starts from kids WITH points; split's sweep is best-effort;
   `MIN_CENTIPOINTS_TO_ADD_ITEM` in @repo/lib/limits. **Before live use, slice 4 MUST handle escrow still on unfinished
   items at Dec 25 (→ unfunded, parent pay-up, then zeroed with the Jan 1 reset).**
@@ -510,7 +510,7 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   NOT cast string ids (a string $match silently matches nothing). E2E `browser-family-wishlist.ts` (23).
   Gotcha: notFound() inside Suspense streams with HTTP 200: E2E checks the "Page not found" text, not the status.
 - **Slice 3a fulfilment: stores (2026-11-06).** User decisions: store told to SET ASIDE at full funding, ships only at
-  LOCK-IN (30 days or the freeze, whichever first; `lockFundedItems` locks ALL this season's fully funded gifts once
+  LOCK-IN (superseded 2026-11-07: see "Year-round slices 3+4" below) (30 days or the freeze, whichever first; `lockFundedItems` locks ALL this season's fully funded gifts once
   frozen/closed); family emailed only when the admin sends it on (3b). `@repo/wishlists/fulfilment`: `storeOrders`
   (set aside / ready / out of stock / shipped 60 days), `markShipped` (own store, LOCKED, no substitute pending,
   compare-and-set, audit "wish.ship"), `sendStoreDigests` (daily, from /api/cron/money after locking: one email per
@@ -789,7 +789,8 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   does NOT open the window). fulfilment.ts: storeOrders/orderCounts split ready vs held by it; `markShipped`
   filters `seasonYear <= newest` → `notYet`; `sendStoreDigests` covers this + last season, held gifts get ONLY
   setAsideNotifiedAt (Dec 1 "ship now" still fires), hash adds ship|hold + late, `remaining` when the 5000 cap
-  is hit; email/store copy "Held for December" + "by {shipBy}" | "as soon as possible". Family card: "Secured:
+  is hit; Payment Links (pay-later texts) use the allow-list INSTANT_PAYMENT_LINK_METHODS ["card"]; orderCounts
+  clamps at 0; email "FULLY FUNDED (ready tomorrow)" vs "HELD FOR DECEMBER" by `open`; email/store copy "Held for December" + "by {shipBy}" | "as soon as possible". Family card: "Secured:
   ships in December". Defaults kept: needsSubstitute gifts lock too (money secured, SoS finds a substitute).
   Webhook payments completed before Dec 26 00:00 but delivered later are still credited (correct: paid while
   open; Checkout expires_at is capped at close and EVERY magic checkout now excludes delayed methods via the

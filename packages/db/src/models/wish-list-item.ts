@@ -55,7 +55,7 @@ const wishListItemSchema = new Schema(
       default: "active",
       required: true,
     },
-    fullyFundedAt: Date, // starts the 30-day lock clock
+    fullyFundedAt: Date, // secured from here (can't be removed); the next daily job locks it
     /** One unit of store stock was reserved when it became fully funded (returned if removed). */
     inventoryReserved: { type: Boolean },
     /** Fully funded but the store had no stock left: store/admin must find a substitute. */

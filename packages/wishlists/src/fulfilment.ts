@@ -157,7 +157,8 @@ export async function orderCounts(storeId: unknown, now = new Date()): Promise<{
     WishListItem.countDocuments({ ...base, status: "locked", seasonYear: trusted({ $lte: newest }) }),
     WishListItem.countDocuments({ ...base, status: trusted({ $in: ["fully_funded", "locked"] }) }),
   ]);
-  return { ready, setAside: secured - ready };
+  // Two separate reads: a gift shipped between them could make the difference -1 for a moment.
+  return { ready, setAside: Math.max(0, secured - ready) };
 }
 
 export type ShipResult = { ok: true } | { ok: false; error: "notFound" | "notReady" | "notYet" };
@@ -297,13 +298,16 @@ export async function sendStoreDigests(now = new Date()): Promise<DigestResult> 
       const isReady = (w: DigestWish) => w.status === "locked" && canShipGift(w.seasonYear, season);
       const setAside = rows.filter((w) => !isReady(w));
       const ready = rows.filter(isReady);
-      const values = { link, storeName: store.name, setAside: listLines(setAside, names), readyToShip: listLines(ready, names), address, late };
+      // open = this season's window is open: then the set-aside rows are fully funded gifts that lock (and become
+      // ready) at the next run, not "held until December" (review 2026-11-07).
+      const open = season.shipping.open ? "yes" : "no";
+      const values = { link, storeName: store.name, setAside: listLines(setAside, names), readyToShip: listLines(ready, names), address, late, open };
       // Key = the exact email CONTENT (gift ids + statuses + ship/hold + address): same news is never sent
       // twice, different news never collides with an old key (a gift held in March and the same gift
       // "ship now" in December are different news).
       const batch = createHash("sha256")
         .update(rows.map((w) => `${String(w._id)}:${w.status}:${isReady(w) ? "ship" : "hold"}`).sort().join(","))
-        .update(`|${late}`)
+        .update(`|${late}|${open}`)
         .update(`|${address}`)
         .digest("base64url")
         .slice(0, 16);

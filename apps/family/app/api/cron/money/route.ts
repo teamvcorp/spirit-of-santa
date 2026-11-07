@@ -6,7 +6,7 @@
  * Each part checks the season itself and does nothing when it isn't its time, IN ORDER:
  *  1. Split held donation pools (only while frozen, fee set). Daily runs share late gifts too.
  *  2. Switch off expired pay-later text links (Phase 5 slice 4b), BEFORE the season end.
- *     Then wish lists (Phase 6): lock items (30 days funded, or all at the freeze) and SPEND their magic (ledger
+ *     Then wish lists (Phase 6): lock EVERY fully funded item (secured; held until the December ship window) and SPEND their magic (ledger
  *     "spend", Phase 8); sweep unallocated
  *     points; Dec 25 close (unfinished gifts drop off, points → Spirit of Santa); then email each store its new gifts to set aside / ready to ship (needs STORE_APP_URL);
  *     then retry failed "gift on its way" parent emails (needs FAMILY_APP_URL); finish "deliver, then delete"
@@ -64,7 +64,7 @@ export async function GET(request: Request): Promise<Response> {
   // EARLY (right after the split it depends on). It only zeroes unspent (available) magic; the wish-list steps
   // below work on escrow, so the order is safe.
   const seasonEnd = await settle(() => runSeasonReset());
-  // Wish lists (Phase 6): fully funded 30+ days → locked + magic spent (Phase 8); then a safety sweep of unallocated points.
+  // Wish lists: every fully funded gift → locked + magic spent (year-round, owner 2026-11-07); then a safety sweep of unallocated points.
   // Then the Dec 25 close: unfinished gifts drop off, their points go to Spirit of Santa (BEFORE the Jan 1 reset).
   const wishLists = await settle(async () => ({ locked: await lockFundedItems(), sweep: await sweepAllocations(), closed: await closeUnfunded() }));
   // After locking, so gifts locked today are in today's "ready to ship" email.

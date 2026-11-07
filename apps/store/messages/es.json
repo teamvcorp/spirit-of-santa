@@ -241,7 +241,7 @@
     "title": "Pedidos de regalos",
     "intro": "Regalos que los niños completaron en tu tienda. Nunca compartimos nada sobre los niños: usa el código de referencia para identificar cada paquete.",
     "readyTitle": "Listos para enviar ({count})",
-    "readyIntro": "Envía cada uno a Spirit of Santa {late, select, yes {lo antes posible} other {antes del {shipBy}, para que llegue en Navidad}}. Escribe su código de referencia en el paquete y márcalo como enviado.",
+    "readyIntro": "Envía cada uno a Spirit of Santa {late, select, yes {lo antes posible} other {a más tardar el {shipBy}, para que llegue en Navidad}}. Escribe su código de referencia en el paquete y márcalo como enviado.",
     "shipTo": "Enviar a:",
     "noAddress": "Spirit of Santa todavía no tiene dirección de envío. Espera antes de enviar; te avisaremos por correo.",
     "setAsideTitle": "Guardados para diciembre ({count})",

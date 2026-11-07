@@ -730,7 +730,11 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   Old data: `npm run db:backfill-spend` (packages/db/scripts/backfill-spend-at-lock.ts): dry run default, --apply,
   --apply-production, --kid; never books gifts without escrow history; reports UNEXPLAINED_EXTRA / SHORT for a human.
   Deletion forfeits available only, logs escrowLeft/shortfall, never blocks. E2E `ledger-invariants.ts` (15).
-  DEPLOY: push → then on production: dry run, read report, `--apply --apply-production` away from the cron time.
+  DEPLOY: production had NO locked gifts when this shipped (owner, 2026-11-07: prod DB empty), so the backfill is
+  NOT needed there; just deploy before the first real gift locks. Dry run (no flags) any time is harmless.
+  Review fixes (15-agent workflow, all verified): --kid fails CLOSED (a bad value used to widen the run to the whole
+  database); deletion shortfall branch returns the store unit + compare-and-set; `remaining` counts the batch overflow;
+  verify pass batched; stronger parked-gift test. E2E: ledger-invariants 16, browser-family-erase 31.
 
 ## Open items / TODO
 

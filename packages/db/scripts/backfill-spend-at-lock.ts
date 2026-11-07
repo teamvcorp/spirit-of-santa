@@ -32,8 +32,26 @@ import * as db from "../src/index.ts";
 
 const argv = process.argv.slice(2);
 const args = new Set(argv);
-/** --kid <id> (repeatable): limit to these kids. Ids are checked to be 24-hex (never passed into a query raw). */
-const ONLY_KIDS = argv.flatMap((a, i) => (a === "--kid" && /^[0-9a-f]{24}$/.test(argv[i + 1] ?? "") ? [argv[i + 1]!] : []));
+/**
+ * --kid <id> (repeatable): limit to these kids. FAILS CLOSED (review 2026-11-07): a bad or missing value stops the
+ * script instead of being dropped, because dropping every value would silently widen the run to the WHOLE database.
+ */
+const ONLY_KIDS: string[] = [];
+for (let i = 0; i < argv.length; i++) {
+  const a = argv[i]!;
+  if (a.startsWith("--kid=")) {
+    console.error("[backfill-spend] use `--kid <id>`, not --kid=<id>");
+    process.exit(2);
+  }
+  if (a !== "--kid") continue;
+  const v = (argv[i + 1] ?? "").trim().toLowerCase();
+  if (!/^[0-9a-f]{24}$/.test(v)) {
+    console.error(`[backfill-spend] --kid needs a 24-character id, got ${JSON.stringify(argv[i + 1] ?? "")}`);
+    process.exit(2);
+  }
+  ONLY_KIDS.push(v);
+  i++; // the value is consumed: never read as a flag
+}
 const APPLY = args.has("--apply");
 const PRODUCTION_OK = args.has("--apply-production");
 const INCLUDE_NO_HISTORY = args.has("--include-no-history");
@@ -119,7 +137,7 @@ async function main() {
   // Pass A: which kids have locked/shipped/delivered gifts with no spend row yet?
   const { Kid, Transaction, WishListItem, trusted, AuditLog } = db;
   const kidFilter = ONLY_KIDS.length ? { kidId: trusted({ $in: ONLY_KIDS.map((k) => new mongoose.Types.ObjectId(k)) }) } : {};
-  if (ONLY_KIDS.length) console.log(`[backfill-spend] limited to ${ONLY_KIDS.length} kid(s)`);
+  console.log(ONLY_KIDS.length ? `[backfill-spend] scope: ${ONLY_KIDS.length} kid(s)` : "[backfill-spend] scope: ALL kids");
   const spent = await WishListItem.find({ status: trusted({ $in: SPENT_STATES }), fundedCentipoints: trusted({ $gte: 1 }), ...kidFilter }).select("kidId").lean<{ _id: unknown; kidId: unknown }[]>();
   const bookedKeys = new Set<string>();
   for (let i = 0; i < spent.length; i += 1000) {
@@ -159,7 +177,13 @@ async function main() {
   ]);
   const openBy = new Map(open.map((o) => [String(o._id), o.funded]));
   const off = (await Kid.find(ONLY_KIDS.length ? { _id: trusted({ $in: ONLY_KIDS }) } : {}).select("escrowedCentipoints").lean()).filter((k) => (k.escrowedCentipoints ?? 0) !== (openBy.get(String(k._id)) ?? 0));
-  const stillUnbooked = spent.length - (await Transaction.countDocuments({ type: "spend", idempotencyKey: trusted({ $in: spent.map((g) => `spend:${String(g._id)}`) }) }));
+  // In groups of 1000 keys (one huge $in could pass MongoDB's 16 MB command limit on a large database).
+  let bookedNow = 0;
+  for (let i = 0; i < spent.length; i += 1000) {
+    const keys = spent.slice(i, i + 1000).map((g) => `spend:${String(g._id)}`);
+    bookedNow += await Transaction.countDocuments({ type: "spend", idempotencyKey: trusted({ $in: keys }) });
+  }
+  const stillUnbooked = spent.length - bookedNow;
   console.log(`[backfill-spend] verify: kids whose escrow != open gifts: ${off.length} · spent gifts without a spend row: ${stillUnbooked}`);
   for (const k of off.slice(0, 50)) console.log(`  escrow mismatch: ${String(k._id)} escrow=${k.escrowedCentipoints} open=${openBy.get(String(k._id)) ?? 0}`);
   await conn.disconnect();

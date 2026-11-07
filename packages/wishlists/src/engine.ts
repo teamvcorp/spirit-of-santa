@@ -459,6 +459,8 @@ export async function lockFundedItems(now = new Date(), opts: { timeBudgetMs?: n
     WishListItem.countDocuments({ ...base, lockNeedsAttentionAt: trusted({ $ne: null }) }),
   ]);
   const out: LockResult = { locked: 0, spentCentipoints: 0, failed: 0, needsAttention, remaining: 0 };
+  // A full batch means more are waiting (freeze day): count them so `remaining` tells the truth.
+  if (rows.length === LOCK_BATCH) out.remaining += Math.max(0, (await WishListItem.countDocuments({ ...base, lockNeedsAttentionAt: null })) - rows.length);
   const byKid = new Map<string, LockCandidate[]>();
   for (const r of rows) byKid.set(String(r.kidId), [...(byKid.get(String(r.kidId)) ?? []), r]);
   const groups = [...byKid.values()];
@@ -467,7 +469,7 @@ export async function lockFundedItems(now = new Date(), opts: { timeBudgetMs?: n
   for (let g = 0; g < groups.length; g++) {
     const gifts = groups[g]!;
     if (outOfTime()) {
-      out.remaining = left(g);
+      out.remaining += left(g);
       break;
     }
     try {
@@ -479,7 +481,7 @@ export async function lockFundedItems(now = new Date(), opts: { timeBudgetMs?: n
     } catch (err) {
       if (classifyFailure(err) === "transient") {
         console.error("[wishlists] lock stopped (database unavailable), continues next run:", err instanceof Error ? err.name : "unknown");
-        out.remaining = left(g);
+        out.remaining += left(g);
         break;
       }
     }

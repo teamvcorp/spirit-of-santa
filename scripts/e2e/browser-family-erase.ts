@@ -38,6 +38,9 @@ const reg = { status: "registered", registeredAt: new Date(), method: "card" };
 // Ava: available 500; escrow 300 (collecting) + 1500 (fully funded). The LOCKED gift's 2000 was SPENT at lock
 // (Phase 8: ledger "spend", not in escrow). Unspent magic = 500 + 300 + 1500 = 2300, never the locked 2000.
 const ava = await Kid.create({ familyId: fam._id, firstName: `Ava${tag}`, birthYear: 2016, displayName: "A.", availableCentipoints: 500, escrowedCentipoints: 1800, registration: reg });
+// Cy: escrow OUT OF SYNC (0) while a fully funded gift holds 1500 with a reserved store unit (the case that parks a
+// gift at lock). Deletion must still finish (COPPA), return the store's unit, and log the shortfall.
+const cy = await Kid.create({ familyId: fam._id, firstName: `Cy${tag}`, birthYear: 2019, displayName: "C.", availableCentipoints: 0, escrowedCentipoints: 0, registration: reg });
 const ben = await Kid.create({ familyId: fam._id, firstName: `Ben${tag}`, birthYear: 2018, displayName: "B.", availableCentipoints: 200, registration: reg });
 const storeId = oid();
 await Store.collection.insertOne({ _id: storeId, name: `Erase Shop ${tag}`, slug: `e2e-erase-${tag}`, status: "approved", createdAt: new Date(), updatedAt: new Date() });
@@ -52,6 +55,8 @@ const collecting = wish(kiteId, { status: "active", fundedCentipoints: 300 });
 const funded = wish(sledId, { status: "fully_funded", fundedCentipoints: 1500, fullyFundedAt: new Date(), inventoryReserved: true });
 const locked = wish(bikeId, { status: "locked", fundedCentipoints: 2000, fullyFundedAt: new Date(Date.now() - 40 * 86_400_000), lockedAt: new Date(), inventoryReserved: true });
 await WishListItem.collection.insertMany([collecting, funded, locked]);
+const drumId = await mkItem("Drum", 4);
+await WishListItem.collection.insertOne({ _id: oid(), kidId: cy._id, familyId: fam._id, itemId: drumId, storeId, seasonYear: year, costCentipoints: 1500, fundedCentipoints: 1500, status: "fully_funded", fullyFundedAt: new Date(), inventoryReserved: true, createdAt: new Date(), updatedAt: new Date() });
 // The locked gift's spend, as the engine books it at lock.
 await Transaction.collection.insertOne({ kidId: ava._id, familyId: fam._id, seasonYear: year, type: "spend", amountCentipoints: 2000, wishListItemId: locked._id, idempotencyKey: `spend:${String(locked._id)}`, createdAt: new Date() });
 // Unique token hash per deed (index); the free-text description is what deletion must remove.
@@ -131,7 +136,8 @@ try {
   await page.waitForURL((u) => u.pathname.endsWith("/parent/delete-account"), { timeout: 60_000 });
   await ready(page);
   const preview = await main(page).getByTestId("erase-preview").innerText();
-  check("the page says what happens: 1 child, Ben's 2 Christmas Magic to Spirit of Santa", preview.includes("1 children") === false && preview.includes("2 Christmas Magic") && preview.includes("child's name"));
+  // Ben (2 available) + Cy (open gift holding 15) = 17 Christmas Magic; 2 children left.
+  check("the page says what happens: 2 children, 17 Christmas Magic to Spirit of Santa", preview.includes("2 children") && preview.includes("17 Christmas Magic"), preview.replace(/s+/g, " ").slice(0, 200));
   check("…and that the 1 gift already on its way is kept", preview.includes("One gift is already on its way"));
   const submit = async (password: string, word: string) => {
     await ready(page);
@@ -155,6 +161,9 @@ try {
   check("Ava's earlier locked gift is now KEPT by Spirit of Santa (no family left to send it to)", !!(await WishListItem.findById(locked._id).lean())?.familyDeletedAt);
   const plr = await PayLaterRequest.findById(plrId).lean();
   check("the visitor's live pay-later link is switched off; their consent record stays", plr?.status === "closed" && !plr.active);
+  const cyAudit = await AuditLog.findOne({ action: "kid.delete", targetId: String(cy._id) }).lean();
+  check("Cy (escrow out of sync) is still deleted; the shortfall is logged, not hidden", !(await Kid.exists({ _id: cy._id })) && (cyAudit?.details as { shortfallCentipoints?: number } | undefined)?.shortfallCentipoints === 1500);
+  check("…and the store's set-aside Drum unit went back to stock (4 → 5)", (await Item.findById(drumId).lean())?.inventory === 5);
   check("Ben's deed (free text) and vote are deleted", !(await Deed.exists({ kidId: ben._id })) && !(await KidVote.exists({ kidId: ben._id })));
   const benForfeit = await Transaction.find({ kidId: ben._id, type: "forfeit" }).lean();
   check("Ben's 2 Christmas Magic went to Spirit of Santa", benForfeit.length === 1 && benForfeit[0]?.amountCentipoints === 200);

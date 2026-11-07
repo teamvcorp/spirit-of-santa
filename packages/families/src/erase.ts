@@ -20,7 +20,7 @@
  * Tips arriving later for a deleted child are never credited: the webhook flags them for admin review.
  */
 import "server-only";
-import { ActionToken, AuditLog, connectDb, Deed, ensureLock, Family, Kid, KidVote, PayLaterRequest, takeLock, Transaction, trusted, User, WishListItem, withTransaction, type DbSession } from "@repo/db";
+import { ActionToken, AuditLog, connectDb, Deed, ensureLock, Family, Item, Kid, KidVote, PayLaterRequest, takeLock, Transaction, trusted, User, WishListItem, withTransaction, type DbSession } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { getSeasonYear } from "@repo/lib/season";
 import { sendEmail } from "@repo/email";
@@ -67,7 +67,14 @@ async function eraseKidInSession(kidId: string, familyId: string, actorUserId: s
       await releaseGiftInSession(w, session, now);
     } else {
       shortfallCentipoints += w.fundedCentipoints;
-      await WishListItem.updateOne({ _id: String(w._id), status: w.status }, { $set: { status: "removed", removedAt: now } }, { session });
+      const r = await WishListItem.updateOne(
+        { _id: String(w._id), status: w.status, fundedCentipoints: w.fundedCentipoints },
+        { $set: { status: "removed", removedAt: now } },
+        { session },
+      );
+      if (r.modifiedCount !== 1) throw new Error("wish list item changed during removal"); // the transaction retries
+      // The store's set-aside unit still goes back (same as releaseGiftInSession), even though the escrow can't move.
+      if (w.inventoryReserved) await Item.updateOne({ _id: String(w.itemId) }, { $inc: { inventory: 1 } }, { session });
     }
   }
 

@@ -71,8 +71,12 @@ try {
   const benRow = await WishListItem.findById(benGift).lean();
   check("Ben (escrow out of sync): NOT locked, no spend, parked for a human", benRow?.status === "fully_funded" && !!benRow.lockNeedsAttentionAt && (await spends(benGift)) === 0 && (await kid(ben)).escrowedCentipoints === 400);
   check("Gus: the new gift was spent by the new lock (escrow 1500 → 1000)", (await spends(gusNew)) === 1 && (await kid(gus)).escrowedCentipoints === 1000);
+  const parkedAt = benRow?.lockNeedsAttentionAt?.getTime();
   const r2 = await lockFundedItems();
-  check("running the lock again: nothing spent twice; the parked gift is skipped (not re-failed)", (await spends(avaGift)) === 1 && (await kid(ava)).escrowedCentipoints === 0 && r2.needsAttention >= 1);
+  const benAfter = await WishListItem.findById(benGift).lean();
+  check("running the lock again: nothing spent twice; the parked gift is SKIPPED (same park time, not re-tried)",
+    (await spends(avaGift)) === 1 && (await kid(ava)).escrowedCentipoints === 0 && r2.needsAttention >= 1 &&
+      benAfter?.status === "fully_funded" && benAfter.lockNeedsAttentionAt?.getTime() === parkedAt && (await spends(benGift)) === 0 && (await kid(ben)).escrowedCentipoints === 400);
 
   // ── Correction cases (gifts locked BEFORE the fix: no spend row, escrow still holding them).
   const cal = await mkKid("Cal", 2300, 2300); // locked 2000 + open 300
@@ -87,6 +91,15 @@ try {
   const orphanKid = oid(); // the kid was deleted (COPPA); its locked gift stays (store owed)
   kidIds.push(orphanKid);
   const orphanGift = await mkGift(orphanKid, "locked", 900);
+
+  // A bad --kid value must STOP the script (never silently widen to the whole database), writing nothing.
+  let refused = false;
+  try {
+    execFileSync(process.execPath, ["--conditions=react-server", "packages/db/scripts/backfill-spend-at-lock.ts", "--apply", "--kid", "NOT-AN-ID"], { encoding: "utf8", env: process.env, stdio: "pipe" });
+  } catch (e) {
+    refused = (e as { status?: number }).status === 2;
+  }
+  check("a bad --kid value stops the correction (exit 2), nothing written", refused && (await spends(calLocked)) === 0 && (await kid(cal)).escrowedCentipoints === 2300);
 
   const dry = backfill();
   check("correction DRY RUN writes nothing", (await spends(calLocked)) === 0 && (await kid(cal)).escrowedCentipoints === 2300 && dry.includes("DRY RUN"));

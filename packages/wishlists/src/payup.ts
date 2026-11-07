@@ -1,12 +1,12 @@
 /**
  * Pay-up window + the Dec 25 close (Phase 6 slice 4). SERVER-ONLY.
  *
- * User decisions 2026-11-06:
- *  - From the Dec 1 freeze DATE until 7 days before the close (Dec 18), a parent may pay the
- *    MISSING amount of an unfinished gift ($1.50 per point, the normal rate) to finish it; it then
- *    locks and ships like any other. (Checkout itself lives in @repo/families/payup: this package
- *    can't import @repo/payments, which imports it.)
- *  - At the close (Dec 25), every gift still not fully funded DROPS OFF ("unfunded") and the points
+ * Owner decisions (2026-11-06, changed 2026-11-07 for the year-round season: gifts must arrive by Christmas):
+ *  - Giving closes at the freeze DATE (Dec 1). Right after the community donations are shared out, for
+ *    PAY_UP_DAYS (Dec 1-3), a parent may pay the MISSING amount of an unfinished gift ($1.50 per point, the
+ *    normal rate) to finish it; it then locks and ships like any other. (Checkout itself lives in
+ *    @repo/families/payup: this package can't import @repo/payments, which imports it.)
+ *  - When pay-up ends (Dec 4 00:00), every gift still not fully funded DROPS OFF ("unfunded") and the points
  *    already on it go to Spirit of Santa: ledger row "forfeit", the kid's escrow goes down by it.
  *    Nothing is ever taken from points the kid has spare (those are zeroed by the Jan 1 reset).
  */
@@ -14,30 +14,26 @@ import "server-only";
 import { classifyFailure, LedgerDataError, RowChangedError } from "./ledger-errors.ts";
 import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 import { connectDb, Item, Kid, Transaction, trusted, WishListItem, withTransaction } from "@repo/db";
-import { MIN_STRIPE_CHARGE_CENTS, PAY_UP_CLOSES_DAYS_BEFORE_CLOSE } from "@repo/lib/limits";
+import { MIN_STRIPE_CHARGE_CENTS } from "@repo/lib/limits";
 import { centipointsToCents } from "@repo/lib/points";
-import { startOfDayInZone } from "@repo/lib/season";
-import { DAY_MS } from "@repo/lib/time";
+import { payUpPeriod } from "@repo/lib/season";
 import { getSeasonState } from "@repo/stores/season";
 
 /**
- * closesAt = the moment pay-ups stop (START of that day); lastPayDay = the last day a parent can pay
- * (the day before: show THIS to people, "until December 17"); closeAt = the season close (gifts drop
- * off then). All admin-set-date aware.
+ * closesAt = the moment pay-ups stop AND unfinished gifts drop off (START of that day); lastPayDay = the last
+ * day a parent can pay (the instant before: show THIS to people, "until December 3"). Admin-set-date aware.
  */
-export type PayUpWindow = { open: boolean; seasonYear: number; opensAt: Date; closesAt: Date; lastPayDay: Date; closeAt: Date };
+export type PayUpWindow = { open: boolean; seasonYear: number; opensAt: Date; closesAt: Date; lastPayDay: Date };
 
 /**
- * Open from the freeze DATE (never the admin's reversible force-freeze switch) until
- * PAY_UP_CLOSES_DAYS_BEFORE_CLOSE days before the close date. Admin-set dates are respected.
+ * Open from the freeze DATE (never the admin's reversible force-freeze switch) for PAY_UP_DAYS (payUpPeriod,
+ * @repo/lib/season). Admin-set dates are respected.
  */
 export async function payUpWindow(now = new Date()): Promise<PayUpWindow> {
   const s = await getSeasonState(now);
-  const opensAt = startOfDayInZone(s.dates.freeze);
-  const closeAt = startOfDayInZone(s.dates.close);
-  const closesAt = new Date(closeAt.getTime() - PAY_UP_CLOSES_DAYS_BEFORE_CLOSE * DAY_MS);
+  const { opensAt, closesAt, lastPayDay } = payUpPeriod(s.dates);
   const t = now.getTime();
-  return { open: s.phase === "frozen" && t >= opensAt.getTime() && t < closesAt.getTime(), seasonYear: s.year, opensAt, closesAt, lastPayDay: new Date(closesAt.getTime() - 1), closeAt };
+  return { open: s.phase === "frozen" && t >= opensAt.getTime() && t < closesAt.getTime(), seasonYear: s.year, opensAt, closesAt, lastPayDay };
 }
 
 export type PayUpOption = {
@@ -101,16 +97,16 @@ export function payUpCents(missingCentipoints: number): number {
 export type CloseResult = { seasons: number[]; dropped: number; forfeitedCentipoints: number; failed: number; needsAttention: number };
 
 /**
- * Dec 25 close (daily money job; does nothing before a season's close): every gift of a CLOSED
- * season still "active" (not fully funded) → "unfunded", and its points go to Spirit of Santa.
+ * Drop-off (daily money job; does nothing before a season's pay-up period has ended, Dec 4): every gift of
+ * such a season still "active" (not fully funded) → "unfunded", and its points go to Spirit of Santa.
  * One short transaction per gift (compare-and-set on status + funded amount), so a partial run
  * simply continues the next day. Runs BEFORE the Jan 1 reset in the money job.
  */
 export async function closeUnfunded(now = new Date()): Promise<CloseResult> {
   await connectDb();
   const s = await getSeasonState(now);
-  // The newest season whose close has passed: this one once closed, otherwise last year's.
-  const lastClosed = s.phase === "closed" ? s.year : s.year - 1;
+  // The newest season whose pay-up period is over: this one from Dec 4 (payUpPeriod), otherwise last year's.
+  const lastClosed = now.getTime() >= payUpPeriod(s.dates).closesAt.getTime() ? s.year : s.year - 1;
   const base = { status: "active" as const, seasonYear: trusted({ $lte: lastClosed }) };
   const [rows, needsAttention] = await Promise.all([
     WishListItem.find({ ...base, closeNeedsAttentionAt: null })

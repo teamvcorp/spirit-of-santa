@@ -72,14 +72,14 @@ async function findKid(token: unknown): Promise<KidLite | null> {
     .lean<KidLite>();
 }
 
-export type DonationPage = { state: "invalid" } | { state: "open"; kidName: string; familyAlias?: string; seasonOpen: boolean; seasonCloseAt: Date };
+export type DonationPage = { state: "invalid" } | { state: "open"; kidName: string; familyAlias?: string; givingOpen: boolean; givingEndsAt: Date; givingLastDay: Date };
 
 async function view(token: unknown): Promise<{ page: DonationPage; kid: KidLite | null }> {
   const kid = await findKid(token);
   if (!kid || kid.registration?.status !== "registered") return { page: { state: "invalid" }, kid: null };
   const [fam, season] = await Promise.all([Family.findById(kid.familyId).select("alias showAliasPublicly aliasReview").lean(), publicSeason()]);
   return {
-    page: { state: "open", kidName: kid.displayName, familyAlias: publicFamilyAlias(fam), ...season },
+    page: { state: "open", kidName: kid.displayName, familyAlias: publicFamilyAlias(fam), givingOpen: season.givingOpen, givingEndsAt: season.givingEndsAt, givingLastDay: season.givingLastDay },
     kid,
   };
 }
@@ -94,8 +94,8 @@ export async function startDonation(token: unknown, amountCents: number | null, 
   if (amountCents == null) return { ok: false, error: "amount" };
   const { page, kid } = await view(token);
   if (page.state !== "open" || !kid) return { ok: false, error: "invalid" };
-  if (!page.seasonOpen) return { ok: false, error: "seasonClosed" };
-  const endsAt = Math.min(page.seasonCloseAt.getTime(), Date.now() + MAX_CHECKOUT_MS);
+  if (!page.givingOpen) return { ok: false, error: "seasonClosed" };
+  const endsAt = Math.min(page.givingEndsAt.getTime(), Date.now() + MAX_CHECKOUT_MS);
   if (endsAt - Date.now() < MIN_CHECKOUT_MS) return { ok: false, error: "seasonClosed" };
   const metadata = buildPaymentMetadata({ sos_purpose: "tip", sos_kid_id: String(kid._id), sos_family_id: String(kid.familyId) });
   try {

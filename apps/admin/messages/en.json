@@ -140,7 +140,7 @@
   },
   "Season": {
     "title": "Season settings",
-    "intro": "The season runs all year: families earn Christmas Magic from January 1, wish lists freeze December 1, the last day is Christmas Day and the site is closed December 26–31. Every change is recorded in the audit log.",
+    "intro": "The season runs all year: families earn Christmas Magic from January 1, wish lists freeze and giving closes December 1 (so every gift arrives by Christmas), parents can finish gifts December 1–3, the last day is Christmas Day and the site is closed December 26–31. Every change is recorded in the audit log.",
     "loading": "Loading…",
     "saved": "Saved.",
     "nowTitle": "Season {year} right now",
@@ -157,7 +157,7 @@
       "forced": "frozen by an admin"
     },
     "datesLabel": "Dates",
-    "datesLine": "Open all year · freezes {freeze} · stores ship by {shipBy} · last day {lastDay}",
+    "datesLine": "Open all year · freezes and giving closes {freeze} · pay-up until {payUpLast} · stores ship by {shipBy} · last day {lastDay}",
     "windowLabel": "Store item lists",
     "windowOpen": "Open for changes",
     "windowClosed": "Closed for changes",

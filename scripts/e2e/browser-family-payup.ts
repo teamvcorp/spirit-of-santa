@@ -106,7 +106,7 @@ try {
   const early = await startPayUp(parentA, book, base, (p) => p);
   check("before the freeze: pay-up refused (window closed)", !early.ok && early.error === "windowClosed");
 
-  // 1. Freeze today, close in 10 days → window open until close - 7 days.
+  // 1. Freeze today → pay-up open for PAY_UP_DAYS (3: today and the next two days; owner 2026-11-07).
   await setDates(dayIso(0), dayIso(10));
   await page.goto(`${base}/signin`);
   await hydrated(page);
@@ -161,15 +161,18 @@ try {
   // The 10 duplicate points flowed to the next unfinished gift (the Bike): reflect that in later checks.
   const bikeAfterDup = (await get(bike))?.fundedCentipoints ?? 0;
 
-  // 4. Window closes 7 days before the close.
-  await setDates(dayIso(0), dayIso(6));
+  // 4. Day 3 of pay-up (freeze 2 days ago): still open, and nothing drops off yet.
+  await setDates(dayIso(-2), dayIso(10));
+  const c0 = await closeUnfunded();
+  check("last pay-up day: nothing drops off yet (Bike still collecting)", (await get(bike))?.status === "active" && !c0.seasons.includes(year));
+  // Pay-up ends after 3 days (freeze 3 days ago): refused.
+  await setDates(dayIso(-3), dayIso(10));
   const late = await startPayUp(parentA, bike, base, (p) => p);
-  check("within 7 days of the close: pay-up refused", !late.ok && late.error === "windowClosed");
+  check("after the 3 pay-up days: pay-up refused", !late.ok && late.error === "windowClosed");
 
-  // 5. Close day: the unfinished Bike drops off; ALL points on it (10 + the 10 from the duplicate pay-up)
+  // 5. Pay-up over (NOT Christmas: owner 2026-11-07): the unfinished Bike drops off; ALL points on it (10 + the 10 from the duplicate pay-up)
   // go to Spirit of Santa. The locked Book stays. A gift whose kid escrow is out of sync is PARKED.
   const bad = await mkWish(other, bookItem, 1000, 500, 3); // claims 5 points the other kid never had
-  await setDates(dayIso(-1), dayIso(0));
   const c1 = await closeUnfunded();
   const [cBike, cBook, k2, forfeit] = await Promise.all([get(bike), get(book), Kid.findById(kid._id).lean(), Transaction.findOne({ wishListItemId: bike, type: 'forfeit' }).lean()]);
   check('close: unfinished gift → unfunded, all its points forfeited (ledger forfeit)', bikeAfterDup === 2000 && cBike?.status === 'unfunded' && cBike.forfeitedCentipoints === 2000 && forfeit?.amountCentipoints === 2000);

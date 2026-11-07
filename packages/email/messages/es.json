@@ -93,13 +93,13 @@
     "cutoffReminder": {
       "subject": "Las listas de deseos se cierran el {date}",
       "heading": "Las listas de deseos se cierran pronto",
-      "body": "El {date} todas las listas de deseos se cierran para Navidad: después ya no se pueden agregar ni quitar regalos.\n\nEs un buen momento para revisar las listas con tus hijos.",
+      "body": "El {date} todas las listas de deseos se cierran para Navidad: después ya no se pueden agregar ni quitar regalos, y las donaciones (propinas, enlaces de donación, magia extra) cierran para que cada regalo llegue a tiempo.\n\nEs un buen momento para revisar las listas con tus hijos.",
       "button": "Abrir el área familiar"
     },
     "payUpReminder": {
       "subject": "Últimos días para completar regalos: hasta el {date}",
       "heading": "Completa los regalos antes del {date}",
-      "body": "Algunos regalos de las listas de tus hijos todavía no están completos. Puedes pagar lo que falta hasta el {date}. Los regalos que sigan incompletos al cierre de la temporada salen de la lista y su Magia Navideña pasa a Spirit of Santa.",
+      "body": "Algunos regalos de las listas de tus hijos todavía no están completos. Puedes pagar lo que falta hasta el {date}. Los regalos que sigan incompletos después salen de la lista y su Magia Navideña pasa a Spirit of Santa.",
       "button": "Completar regalos"
     },
     "passwordChanged": {

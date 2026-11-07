@@ -17,6 +17,7 @@
  *                            phase is "resetting" (nothing earns), then the new season is open.
  * Stores add/change merchandise only Jan 1 - Mar 31 (store item window); after that items are fixed.
  */
+import { PAY_UP_DAYS } from "./limits.ts";
 
 /** Spirit of Santa operates from Storm Lake, Iowa. */
 export const SEASON_TIME_ZONE = "America/Chicago";
@@ -219,6 +220,20 @@ export function canShipGift(giftSeasonYear: number, s: Pick<SeasonState, "year" 
  */
 export function shipLate(s: Pick<SeasonState, "shipping">, at: Date = new Date()): boolean {
   return !s.shipping.open || at.getTime() >= startOfDayInZone(s.shipping.by).getTime() + 86_400_000;
+}
+
+/**
+ * Pay-up period of a season (pure; @repo/wishlists/payup uses it): opens at the START of the freeze date and
+ * closes PAY_UP_DAYS later (closesAt = start of the first day without pay-ups; lastPayDay = the instant before,
+ * shown as "until December 3"). Unfinished gifts drop off at closesAt (closeUnfunded).
+ */
+export function payUpPeriod(dates: { freeze: string }): { opensAt: Date; closesAt: Date; lastPayDay: Date } {
+  const opensAt = startOfDayInZone(dates.freeze);
+  // Calendar days (not 72 h), so a time-zone shift can never move the close off midnight.
+  const [y, m, d] = dates.freeze.split("-").map(Number) as [number, number, number];
+  const closeDay = new Date(Date.UTC(y, m - 1, d + PAY_UP_DAYS));
+  const closesAt = startOfDayInZone(isoDay({ year: closeDay.getUTCFullYear(), month: closeDay.getUTCMonth() + 1, day: closeDay.getUTCDate() }));
+  return { opensAt, closesAt, lastPayDay: new Date(closesAt.getTime() - 1) };
 }
 
 /** The newest season whose gifts may ship now (for database filters: `seasonYear <= newestShippableYear`). */

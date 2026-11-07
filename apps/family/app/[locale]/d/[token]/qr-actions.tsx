@@ -3,7 +3,7 @@
  * "Say thank you" and "Leave a tip" on the public deed page. The tip amount is re-checked on the
  * server; Stripe's form opens IN the page (card details go straight to Stripe).
  */
-import { useActionState } from "react";
+import { useActionState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
@@ -20,7 +20,8 @@ const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 
 /** `rate`: the dollars-per-point text, from the server constant (never hard-coded). */
-export function QrActions({ token, kidName, rate }: { token: string; kidName: string; rate: string }) {
+/** canTip = giving is open (until the freeze date); `giving` = the server-rendered small line (note or "closed"). */
+export function QrActions({ token, kidName, rate, canTip, giving }: { token: string; kidName: string; rate: string; canTip: boolean; giving: ReactNode }) {
   const t = useTranslations("Qr");
   const [thank, thankFormAction, thanking] = useActionState(thankAction, { status: "idle" } as ThankState);
   const [tip, tipFormAction, tipping] = useActionState(tipAction, { status: "idle" } as TipState);
@@ -51,7 +52,8 @@ export function QrActions({ token, kidName, rate }: { token: string; kidName: st
         </Button>
         <p className="text-sm text-muted">{t("sayThanksHelp")}</p>
       </form>
-      <form key={tip.nonce ?? "initial"} action={tipFormAction} className="flex flex-col gap-3 border-t border-foreground/15 pt-6">
+      {!canTip && giving}
+      {canTip && <form key={tip.nonce ?? "initial"} action={tipFormAction} className="flex flex-col gap-3 border-t border-foreground/15 pt-6">
         <h2 className="text-lg font-semibold">{t("tipTitle")}</h2>
         <p className="text-sm text-muted">{t("tipHelp", { rate })}</p>
         {tipError && (
@@ -66,7 +68,8 @@ export function QrActions({ token, kidName, rate }: { token: string; kidName: st
           {t("tipButton")}
         </Button>
         <p className="text-xs text-muted">{t("final")}</p>
-      </form>
+        {giving}
+      </form>}
     </div>
   );
 }

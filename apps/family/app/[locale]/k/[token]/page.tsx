@@ -12,6 +12,7 @@ import { publicLimit } from "@repo/deeds/public";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { DonateForm } from "./donate-form";
+import { GivingClosed, GivingNote } from "../../../../components/giving-note";
 import { SeasonGate } from "@/components/season-gate";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -32,7 +33,14 @@ async function Content({ params }: { params: PageProps<"/[locale]/k/[token]">["p
       </h1>
       {page.familyAlias && <p className="text-muted">{t("family", { family: page.familyAlias })}</p>}
       <p>{t("intro", { name: page.kidName })}</p>
-      {page.seasonOpen ? <DonateForm token={token} /> : <Alert>{t("errors.seasonClosed")}</Alert>}
+      {page.givingOpen ? (
+        <>
+          <DonateForm token={token} />
+          <GivingNote lastDay={page.givingLastDay} />
+        </>
+      ) : (
+        <GivingClosed />
+      )}
     </div>
   );
 }

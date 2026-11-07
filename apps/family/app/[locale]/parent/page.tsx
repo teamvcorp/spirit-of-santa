@@ -51,7 +51,7 @@ async function Content() {
       )}
       {payUp.count > 0 && (
         <Alert className="mb-6">
-          <span data-testid="payup-alert">{t("payUpAlert", { count: payUp.count, close: format.dateTime(payUp.window.closeAt, { month: "long", day: "numeric" }) })}</span>{" "}
+          <span data-testid="payup-alert">{t("payUpAlert", { count: payUp.count, last: format.dateTime(payUp.window.lastPayDay, { month: "long", day: "numeric" }) })}</span>{" "}
           <Link href="/parent/payup" className="font-semibold underline underline-offset-4">
             {t("payUpLink")}
           </Link>

@@ -293,6 +293,22 @@ Each slice follows the usual workflow: plan, build, E2E, commit, review, fix, CO
 7. **Store catalog for Jan 1.** Rollover or an earlier window, after the owner decides.
 8. **Docs, legal version bump, lawyer packet,** plus backlog items for the substitute-on-locked-gift action and the Nov 1 store check-in.
 
+## Slice 5 (REPLACED 2026-11-07 by owner): giving closes Dec 1, pay-up Dec 1-3, then unfinished gifts drop off
+
+Owner: "gifts cannot arrive after Christmas, keep the disclosure small" → chose CLOSE GIVING AT THE FREEZE (Dec 1),
+pay-up Dec 1-3 after the donation split, unfinished gifts drop off right when pay-up ends. Replaces default 2
+(pay-up to Dec 8 + "may arrive after Christmas" label): no late label is needed because nothing can fill late.
+
+- `giftWindow()` (tips, donation links, bonus, pay-later links): open phase only; `closeAt` = START of the freeze
+  date, so every checkout and pay-later link already caps at it. A force-freeze also stops giving (emergency).
+- QR page: thanking a deed (no money) stays possible while frozen; the tip form is replaced by one small line.
+- Pure `payUpPeriod(dates)` in @repo/lib/season: opens at the freeze, closes PAY_UP_DAYS (3) days later
+  (last pay day Dec 3). `payUpWindow` uses it; `PAY_UP_CLOSES_DAYS_BEFORE_CLOSE` removed.
+- `closeUnfunded` drops a season's unfinished gifts once its pay-up period has ended (Dec 4), not at Dec 26.
+- Copy (en+es), small: one line where people give ("Giving closes {date} so every gift arrives by Christmas"),
+  pay-up alert/page/reminder say gifts drop off after {last pay day}; cutoff reminder mentions giving closes.
+- E2E: payup (window arithmetic), deeds/qr/donate/bonus (frozen = no money), wishlist close timing.
+
 ## Owner questions before building
 
 1. Can parents no longer undo a fully funded gift, which ends today's 30-day undo window? (Recommended: yes.)

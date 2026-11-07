@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { canShipGift, defaultSeasonDates, getSeasonPhase, getSeasonYear, isStoreItemWindowOpen, newestShippableYear, parseIsoDay, shipLate, resolveSeason, santaListStart, santaListYear, startOfDayInZone, validateSeasonDates } from "../src/season.ts";
+import { canShipGift, defaultSeasonDates, getSeasonPhase, getSeasonYear, isStoreItemWindowOpen, newestShippableYear, parseIsoDay, payUpPeriod, shipLate, resolveSeason, santaListStart, santaListYear, startOfDayInZone, validateSeasonDates } from "../src/season.ts";
 
 // Instants are given in UTC. Chicago is UTC-6 in Dec (CST) and UTC-5 in Oct (CDT).
 const at = (iso: string) => new Date(iso);
@@ -159,4 +159,12 @@ test("shipLate: 'by Dec 10' through Dec 10 Chicago time, then 'as soon as possib
   assert.equal(shipLate(st("2027-12-11T05:59:00Z"), at("2027-12-11T05:59:00Z")), false); // 11:59 pm Dec 10 CST
   assert.equal(shipLate(st("2027-12-11T06:00:00Z"), at("2027-12-11T06:00:00Z")), true);
   assert.equal(shipLate(st("2028-01-05T12:00:00Z"), at("2028-01-05T12:00:00Z")), true); // only last season's gifts are ready
+});
+
+test("pay-up runs Dec 1-3 (Chicago days) after giving closes, from an admin-moved freeze too", () => {
+  const p = payUpPeriod({ freeze: "2027-12-01" });
+  assert.equal(p.opensAt.toISOString(), "2027-12-01T06:00:00.000Z");
+  assert.equal(p.closesAt.toISOString(), "2027-12-04T06:00:00.000Z"); // unfinished gifts drop off here
+  assert.equal(p.lastPayDay.toISOString(), "2027-12-04T05:59:59.999Z"); // shown as 'until December 3'
+  assert.equal(payUpPeriod({ freeze: "2027-11-29" }).closesAt.toISOString(), "2027-12-02T06:00:00.000Z"); // across months
 });

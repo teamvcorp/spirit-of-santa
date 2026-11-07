@@ -93,13 +93,13 @@
     "cutoffReminder": {
       "subject": "Wish lists freeze on {date}",
       "heading": "Wish lists freeze soon",
-      "body": "On {date} every wish list freezes for Christmas: after that, gifts can't be added or removed.\n\nThis is a good moment to check your children's lists with them.",
+      "body": "On {date} every wish list freezes for Christmas: after that, gifts can't be added or removed, and giving (tips, donation links, bonus magic) closes so every gift arrives in time.\n\nThis is a good moment to check your children's lists with them.",
       "button": "Open the family area"
     },
     "payUpReminder": {
       "subject": "Last days to finish gifts: until {date}",
       "heading": "Finish gifts before {date}",
-      "body": "Some gifts on your children's lists aren't fully funded yet. You can pay what's missing until {date}. Gifts still unfinished at the season's close drop off the list, and the Christmas Magic on them goes to Spirit of Santa.",
+      "body": "Some gifts on your children's lists aren't fully funded yet. You can pay what's missing until {date}. Gifts still unfinished after that drop off the list, and the Christmas Magic on them goes to Spirit of Santa.",
       "button": "Finish gifts"
     },
     "passwordChanged": {

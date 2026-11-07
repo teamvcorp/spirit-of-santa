@@ -16,6 +16,7 @@ import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { PayLaterSection } from "./pay-later-section";
 import { QrActions } from "./qr-actions";
+import { GivingClosed, GivingNote } from "../../../../components/giving-note";
 import { SeasonGate } from "@/components/season-gate";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -31,7 +32,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/d/[token]">["p
   if (view.state === "invalid") return <Alert tone="error">{t("invalid")}</Alert>;
   if (view.state === "used") return <Alert>{view.outcome === "paid" ? t("usedPaid") : t("used")}</Alert>;
   if (view.state === "expired") return <Alert>{t("expired")}</Alert>;
-  const payLater = view.seasonOpen ? await payLaterForDeed(view.deedId) : null;
+  const payLater = view.givingOpen ? await payLaterForDeed(view.deedId) : null;
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -43,8 +44,13 @@ async function Content({ params }: { params: PageProps<"/[locale]/d/[token]">["p
           {view.deed ?? t("aGoodDeed")}
         </p>
       </div>
-      {view.seasonOpen ? <QrActions token={token} kidName={view.kidName} rate={formatCents(CENTS_PER_POINT)} /> : <Alert>{t("errors.seasonClosed")}</Alert>}
-      {view.seasonOpen && <PayLaterSection token={token} sent={payLater ? { masked: payLater.masked, expiresAt: payLater.expiresAt.toISOString() } : null} />}
+      {/* Thanks stay possible Dec 1-25; money only until the freeze date (one small line either way). */}
+      {view.seasonOpen ? (
+        <QrActions token={token} kidName={view.kidName} rate={formatCents(CENTS_PER_POINT)} canTip={view.givingOpen} giving={view.givingOpen ? <GivingNote lastDay={view.givingLastDay} /> : <GivingClosed />} />
+      ) : (
+        <Alert>{t("errors.seasonClosed")}</Alert>
+      )}
+      {view.givingOpen && <PayLaterSection token={token} sent={payLater ? { masked: payLater.masked, expiresAt: payLater.expiresAt.toISOString() } : null} />}
     </div>
   );
 }

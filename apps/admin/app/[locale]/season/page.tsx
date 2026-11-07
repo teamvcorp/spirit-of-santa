@@ -9,6 +9,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { requireRole } from "@repo/auth";
 import { seasonAdminView } from "@repo/stores/season";
+import { calendarDateIn, isoDay, payUpPeriod } from "@repo/lib/season";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { authOptions } from "@/auth";
@@ -38,7 +39,8 @@ async function Content() {
           </dd>
           <dt className="text-muted">{t("datesLabel")}</dt>
           {/* close = FIRST closed day; the season's last day is the day before (Christmas Day by default). */}
-          <dd>{t("datesLine", { freeze: day(state.dates.freeze), shipBy: day(state.shipBy), lastDay: day(dayBefore(state.dates.close)) })}</dd>
+          {/* Pay-up ends PAY_UP_DAYS after the freeze (payUpPeriod: the ONE rule); unfinished gifts drop off then. */}
+          <dd>{t("datesLine", { freeze: day(state.dates.freeze), payUpLast: day(isoDay(calendarDateIn(payUpPeriod(state.dates).lastPayDay))), shipBy: day(state.shipBy), lastDay: day(dayBefore(state.dates.close)) })}</dd>
           <dt className="text-muted">{t("windowLabel")}</dt>
           <dd data-testid="season-window">
             {state.storeWindowOpen ? t("windowOpen") : t("windowClosed")} <span className="text-muted">({t(`window.${state.storeWindowMode}`)})</span>

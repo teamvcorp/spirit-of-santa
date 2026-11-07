@@ -140,7 +140,7 @@
   },
   "Season": {
     "title": "Configuración de la temporada",
-    "intro": "La temporada dura todo el año: las familias ganan Magia Navideña desde el 1 de enero, las listas de deseos se congelan el 1 de diciembre, el último día es Navidad y el sitio cierra del 26 al 31 de diciembre. Cada cambio queda en el registro de auditoría.",
+    "intro": "La temporada dura todo el año: las familias ganan Magia Navideña desde el 1 de enero, las listas de deseos se congelan y las donaciones cierran el 1 de diciembre (para que cada regalo llegue para Navidad), los padres pueden completar regalos del 1 al 3 de diciembre, el último día es Navidad y el sitio cierra del 26 al 31 de diciembre. Cada cambio queda en el registro de auditoría.",
     "loading": "Cargando…",
     "saved": "Guardado.",
     "nowTitle": "Temporada {year} ahora",
@@ -157,7 +157,7 @@
       "forced": "congelada por un administrador"
     },
     "datesLabel": "Fechas",
-    "datesLine": "Abierta todo el año · se congela el {freeze} · las tiendas envían antes del {shipBy} · último día {lastDay}",
+    "datesLine": "Abierta todo el año · se congela y cierran las donaciones el {freeze} · completar regalos hasta el {payUpLast} · las tiendas envían a más tardar el {shipBy} · último día {lastDay}",
     "windowLabel": "Listas de artículos de las tiendas",
     "windowOpen": "Abiertas a cambios",
     "windowClosed": "Cerradas a cambios",

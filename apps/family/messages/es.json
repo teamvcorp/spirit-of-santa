@@ -153,7 +153,7 @@
     "aliasPending": "Esperando una revisión rápida de nuestro equipo antes de mostrarse públicamente.",
     "aliasRejected": "Nuestro equipo no aprobó este apodo. Elige otro (sin nombres reales).",
     "giveBonus": "Dar magia extra",
-    "payUpAlert": "{count, plural, one {# regalo todavía no está completo.} other {# regalos todavía no están completos.}} Puedes completarlos antes de la fecha límite; si no, salen de la lista el {close}.",
+    "payUpAlert": "{count, plural, one {# regalo todavía no está completo.} other {# regalos todavía no están completos.}} Puedes completarlos hasta el {last}; después, los regalos incompletos salen de la lista.",
     "payUpLink": "Completar regalos",
     "addressAlert": "¡Un regalo está completo! Dinos dónde entregarlo.",
     "addressLink": "Agregar dirección de entrega",
@@ -356,7 +356,7 @@
     "errors": {
       "rateLimited": "Demasiados intentos. Espera unos minutos.",
       "invalid": "Este enlace no es válido.",
-      "seasonClosed": "Spirit of Santa está cerrado después de Navidad. Se puede regalar de nuevo a partir del 1 de enero.",
+      "seasonClosed": "Las donaciones para esta Navidad ya cerraron, para que cada regalo llegue a tiempo. Vuelven a abrir el 1 de enero.",
       "amount": "Elige una cantidad entre {min} y {max}.",
       "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde."
     }
@@ -385,14 +385,14 @@
       "notFound": "Elige a uno de tus hijos registrados.",
       "locked": "Primero escribe el PIN de padres (área de padres) e inténtalo de nuevo.",
       "rateLimited": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
-      "seasonClosed": "La magia extra solo está disponible mientras la temporada de Navidad está abierta.",
+      "seasonClosed": "Las donaciones para esta Navidad ya cerraron, para que cada regalo llegue a tiempo. Vuelven a abrir el 1 de enero.",
       "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde."
     }
   },
   "PayUp": {
     "title": "Completar regalos",
     "intro": "Paga la Magia Navideña que le falta a un regalo ({rate} = 1 de Magia Navideña) y quedará listo para Navidad: se envía como cualquier otro regalo.",
-    "deadline": "Puedes completar regalos hasta el {closes}. Los regalos que sigan incompletos el {close} salen de la lista y su Magia Navideña pasa a Spirit of Santa.",
+    "deadline": "Puedes completar regalos hasta el {closes}. Los regalos que sigan incompletos después salen de la lista y su Magia Navideña pasa a Spirit of Santa.",
     "closed": "Se pueden completar regalos desde el {opens} hasta el {closes}.",
     "none": "Todos los regalos de las listas de tus hijos están completos. ¡No hay nada que hacer!",
     "missing": "Le falta {points} de Magia Navideña: {amount}",
@@ -505,7 +505,7 @@
       "expired": "Este código QR está por vencer, así que no se puede pagar más tarde. Aún puedes pagar ahora.",
       "used": "Esta buena acción ya fue agradecida.",
       "invalid": "Este código QR no es válido.",
-      "seasonClosed": "Las propinas están cerradas hasta la próxima temporada de Navidad.",
+      "seasonClosed": "Las donaciones para esta Navidad ya cerraron, para que cada regalo llegue a tiempo. Vuelven a abrir el 1 de enero.",
       "rateLimited": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
       "amount": "Elige una cantidad entre {min} y {max}."
     }
@@ -735,6 +735,10 @@
       "bonus": "Bono de Magia Navideña",
       "payup": "Pago para completar un regalo"
     }
+  },
+  "Giving": {
+    "note": "Las donaciones cierran después del {date} para que cada regalo llegue para Navidad.",
+    "closed": "Las donaciones para esta Navidad ya cerraron, para que cada regalo llegue a tiempo. Vuelven a abrir el 1 de enero."
   },
   "SeasonClosed": {
     "closed": {

@@ -798,6 +798,15 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   they are wiped at the Jan 1 reset like any leftover magic. Backlog: "store can't supply a LOCKED gift" admin
   action, chargeback hold on held gifts, suspendStore vs held gifts. E2E: browser-store-orders (29) rewritten,
   wishlist-engine step 7/8.
+- **Year-round slice 5 (owner 2026-11-07): giving closes at the freeze, pay-up Dec 1-3, then drop-off.** Owner:
+  gifts must NOT arrive after Christmas (small disclosure). `giftWindow()` = open phase only, `closeAt` = START of
+  the freeze date, `lastDay` for copy → tips, donation links, bonus and pay-later links all stop there (force-freeze
+  too). `publicSeason()` splits `seasonOpen` (deed THANKS, open|frozen) from `givingOpen`/`givingEndsAt`. Pure
+  `payUpPeriod(dates)` (@repo/lib/season, PAY_UP_DAYS=3) = the ONE pay-up rule: `payUpWindow`, `closeUnfunded`
+  (drops a season's unfinished gifts once its pay-up is over, Dec 4, not Dec 26) and the admin dates line.
+  UI: `GivingNote`/`GivingClosed` (apps/family/components/giving-note.tsx) on QR, donation-link and bonus pages;
+  QrActions gets `canTip` + `giving`. No "late" label: nothing can fill after Dec 3. E2E: browser-family-giving-closed
+  (new), payup (3-day window + drop-off), page audit.
 
 ## Open items / TODO
 

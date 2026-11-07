@@ -10,11 +10,11 @@ import { listKids } from "@repo/families/kids";
 import { formatCents } from "@repo/lib/format";
 import { giftWindow } from "@repo/stores/season";
 import { CENTS_PER_POINT } from "@repo/lib/constants";
-import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
 import { requireUnlockedPage } from "@/lib/parent";
 import { BonusForm } from "./bonus-form";
+import { GivingClosed, GivingNote } from "../../../../components/giving-note";
 import { SeasonGate } from "@/components/season-gate";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -30,9 +30,16 @@ async function Content({ searchParams }: { searchParams: PageProps<"/[locale]/pa
   const [kids, win, t] = await Promise.all([listKids(parent), giftWindow(), getTranslations("Bonus")]);
   const registered = kids.filter((k) => k.registered).map((k) => ({ id: k.id, firstName: k.firstName }));
   if (registered.length === 0) return <p className="text-muted">{t("noKids")}</p>;
-  if (!win.open) return <Alert>{t("errors.seasonClosed")}</Alert>;
+  if (!win.open) return <GivingClosed />;
   const preselect = typeof sp.kid === "string" && registered.some((k) => k.id === sp.kid) ? sp.kid : undefined;
-  return <BonusForm kids={registered} preselect={preselect} />;
+  return (
+    <>
+      <BonusForm kids={registered} preselect={preselect} />
+      <div className="mt-4">
+        <GivingNote lastDay={win.lastDay} />
+      </div>
+    </>
+  );
 }
 
 export default async function BonusPage(props: PageProps<"/[locale]/parent/bonus">) {

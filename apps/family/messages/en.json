@@ -153,7 +153,7 @@
     "aliasPending": "Waiting for a quick check by our team before it's shown publicly.",
     "aliasRejected": "Our team didn't approve this nickname. Please choose another (no real names).",
     "giveBonus": "Give bonus magic",
-    "payUpAlert": "{count, plural, one {# gift isn't fully funded yet.} other {# gifts aren't fully funded yet.}} You can finish them before the deadline, or they drop off on {close}.",
+    "payUpAlert": "{count, plural, one {# gift isn't fully funded yet.} other {# gifts aren't fully funded yet.}} You can finish them until {last}; after that, unfinished gifts drop off.",
     "payUpLink": "Finish gifts",
     "addressAlert": "A gift is funded! Tell us where to deliver it.",
     "addressLink": "Add a delivery address",
@@ -356,7 +356,7 @@
     "errors": {
       "rateLimited": "Too many tries. Please wait a few minutes.",
       "invalid": "This link isn't valid.",
-      "seasonClosed": "Spirit of Santa is closed after Christmas. Gifts can be given again from January 1.",
+      "seasonClosed": "Giving for this Christmas has closed, so every gift arrives in time. It opens again on January 1.",
       "amount": "Choose an amount between {min} and {max}.",
       "stripe": "Payments aren't available right now. Please try again later."
     }
@@ -385,14 +385,14 @@
       "notFound": "Choose one of your registered children.",
       "locked": "Enter the parent PIN first (parent area), then try again.",
       "rateLimited": "Too many tries. Please wait a few minutes and try again.",
-      "seasonClosed": "Bonus magic is only available while the Christmas season is open.",
+      "seasonClosed": "Giving for this Christmas has closed, so every gift arrives in time. It opens again on January 1.",
       "stripe": "Payments aren't available right now. Please try again later."
     }
   },
   "PayUp": {
     "title": "Finish gifts",
     "intro": "Pay the Christmas Magic a gift still needs ({rate} = 1 Christmas Magic) and it's set for Christmas: it ships like any other gift.",
-    "deadline": "You can finish gifts until {closes}. Gifts that still aren't fully funded on {close} drop off the list, and the Christmas Magic on them goes to Spirit of Santa.",
+    "deadline": "You can finish gifts until {closes}. Gifts that still aren't fully funded after that drop off the list, and the Christmas Magic on them goes to Spirit of Santa.",
     "closed": "Finishing gifts is possible from {opens} until {closes}.",
     "none": "Every gift on your children's lists is fully funded. Nothing to do!",
     "missing": "Needs {points} more Christmas Magic: {amount}",
@@ -505,7 +505,7 @@
       "expired": "This QR code is about to expire, so a pay-later link isn't possible. You can still pay now.",
       "used": "This good deed has already been thanked.",
       "invalid": "This QR code isn't valid.",
-      "seasonClosed": "Tips are closed until the next Christmas season.",
+      "seasonClosed": "Giving for this Christmas has closed, so every gift arrives in time. It opens again on January 1.",
       "rateLimited": "Too many tries. Please wait a few minutes and try again.",
       "amount": "Choose an amount between {min} and {max}."
     }
@@ -735,6 +735,10 @@
       "bonus": "Christmas Magic bonus",
       "payup": "Pay to finish a gift"
     }
+  },
+  "Giving": {
+    "note": "Giving closes after {date} so every gift arrives by Christmas.",
+    "closed": "Giving for this Christmas has closed, so every gift arrives in time. It opens again on January 1."
   },
   "SeasonClosed": {
     "closed": {

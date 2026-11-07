@@ -30,7 +30,7 @@ async function Content() {
   if (!window.open) return <Alert>{t("closed", { opens: day(window.opensAt), closes: day(window.lastPayDay) })}</Alert>;
   return (
     <>
-      <Alert className="mb-4">{t("deadline", { closes: day(window.lastPayDay), close: day(window.closeAt) })}</Alert>
+      <Alert className="mb-4">{t("deadline", { closes: day(window.lastPayDay) })}</Alert>
       {options.length === 0 ? (
         <p className="text-muted">{t("none")}</p>
       ) : (

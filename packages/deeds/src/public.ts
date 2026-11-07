@@ -15,7 +15,7 @@ import { parseDollarsToCents } from "@repo/lib/format";
 import { MAX_CHECKOUT_MS, MAX_TIP_CENTS, MIN_CHECKOUT_MS, MIN_TIP_CENTS, TIP_PRESETS_CENTS } from "@repo/lib/limits";
 import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, DELAYED_PAYMENT_METHODS, getStripe } from "@repo/payments/checkout";
 import { closePayLaterForDeed } from "@repo/payments/pay-later-links";
-import { giftWindow } from "@repo/stores/season";
+import { getSeasonState, giftWindow } from "@repo/stores/season";
 import { localized } from "./catalog.ts";
 import { hashDeedToken, isDeedToken } from "./qr.ts";
 
@@ -23,7 +23,7 @@ export type PublicDeed =
   | { state: "invalid" }
   | { state: "used"; outcome?: string }
   | { state: "expired" }
-  | { state: "open"; kidName: string; familyAlias?: string; deed?: string; seasonOpen: boolean; seasonCloseAt: Date; /** server-side only (never rendered) */ deedId: string };
+  | { state: "open"; kidName: string; familyAlias?: string; deed?: string; seasonOpen: boolean; givingOpen: boolean; givingEndsAt: Date; givingLastDay: Date; /** server-side only (never rendered) */ deedId: string };
 
 type DeedLite = {
   _id: unknown;
@@ -125,10 +125,14 @@ export function publicFamilyAlias(fam: { alias?: string | null; showAliasPublicl
   return fam?.showAliasPublicly && fam.alias && fam.aliasReview === "approved" ? fam.alias : undefined;
 }
 
-/** Public thanks/tips/donations run while the season is open or frozen; checkouts end by season close. */
-export async function publicSeason(): Promise<{ seasonOpen: boolean; seasonCloseAt: Date }> {
-  const w = await giftWindow(); // shared rule (@repo/stores/season)
-  return { seasonOpen: w.open, seasonCloseAt: w.closeAt };
+/**
+ * seasonOpen = a deed can be THANKED (no money) while the season is open or frozen (Dec 1-25 too).
+ * givingOpen = money (tips, donation links) only until the freeze date (giftWindow, owner 2026-11-07: gifts
+ * must arrive by Christmas); checkouts end by givingEndsAt. givingLastDay is for the small "closes after" line.
+ */
+export async function publicSeason(): Promise<{ seasonOpen: boolean; givingOpen: boolean; givingEndsAt: Date; givingLastDay: Date }> {
+  const [s, w] = await Promise.all([getSeasonState(), giftWindow()]); // shared rules (@repo/stores/season)
+  return { seasonOpen: s.phase === "open" || s.phase === "frozen", givingOpen: w.open, givingEndsAt: w.closeAt, givingLastDay: w.lastDay };
 }
 
 
@@ -144,20 +148,20 @@ export type TipTarget =
 
 /**
  * THE check for "can this deed take money right now, and until when?" (single source: the tip
- * checkout AND pay-later texts). Open deed, registered kid, season open or frozen; payable until
- * the deed's QR expiry or the season close, whichever is first.
+ * checkout AND pay-later texts). Open deed, registered kid, GIVING open (until the freeze date); payable until
+ * the deed's QR expiry or the end of giving, whichever is first.
  */
 export async function tipTarget(token: unknown): Promise<TipTarget> {
   const { view: v, deed: d } = await view(token, "en");
   if (!d || v.state !== "open") return { ok: false, error: viewError(v) };
-  if (!v.seasonOpen) return { ok: false, error: "seasonClosed" };
+  if (!v.givingOpen) return { ok: false, error: "seasonClosed" };
   return {
     ok: true,
     deedId: String(d._id),
     kidId: String(d.kidId),
     familyId: String(d.familyId),
     kidName: v.kidName,
-    payableUntil: Math.min(new Date(d.expiresAt!).getTime(), v.seasonCloseAt.getTime()),
+    payableUntil: Math.min(new Date(d.expiresAt!).getTime(), v.givingEndsAt.getTime()),
   };
 }
 

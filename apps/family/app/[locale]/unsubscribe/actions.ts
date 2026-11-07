@@ -1,10 +1,11 @@
 "use server";
 /** "Stop these emails" button on /unsubscribe (no sign-in: the signed token is the permission). */
-import { unsubscribe } from "@repo/families/notifications";
+import { unsubscribe, unsubscribeTokenSchema } from "@repo/families/notifications";
 
 export type UnsubscribeState = { status: "idle" | "done" | "error" };
 
 export async function unsubscribeAction(_prev: UnsubscribeState, fd: FormData): Promise<UnsubscribeState> {
-  const kind = await unsubscribe(fd.get("t"));
+  const t = unsubscribeTokenSchema.safeParse(fd.get("t"));
+  const kind = t.success ? await unsubscribe(t.data) : null;
   return { status: kind ? "done" : "error" };
 }

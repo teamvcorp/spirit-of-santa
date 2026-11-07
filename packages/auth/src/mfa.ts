@@ -21,7 +21,8 @@
  *  - Recovery codes: HMAC-SHA256 under a key derived (HKDF) from MFA_ENCRYPTION_KEY.
  */
 import "server-only";
-import { createHmac, hkdfSync } from "node:crypto";
+import { createHmac } from "node:crypto";
+import { deriveKey } from "./purpose-key.ts";
 import { seal, sealKey, unseal } from "./sealed.ts";
 import QRCode from "qrcode";
 import { AuditLog, connectDb, trusted, User, withTransaction } from "@repo/db";
@@ -51,7 +52,7 @@ const MFA_LOCK_HOURS = 24;
 // ── Keys ──────────────────────────────────────────────────────────────────────────────
 // Encryption itself lives in sealed.ts (shared with delivery addresses, each with its own key).
 // Same "v1.<iv>.<tag>.<ct>" format as before, so existing admin secrets still decrypt.
-const recoveryKey = () => Buffer.from(hkdfSync("sha256", sealKey("MFA_ENCRYPTION_KEY"), "", "sos/mfa-recovery/v1", 32));
+const recoveryKey = () => deriveKey(sealKey("MFA_ENCRYPTION_KEY"), "sos/mfa-recovery/v1");
 
 /** "v1.<iv>.<tag>.<ciphertext>" (base64url parts), bound to the user id. */
 export const encryptSecret = (secret: Buffer, userId: string): string => seal(secret, userId, "MFA_ENCRYPTION_KEY");

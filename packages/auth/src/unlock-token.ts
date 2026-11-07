@@ -5,7 +5,8 @@
  * Format: <familyId>.<userId>.<expiresAtMs>.<HMAC-SHA256 base64url>
  */
 import "server-only";
-import { createHmac, hkdfSync, timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { deriveKey } from "./purpose-key.ts";
 
 export const PIN_UNLOCK_SECONDS = 15 * 60;
 
@@ -16,9 +17,7 @@ export interface UnlockClaims {
 
 /** Per-purpose key derived from NEXTAUTH_SECRET (HKDF), so this HMAC key is never the session key. */
 function unlockKey(secret: string): Buffer {
-  return Buffer.from(
-    hkdfSync("sha256", secret, "", "sos/parent-pin-unlock/v1", 32),
-  );
+  return deriveKey(secret, "sos/parent-pin-unlock/v1");
 }
 
 const mac = (data: string, secret: string) =>

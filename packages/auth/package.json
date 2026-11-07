@@ -25,7 +25,8 @@
     "./form-state": "./src/form-state.ts",
     "./token-slot": "./src/token-slot.tsx",
     "./family-owner": "./src/family-owner.ts",
-    "./sealed": "./src/sealed.ts"
+    "./sealed": "./src/sealed.ts",
+    "./purpose-key": "./src/purpose-key.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

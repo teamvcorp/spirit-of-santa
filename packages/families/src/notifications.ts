@@ -11,7 +11,9 @@
  * Tokens don't expire on purpose (an unsubscribe link in an old email must still work).
  */
 import "server-only";
-import { createHmac, hkdfSync, timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { z } from "zod";
+import { sessionPurposeKey } from "@repo/auth/purpose-key";
 import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 import { AuditLog, connectDb, Family, withTransaction } from "@repo/db";
 import type { OptOutLinks } from "@repo/email";
@@ -20,9 +22,8 @@ import { OBJECT_ID_RE } from "@repo/lib/ids";
 import type { Locale } from "@repo/lib/locales";
 import { familyAppOrigin } from "@repo/stores/urls";
 
-export const NOTIFY_KINDS = ["magic", "deeds", "reminders"] as const;
-export type NotifyKind = (typeof NOTIFY_KINDS)[number];
-export type NotifyPrefs = Record<NotifyKind, boolean>;
+import { NOTIFY_KINDS, type NotifyKind, type NotifyPrefs } from "@repo/lib/notify";
+export { NOTIFY_KINDS, type NotifyKind, type NotifyPrefs };
 
 const isKind = (v: unknown): v is NotifyKind => typeof v === "string" && (NOTIFY_KINDS as readonly string[]).includes(v);
 /** Missing = never chosen = ON (the default). */
@@ -49,12 +50,10 @@ export async function setNotifyPrefs(parent: Parent, prefs: NotifyPrefs): Promis
 
 // ── Signed unsubscribe tokens ─────────────────────────────────────────────────────────
 
-function tokenKey(): Buffer {
-  const secret = process.env.NEXTAUTH_SECRET;
-  if (!secret) throw new Error("NEXTAUTH_SECRET is not set");
-  return Buffer.from(hkdfSync("sha256", secret, "", "sos/unsubscribe/v1", 32));
-}
-const sign = (fid: string, kind: NotifyKind) => createHmac("sha256", tokenKey()).update(`${fid}.${kind}`).digest("base64url");
+const sign = (fid: string, kind: NotifyKind) => createHmac("sha256", sessionPurposeKey("sos/unsubscribe/v1")).update(`${fid}.${kind}`).digest("base64url");
+
+/** Shape check for untrusted input (Zod, like every input): a short string, nothing else. */
+export const unsubscribeTokenSchema = z.string().min(30).max(120);
 
 export function unsubscribeToken(familyId: string, kind: NotifyKind): string {
   return `${familyId}.${kind}.${sign(familyId, kind)}`;
@@ -62,8 +61,11 @@ export function unsubscribeToken(familyId: string, kind: NotifyKind): string {
 
 /** The family + kind a token is for, or null if it's malformed or the signature is wrong. */
 export function readUnsubscribeToken(token: unknown): { familyId: string; kind: NotifyKind } | null {
-  if (typeof token !== "string" || token.length > 120) return null;
-  const [fid, kind, sig] = token.split(".");
+  const parsed = unsubscribeTokenSchema.safeParse(token);
+  if (!parsed.success) return null;
+  const parts = parsed.data.split(".");
+  if (parts.length !== 3) return null; // exact format: nothing may be appended
+  const [fid, kind, sig] = parts;
   if (!fid || !OBJECT_ID_RE.test(fid) || !isKind(kind) || !sig) return null;
   const want = Buffer.from(sign(fid, kind));
   const got = Buffer.from(sig);
@@ -75,11 +77,14 @@ export async function unsubscribe(token: unknown): Promise<NotifyKind | null> {
   const t = readUnsubscribeToken(token);
   if (!t) return null;
   await connectDb();
-  const res = await Family.updateOne({ _id: t.familyId }, { $set: { [`notify.${t.kind}`]: false } });
-  if (res.matchedCount === 1 && res.modifiedCount === 1) {
-    await AuditLog.create({ action: "family.notify_prefs", targetType: "family", targetId: t.familyId, details: { [t.kind]: false, by: "unsubscribe_link" } });
-  }
-  return res.matchedCount === 1 ? t.kind : null;
+  const found = await withTransaction(async (session) => {
+    const res = await Family.updateOne({ _id: t.familyId }, { $set: { [`notify.${t.kind}`]: false } }, { session });
+    if (res.modifiedCount === 1) {
+      await AuditLog.create([{ action: "family.notify_prefs", targetType: "family", targetId: t.familyId, details: { [t.kind]: false, by: "unsubscribe_link" } }], { session });
+    }
+    return res.matchedCount === 1;
+  });
+  return found ? t.kind : null;
 }
 
 /** Footer + header links for one notification email to this family. */

@@ -15,6 +15,7 @@
  * Notes: docs/vendor/resend.md
  */
 import "server-only";
+import { createHash } from "node:crypto";
 import { Resend } from "resend";
 import { assertSafeLink, renderEmail, type EmailTemplateName, type EmailTemplates, type OptOutLinks } from "./render.ts";
 
@@ -88,30 +89,45 @@ export const EMAIL_BATCH_SIZE = 100;
 /**
  * Send many emails (Phase 7 daily digests): up to 100 per request instead of one request each,
  * so a few thousand families fit easily in the daily job and in Resend's 10 requests/s limit.
- * `batchKey` makes each chunk idempotent for 24 h (`<batchKey>/<chunk>`): a retried run with the
- * SAME inputs in the SAME order can't send twice. Returns the indexes of inputs that were sent;
- * a failed chunk is reported (not thrown) so the caller can retry just those next time.
- * Note: Resend's batch API doesn't support attachments or scheduling (we use neither).
+ *  - Each chunk's idempotency key is `<batchKey>/<hash of exactly what it sends>`: re-sending the
+ *    SAME emails within 24 h is a no-op, and retrying a DIFFERENT set (e.g. only the failed ones)
+ *    can never collide with an earlier chunk's key.
+ *  - An email that can't even be built (bad link, missing value) fails ALONE; the rest still go.
+ *  - A missing RESEND_API_KEY when really sending is a configuration error: it THROWS (loud),
+ *    like sendEmail, instead of looking like ordinary failures.
+ * Returns the input indexes sent and failed. Resend's batch API has no attachments/scheduling.
  */
 export async function sendEmailBatch(inputs: SendEmailInput<EmailTemplateName>[], batchKey: string): Promise<{ sent: number[]; failed: number[] }> {
   const sent: number[] = [];
   const failed: number[] = [];
-  for (let start = 0; start < inputs.length; start += EMAIL_BATCH_SIZE) {
-    const chunk = inputs.slice(start, start + EMAIL_BATCH_SIZE);
-    const idx = chunk.map((_, i) => start + i);
-    const payloads = chunk.map((input) => payload(input));
-    if (payloads.every((p, i) => devPrint(p, chunk[i]!.template))) {
-      sent.push(...idx);
-      continue;
-    }
+  const built: { i: number; p: ReturnType<typeof payload> }[] = [];
+  inputs.forEach((input, i) => {
     try {
-      const { error } = await resend().batch.send(payloads, { idempotencyKey: `${batchKey}/${start / EMAIL_BATCH_SIZE}`.slice(0, 256) });
+      built.push({ i, p: payload(input) });
+    } catch (err) {
+      failed.push(i);
+      console.error("[email] batch email could not be built:", err instanceof Error ? err.name : "unknown");
+    }
+  });
+  const toSend = built.filter(({ i, p }) => {
+    if (!devPrint(p, inputs[i]!.template)) return true;
+    sent.push(i);
+    return false;
+  });
+  if (toSend.length === 0) return { sent, failed };
+  const api = resend(); // throws if RESEND_API_KEY is missing: never a silent "all failed"
+  for (let start = 0; start < toSend.length; start += EMAIL_BATCH_SIZE) {
+    const chunk = toSend.slice(start, start + EMAIL_BATCH_SIZE);
+    const digest = createHash("sha256");
+    for (const { p } of chunk) digest.update(`${p.to}\u0000${p.subject}\u0000${p.text}\u0001`);
+    try {
+      const { error } = await api.batch.send(chunk.map((c) => c.p), { idempotencyKey: `${batchKey}/${digest.digest("base64url").slice(0, 32)}`.slice(0, 256) });
       if (error) throw new Error(`${error.name}: ${error.message}`);
-      sent.push(...idx);
+      sent.push(...chunk.map((c) => c.i));
     } catch (err) {
       // name only: no addresses or bodies in logs.
       console.error("[email] batch chunk failed:", err instanceof Error ? err.name : "unknown");
-      failed.push(...idx);
+      failed.push(...chunk.map((c) => c.i));
     }
   }
   return { sent, failed };

@@ -120,8 +120,7 @@ export function renderEmail<T extends EmailTemplateName>(
     "",
     "--",
     tt("footer"),
-    optOut ? `${tt("optOut")}: ${optOut.stop}` : "",
-    optOut ? `${tt("manage")}: ${optOut.manage}` : "",
+    ...(optOut ? [`${tt("optOut")}: ${optOut.stop}`, `${tt("manage")}: ${optOut.manage}`] : []),
   ]
     .filter((line, i, all) => line !== "" || all[i - 1] !== "")
     .join("\n");

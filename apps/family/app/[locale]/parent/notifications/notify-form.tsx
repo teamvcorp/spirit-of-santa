@@ -4,11 +4,10 @@ import { useTranslations } from "next-intl";
 import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
 import { useHydrated } from "@repo/ui/use-hydrated";
+import { NOTIFY_KINDS as KINDS, type NotifyPrefs } from "@repo/lib/notify";
 import { saveNotifyAction, type NotifyFormState } from "./actions";
 
-const KINDS = ["magic", "deeds", "reminders"] as const;
-
-export function NotifyForm({ prefs }: { prefs: Record<(typeof KINDS)[number], boolean> }) {
+export function NotifyForm({ prefs }: { prefs: NotifyPrefs }) {
   const t = useTranslations("Notify");
   const [state, action, pending] = useActionState(saveNotifyAction, { status: "idle" } as NotifyFormState);
   const hydrated = useHydrated();
@@ -18,7 +17,8 @@ export function NotifyForm({ prefs }: { prefs: Record<(typeof KINDS)[number], bo
       {state.status === "error" && state.error && <Alert tone="error">{t(`errors.${state.error}`)}</Alert>}
       {KINDS.map((k) => (
         <label key={k} className="flex items-start gap-3">
-          <input type="checkbox" name={k} value="on" defaultChecked={prefs[k]} className="mt-1 size-5" />
+          {/* After an error: the parent's own (unsaved) choice, not the stored one. */}
+          <input type="checkbox" name={k} value="on" defaultChecked={(state.values ?? prefs)[k]} className="mt-1 size-5" />
           <span>
             <span className="font-semibold">{t(`kinds.${k}.label`)}</span>
             <span className="block text-sm text-foreground/70">{t(`kinds.${k}.help`)}</span>

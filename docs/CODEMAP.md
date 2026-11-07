@@ -597,7 +597,11 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   from NEXTAUTH_SECRET; constant-time verify; only ever switches ONE kind OFF; no expiry), `optOutLinksFor`.
   Pages: `/parent/notifications` (PIN, "Email settings" on the dashboard), public `/unsubscribe?t=` (opening it
   changes nothing; button confirms), `POST /api/unsubscribe?t=` (RFC 8058 one-click; GET 405). E2E
-  `browser-family-notify.ts` (11). NEXT 7.2: daily digest (magic + deeds) + cutoff/pay-up reminders in the money cron.
+  `browser-family-notify.ts` (11). Review fixes: batch chunk idempotency key = hash of exactly what it sends; an
+  email that can't be built fails alone; missing RESEND_API_KEY throws (loud); token must be exactly 3 parts (Zod at
+  the route/action); unsubscribe change+audit in one transaction; settings form echoes choices on error; NOTIFY_KINDS
+  in `@repo/lib/notify` (client-safe, one list); ONE key-derivation helper `@repo/auth/purpose-key` (unlock cookie,
+  item views, unsubscribe, MFA recovery: byte-identical keys). NEXT 7.2: daily digest (magic + deeds) + cutoff/pay-up reminders in the money cron.
 
 ## Open items / TODO
 

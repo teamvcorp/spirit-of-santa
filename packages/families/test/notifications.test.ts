@@ -26,3 +26,9 @@ test("tampered tokens are refused (other family, other kind, edited signature)",
   assert.equal(readUnsubscribeToken("garbage"), null);
   assert.equal(readUnsubscribeToken(42), null);
 });
+
+test("nothing may be appended to a valid token", () => {
+  const t = unsubscribeToken(FID, "magic");
+  assert.equal(readUnsubscribeToken(`${t}.extra`), null);
+  assert.equal(readUnsubscribeToken(`${t}.`), null);
+});

@@ -18,7 +18,8 @@
     "./form": "./src/form.ts",
     "./phone": "./src/phone.ts",
     "./time": "./src/time.ts",
-    "./address": "./src/address.ts"
+    "./address": "./src/address.ts",
+    "./notify": "./src/notify.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

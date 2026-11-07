@@ -9,7 +9,8 @@
  *  - Wish lists: only aggregate totals per item ever leave this module.
  */
 import "server-only";
-import { createHmac, hkdfSync } from "node:crypto";
+import { createHmac } from "node:crypto";
+import { sessionPurposeKey } from "@repo/auth/purpose-key";
 import type { Types } from "mongoose";
 import { connectDb, Item, Store, WishListItem } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
@@ -32,9 +33,7 @@ export type Viewer = { familyId?: string; ip: string };
  * one household browsing signed out then signed in counts as two viewers.
  */
 function viewerKey(v: Viewer): string {
-  const secret = process.env.NEXTAUTH_SECRET;
-  if (!secret) throw new Error("NEXTAUTH_SECRET is not set");
-  const key = Buffer.from(hkdfSync("sha256", secret, "", "sos/item-view/v1", 32));
+  const key = sessionPurposeKey("sos/item-view/v1");
   const who = v.familyId ? `family:${v.familyId}` : `ip:${ipKey(v.ip)}`;
   return createHmac("sha256", key).update(who).digest("base64url").slice(0, 32);
 }

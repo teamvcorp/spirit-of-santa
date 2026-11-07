@@ -5,11 +5,11 @@
  * (@repo/families/notifications). GET does nothing here (link scanners prefetch with GET): people
  * use the confirmation PAGE /unsubscribe instead.
  */
-import { unsubscribe } from "@repo/families/notifications";
+import { unsubscribe, unsubscribeTokenSchema } from "@repo/families/notifications";
 
 export async function POST(request: Request): Promise<Response> {
-  const t = new URL(request.url).searchParams.get("t");
-  const kind = await unsubscribe(t);
+  const t = unsubscribeTokenSchema.safeParse(new URL(request.url).searchParams.get("t"));
+  const kind = t.success ? await unsubscribe(t.data) : null;
   // 200 either way would hide bad links from the provider; 400 tells it the link is invalid.
   return new Response(null, { status: kind ? 200 : 400, headers: { "Cache-Control": "no-store" } });
 }

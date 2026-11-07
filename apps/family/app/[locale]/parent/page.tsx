@@ -9,7 +9,8 @@ import { requireUnlockedPage } from "@/lib/parent";
 import { AliasForm, DeleteKidForm, LockButton, VoteButtons } from "./parent-forms";
 import { getFamilySettings } from "@repo/families/settings";
 import { familyTallies } from "@repo/families/votes";
-import { payUpOptions } from "@repo/wishlists/payup";
+import { payUpCount } from "@repo/wishlists/payup";
+import { getFormatter } from "next-intl/server";
 import { Alert } from "@repo/ui/alert";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,7 +22,8 @@ export async function generateMetadata(): Promise<Metadata> {
 async function Content() {
   await connection();
   const parent = await requireUnlockedPage();
-  const [kids, t, tallies, settings, payUp] = await Promise.all([listKids(parent), getTranslations("Parent"), familyTallies(parent), getFamilySettings(parent), payUpOptions(parent)]);
+  const [kids, t, tallies, settings, payUp] = await Promise.all([listKids(parent), getTranslations("Parent"), familyTallies(parent), getFamilySettings(parent), payUpCount(parent)]);
+  const format = await getFormatter();
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -33,9 +35,9 @@ async function Content() {
           <LockButton label={t("lock")} />
         </div>
       </div>
-      {payUp.options.length > 0 && (
+      {payUp.count > 0 && (
         <Alert className="mb-6">
-          <span data-testid="payup-alert">{t("payUpAlert", { count: payUp.options.length })}</span>{" "}
+          <span data-testid="payup-alert">{t("payUpAlert", { count: payUp.count, close: format.dateTime(payUp.window.closeAt, { month: "long", day: "numeric" }) })}</span>{" "}
           <Link href="/parent/payup" className="font-semibold underline underline-offset-4">
             {t("payUpLink")}
           </Link>

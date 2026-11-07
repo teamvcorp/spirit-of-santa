@@ -194,12 +194,16 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
 
     // Pay-up (Phase 6 slice 4): the gift must be THIS kid's. If it was finished or removed in the
     // meantime, the money still becomes the kid's points (filling the next gift as usual).
+    let payUpLate: string | null = null;
     if (meta.sos_purpose === "payup") {
       const w = await WishListItem.findOne({ _id: meta.sos_wish_list_item_id, kidId: meta.sos_kid_id, familyId: meta.sos_family_id })
-        .select({ _id: 1 })
+        .select({ status: 1, seasonYear: 1 })
         .session(session)
-        .lean();
+        .lean<{ status: string; seasonYear: number }>();
       if (!w) return review("payup_item_mismatch");
+      // Gift no longer waiting for money (finished by tips, paid twice, dropped at the close, or a past
+      // season): the money still becomes the kid's points, but an admin follows up (review 2026-11-06).
+      if (w.status !== "active" || w.seasonYear !== seasonYear) payUpLate = `Pay-up for a gift that was already ${w.status}: credited as the kid's points`;
     }
 
     let confirmDeed = false;
@@ -252,7 +256,7 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
       );
     }
 
-    await record("credited", { pointsCreditedCentipoints: centipoints });
+    await record("credited", { pointsCreditedCentipoints: centipoints, ...(payUpLate ? { needsReview: true, reviewReason: payUpLate } : {}) });
     return processed(`credited:${meta.sos_purpose}`);
   });
 }

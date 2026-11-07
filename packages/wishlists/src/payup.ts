@@ -19,7 +19,8 @@ import { startOfDayInZone } from "@repo/lib/season";
 import { DAY_MS } from "@repo/lib/time";
 import { getSeasonState } from "@repo/stores/season";
 
-export type PayUpWindow = { open: boolean; seasonYear: number; opensAt: Date; closesAt: Date };
+/** closesAt = end of pay-ups; closeAt = the season close (gifts drop off then). Both admin-set-date aware. */
+export type PayUpWindow = { open: boolean; seasonYear: number; opensAt: Date; closesAt: Date; closeAt: Date };
 
 /**
  * Open from the freeze DATE (never the admin's reversible force-freeze switch) until
@@ -28,9 +29,10 @@ export type PayUpWindow = { open: boolean; seasonYear: number; opensAt: Date; cl
 export async function payUpWindow(now = new Date()): Promise<PayUpWindow> {
   const s = await getSeasonState(now);
   const opensAt = startOfDayInZone(s.dates.freeze);
-  const closesAt = new Date(startOfDayInZone(s.dates.close).getTime() - PAY_UP_CLOSES_DAYS_BEFORE_CLOSE * DAY_MS);
+  const closeAt = startOfDayInZone(s.dates.close);
+  const closesAt = new Date(closeAt.getTime() - PAY_UP_CLOSES_DAYS_BEFORE_CLOSE * DAY_MS);
   const t = now.getTime();
-  return { open: s.phase === "frozen" && t >= opensAt.getTime() && t < closesAt.getTime(), seasonYear: s.year, opensAt, closesAt };
+  return { open: s.phase === "frozen" && t >= opensAt.getTime() && t < closesAt.getTime(), seasonYear: s.year, opensAt, closesAt, closeAt };
 }
 
 export type PayUpOption = {
@@ -46,8 +48,9 @@ export type PayUpOption = {
 /** Unfinished gifts of the parent's REGISTERED kids this season (shown only while the window is open). */
 export async function payUpOptions(parent: Parent, now = new Date()): Promise<{ window: PayUpWindow; options: PayUpOption[] }> {
   const window = await payUpWindow(now);
+  if (!window.open) return { window, options: [] }; // the usual case: no family lookups at all
   const fid = await ownFamilyId(parent);
-  if (!fid || !window.open) return { window, options: [] };
+  if (!fid) return { window, options: [] };
   await connectDb();
   const kids = await Kid.find({ familyId: fid, archivedAt: null, "registration.status": "registered" }).select("firstName").lean<{ _id: unknown; firstName: string }[]>();
   if (kids.length === 0) return { window, options: [] };
@@ -68,12 +71,29 @@ export async function payUpOptions(parent: Parent, now = new Date()): Promise<{ 
   };
 }
 
+/** Just the number of unfinished gifts (parent dashboard alert): cheap counts, no names. */
+export async function payUpCount(parent: Parent, now = new Date()): Promise<{ window: PayUpWindow; count: number }> {
+  const window = await payUpWindow(now);
+  if (!window.open) return { window, count: 0 };
+  const fid = await ownFamilyId(parent);
+  if (!fid) return { window, count: 0 };
+  const kids = await Kid.find({ familyId: fid, archivedAt: null, "registration.status": "registered" }).select("_id").lean<{ _id: unknown }[]>();
+  if (kids.length === 0) return { window, count: 0 };
+  const count = await WishListItem.countDocuments({ kidId: trusted({ $in: kids.map((k) => String(k._id)) }), seasonYear: window.seasonYear, status: "active" });
+  return { window, count };
+}
+
 /** Money for `missing` centipoints: $1.50/point rounded up, never below Stripe's minimum charge. */
 export function payUpCents(missingCentipoints: number): number {
   return Math.max(MIN_STRIPE_CHARGE_CENTS, centipointsToCents(missingCentipoints));
 }
 
-export type CloseResult = { seasons: number[]; dropped: number; forfeitedCentipoints: number; failed: number };
+/**
+ * failed = gifts that failed THIS run (alerts); needsAttention = gifts parked after a failure (their
+ * data needs a human, e.g. kid escrow out of sync). Parked gifts are skipped, so one bad record
+ * can't fail the daily job forever or crowd out the rest. Clearing closeNeedsAttentionAt retries it.
+ */
+export type CloseResult = { seasons: number[]; dropped: number; forfeitedCentipoints: number; failed: number; needsAttention: number };
 
 /**
  * Dec 25 close (daily money job; does nothing before a season's close): every gift of a CLOSED
@@ -86,11 +106,16 @@ export async function closeUnfunded(now = new Date()): Promise<CloseResult> {
   const s = await getSeasonState(now);
   // The newest season whose close has passed: this one once closed, otherwise last year's.
   const lastClosed = s.phase === "closed" ? s.year : s.year - 1;
-  const rows = await WishListItem.find({ status: "active", seasonYear: trusted({ $lte: lastClosed }) })
-    .select("kidId familyId seasonYear fundedCentipoints")
-    .limit(5000)
-    .lean<{ _id: unknown; kidId: unknown; familyId: unknown; seasonYear: number; fundedCentipoints: number }[]>();
-  const result: CloseResult = { seasons: [...new Set(rows.map((r) => r.seasonYear))], dropped: 0, forfeitedCentipoints: 0, failed: 0 };
+  const base = { status: "active" as const, seasonYear: trusted({ $lte: lastClosed }) };
+  const [rows, needsAttention] = await Promise.all([
+    WishListItem.find({ ...base, closeNeedsAttentionAt: null })
+      .select("kidId familyId seasonYear fundedCentipoints")
+      .sort({ _id: 1 })
+      .limit(5000)
+      .lean<{ _id: unknown; kidId: unknown; familyId: unknown; seasonYear: number; fundedCentipoints: number }[]>(),
+    WishListItem.countDocuments({ ...base, closeNeedsAttentionAt: trusted({ $ne: null }) }),
+  ]);
+  const result: CloseResult = { seasons: [...new Set(rows.map((r) => r.seasonYear))], dropped: 0, forfeitedCentipoints: 0, failed: 0, needsAttention };
   for (const r of rows) {
     try {
       await withTransaction(async (session) => {
@@ -129,6 +154,8 @@ export async function closeUnfunded(now = new Date()): Promise<CloseResult> {
       result.forfeitedCentipoints += r.fundedCentipoints;
     } catch (err) {
       result.failed += 1;
+      // Park it (outside the failed transaction) so tomorrow's run doesn't fail on it again.
+      await WishListItem.updateOne({ _id: String(r._id), status: "active" }, { $set: { closeNeedsAttentionAt: new Date() } }).catch(() => undefined);
       // Error TYPE only: driver messages can contain connection details.
       console.error("[wishlists] close of an unfunded gift failed (retried next run):", err instanceof Error ? err.name : "unknown");
     }

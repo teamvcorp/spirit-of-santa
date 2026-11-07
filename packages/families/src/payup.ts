@@ -9,7 +9,12 @@
  *    THAT gift first. If tips finished it meanwhile, the money still becomes the kid's points.
  *  - Checkout expires at min(window close, 23.5 h). Stripe only sees "Spirit O Santa gift
  *    pay-up": no child's or item's name leaves our system.
- *  - 10 checkout starts per 15 min per parent (shared counter with nothing else), counted first.
+ *  - NO DELAYED PAYMENT METHODS (bank debits, vouchers, customer balance): they settle days later,
+ *    possibly after the close when the gift has already dropped off (review 2026-11-06). Stripe SDK
+ *    v23 has no payment_method_types on Checkout, so we EXCLUDE them (docs/vendor/stripe.md). A late
+ *    payment is still credited and flagged for an admin by the webhook (second safety net).
+ *  - 20 checkout starts per 15 min per parent. The (global) window is checked BEFORE the counter,
+ *    so clicking around outside the window never locks a parent out; lookups come after it.
  */
 import "server-only";
 import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
@@ -20,6 +25,9 @@ import { MAX_CHECKOUT_MS, MIN_CHECKOUT_MS } from "@repo/lib/limits";
 import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, getStripe } from "@repo/payments/checkout";
 import { payUpCents, payUpWindow } from "@repo/wishlists/payup";
 
+/** Methods whose money arrives days later (asynchronous). Instant methods (cards, wallets) stay allowed. */
+const DELAYED_PAYMENT_METHODS = ["us_bank_account", "acss_debit", "customer_balance", "sepa_debit", "bacs_debit", "au_becs_debit", "nz_bank_account", "payto", "boleto", "oxxo", "konbini", "multibanco"] as const;
+
 export type PayUpStart =
   | { ok: true; clientSecret: string; amountCents: number }
   | { ok: false; error: "notFound" | "windowClosed" | "notNeeded" | "rateLimited" | "stripe" };
@@ -27,8 +35,10 @@ export type PayUpStart =
 export async function startPayUp(parent: Parent, rawWishId: string, origin: string, localePath: (p: string) => string): Promise<PayUpStart> {
   const wishId = normalizeObjectId(rawWishId);
   if (!wishId) return { ok: false, error: "notFound" };
-  if (!(await hitRateLimit(`payup-start:${parent.id}`, 10, 900))) return { ok: false, error: "rateLimited" };
-  const [fid, win, user] = await Promise.all([ownFamilyId(parent), payUpWindow(), User.findById(parent.id).select("email").lean()]);
+  const win = await payUpWindow();
+  if (!win.open) return { ok: false, error: "windowClosed" };
+  if (!(await hitRateLimit(`payup-start:${parent.id}`, 20, 900))) return { ok: false, error: "rateLimited" };
+  const [fid, user] = await Promise.all([ownFamilyId(parent), User.findById(parent.id).select("email").lean()]);
   if (!fid) return { ok: false, error: "notFound" };
   const w = await WishListItem.findOne({ _id: wishId, familyId: fid })
     .select("kidId status seasonYear costCentipoints fundedCentipoints")
@@ -37,7 +47,7 @@ export async function startPayUp(parent: Parent, rawWishId: string, origin: stri
   const kid = await Kid.findOne({ _id: String(w.kidId), familyId: fid, archivedAt: null, "registration.status": "registered" }).select("_id").lean();
   if (!kid) return { ok: false, error: "notFound" };
   const endsAt = Math.min(win.closesAt.getTime(), Date.now() + MAX_CHECKOUT_MS);
-  if (!win.open || w.seasonYear !== win.seasonYear || endsAt - Date.now() < MIN_CHECKOUT_MS) return { ok: false, error: "windowClosed" };
+  if (w.seasonYear !== win.seasonYear || endsAt - Date.now() < MIN_CHECKOUT_MS) return { ok: false, error: "windowClosed" };
   if (w.status !== "active" || w.fundedCentipoints >= w.costCentipoints) return { ok: false, error: "notNeeded" };
   const amountCents = payUpCents(w.costCentipoints - w.fundedCentipoints);
 
@@ -46,6 +56,7 @@ export async function startPayUp(parent: Parent, rawWishId: string, origin: stri
     const session = await getStripe().checkout.sessions.create({
       ui_mode: "embedded_page",
       mode: "payment",
+      excluded_payment_method_types: [...DELAYED_PAYMENT_METHODS],
       expires_at: Math.floor(endsAt / 1000),
       line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: amountCents, product_data: { name: "Spirit O Santa gift pay-up" } } }],
       // Metadata on BOTH the session and the PaymentIntent (the webhook reads the PaymentIntent).

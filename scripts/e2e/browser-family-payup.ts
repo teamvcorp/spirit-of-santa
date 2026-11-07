@@ -150,19 +150,29 @@ try {
   const px = await Payment.findOne({ stripePaymentIntentId: piX }).lean();
   check("webhook: pay-up naming another kid's gift → flagged for review, no points", px?.fulfilment === "review" && (await Kid.findById(kid._id).lean())?.escrowedCentipoints === 2000);
 
+  // 3b. Paying the (now locked) Book again: credited as points but FLAGGED for an admin.
+  const piDup = await paid(book, kid._id, A.family._id, 1500);
+  const pd = await Payment.findOne({ stripePaymentIntentId: piDup }).lean();
+  check("duplicate pay-up for a finished gift: credited AND flagged for review", pd?.fulfilment === "credited" && pd.needsReview === true && /already locked/.test(pd.reviewReason ?? ""));
+  // The 10 duplicate points flowed to the next unfinished gift (the Bike): reflect that in later checks.
+  const bikeAfterDup = (await get(bike))?.fundedCentipoints ?? 0;
+
   // 4. Window closes 7 days before the close.
   await setDates(dayIso(0), dayIso(6));
   const late = await startPayUp(parentA, bike, base, (p) => p);
   check("within 7 days of the close: pay-up refused", !late.ok && late.error === "windowClosed");
 
-  // 5. Close day: the unfinished Bike drops off; its 10 points go to Spirit O Santa. Locked Book stays.
+  // 5. Close day: the unfinished Bike drops off; ALL points on it (10 + the 10 from the duplicate pay-up)
+  // go to Spirit O Santa. The locked Book stays. A gift whose kid escrow is out of sync is PARKED.
+  const bad = await mkWish(other, bookItem, 1000, 500, 3); // claims 5 points the other kid never had
   await setDates(dayIso(-1), dayIso(0));
   const c1 = await closeUnfunded();
-  const [cBike, cBook, k2, forfeit] = await Promise.all([get(bike), get(book), Kid.findById(kid._id).lean(), Transaction.findOne({ wishListItemId: bike, type: "forfeit" }).lean()]);
-  check("close: unfinished gift → 'unfunded', 10 points forfeited (ledger 'forfeit')", cBike?.status === "unfunded" && cBike.forfeitedCentipoints === 1000 && forfeit?.amountCentipoints === 1000 && c1.failed === 0);
-  check("close: kid escrow down by exactly the forfeit; the funded gift is untouched", k2?.escrowedCentipoints === 1000 && cBook?.status === "locked");
+  const [cBike, cBook, k2, forfeit] = await Promise.all([get(bike), get(book), Kid.findById(kid._id).lean(), Transaction.findOne({ wishListItemId: bike, type: 'forfeit' }).lean()]);
+  check('close: unfinished gift → unfunded, all its points forfeited (ledger forfeit)', bikeAfterDup === 2000 && cBike?.status === 'unfunded' && cBike.forfeitedCentipoints === 2000 && forfeit?.amountCentipoints === 2000);
+  check('close: kid escrow down by exactly the forfeit; the funded gift is untouched', k2?.escrowedCentipoints === 1000 && cBook?.status === 'locked');
+  check('close: an out-of-sync gift fails ONCE and is parked for a human', c1.failed === 1 && !!(await get(bad))?.closeNeedsAttentionAt && (await get(bad))?.status === 'active');
   const c2 = await closeUnfunded();
-  check("close re-run: nothing forfeited twice", (await Transaction.countDocuments({ wishListItemId: bike, type: "forfeit" })) === 1 && (await Kid.findById(kid._id).lean())?.escrowedCentipoints === 1000 && c2.failed === 0);
+  check('close re-run: nothing forfeited twice; the parked gift no longer fails the job', (await Transaction.countDocuments({ wishListItemId: bike, type: 'forfeit' })) === 1 && (await Kid.findById(kid._id).lean())?.escrowedCentipoints === 1000 && c2.failed === 0 && c2.needsAttention >= 1);
 
   // 6. The ledger still explains the kid's balances exactly.
   const rows = await Transaction.find({ kidId: kid._id }).lean();

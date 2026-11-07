@@ -548,7 +548,12 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   usual. Parent `/parent/payup` (PIN, in safeNext) + `/return`; dashboard alert while gifts are unfinished.
   Dec 25: `closeUnfunded` (money cron, wishLists step, BEFORE the Jan 1 reset): every "active" gift of a closed
   season → "unfunded", ledger `forfeit` (idempotencyKey forfeit:<id>), kid escrow −funded (compare-and-set ≥;
-  refuses + alerts if escrow is out of sync). Cron alerts when any close fails. E2E `browser-family-payup.ts` (17).
+  refuses + alerts if escrow is out of sync). Cron alerts when any close fails. E2E `browser-family-payup.ts` (19).
+  Review fixes: pay-up Checkout EXCLUDES delayed methods (bank debits/vouchers: v23 has no payment_method_types);
+  webhook credits a pay-up for a gift no longer "active" (or another season) but sets needsReview; a gift that fails
+  to close is PARKED (closeNeedsAttentionAt, counted as needsAttention, skipped after) so one bad record can't fail
+  the job daily; texts show the REAL close date ({close}); dashboard uses `payUpCount`; window checked before the
+  rate limit (20/15 min); cron log names digest/notices/close failures.
   Slice 4b NEXT: delivery address (user chose to COLLECT it: PIN, encrypted at rest, deleted after delivery).
 
 ## Open items / TODO

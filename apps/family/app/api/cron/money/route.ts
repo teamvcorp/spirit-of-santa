@@ -75,7 +75,7 @@ export async function GET(request: Request): Promise<Response> {
   const closeFailed = wishLists.status === "fulfilled" && wishLists.value.closed.failed > 0;
   const failed = digestFailed || noticesFailed || closeFailed || [split, seasonEnd, payLater, wishLists, storeOrders, familyNotices, receipts].some((r) => r.status === "rejected");
   if (failed) {
-    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, receipts: receipts.status }));
+    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, receipts: receipts.status, digestFailed, noticesFailed, closeFailed }));
     return Response.json(result, { status: 500, headers: { "Cache-Control": "no-store" } });
   }
   console.info("[cron] donations", JSON.stringify(result)); // totals/counts only, no personal data

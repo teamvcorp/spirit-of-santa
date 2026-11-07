@@ -153,7 +153,7 @@
     "aliasPending": "Waiting for a quick check by our team before it's shown publicly.",
     "aliasRejected": "Our team didn't approve this nickname. Please choose another (no real names).",
     "giveBonus": "Give bonus magic",
-    "payUpAlert": "{count, plural, one {# gift isn't fully funded yet.} other {# gifts aren't fully funded yet.}} You can finish them before the deadline, or they drop off on December 25.",
+    "payUpAlert": "{count, plural, one {# gift isn't fully funded yet.} other {# gifts aren't fully funded yet.}} You can finish them before the deadline, or they drop off on {close}.",
     "payUpLink": "Finish gifts"
   },
   "Register": {
@@ -386,7 +386,7 @@
   "PayUp": {
     "title": "Finish gifts",
     "intro": "Pay the points a gift still needs ({rate} = 1 point) and it's set for Christmas: it ships like any other gift.",
-    "deadline": "You can finish gifts until {closes}. Gifts that still aren't fully funded on December 25 drop off the list, and the points on them go to Spirit O Santa.",
+    "deadline": "You can finish gifts until {closes}. Gifts that still aren't fully funded on {close} drop off the list, and the points on them go to Spirit O Santa.",
     "closed": "Finishing gifts is possible from {opens} until {closes}.",
     "none": "Every gift on your children's lists is fully funded. Nothing to do!",
     "missing": "Needs {points} more points: {amount}",
@@ -394,7 +394,7 @@
     "buttonFor": "Finish {item} for {kid}",
     "total": "To pay: {amount}",
     "back": "Parent area",
-    "credited": "Thank you! The gift is funded.",
+    "credited": "Thank you! Your payment was added as points and went to the gift you chose (or, if it was already finished, to your child's next gift).",
     "processing": "Thank you! Your payment is being confirmed; the gift will be funded shortly.",
     "review": "We got your payment. Our team will check it before the points are added.",
     "notPaid": "The payment wasn't completed. You haven't been charged.",

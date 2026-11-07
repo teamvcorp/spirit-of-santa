@@ -29,7 +29,7 @@ async function Content() {
   if (!window.open) return <Alert>{t("closed", { opens: day(window.opensAt), closes: day(window.closesAt) })}</Alert>;
   return (
     <>
-      <Alert className="mb-4">{t("deadline", { closes: day(window.closesAt) })}</Alert>
+      <Alert className="mb-4">{t("deadline", { closes: day(window.closesAt), close: day(window.closeAt) })}</Alert>
       {options.length === 0 ? (
         <p className="text-foreground/70">{t("none")}</p>
       ) : (

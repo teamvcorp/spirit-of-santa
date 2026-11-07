@@ -221,6 +221,40 @@ Where magic points become Christmas presents.
 - [ ] Cross-browser and cross-device testing (iOS Safari, Android Chrome, desktop Chrome/Firefox)
 - [ ] Accessibility pass: WCAG 2.1 AA for family-facing pages (kids + parents)
 
+## Phase 8.5 — UI & Visual Design
+
+**Sep 2027 (or earlier: development is running months ahead)**
+
+A phase of ONLY look and feel: no new features, no changes to business rules or money logic.
+Every screen keeps its current behaviour; the end-to-end tests must stay green after each change.
+
+**Visual identity**
+
+- [ ] Logo, colour palette, typography and illustration style: festive and kid-friendly, but trustworthy for parents and stores
+- [ ] Design tokens in `packages/ui` (colours, spacing, radius, shadows, type scale) as the single source for all three apps
+
+**Shared design system (`packages/ui`)**
+
+- [ ] Restyle the shared components: buttons, cards, forms, alerts, navigation, tables, progress bars, badges
+- [ ] Consistent empty, loading and error states on every page
+- [ ] Gentle motion and "celebration" moments (e.g. a gift becomes fully funded), respecting reduced-motion settings
+
+**Per app**
+
+- [ ] Family app, kid screens: playful, big touch targets, gift photos, friendly progress and status
+- [ ] Family app, parent screens: calm and clear (PIN, payments, pay-ups, settings)
+- [ ] Store app: clean dashboard, Orders and Items pages that are quick to scan
+- [ ] Admin app: dense but readable work queues (stores, deeds, fulfilment, donations)
+- [ ] Public pages (home, donate, deed QR page, legal pages): a first impression that builds trust
+
+**Everywhere**
+
+- [ ] Phone-first layouts checked on small phones, tablets and desktop
+- [ ] Email templates match the new look (all transactional emails)
+- [ ] Wording pass in English and Spanish (short, warm, consistent)
+- [ ] Visual accessibility: WCAG 2.1 AA contrast, visible focus, readable text sizes
+- [ ] Before/after screenshots of every page for sign-off
+
 ## Phase 9 — Beta Launch & Live Season
 
 **Oct 1 – Dec 25, 2027**
@@ -249,6 +283,7 @@ Where magic points become Christmas presents.
 | Aug 31, 2027 | Wish List & Fulfillment live (Phase 6) | PWA phase |
 | Sep 15, 2027 | PWA + Push Notifications live (Phase 7) | QA phase |
 | Sep 30, 2027 | QA, COPPA sign-off, Spanish complete (Phase 8) | Launch |
+| Sep 30, 2027 | UI & visual design complete (Phase 8.5) | Launch |
 | Oct 1, 2027 | 🎅 Season opens — beta launch | — |
 | Nov 1, 2027 | Full public launch | — |
 | Dec 1, 2027 | Wish list freeze | — |

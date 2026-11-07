@@ -13,17 +13,17 @@ async function Cta() {
   const t = await getTranslations("HomePage");
   if (user) {
     return (
-      <Link href="/dashboard" className={buttonClass("primary", "px-6 py-3")}>
+      <Link href="/dashboard" className={buttonClass("primary", undefined, "lg")}>
         {t("dashboard")}
       </Link>
     );
   }
   return (
     <div className="flex flex-wrap justify-center gap-3">
-      <Link href="/register" className={buttonClass("primary", "px-6 py-3")}>
+      <Link href="/register" className={buttonClass("primary", undefined, "lg")}>
         {t("register")}
       </Link>
-      <Link href="/signin" className={buttonClass("secondary", "px-6 py-3")}>
+      <Link href="/signin" className={buttonClass("secondary", undefined, "lg")}>
         {t("signIn")}
       </Link>
     </div>

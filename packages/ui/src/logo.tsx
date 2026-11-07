@@ -13,8 +13,9 @@ import { cn } from "./cn.ts";
 export function LogoMark({ size = 32, className }: { size?: number; className?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 34 34" aria-hidden="true" className={className}>
-      <circle cx="17" cy="17" r="16" fill="#E0A526" />
-      <path d="M17 7l2.6 6.2 6.6.5-5 4.3 1.6 6.5L17 21l-5.8 3.5 1.6-6.5-5-4.3 6.6-.5z" fill="#1B2A4A" />
+      {/* Colours from the theme tokens (theme.css), so a palette change reaches the logo too. */}
+      <circle cx="17" cy="17" r="16" style={{ fill: "var(--color-gold)" }} />
+      <path d="M17 7l2.6 6.2 6.6.5-5 4.3 1.6 6.5L17 21l-5.8 3.5 1.6-6.5-5-4.3 6.6-.5z" style={{ fill: "var(--color-night)" }} />
     </svg>
   );
 }

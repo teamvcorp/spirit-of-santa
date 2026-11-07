@@ -14,7 +14,7 @@ export function ReviewButtons({ id, kind = "deed" }: { id: string; kind?: "deed"
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="decision" value={decision} />
       <input type="hidden" name="kind" value={kind} />
-      <Button type="submit" variant={variant} pending={pending} disabled={!hydrated} className="min-h-9 px-3 py-1 text-sm">
+      <Button type="submit" variant={variant} pending={pending} disabled={!hydrated} size="sm">
         {label}
       </Button>
     </form>

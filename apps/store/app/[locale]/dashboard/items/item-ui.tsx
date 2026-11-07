@@ -189,7 +189,7 @@ export function InventoryForm({ itemId, inventory, label }: { itemId: string; in
         aria-describedby={`${id}-status`}
         className="min-h-9 w-20 rounded-lg border border-input bg-background px-2"
       />
-      <Button type="submit" variant="secondary" pending={pending} disabled={!hydrated} className="min-h-9 px-2 text-sm" aria-label={t("updateStockFor", { name: label })}>
+      <Button type="submit" variant="secondary" pending={pending} disabled={!hydrated} size="sm" aria-label={t("updateStockFor", { name: label })}>
         {t("updateStock")}
       </Button>
       <span id={`${id}-status`} role="status" aria-live="polite" className={`text-sm ${isError ? "text-danger" : ""}`}>
@@ -258,7 +258,7 @@ export function ItemPhoto({ itemId, photo, canEdit, alt }: { itemId: string; pho
               }}
             >
               <input type="hidden" name="itemId" value={itemId} />
-              <Button type="submit" variant="ghost" pending={rmPending} disabled={!hydrated} className="px-0">
+              <Button type="submit" variant="ghost" pending={rmPending} disabled={!hydrated} size="inline">
                 {p("removePhoto")}
               </Button>
             </form>

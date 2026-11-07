@@ -92,7 +92,7 @@ function RemoveRepButton({ repId, name, onDone }: { repId: string; name: string;
       className="flex flex-col items-end gap-1"
     >
       <input type="hidden" name="repId" value={repId} />
-      <Button type="submit" variant="secondary" pending={pending} disabled={!hydrated} className="min-h-9 px-3 text-sm" aria-label={`${t("remove")}: ${name}`}>
+      <Button type="submit" variant="secondary" pending={pending} disabled={!hydrated} size="sm" aria-label={`${t("remove")}: ${name}`}>
         {t("remove")}
       </Button>
       {state.status === "error" && state.error && (

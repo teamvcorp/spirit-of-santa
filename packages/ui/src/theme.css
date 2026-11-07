@@ -24,14 +24,22 @@
  *          focus #F5C451 10.61 · meter #3AA96D on surface 5.11
  * Gold (#E0A526) is a BACKGROUND colour only (night text on it); never gold text on white.
  */
-@theme {
+/* Fixed palette: "static" = always emitted as CSS variables (the logo reads them directly). */
+@theme static {
   --color-night: #1b2a4a;
   --color-night-deep: #0f1a33;
   --color-snow: #f8fafc;
   --color-gold: #e0a526;
   --color-gold-light: #f5c451;
   --color-berry: #c8102e;
+}
 
+/*
+ * ROLE tokens are "inline": utilities read the variable where they are USED, so any element can
+ * re-scope them for its children (the night SiteHeader does). A plain @theme would resolve them once
+ * at :root and a scope would silently do nothing (review 2026-11-06).
+ */
+@theme inline {
   --color-surface: var(--surface);
   --color-muted: var(--muted);
   --color-primary: var(--primary);
@@ -43,9 +51,7 @@
   --color-danger: var(--danger);
   --color-input: var(--input-border);
   --color-meter: var(--meter);
-}
-
-@theme inline {
+  --shadow-card: var(--card-shadow);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
@@ -68,6 +74,7 @@
   --focus: #1b2a4a;
   --input-border: #6b7a99;
   --meter: #1f6a4a;
+  --card-shadow: 0 8px 24px rgb(27 42 74 / 0.08);
   color-scheme: light;
 }
 
@@ -87,6 +94,7 @@
     --focus: #f5c451;
     --input-border: #8fa3c7;
     --meter: #3aa96d;
+    --card-shadow: 0 10px 28px rgb(0 0 0 / 0.38);
     color-scheme: dark;
   }
 }

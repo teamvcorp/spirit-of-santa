@@ -19,10 +19,10 @@ async function Personal() {
   if (user?.role !== "parent") {
     return (
       <div className="flex flex-wrap justify-center gap-3">
-        <Link href="/register" className={buttonClass("festive", "px-6 py-3")}>
+        <Link href="/register" className={buttonClass("festive", undefined, "lg")}>
           {t("signUp")}
         </Link>
-        <Link href="/signin" className="rounded-lg border border-current px-5 py-3 font-semibold">
+        <Link href="/signin" className={buttonClass("secondary", undefined, "lg")}>
           {t("signIn")}
         </Link>
       </div>

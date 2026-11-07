@@ -5,7 +5,7 @@ import { cn } from "./cn.ts";
 export function Card({ className, ...rest }: HTMLAttributes<HTMLElement>) {
   return (
     <section
-      className={cn("rounded-3xl border border-foreground/10 bg-surface p-6 shadow-[0_8px_24px_rgba(27,42,74,0.07)]", className)}
+      className={cn("rounded-3xl border border-foreground/10 bg-surface p-6 shadow-card", className)}
       {...rest}
     />
   );

@@ -140,7 +140,7 @@ export function VoteButtons({ kidId, name, today }: { kidId: string; name: strin
           <form key={v} action={action}>
             <input type="hidden" name="kidId" value={kidId} />
             <input type="hidden" name="vote" value={v} />
-            <Button type="submit" variant={today === v ? "primary" : "secondary"} aria-pressed={today === v} pending={pending} disabled={!hydrated} className="min-h-9 px-3 py-1 text-sm">
+            <Button type="submit" variant={today === v ? "primary" : "secondary"} aria-pressed={today === v} pending={pending} disabled={!hydrated} size="sm">
               {t(`vote.${v}`)}
             </Button>
           </form>

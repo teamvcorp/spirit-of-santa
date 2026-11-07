@@ -21,11 +21,13 @@ export type AppIconTheme = {
   foreground: string;
 };
 
-const GOLD = "#e0a526"; // --color-gold in theme.css (Winter Night)
+// Rendered PNGs can't read CSS variables: these MUST match theme.css (--color-gold, --color-night,
+// --color-night-deep, --color-berry). Winter Night, Phase 8.5.
+const GOLD = "#e0a526";
 export const APP_ICON_THEMES = {
-  family: { background: "#b3261e", foreground: GOLD },
-  store: { background: "#1f6f43", foreground: GOLD },
-  admin: { background: "#2b2b2b", foreground: GOLD },
+  family: { background: "#1b2a4a", foreground: GOLD },
+  store: { background: "#0f1a33", foreground: GOLD },
+  admin: { background: "#c8102e", foreground: "#f8fafc" },
 } satisfies Record<string, AppIconTheme>;
 
 /** Sizes for `generateImageMetadata` in app/icon.tsx → served at /icon/<id>. */

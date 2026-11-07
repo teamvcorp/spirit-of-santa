@@ -59,7 +59,7 @@ export function DeedRowActions({ id, active, first, last, title }: { id: string;
     <form action={action}>
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="op" value={name} />
-      <Button type="submit" variant="secondary" pending={pending} disabled={!hydrated} aria-label={aria} className="min-h-9 px-3 py-1 text-sm">
+      <Button type="submit" variant="secondary" pending={pending} disabled={!hydrated} aria-label={aria} size="sm">
         {label}
       </Button>
     </form>

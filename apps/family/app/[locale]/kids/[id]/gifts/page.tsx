@@ -95,7 +95,7 @@ async function Content({ params, searchParams }: Pick<Props, "params" | "searchP
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="gift-grid">
           {result.items.map((g) => (
             <li key={g.id}>
-              <Link href={`/kids/${kid.id}/gifts/${g.id}`} className="flex h-full flex-col overflow-hidden rounded-xl border border-foreground/10 bg-background hover:border-accent focus-visible:border-accent">
+              <Link href={`/kids/${kid.id}/gifts/${g.id}`} className="flex h-full flex-col overflow-hidden rounded-2xl border border-foreground/10 bg-surface shadow-card hover:border-accent focus-visible:border-accent">
                 {g.photoUrl ? (
                   <Image src={g.photoUrl} alt={t("photoAlt", { name: g.name })} width={400} height={300} className="aspect-[4/3] w-full object-cover" />
                 ) : (

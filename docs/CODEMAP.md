@@ -634,6 +634,10 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   SiteHeader = night bar in both modes; it RE-SCOPES --foreground/--muted/--focus so anything placed in it stays
   readable. No more brand-red/green classes anywhere. Test fixes: browser-store-dashboard reads main:visible and
   waits for the re-rendered invite list (it failed before 8.5 too: a race, not the app).
+  Review fixes: ROLE tokens are `@theme inline` (read where used) so a scope works; SiteHeader re-scopes the FULL
+  night palette (primary/surface/input/accent-text/danger too); fixed palette is `@theme static` (always emitted: the
+  logo reads var(--color-gold/night)); Button/buttonClass have a SIZE (sm/md/lg/inline) owning height+padding, extra
+  classes are layout-only; `shadow-card` token (mode-aware); app icons Winter Night (hexes must match theme.css).
 
 ## Open items / TODO
 

@@ -37,7 +37,7 @@ function RemovePhoto({ pathname, label, onDone }: { pathname: string; label: str
   return (
     <form action={formAction} className="flex flex-col gap-1">
       <input type="hidden" name="pathname" value={pathname} />
-      <Button type="submit" variant="ghost" pending={pending} disabled={!hydrated} className="min-h-9 self-start px-2 text-sm">
+      <Button type="submit" variant="ghost" pending={pending} disabled={!hydrated} size="sm" className="self-start">
         {label}
       </Button>
       {state.status === "error" && state.error && (

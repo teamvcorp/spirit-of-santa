@@ -606,6 +606,7 @@
         "paidOn": "Elige la fecha en que se envió el dinero.",
         "note": "La nota debe tener menos de 300 caracteres (sin caracteres especiales)."
       }
-    }
+    },
+    "withoutAmount": "{count, plural, one {# regalo recibido queda} other {# regalos recibidos quedan}} fuera de las cifras mayoristas y del margen: la tienda todavía no tiene descuento registrado."
   }
 }

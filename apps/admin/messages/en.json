@@ -606,6 +606,7 @@
         "paidOn": "Choose the date the money was sent.",
         "note": "Keep the note under 300 characters (no special characters)."
       }
-    }
+    },
+    "withoutAmount": "{count, plural, one {# received gift is} other {# received gifts are}} left out of the wholesale and margin figures: the store has no discount on record yet."
   }
 }

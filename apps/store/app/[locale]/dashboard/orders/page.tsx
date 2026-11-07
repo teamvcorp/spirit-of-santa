@@ -29,7 +29,7 @@ async function Content() {
   const { user, store, isOwner } = await loadMember();
   if (!store) return <NoAccess />;
   // store._id comes from loadMember (membership checked in the DB), never from the request.
-  const [orders, t, format, pay] = await Promise.all([storeOrders({ id: user.id, role: user.role, storeId: user.storeId }), getTranslations("Orders"), getFormatter(), storePayoutView(store._id)]);
+  const [orders, t, format, pay] = await Promise.all([storeOrders({ id: user.id, role: user.role, storeId: user.storeId }), getTranslations("Orders"), getFormatter(), isOwner ? storePayoutView(store._id) : null]);
   if (!orders) return <NoAccess />;
   const day = (d: Date | null) => (d ? format.dateTime(new Date(d), { month: "short", day: "numeric" }) : "");
   const line = (r: OrderRow) => (
@@ -99,9 +99,12 @@ async function Content() {
         </Card>
       )}
 
+      {/* OWNER only: wholesale amounts reveal the store's discount (reps don't see them anywhere). */}
+      {pay && (
       <Card className="mb-6" data-testid="payments">
         <h2 className="mb-2 text-lg font-semibold">{t("paymentsTitle")}</h2>
         {pay.owedCount > 0 && <p className="mb-3" data-testid="owed-now">{t("owedNow", { amount: formatCents(pay.owedCents), count: pay.owedCount })}</p>}
+        {pay.pendingCount > 0 && <p className="mb-3 text-sm text-foreground/70">{t("owedPending", { count: pay.pendingCount })}</p>}
         {pay.payouts.length === 0 ? (
           <p className="text-foreground/70">{t("noPayments")}</p>
         ) : (
@@ -114,6 +117,7 @@ async function Content() {
           </ul>
         )}
       </Card>
+      )}
 
       <Card data-testid="shipped">
         <h2 className="mb-3 text-lg font-semibold">{t("shippedTitle")}</h2>

@@ -6,10 +6,16 @@
  * Returns null when the store has no discount on record (admin must set it before paying).
  */
 import "server-only";
-import { Store } from "@repo/db";
+import { Store, type DbSession } from "@repo/db";
 import { wholesaleCents } from "@repo/lib/store";
 
-export async function owedForGift(storeId: unknown, costCentipoints: number): Promise<number | null> {
-  const store = await Store.findById(String(storeId)).select("discountBps").lean<{ discountBps?: number | null }>();
-  return typeof store?.discountBps === "number" ? wholesaleCents(costCentipoints, store.discountBps) : null;
+export async function owedForGift(storeId: unknown, costCentipoints: number, session?: DbSession): Promise<number | null> {
+  const q = Store.findById(String(storeId)).select("discountBps");
+  const store = await (session ? q.session(session) : q).lean<{ discountBps?: number | null }>();
+  return owedAt(store?.discountBps, costCentipoints);
+}
+
+/** Same formula when the discount is already loaded (bulk fills). */
+export function owedAt(discountBps: number | null | undefined, costCentipoints: number): number | null {
+  return typeof discountBps === "number" ? wholesaleCents(costCentipoints, discountBps) : null;
 }

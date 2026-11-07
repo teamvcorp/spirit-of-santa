@@ -269,6 +269,7 @@
       "check": "check",
       "bank_transfer": "bank transfer",
       "other": "other"
-    }
+    },
+    "owedPending": "{count, plural, one {# more gift is} other {# more gifts are}} received and waiting for Spirit O Santa to confirm your discount."
   }
 }

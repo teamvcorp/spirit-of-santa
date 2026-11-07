@@ -20,7 +20,7 @@
  */
 import "server-only";
 import { createHash } from "node:crypto";
-import { AuditLog, connectDb, Family, Item, Kid, PlatformSettings, Store, trusted, User, WishListItem, withTransaction } from "@repo/db";
+import { AuditLog, connectDb, Family, Item, Kid, PlatformSettings, Store, trusted, User, WishListItem, withTransaction, type DbSession } from "@repo/db";
 import { sendEmail } from "@repo/email";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { localizePath } from "@repo/i18n/paths";
@@ -437,14 +437,16 @@ async function adminStep(
   adminId: string,
   id: string,
   from: Record<string, unknown>,
-  set: Record<string, unknown>,
+  set: Record<string, unknown> | ((session: DbSession) => Promise<Record<string, unknown>>),
   unset: Record<string, 1>,
   action: "wish.substitute" | "wish.receive" | "wish.deliver",
   details: Record<string, unknown>,
 ): Promise<AdminStepResult> {
   await connectDb();
   return withTransaction(async (session): Promise<AdminStepResult> => {
-    const res = await WishListItem.updateOne({ _id: id, ...from }, { $set: set, ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { session, runValidators: true });
+    // A function = values read INSIDE this transaction (e.g. the store discount for the amount owed).
+    const fields = typeof set === "function" ? await set(session) : set;
+    const res = await WishListItem.updateOne({ _id: id, ...from }, { $set: fields, ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { session, runValidators: true });
     if (res.modifiedCount !== 1) return { ok: false, error: (await WishListItem.exists({ _id: id }).session(session)) ? "changed" : "notFound" };
     await AuditLog.create([{ actorUserId: adminId, action, targetType: "wish_list_item", targetId: id, details }], { session });
     return { ok: true };
@@ -477,11 +479,19 @@ export function arrangeSubstitute(adminId: string, rawId: string, note: string, 
 export async function markReceived(adminId: string, rawId: string, now = new Date()): Promise<AdminStepResult> {
   const id = normalizeObjectId(rawId);
   if (!id) return notFound;
-  await connectDb();
-  const w = await WishListItem.findById(id).select("storeId costCentipoints").lean<{ storeId: unknown; costCentipoints: number }>();
-  if (!w) return notFound;
-  const owed = await owedForGift(w.storeId, w.costCentipoints);
-  return adminStep(adminId, id, { status: "shipped", receivedAt: null }, { receivedAt: now, receivedByUserId: adminId, ...(owed !== null ? { payoutOwedCents: owed } : {}) }, {}, "wish.receive", { owedCents: owed });
+  return adminStep(
+    adminId,
+    id,
+    { status: "shipped", receivedAt: null },
+    async (session) => {
+      const w = await WishListItem.findById(id).select("storeId costCentipoints").session(session).lean<{ storeId: unknown; costCentipoints: number }>();
+      const owed = w ? await owedForGift(w.storeId, w.costCentipoints, session) : null;
+      return { receivedAt: now, receivedByUserId: adminId, ...(owed !== null ? { payoutOwedCents: owed } : {}) };
+    },
+    {},
+    "wish.receive",
+    {},
+  );
 }
 
 /**

@@ -579,8 +579,13 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   (collected by purpose − refunds/lost disputes − wholesale for received gifts = net; wholesale margin; breakage =
   season_reset + forfeit points at $1.50; Stripe fees NOT included). Admin `/payouts` (?year=, confirm box with the
   exact amount; action refuses if the amount changed since the page loaded; success = redirect ?paid=<id> because
-  the store's row disappears). Store Orders page: "Payments from Spirit O Santa". E2E `browser-admin-payouts.ts` (17).
-  **PHASE 6 buildable scope COMPLETE** (pending review fixes).
+  the store's row disappears). Store Orders page: "Payments from Spirit O Santa". E2E `browser-admin-payouts.ts` (19).
+  Review fixes: confirmed amount (seenCents) compared INSIDE the payout transaction; concurrent payout → "changed"
+  (PayoutChanged, not a 500); action input via Zod; amount owed fixed INSIDE the receive transaction (adminStep accepts
+  a set-factory run with the session); fillMissingAmounts = distinct stores WITH a discount + bulkWrite (no N+1, no
+  starvation); seasonMoney leaves unpriced gifts OUT (withoutAmount, page warns); payout seasonYears[]; store Payments
+  card is OWNER-only (wholesale reveals the discount), shows pendingCount.
+  **PHASE 6 COMPLETE (2026-11-06).**
 
 ## Open items / TODO
 

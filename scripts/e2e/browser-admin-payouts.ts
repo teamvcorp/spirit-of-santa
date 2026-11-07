@@ -72,6 +72,9 @@ try {
   for (const g of [a1, a2, b1]) await markReceived(admin.id, g);
   const [w1, w2, wb] = await Promise.all([a1, a2, b1].map((g) => WishListItem.findById(g).lean()));
   check("received gifts are owed at price − store discount (fixed at receipt)", w1?.payoutOwedCents === 2000 && w2?.payoutOwedCents === 800 && wb?.payoutOwedCents == null);
+  const mid = await seasonMoney(year);
+  check("a gift with no amount yet is LEFT OUT of wholesale/margin (not counted as $0) and flagged",
+    mid.gifts.withoutAmount - before.gifts.withoutAmount === 1 && mid.gifts.retailCents - before.gifts.retailCents === 3500 && mid.wholesaleMarginCents - before.wholesaleMarginCents === 700);
 
   // 2. Admin page: store A owed $28 for 2 gifts; store B blocked (no discount).
   await page.goto(`${base}/signin`);
@@ -124,6 +127,10 @@ try {
   await Store.collection.updateOne({ _id: storeB }, { $set: { discountBps: 1000 } });
   const owedB = (await owedByStore()).find((o) => o.storeId === String(storeB));
   check("once store B has a discount, its gift's amount is filled in (600 − 10% = 540)", owedB?.owedCents === 540 && owedB.missingAmount === 0);
+  // Two admins pay store B at the same moment: exactly one payout, the other is told it changed.
+  const both = await Promise.all([1, 2].map(() => recordPayout(admin.id, String(storeB), { method: "check", reference: "", paidOn: "2026-11-06", note: "" }, 540)));
+  check("simultaneous payouts: exactly one recorded, the other refused (no error page)",
+    both.filter((r) => r.ok).length === 1 && both.some((r) => !r.ok && (r.error === "changed" || r.error === "nothingOwed")) && (await StorePayout.countDocuments({ storeId: storeB })) === 1);
 
   // 6. Store app view (storeId from the member's own store).
   const view = await storePayoutView(storeA);

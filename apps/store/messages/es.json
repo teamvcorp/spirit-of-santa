@@ -269,6 +269,7 @@
       "check": "cheque",
       "bank_transfer": "transferencia bancaria",
       "other": "otro"
-    }
+    },
+    "owedPending": "{count, plural, one {# regalo más está recibido} other {# regalos más están recibidos}} y esperan a que Spirit O Santa confirme tu descuento."
   }
 }

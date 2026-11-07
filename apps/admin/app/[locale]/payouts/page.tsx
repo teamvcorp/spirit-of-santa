@@ -92,6 +92,7 @@ async function Content({ searchParams }: Pick<Props, "searchParams">) {
           {row(t("paidVsOwed", { paid: formatCents(money.gifts.wholesalePaidCents) }), money.gifts.wholesaleOwedCents, "still-owed")}
           {row(t("breakage", { reset: formatPoints(money.breakage.resetCentipoints), forfeit: formatPoints(money.breakage.forfeitCentipoints) }), money.breakage.valueCents, "breakage")}
         </dl>
+        {money.gifts.withoutAmount > 0 && <Alert tone="error" className="mt-3">{t("withoutAmount", { count: money.gifts.withoutAmount })}</Alert>}
         <p className="mt-3 text-xs text-foreground/70">{t("moneyNote")}</p>
       </Card>
 

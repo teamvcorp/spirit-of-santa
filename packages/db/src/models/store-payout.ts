@@ -15,7 +15,9 @@ export const PAYOUT_METHODS = ["check", "bank_transfer", "other"] as const;
 const storePayoutSchema = new Schema(
   {
     storeId: objectId("Store"),
+    /** Latest season among the covered gifts; seasonYears lists every season it paid for. */
     seasonYear: seasonYearField,
+    seasonYears: { type: [Number], default: undefined },
     /** Sum of the covered gifts' payoutOwedCents (computed by the server, never typed). */
     amountCents: { ...centsField(), min: 1 },
     giftCount: { type: Number, required: true, min: 1 },

@@ -116,6 +116,8 @@ const storeSchema = new Schema(
      * insert. The number itself means nothing.
      */
     itemLockSeq: { type: Number, default: 0, select: false },
+    /** Season whose Jan 1 catalogue copy is done for this store (@repo/stores/catalog-rollover; copied or skipped). */
+    catalogCopiedYear: { type: Number },
 
     invitedByAdminId: objectId("User", false),
     reviewedByAdminId: objectId("User", false),

@@ -40,12 +40,20 @@ await Item.collection.insertOne({ _id: kite._id, storeId: store._id, seasonYear:
 const draft = await mk(store._id, { name: `Draft ${tag}`, status: "draft", priceCents: undefined });
 const archived = await mk(store._id, { name: `Old ${tag}`, status: "archived" });
 const susItem = await mk(suspended._id, { name: `Sus ${tag}` });
+const owner2 = await User.create({ email: `e2e-cat-2-${tag}@spiritofsanta.test`, passwordHash: "x", role: "store_owner", status: "active" });
+const store2 = await Store.create({ name: `Cat2 ${tag}`, slug: `cat-2-${tag}`, category: "toys", status: "approved", ownerUserId: owner2._id, discountBps: 2000, contact: { email: owner2.email } });
 const actor = { id: String(owner._id), role: "store_owner", storeId: String(store._id) };
 
 try {
   // ── 1. Carry-over.
   check("outside Q1 (today): does nothing", (await copyLastSeasonCatalog()).status === "notQ1");
-  await Season.collection.updateOne({ year: next }, { $unset: { catalogCopiedAt: 1 } });
+  // Admin closed the store window: no copies (stores couldn't fix or archive them).
+  await Season.collection.updateOne({ year: next }, { $set: { year: next, storeWindow: "closed" } }, { upsert: true });
+  check("store window closed by an admin: does nothing", (await copyLastSeasonCatalog(jan2)).status === "windowClosed");
+  await Season.collection.updateOne({ year: next }, { $set: { storeWindow: "auto" } });
+  // A second store that ALREADY entered its own item this season (e.g. the copy ran late): must be skipped.
+  const own = await mk(store2._id, { name: `Own ${tag}`, seasonYear: next });
+  const src2 = await mk(store2._id, { name: `Src2 ${tag}` });
   const r1 = await copyLastSeasonCatalog(jan2);
   const copies = await Item.find({ seasonYear: next, storeId: store._id }).lean();
   const kiteCopy = copies.find((c) => String(c.copiedFromItemId) === String(kite._id));
@@ -53,11 +61,17 @@ try {
     !!kiteCopy && kiteCopy.name === `Kite ${tag}` && kiteCopy.priceCents === 1500 && kiteCopy.inventory === 3 && kiteCopy.photo?.pathname === `items/kite-${tag}.png` && kiteCopy.status === "active", JSON.stringify(r1));
   check("drafts and archived items are NOT copied", copies.length === 1 && !copies.some((c) => [String(draft._id), String(archived._id)].includes(String(c.copiedFromItemId))));
   check("a suspended store's items are NOT copied", !(await Item.exists({ seasonYear: next, copiedFromItemId: susItem._id })));
-  check("the season is marked copied; a second run skips", !!(await Season.findOne({ year: next }).lean())?.catalogCopiedAt && (await copyLastSeasonCatalog(jan2)).status === "alreadyDone");
-  // Even with the flag lost (crash before it was written), a re-run can't duplicate: keyed by the source item.
-  await Season.collection.updateOne({ year: next }, { $unset: { catalogCopiedAt: 1 } });
+  check("a store that already entered its own items is SKIPPED (no duplicates, limit safe)",
+    !(await Item.exists({ copiedFromItemId: src2._id })) && (await Item.countDocuments({ storeId: store2._id, seasonYear: next })) === 1 && r1.status === "done" && r1.skippedOwnItems >= 1 && !!own);
+  check("each store is marked done for the season", (await Store.findById(store._id).lean())?.catalogCopiedYear === next);
+  // Marker lost (crash between copy and marker is impossible in one transaction, but a manual reset): still one copy.
+  await Store.collection.updateOne({ _id: store._id }, { $unset: { catalogCopiedYear: 1 } });
   await copyLastSeasonCatalog(jan2);
-  check("re-run without the flag: still exactly one copy", (await Item.countDocuments({ copiedFromItemId: kite._id })) === 1);
+  check("re-run without the marker: still exactly one copy (keyed by the source item)", (await Item.countDocuments({ copiedFromItemId: kite._id })) === 1);
+  // A store reinstated later in Q1 is copied on a later run.
+  await Store.collection.updateOne({ _id: suspended._id }, { $set: { status: "approved" } });
+  await copyLastSeasonCatalog(jan2);
+  check("a store reinstated later in Q1 is copied on the next run", (await Item.countDocuments({ copiedFromItemId: susItem._id })) === 1);
 
   // ── 2. Stock compare-and-set (current season item).
   if ((await getSeasonState()).phase === "open" || (await getSeasonState()).phase === "frozen") {
@@ -65,7 +79,7 @@ try {
     const doll = await mk(store._id, { name: `Doll ${tag}`, inventory: 4 });
     await Item.updateOne({ _id: doll._id }, { $inc: { inventory: -1 } });
     const stale = await setInventory(actor, String(doll._id), 10, 4);
-    check("stale stock form (showed 4, now 3): refused 'stockChanged', the reservation is kept", !stale.ok && stale.error === "stockChanged" && (await Item.findById(doll._id).lean())?.inventory === 3);
+    check("stale stock form (showed 4, now 3): refused 'stockChanged' with the current number, the reservation is kept", !stale.ok && stale.error === "stockChanged" && stale.inventoryNow === 3 && (await Item.findById(doll._id).lean())?.inventory === 3);
     const fresh = await setInventory(actor, String(doll._id), 10, 3);
     check("form showing the current number: saved", fresh.ok && (await Item.findById(doll._id).lean())?.inventory === 10);
     // Full item form, stock untouched by the store: a reservation in between must survive the save.
@@ -86,11 +100,13 @@ try {
 } finally {
   // Every copy this run made (any store: the job copies the whole dev DB), then our own data.
   await Item.collection.deleteMany({ seasonYear: next, copiedFromItemId: { $exists: true }, createdAt: { $gte: started } });
-  await Item.collection.deleteMany({ storeId: { $in: [store._id, suspended._id] } });
+  await Item.collection.deleteMany({ storeId: { $in: [store._id, suspended._id, store2._id] } });
+  // Other dev stores the job marked for next year: unmark (their copies were deleted above).
+  await Store.collection.updateMany({ catalogCopiedYear: next }, { $unset: { catalogCopiedYear: 1 } });
   await Season.collection.deleteOne({ year: next });
   if (savedNext) await Season.collection.insertOne(savedNext);
-  await Store.collection.deleteMany({ _id: { $in: [store._id, suspended._id] } });
-  await User.collection.deleteMany({ _id: { $in: [owner._id, susOwner._id] } });
+  await Store.collection.deleteMany({ _id: { $in: [store._id, suspended._id, store2._id] } });
+  await User.collection.deleteMany({ _id: { $in: [owner._id, susOwner._id, owner2._id] } });
   await mongoose.disconnect();
 }
 process.exit(report());

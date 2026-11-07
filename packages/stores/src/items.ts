@@ -38,7 +38,7 @@ import type { ItemInput } from "./schemas.ts";
 
 export type ItemResult =
   | { ok: true; itemId?: string }
-  | { ok: false; error: "notFound" | "readOnly" | "windowClosed" | "limitReached" | "priceRequired" | "rateLimited" | "stockChanged" | ImageUploadErrorCode };
+  | { ok: false; error: "notFound" | "readOnly" | "windowClosed" | "limitReached" | "priceRequired" | "rateLimited" | "stockChanged" | ImageUploadErrorCode; inventoryNow?: number };
 
 /** The store as loaded by memberStore() (dashboard pages get it from loadMember()). */
 export type MemberStore = NonNullable<Awaited<ReturnType<typeof memberStore>>>;
@@ -248,8 +248,9 @@ export async function updateItem(actor: StoreActor, itemId: string, input: ItemI
     { runValidators: true },
   );
   if (res.matchedCount !== 1) {
-    const still = stockEdited && (await Item.exists({ _id: itemId, ...scopeOf(g), status: existing.status }));
-    return { ok: false, error: still ? "stockChanged" : "notFound" };
+    const still = stockEdited ? await Item.findOne({ _id: itemId, ...scopeOf(g), status: existing.status }).select("inventory").lean<{ inventory: number }>() : null;
+    // The current number lets the form compare against it on the next try (the store keeps its other edits).
+    return still ? { ok: false, error: "stockChanged", inventoryNow: still.inventory } : { ok: false, error: "notFound" };
   }
   await audit(actor.id, isOwner && existing.priceCents !== input.priceCents ? "item.price" : "item.update", itemId, {
     ...(isOwner && existing.priceCents !== input.priceCents ? { from: existing.priceCents ?? null, to: input.priceCents } : {}),
@@ -264,8 +265,8 @@ export async function setInventory(actor: StoreActor, itemId: string, inventory:
   if (inventory === inventoryWas) return { ok: true, itemId }; // nothing to change
   const res = await Item.updateOne({ _id: itemId, ...scopeOf(g), status: NOT_ARCHIVED(), inventory: inventoryWas }, { $set: { inventory } }, { runValidators: true });
   if (res.matchedCount !== 1) {
-    const still = await Item.exists({ _id: itemId, ...scopeOf(g), status: NOT_ARCHIVED() });
-    return { ok: false, error: still ? "stockChanged" : "notFound" };
+    const still = await Item.findOne({ _id: itemId, ...scopeOf(g), status: NOT_ARCHIVED() }).select("inventory").lean<{ inventory: number }>();
+    return still ? { ok: false, error: "stockChanged", inventoryNow: still.inventory } : { ok: false, error: "notFound" };
   }
   await audit(actor.id, "item.update", itemId, { inventory, from: inventoryWas });
   return { ok: true, itemId };

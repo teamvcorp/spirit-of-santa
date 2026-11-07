@@ -107,7 +107,7 @@
       "notApproved": "Podrás invitar representantes cuando Spirit of Santa apruebe tu tienda.",
       "emailFailed": "No pudimos enviar el correo. Inténtalo de nuevo en unos minutos.",
       "windowClosed": "Las listas de artículos están cerradas a cambios en este momento (normalmente se abren del 1 de enero al 31 de marzo).",
-      "stockChanged": "El inventario cambió mientras lo editabas (puede que el regalo de un niño acabe de apartar uno). Vuelve a cargar la página para ver el número nuevo e inténtalo de nuevo.",
+      "stockChanged": "El inventario cambió mientras lo editabas (puede que el regalo de un niño acabe de apartar uno). Revisa el número y vuelve a guardar.",
       "limitReached": "Llegaste al límite de artículos. Archiva un artículo para agregar otro.",
       "priceRequired": "Escribe un precio."
     },

@@ -12,7 +12,8 @@ import { inventoryFormSchema, inventorySchema, itemSchema, objectIdSchema, toIte
 import { authOptions } from "@/auth";
 import type { DashFormState } from "../form-state";
 
-export type ItemFormState = DashFormState & { itemId?: string };
+/** inventoryNow = the current stock after a "stockChanged" refusal: the form compares against it next time. */
+export type ItemFormState = DashFormState & { itemId?: string; inventoryNow?: number };
 
 async function member() {
   const u = await requireRole(authOptions, "store_owner", "store_rep");
@@ -20,7 +21,7 @@ async function member() {
 }
 const str = (fd: FormData, k: string) => (typeof fd.get(k) === "string" ? String(fd.get(k)) : "");
 const result = (r: ItemResult, values?: Record<string, string>): ItemFormState => {
-  if (!r.ok) return { status: "error", error: r.error, values, nonce: randomUUID() };
+  if (!r.ok) return { status: "error", error: r.error, values, nonce: randomUUID(), ...(r.inventoryNow != null ? { inventoryNow: r.inventoryNow } : {}) };
   refresh();
   return { status: "done", itemId: r.itemId, nonce: randomUUID() };
 };

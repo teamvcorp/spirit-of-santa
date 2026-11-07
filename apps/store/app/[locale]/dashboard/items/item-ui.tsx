@@ -98,7 +98,7 @@ export function ItemForm({
         {state.status === "error" && !state.error && <Alert tone="error">{reg("fixErrors")}</Alert>}
         {itemId && <input type="hidden" name="itemId" value={itemId} />}
         {/* The stock number as LOADED (not the echoed one): the server compare-and-sets on it. */}
-        {itemId && <input type="hidden" name="inventoryWas" value={initial.inventory} />}
+        {itemId && <input type="hidden" name="inventoryWas" value={state.inventoryNow != null ? String(state.inventoryNow) : initial.inventory} />}
         <fieldset disabled={!canEdit} className="flex flex-col gap-4">
           <TextField label={t("name")} name="name" required maxLength={120} defaultValue={v.name} error={err("name")} />
           <div className="flex flex-col gap-1">
@@ -178,7 +178,7 @@ export function InventoryForm({ itemId, inventory, label }: { itemId: string; in
     <form action={formAction} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="itemId" value={itemId} />
       {/* Compare-and-set: a gift may reserve a unit while this form is open (server says "stockChanged"). */}
-      <input type="hidden" name="inventoryWas" value={inventory} />
+      <input type="hidden" name="inventoryWas" value={state.inventoryNow ?? inventory} />
       <label htmlFor={id} className="sr-only">
         {t("inventoryFor", { name: label })}
       </label>

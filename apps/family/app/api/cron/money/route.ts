@@ -65,8 +65,6 @@ export async function GET(request: Request): Promise<Response> {
   // EARLY (right after the split it depends on). It only zeroes unspent (available) magic; the wish-list steps
   // below work on escrow, so the order is safe.
   const seasonEnd = await settle(() => runSeasonReset());
-  // Jan 1 – Mar 31: copy last season's active store items into the new season once (idempotent; no-op otherwise).
-  const catalog = await settle(() => copyLastSeasonCatalog());
   // Wish lists: every fully funded gift → locked + magic spent (year-round, owner 2026-11-07); then a safety sweep of unallocated points.
   // Then the drop-off once pay-up is over (Dec 4; waits for the split): unfinished gifts drop off, their points go to Spirit of Santa.
   const wishLists = await settle(async () => ({ locked: await lockFundedItems(), sweep: await sweepAllocations(), closed: await closeUnfunded() }));
@@ -84,6 +82,9 @@ export async function GET(request: Request): Promise<Response> {
   const digests = await settle(() => sendFamilyDigests());
   const reminders = await settle(() => sendSeasonReminders());
   const receipts = await settle(() => sendPendingReceipts({ limit: 50 }));
+  // LAST (review 2026-11-07: never crowd out the money steps): Jan 1 – Mar 31, copy last season's active store
+  // items into the new season, store by store within a time budget (idempotent; a no-op the rest of the year).
+  const catalog = await settle(() => copyLastSeasonCatalog());
   const result = {
     split: split.status === "fulfilled" ? split.value : "failed",
     seasonEnd: seasonEnd.status === "fulfilled" ? seasonEnd.value : "failed",

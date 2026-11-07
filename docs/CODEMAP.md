@@ -822,7 +822,11 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
 - **Year-round slice 7: Jan 1 catalogue carry-over + stock compare-and-set (2026-11-07).** Owner: COPY last season's
   items. `copyLastSeasonCatalog(now)` (@repo/stores/catalog-rollover, money cron step after the season end): calendar Q1
   only; ACTIVE priced items of approved/pending stores → new season (name, description, category, photo, price, stock
-  left; no payoutCents), bulk UPSERT keyed by new `Item.copiedFromItemId` (unique partial index) + `Season.catalogCopiedAt`.
+  left; no payoutCents), UPSERT keyed by new `Item.copiedFromItemId` (unique partial index; job REFUSES without it).
+  Review fixes: PER STORE in one tx under the item lock (itemLockSeq); a store that already entered its own items is
+  SKIPPED; `Store.catalogCopiedYear` marks each store (reinstated stores copied later); skipped while an admin closed
+  the window; 60 s budget + `remaining`; runs LAST in the money job; "stockChanged" returns `inventoryNow` so the
+  form resubmits without losing edits.
   Copies SHARE the photo blob: items.ts `deleteUnusedPhoto` deletes a blob only if no item uses it (index on
   photo.pathname). Stock: forms send hidden `inventoryWas`; `setInventory`/`updateItem` compare-and-set on it
   ("stockChanged" → reload); the item form only touches stock when changed. PROD: run `npm run db:sync-indexes` after

@@ -157,6 +157,10 @@ try {
   check("frozen season: adding and removing refused", !fz.ok && fz.error === "seasonNotOpen" && !fr.ok && fr.error === "seasonNotOpen");
 
   // 13. The daily money cron runs the wish-list steps.
+  // The last-season fixture (1b) claims 100 centipoints the kid's balances never held (raw insert).
+  // The Dec 25 close in the cron would rightly REFUSE to forfeit points that aren't there (and alert),
+  // so make the fixture consistent first: it has done its job (check above).
+  await WishListItem.collection.updateOne({ _id: oldItem._id }, { $set: { fundedCentipoints: 0 } });
   const cron = await fetch(`${base}/api/cron/money`, { headers: { authorization: `Bearer ${cronSecret}` } });
   const cj = (await cron.json()) as { wishLists?: { locked?: number } };
   check("daily cron includes wish-list lock + sweep", cron.status === 200 && typeof cj.wishLists?.locked === "number", JSON.stringify(cj.wishLists));

@@ -152,7 +152,9 @@
     "aliasSaved": "Saved.",
     "aliasPending": "Waiting for a quick check by our team before it's shown publicly.",
     "aliasRejected": "Our team didn't approve this nickname. Please choose another (no real names).",
-    "giveBonus": "Give bonus magic"
+    "giveBonus": "Give bonus magic",
+    "payUpAlert": "{count, plural, one {# gift isn't fully funded yet.} other {# gifts aren't fully funded yet.}} You can finish them before the deadline, or they drop off on December 25.",
+    "payUpLink": "Finish gifts"
   },
   "Register": {
     "title": "Register your children",
@@ -378,6 +380,32 @@
       "locked": "Enter the parent PIN first (parent area), then try again.",
       "rateLimited": "Too many tries. Please wait a few minutes and try again.",
       "seasonClosed": "Bonus magic is only available while the Christmas season is open.",
+      "stripe": "Payments aren't available right now. Please try again later."
+    }
+  },
+  "PayUp": {
+    "title": "Finish gifts",
+    "intro": "Pay the points a gift still needs ({rate} = 1 point) and it's set for Christmas: it ships like any other gift.",
+    "deadline": "You can finish gifts until {closes}. Gifts that still aren't fully funded on December 25 drop off the list, and the points on them go to Spirit O Santa.",
+    "closed": "Finishing gifts is possible from {opens} until {closes}.",
+    "none": "Every gift on your children's lists is fully funded. Nothing to do!",
+    "missing": "Needs {points} more points: {amount}",
+    "button": "Finish for {amount}",
+    "buttonFor": "Finish {item} for {kid}",
+    "total": "To pay: {amount}",
+    "back": "Parent area",
+    "credited": "Thank you! The gift is funded.",
+    "processing": "Thank you! Your payment is being confirmed; the gift will be funded shortly.",
+    "review": "We got your payment. Our team will check it before the points are added.",
+    "notPaid": "The payment wasn't completed. You haven't been charged.",
+    "unknown": "We couldn't find that payment.",
+    "tryAgain": "Try again",
+    "errors": {
+      "notFound": "That gift wasn't found. Reload the page.",
+      "windowClosed": "Finishing gifts isn't possible right now.",
+      "notNeeded": "That gift is already fully funded. Reload the page.",
+      "locked": "Enter the parent PIN first (parent area), then try again.",
+      "rateLimited": "Too many tries. Please wait a few minutes and try again.",
       "stripe": "Payments aren't available right now. Please try again later."
     }
   },

@@ -34,7 +34,11 @@ export const TRANSACTION_TYPES = [
   "earn_tip",
   "earn_bonus",
   "earn_donation",
+  /** Parent paid to finish a gift during the pay-up window (Phase 6 slice 4). */
+  "earn_payup",
   "escrow",
+  /** Dec 25: points on a gift that wasn't fully funded go to Spirit O Santa (user decision 2026-11-06). */
+  "forfeit",
   "release",
   "spend",
   "season_reset",

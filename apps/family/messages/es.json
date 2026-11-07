@@ -152,7 +152,9 @@
     "aliasSaved": "Guardado.",
     "aliasPending": "Esperando una revisión rápida de nuestro equipo antes de mostrarse públicamente.",
     "aliasRejected": "Nuestro equipo no aprobó este apodo. Elige otro (sin nombres reales).",
-    "giveBonus": "Dar magia extra"
+    "giveBonus": "Dar magia extra",
+    "payUpAlert": "{count, plural, one {# regalo todavía no está completo.} other {# regalos todavía no están completos.}} Puedes completarlos antes de la fecha límite; si no, salen de la lista el 25 de diciembre.",
+    "payUpLink": "Completar regalos"
   },
   "Register": {
     "title": "Registra a tus hijos",
@@ -378,6 +380,32 @@
       "locked": "Primero escribe el PIN de padres (área de padres) e inténtalo de nuevo.",
       "rateLimited": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
       "seasonClosed": "La magia extra solo está disponible mientras la temporada de Navidad está abierta.",
+      "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde."
+    }
+  },
+  "PayUp": {
+    "title": "Completar regalos",
+    "intro": "Paga los puntos que le faltan a un regalo ({rate} = 1 punto) y quedará listo para Navidad: se envía como cualquier otro regalo.",
+    "deadline": "Puedes completar regalos hasta el {closes}. Los regalos que sigan incompletos el 25 de diciembre salen de la lista y sus puntos pasan a Spirit O Santa.",
+    "closed": "Se pueden completar regalos desde el {opens} hasta el {closes}.",
+    "none": "Todos los regalos de las listas de tus hijos están completos. ¡No hay nada que hacer!",
+    "missing": "Le faltan {points} puntos: {amount}",
+    "button": "Completar por {amount}",
+    "buttonFor": "Completar {item} para {kid}",
+    "total": "A pagar: {amount}",
+    "back": "Área de padres",
+    "credited": "¡Gracias! El regalo está completo.",
+    "processing": "¡Gracias! Tu pago se está confirmando; el regalo se completará en breve.",
+    "review": "Recibimos tu pago. Nuestro equipo lo revisará antes de sumar los puntos.",
+    "notPaid": "El pago no se completó. No se te cobró nada.",
+    "unknown": "No encontramos ese pago.",
+    "tryAgain": "Intentar de nuevo",
+    "errors": {
+      "notFound": "No se encontró ese regalo. Vuelve a cargar la página.",
+      "windowClosed": "Ahora no es posible completar regalos.",
+      "notNeeded": "Ese regalo ya está completo. Vuelve a cargar la página.",
+      "locked": "Primero escribe el PIN de padres (área de padres) y vuelve a intentarlo.",
+      "rateLimited": "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.",
       "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde."
     }
   },

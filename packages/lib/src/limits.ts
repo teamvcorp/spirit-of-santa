@@ -31,6 +31,16 @@ export const ITEM_LOCK_DAYS = 30;
 export const MIN_CENTIPOINTS_TO_ADD_ITEM = 100;
 
 /**
+ * Pay-up window (Phase 6 slice 4, user decision 2026-11-06): from the freeze DATE until this many
+ * days before the season close (Dec 25 → Dec 18), a parent may pay the missing amount to finish a
+ * gift. Leaves a week to ship before Christmas. Relative to the close date so admin-set dates work.
+ */
+export const PAY_UP_CLOSES_DAYS_BEFORE_CLOSE = 7;
+
+/** Stripe's smallest card charge (USD). A pay-up below it is charged this; extra points go to the kid. */
+export const MIN_STRIPE_CHARGE_CENTS = 50;
+
+/**
  * Twilio pay-later SMS links expire after this many days. REGISTERED with the carriers as "7 days" in the
  * consent wording (messages PayLater.consent, docs/vendor/twilio.md): changing it means re-registering.
  */

@@ -539,6 +539,17 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   60 s budget; familyNotifiedAt ONLY when an email really went out; child/family deleted → familyNoticeSkippedAt;
   inactive parent = failed (retried); cron alerts on failed notices; admin lists show REAL totals (oldest 300 shown,
   "showing the oldest N of M"); parent-email state emailed/pending/failed(after 14 days: contact them)/none.
+- **Slice 4a pay-up window + Dec 25 close (2026-11-06).** User: from the freeze DATE until
+  `PAY_UP_CLOSES_DAYS_BEFORE_CLOSE` (7) days before the close a parent pays the MISSING amount of a gift
+  (`payUpCents`: missing centipoints at $1.50 rounded up, ≥ `MIN_STRIPE_CHARGE_CENTS` 50). `@repo/wishlists/payup`
+  (`payUpWindow`, `payUpOptions`, `closeUnfunded`); checkout `@repo/families/payup` (`startPayUp`/`payUpStatus`, like
+  bonus; wishlists can't import payments). Webhook "payup": gift must be that kid's (else review), ledger
+  `earn_payup`, `allocateForKid(kid, session, now, firstId)` fills the PAID-FOR gift first (stable sort), surplus as
+  usual. Parent `/parent/payup` (PIN, in safeNext) + `/return`; dashboard alert while gifts are unfinished.
+  Dec 25: `closeUnfunded` (money cron, wishLists step, BEFORE the Jan 1 reset): every "active" gift of a closed
+  season → "unfunded", ledger `forfeit` (idempotencyKey forfeit:<id>), kid escrow −funded (compare-and-set ≥;
+  refuses + alerts if escrow is out of sync). Cron alerts when any close fails. E2E `browser-family-payup.ts` (17).
+  Slice 4b NEXT: delivery address (user chose to COLLECT it: PIN, encrypted at rest, deleted after delivery).
 
 ## Open items / TODO
 

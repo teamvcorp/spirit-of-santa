@@ -9,7 +9,8 @@
     "./schemas": "./src/schemas.ts",
     "./votes": "./src/votes.ts",
     "./settings": "./src/settings.ts",
-    "./bonus": "./src/bonus.ts"
+    "./bonus": "./src/bonus.ts",
+    "./payup": "./src/payup.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -22,6 +23,7 @@
     "@repo/lib": "*",
     "@repo/payments": "*",
     "@repo/stores": "*",
+    "@repo/wishlists": "*",
     "server-only": "0.0.1",
     "zod": "4.6.7"
   },

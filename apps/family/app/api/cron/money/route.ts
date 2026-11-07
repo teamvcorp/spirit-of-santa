@@ -7,7 +7,7 @@
  *  1. Split held donation pools (only while frozen, fee set). Daily runs share late gifts too.
  *  2. Switch off expired pay-later text links (Phase 5 slice 4b), BEFORE the season end.
  *     Then wish lists (Phase 6): lock items (30 days funded, or all at the freeze); sweep unallocated
- *     points; then email each store its new gifts to set aside / ready to ship (needs STORE_APP_URL);
+ *     points; Dec 25 close (unfinished gifts drop off, points → Spirit O Santa); then email each store its new gifts to set aside / ready to ship (needs STORE_APP_URL);
  *     then retry failed "gift on its way" parent emails (needs FAMILY_APP_URL).
  *  3. Season end (only in the off-season, once per ended season): unshared donation money
  *     retained, every kid's points reset to 0 with a ledger row.
@@ -21,6 +21,7 @@ import { expirePayLaterLinks } from "@repo/deeds/pay-later";
 import { runSeasonReset } from "@repo/payments/season-end";
 import { runDonationSplit } from "@repo/payments/split";
 import { lockFundedItems, sweepAllocations } from "@repo/wishlists/engine";
+import { closeUnfunded } from "@repo/wishlists/payup";
 import { sendFamilyNotices, sendStoreDigests } from "@repo/wishlists/fulfilment";
 
 /**
@@ -51,7 +52,8 @@ export async function GET(request: Request): Promise<Response> {
   // Expired pay-later links off BEFORE the season end, so none is payable after points reset.
   const payLater = await settle(() => expirePayLaterLinks());
   // Wish lists (Phase 6): fully funded 30+ days → locked; then a safety sweep of unallocated points.
-  const wishLists = await settle(async () => ({ locked: await lockFundedItems(), sweep: await sweepAllocations() }));
+  // Then the Dec 25 close: unfinished gifts drop off, their points go to Spirit O Santa (BEFORE the Jan 1 reset).
+  const wishLists = await settle(async () => ({ locked: await lockFundedItems(), sweep: await sweepAllocations(), closed: await closeUnfunded() }));
   // After locking, so gifts locked today are in today's "ready to ship" email.
   const storeOrders = await settle(() => sendStoreDigests());
   // "Your gift is on its way" emails that failed when the admin sent the gift (retry, 14 days).
@@ -70,7 +72,8 @@ export async function GET(request: Request): Promise<Response> {
   // A digest that ran but couldn't email some stores also counts as failed (it never throws per store).
   const digestFailed = storeOrders.status === "fulfilled" && storeOrders.value.failed > 0;
   const noticesFailed = familyNotices.status === "fulfilled" && familyNotices.value.failed > 0;
-  const failed = digestFailed || noticesFailed || [split, seasonEnd, payLater, wishLists, storeOrders, familyNotices, receipts].some((r) => r.status === "rejected");
+  const closeFailed = wishLists.status === "fulfilled" && wishLists.value.closed.failed > 0;
+  const failed = digestFailed || noticesFailed || closeFailed || [split, seasonEnd, payLater, wishLists, storeOrders, familyNotices, receipts].some((r) => r.status === "rejected");
   if (failed) {
     console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, receipts: receipts.status }));
     return Response.json(result, { status: 500, headers: { "Cache-Control": "no-store" } });

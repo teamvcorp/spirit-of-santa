@@ -15,10 +15,11 @@
  *    never credit, which removes any chance of double-crediting the same money.
  */
 import "server-only";
+import { MAX_PRICE_CENTS } from "@repo/lib/format";
 import type Stripe from "stripe";
-import { Deed, Kid, PayLaterRequest, Payment, Transaction, trusted, withTransaction } from "@repo/db";
-import { MAX_DONATION_CENTS, MAX_TIP_CENTS, MIN_DONATION_CENTS, MIN_TIP_CENTS, REGISTRATION_FEE_CENTS } from "@repo/lib/limits";
-import { centsToCentipoints } from "@repo/lib/points";
+import { Deed, Kid, PayLaterRequest, Payment, Transaction, trusted, withTransaction, WishListItem } from "@repo/db";
+import { MAX_DONATION_CENTS, MAX_TIP_CENTS, MIN_DONATION_CENTS, MIN_TIP_CENTS, REGISTRATION_FEE_CENTS, MIN_STRIPE_CHARGE_CENTS } from "@repo/lib/limits";
+import { centsToCentipoints, centipointsToCents } from "@repo/lib/points";
 import { getSeasonYear } from "@repo/lib/season";
 import { getStripe } from "./client.ts";
 import { parsePaymentMetadata, type PaymentMetadata } from "./metadata.ts";
@@ -46,6 +47,10 @@ function moneyProblem(pi: Stripe.PaymentIntent, meta: PaymentMetadata): string |
     return "amount_out_of_bounds"; // creation code should have blocked this: a human checks
   }
   if (meta.sos_purpose === "donation" && (pi.amount_received < MIN_DONATION_CENTS || pi.amount_received > MAX_DONATION_CENTS)) {
+    return "amount_out_of_bounds";
+  }
+  // Pay-up: never more than the dearest possible item at $1.50/point (MAX_PRICE_CENTS of points).
+  if (meta.sos_purpose === "payup" && (pi.amount_received < MIN_STRIPE_CHARGE_CENTS || pi.amount_received > centipointsToCents(MAX_PRICE_CENTS))) {
     return "amount_out_of_bounds";
   }
   if (meta.sos_purpose === "registration") {
@@ -179,12 +184,6 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
       await record("held", meta.sos_zip ? { zip: meta.sos_zip } : {});
       return processed("held:donation");
     }
-    // Pay-ups (item lock) are handled with wish lists (Phase 6).
-    if (meta.sos_purpose === "payup") {
-      await record("held");
-      return processed("held:payup");
-    }
-
     // tip | bonus → credit points to the kid. Only a REGISTERED kid of that family (consent
     // verified): every checkout already requires it; this is the second layer (review 2026-11-06).
     const kid = await Kid.findOne({ _id: meta.sos_kid_id, familyId: meta.sos_family_id, archivedAt: null, "registration.status": "registered" })
@@ -192,6 +191,16 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
       .session(session)
       .lean();
     if (!kid) return review("kid_not_found_wrong_family_or_unregistered");
+
+    // Pay-up (Phase 6 slice 4): the gift must be THIS kid's. If it was finished or removed in the
+    // meantime, the money still becomes the kid's points (filling the next gift as usual).
+    if (meta.sos_purpose === "payup") {
+      const w = await WishListItem.findOne({ _id: meta.sos_wish_list_item_id, kidId: meta.sos_kid_id, familyId: meta.sos_family_id })
+        .select({ _id: 1 })
+        .session(session)
+        .lean();
+      if (!w) return review("payup_item_mismatch");
+    }
 
     let confirmDeed = false;
     if (meta.sos_purpose === "tip" && meta.sos_deed_id) {
@@ -217,7 +226,7 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
           kidId: meta.sos_kid_id,
           familyId: meta.sos_family_id,
           seasonYear,
-          type: meta.sos_purpose === "tip" ? "earn_tip" : "earn_bonus",
+          type: meta.sos_purpose === "tip" ? "earn_tip" : meta.sos_purpose === "payup" ? "earn_payup" : "earn_bonus",
           amountCentipoints: centipoints,
           cents: pi.amount_received,
           deedId: ids.deedId,
@@ -229,8 +238,9 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
       { session },
     );
     await Kid.updateOne({ _id: meta.sos_kid_id }, { $inc: { availableCentipoints: centipoints } }, { session });
-    // Phase 6: new points fill the kid's oldest unfunded wish-list item first (same transaction).
-    await allocateForKid(meta.sos_kid_id, session, now);
+    // Phase 6: new points fill the kid's oldest unfunded wish-list item first (same transaction);
+    // a pay-up fills the gift it paid for first.
+    await allocateForKid(meta.sos_kid_id, session, now, meta.sos_purpose === "payup" ? meta.sos_wish_list_item_id : undefined);
 
     if (confirmDeed) {
       // Paying IS the recipient confirming the deed ("pay now" outcome on the QR page).

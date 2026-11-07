@@ -54,11 +54,13 @@ async function fundingSeason(now: Date): Promise<number | null> {
 /**
  * Move the kid's available points onto their unfunded items, oldest first, inside `session`.
  * Returns centipoints moved. Safe to call any time: outside open/frozen, or nothing to fund = no-op.
+ * `firstId` (pay-ups): fill THAT item first, then the rest oldest first (the parent paid for it).
  */
 export async function allocateForKid(
   kidId: string,
   session: DbSession,
   now = new Date(),
+  firstId?: string,
 ): Promise<number> {
   const seasonYear = await fundingSeason(now);
   if (seasonYear === null) return 0;
@@ -80,6 +82,8 @@ export async function allocateForKid(
         seasonYear: number;
       }[]
     >();
+  // Stable sort: the paid-for item moves to the front, everything else keeps its oldest-first order.
+  if (firstId) items.sort((a, b) => Number(String(b._id) === firstId) - Number(String(a._id) === firstId));
   const { steps } = planAllocation(
     kid.availableCentipoints,
     items.map((i) => ({

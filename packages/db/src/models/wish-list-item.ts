@@ -62,6 +62,9 @@ const wishListItemSchema = new Schema(
     needsSubstitute: { type: Boolean },
     lockedAt: Date,
     removedAt: Date,
+    /** Dec 25 close: not fully funded → "unfunded"; its escrowed points went to Spirit O Santa. */
+    forfeitedAt: Date,
+    forfeitedCentipoints: { type: Number, min: 0 },
 
     /** Daily store digest: when the store was told to set it aside / that it's ready to ship. */
     setAsideNotifiedAt: Date,

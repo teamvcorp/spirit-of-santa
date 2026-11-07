@@ -23,7 +23,7 @@ export type PublicDeed =
   | { state: "invalid" }
   | { state: "used"; outcome?: string }
   | { state: "expired" }
-  | { state: "open"; kidName: string; familyAlias?: string; deed?: string; seasonOpen: boolean; givingOpen: boolean; givingEndsAt: Date; givingLastDay: Date; /** server-side only (never rendered) */ deedId: string };
+  | { state: "open"; kidName: string; familyAlias?: string; deed?: string; seasonOpen: boolean; givingOpen: boolean; givingPaused: boolean; givingEndsAt: Date; givingLastDay: Date; /** server-side only (never rendered) */ deedId: string };
 
 type DeedLite = {
   _id: unknown;
@@ -130,9 +130,9 @@ export function publicFamilyAlias(fam: { alias?: string | null; showAliasPublicl
  * givingOpen = money (tips, donation links) only until the freeze date (giftWindow, owner 2026-11-07: gifts
  * must arrive by Christmas); checkouts end by givingEndsAt. givingLastDay is for the small "closes after" line.
  */
-export async function publicSeason(): Promise<{ seasonOpen: boolean; givingOpen: boolean; givingEndsAt: Date; givingLastDay: Date }> {
+export async function publicSeason(): Promise<{ seasonOpen: boolean; givingOpen: boolean; givingPaused: boolean; givingEndsAt: Date; givingLastDay: Date }> {
   const [s, w] = await Promise.all([getSeasonState(), giftWindow()]); // shared rules (@repo/stores/season)
-  return { seasonOpen: s.phase === "open" || s.phase === "frozen", givingOpen: w.open, givingEndsAt: w.closeAt, givingLastDay: w.lastDay };
+  return { seasonOpen: s.phase === "open" || s.phase === "frozen", givingOpen: w.open, givingPaused: w.paused, givingEndsAt: w.closeAt, givingLastDay: w.lastDay };
 }
 
 

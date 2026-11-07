@@ -39,7 +39,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/k/[token]">["p
           <GivingNote lastDay={page.givingLastDay} />
         </>
       ) : (
-        <GivingClosed />
+        <GivingClosed paused={page.givingPaused} />
       )}
     </div>
   );

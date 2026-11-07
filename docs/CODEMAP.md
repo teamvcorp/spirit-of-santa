@@ -807,6 +807,11 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   UI: `GivingNote`/`GivingClosed` (apps/family/components/giving-note.tsx) on QR, donation-link and bonus pages;
   QrActions gets `canTip` + `giving`. No "late" label: nothing can fill after Dec 3. E2E: browser-family-giving-closed
   (new), payup (3-day window + drop-off), page audit.
+  Review fixes: pay-up WAITS for the Dec 1 share-out (`payUpWindow.waitingForSplit`: a held clean donation or a
+  crediting split; a late split still gets 3 full days after it); `closeUnfunded` drops nothing while waiting
+  (cron 500 alert daily, admin "feeMissing" copy says so); `cleanHeldDonations` moved to @repo/db (shared by
+  split, season end and pay-up, no cycle). Webhook flags tips/bonus paid after giving closed (needsReview).
+  Force-freeze pauses giving: `giftWindow().paused` → GivingClosed says "paused", not "opens Jan 1".
 
 ## Open items / TODO
 

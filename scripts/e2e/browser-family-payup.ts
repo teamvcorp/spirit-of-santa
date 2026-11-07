@@ -19,7 +19,7 @@ import { calendarDateIn, getSeasonYear, isoDay } from "@repo/lib/season";
 import { buildPaymentMetadata } from "@repo/payments/checkout";
 import { lockFundedItems } from "@repo/wishlists/engine";
 import { expectedBalances } from "@repo/wishlists/ledger-check";
-import { closeUnfunded } from "@repo/wishlists/payup";
+import { closeUnfunded, payUpWindow } from "@repo/wishlists/payup";
 import { makeChecks } from "./lib.ts";
 
 const [base] = process.argv.slice(2);
@@ -106,8 +106,16 @@ try {
   const early = await startPayUp(parentA, book, base, (p) => p);
   check("before the freeze: pay-up refused (window closed)", !early.ok && early.error === "windowClosed");
 
-  // 1. Freeze today → pay-up open for PAY_UP_DAYS (3: today and the next two days; owner 2026-11-07).
+  // 1. Freeze today → pay-up open for PAY_UP_DAYS (3: today and the next two days; owner 2026-11-07)
+  //    BUT only once the community share-out has landed: a held, unshared /donate gift keeps it closed.
   await setDates(dayIso(0), dayIso(10));
+  const heldId = new mongoose.Types.ObjectId();
+  await Payment.collection.insertOne({ _id: heldId, stripePaymentIntentId: `pi_e2eheld${tag}`, purpose: "donation", status: "succeeded", fulfilment: "held", seasonYear: year, amountCents: 2500, refundedCents: 0, createdAt: new Date(), updatedAt: new Date() });
+  const waitWin = await payUpWindow();
+  const waiting = await startPayUp(parentA, book, base, (p) => p);
+  check("donations not shared out yet: pay-up waits (window closed, waitingForSplit)", waitWin.waitingForSplit && !waitWin.open && !waiting.ok && waiting.error === "windowClosed");
+  await Payment.collection.deleteOne({ _id: heldId });
+  check("nothing held any more: pay-up opens", (await payUpWindow()).open);
   await page.goto(`${base}/signin`);
   await hydrated(page);
   await page.fill('[name="email"]', A.user.email);
@@ -167,6 +175,12 @@ try {
   check("last pay-up day: nothing drops off yet (Bike still collecting)", (await get(bike))?.status === "active" && !c0.seasons.includes(year));
   // Pay-up ends after 3 days (freeze 3 days ago): refused.
   await setDates(dayIso(-3), dayIso(10));
+  // …unless the share-out never landed: then NOTHING drops off (and the money job alerts).
+  const held2 = new mongoose.Types.ObjectId();
+  await Payment.collection.insertOne({ _id: held2, stripePaymentIntentId: `pi_e2eheld2${tag}`, purpose: "donation", status: "succeeded", fulfilment: "held", seasonYear: year, amountCents: 2500, refundedCents: 0, createdAt: new Date(), updatedAt: new Date() });
+  const cw = await closeUnfunded();
+  check("pay-up over but share-out not landed: no drop-off, waitingForSplit reported", cw.waitingForSplit && (await get(bike))?.status === "active");
+  await Payment.collection.deleteOne({ _id: held2 });
   const late = await startPayUp(parentA, bike, base, (p) => p);
   check("after the 3 pay-up days: pay-up refused", !late.ok && late.error === "windowClosed");
 

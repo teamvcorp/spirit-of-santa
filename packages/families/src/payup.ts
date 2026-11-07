@@ -1,6 +1,6 @@
 /**
  * Parent "pay-up" checkout (Phase 6 slice 4): pay the MISSING amount of one unfinished gift during
- * the pay-up window (freeze date → 7 days before the close). SERVER-ONLY. Callers: signed-in parent
+ * the pay-up window (payUpWindow: PAY_UP_DAYS after the Dec 1 share-out landed). SERVER-ONLY. Callers: signed-in parent
  * with the PIN unlocked. Built like bonus.ts (same Stripe embedded checkout + return-page check).
  *
  *  - The browser only names the gift; the AMOUNT is computed here from the database (missing

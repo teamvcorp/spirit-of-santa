@@ -18,7 +18,7 @@
  *  - Only the server decides amounts: nothing here comes from a browser.
  */
 import "server-only";
-import { AuditLog, connectDb, DonationSplit, ensureLock, Family, Kid, Payment, takeLock, Transaction, trusted, withTransaction, type DbSession } from "@repo/db";
+import { AuditLog, cleanHeldDonations, connectDb, DonationSplit, ensureLock, Family, Kid, Payment, takeLock, Transaction, trusted, withTransaction, type DbSession } from "@repo/db";
 import { centsToCentipoints } from "@repo/lib/points";
 import { startOfDayInZone, type SeasonState } from "@repo/lib/season";
 import { getSeasonState } from "@repo/stores/season";
@@ -114,20 +114,9 @@ function planOne(p: HeldPool, kids: KidRef[], feeBps: number): PoolPlan {
  * refunded, disputed or flagged for review are NOT shared (they stay held for an admin): we never
  * hand out points for money we no longer have (review 2026-11-06).
  */
-/**
- * THE rule for a held community gift that may be shared (split) or retained (season end): paid,
- * still held, never refunded, not disputed, not flagged. Anything else stays held for an admin.
- * Single source: used by split.ts AND season-end.ts.
- */
-export const cleanHeldDonations = (seasonYear: number) => ({
-  purpose: "donation" as const,
-  status: "succeeded" as const,
-  fulfilment: "held" as const,
-  seasonYear,
-  refundedCents: 0,
-  "dispute.stripeDisputeId": null,
-  needsReview: trusted({ $ne: true }),
-});
+// THE rule for a held community gift that may be shared or retained: single source in @repo/db
+// (the pay-up window in @repo/wishlists needs it too). Re-exported for season-end.ts.
+export { cleanHeldDonations };
 
 async function heldPools(seasonYear: number, session?: DbSession): Promise<HeldPool[]> {
   const rows = await Payment.find(cleanHeldDonations(seasonYear))

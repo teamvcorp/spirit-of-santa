@@ -125,11 +125,11 @@ try {
   await Item.collection.insertOne({ _id: itemId, storeId, seasonYear: year, name: `Ball ${tag}`, priceCents: 1000, inventory: 2, status: "active", createdAt: new Date(), updatedAt: new Date() });
   await WishListItem.collection.insertOne({ kidId: maya._id, familyId: A.family._id, itemId, storeId, seasonYear: year, costCentipoints: 1000, fundedCentipoints: 400, status: "active", createdAt: new Date(), updatedAt: new Date() });
   await WishListItem.collection.insertOne({ kidId: ed._id, familyId: E.family._id, itemId, storeId, seasonYear: year, costCentipoints: 1000, fundedCentipoints: 0, status: "active", createdAt: new Date(), updatedAt: new Date() });
-  // freeze yesterday, close in 9 days → pay-ups close in 2 days (close − 7).
+  // freeze yesterday → pay-ups open (3 days from the freeze: today is day 2).
   await Season.collection.updateOne({ year }, { $set: { freezeDate: dayIso(-1), closeDate: dayIso(9) } });
   const p1 = await capture(() => sendSeasonReminders());
   const pa = p1.mails.get(mail("a")) ?? "";
-  check("pay-up reminder: A (unfinished gift) gets it; B (none) and E (gift of an UNREGISTERED child) don't", pa.includes("Finish gifts before") && pa.includes("/parent/payup") && !p1.mails.has(mail("b")) && !p1.mails.has(mail("e")));
+  check("pay-up reminder: A (unfinished gift) gets it; B (none) and E (gift of an UNREGISTERED child) don't", pa.includes("Finish gifts by") && pa.includes("/parent/payup") && !p1.mails.has(mail("b")) && !p1.mails.has(mail("e")));
   const last = formatLongDate((await payUpWindow()).lastPayDay, "en");
   check(`pay-up reminder names the LAST day pay-ups are possible (${last}), not the first closed day`, pa.includes(`until ${last}`));
   const p2 = await capture(() => sendSeasonReminders());

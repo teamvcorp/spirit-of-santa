@@ -1,7 +1,7 @@
 /**
- * /parent/payup (Phase 6 slice 4): during the pay-up window (freeze date → 7 days before the
- * close) a parent can pay the missing amount of each unfinished gift. Needs the PIN unlock.
- * Gifts still unfinished at the close drop off and their points go to Spirit of Santa.
+ * /parent/payup (Phase 6 slice 4; year-round slice 5): for PAY_UP_DAYS after the Dec 1 community share-out has
+ * landed (payUpWindow), a parent can pay the missing amount of each unfinished gift. Needs the PIN unlock.
+ * Gifts still unfinished after that drop off and their points go to Spirit of Santa.
  */
 import type { Metadata } from "next";
 import { connection } from "next/server";
@@ -27,6 +27,7 @@ async function Content() {
   const parent = await requireUnlockedPage("/parent/payup");
   const [{ window, options }, t, format] = await Promise.all([payUpOptions(parent), getTranslations("PayUp"), getFormatter()]);
   const day = (d: Date) => format.dateTime(d, { month: "long", day: "numeric" });
+  if (window.waitingForSplit) return <Alert>{t("waiting")}</Alert>;
   if (!window.open) return <Alert>{t("closed", { opens: day(window.opensAt), closes: day(window.lastPayDay) })}</Alert>;
   return (
     <>

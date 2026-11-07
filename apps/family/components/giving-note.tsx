@@ -18,11 +18,12 @@ export async function GivingNote({ lastDay }: { lastDay: Date }) {
   );
 }
 
-export async function GivingClosed() {
+/** paused = the admin's emergency freeze (reversible): never say "opens again on January 1" then. */
+export async function GivingClosed({ paused = false }: { paused?: boolean }) {
   const t = await getTranslations("Giving");
   return (
     <div data-testid="giving-closed">
-      <Alert>{t("closed")}</Alert>
+      <Alert>{t(paused ? "paused" : "closed")}</Alert>
     </div>
   );
 }

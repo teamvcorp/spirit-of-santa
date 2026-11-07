@@ -98,7 +98,7 @@
     },
     "payUpReminder": {
       "subject": "Últimos días para completar regalos: hasta el {date}",
-      "heading": "Completa los regalos antes del {date}",
+      "heading": "Completa los regalos hasta el {date}",
       "body": "Algunos regalos de las listas de tus hijos todavía no están completos. Puedes pagar lo que falta hasta el {date}. Los regalos que sigan incompletos después salen de la lista y su Magia Navideña pasa a Spirit of Santa.",
       "button": "Completar regalos"
     },

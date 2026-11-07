@@ -394,6 +394,7 @@
     "intro": "Pay the Christmas Magic a gift still needs ({rate} = 1 Christmas Magic) and it's set for Christmas: it ships like any other gift.",
     "deadline": "You can finish gifts until {closes}. Gifts that still aren't fully funded after that drop off the list, and the Christmas Magic on them goes to Spirit of Santa.",
     "closed": "Finishing gifts is possible from {opens} until {closes}.",
+    "waiting": "Community donations are being shared out first, so you only pay what's really missing. Please check back soon.",
     "none": "Every gift on your children's lists is fully funded. Nothing to do!",
     "missing": "Needs {points} more Christmas Magic: {amount}",
     "button": "Finish for {amount}",
@@ -738,7 +739,8 @@
   },
   "Giving": {
     "note": "Giving closes after {date} so every gift arrives by Christmas.",
-    "closed": "Giving for this Christmas has closed, so every gift arrives in time. It opens again on January 1."
+    "closed": "Giving for this Christmas has closed, so every gift arrives in time. It opens again on January 1.",
+    "paused": "Giving is paused for a moment. Please check back soon."
   },
   "SeasonClosed": {
     "closed": {

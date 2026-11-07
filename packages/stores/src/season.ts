@@ -193,15 +193,15 @@ export async function familySiteClosed(now = new Date()): Promise<"closed" | "re
 }
 
 /**
- * Gifts (QR tips, donation links, parent bonuses) are accepted while the season is OPEN or FROZEN,
- * and a checkout must end by the first closed day (Dec 26, Central-Time midnight). Single source of truth:
- * a bonus/tip after Christmas would be wiped by the Jan 1 reset a few days later.
+ * Giving (QR tips, donation links, parent bonuses, pay-later links) is accepted only while the season is OPEN,
+ * and a checkout must end by the start of the freeze date (owner 2026-11-07: every gift must arrive by
+ * Christmas). Single source of truth. paused = the admin's emergency force-freeze stopped it (reversible).
  */
-export async function giftWindow(now = new Date()): Promise<{ open: boolean; closeAt: Date; lastDay: Date }> {
+export async function giftWindow(now = new Date()): Promise<{ open: boolean; closeAt: Date; lastDay: Date; paused: boolean }> {
   const s = await getSeasonState(now);
   // Owner 2026-11-07: GIVING closes at the freeze date (Dec 1) so every gift can arrive by Christmas. Open phase
   // only (a force-freeze stops giving too). closeAt = start of the freeze date: checkouts and pay-later links cap
   // at it. lastDay = the instant before, for "Giving closes after November 30".
   const closeAt = startOfDayInZone(s.dates.freeze);
-  return { open: s.phase === "open", closeAt, lastDay: new Date(closeAt.getTime() - 1) };
+  return { open: s.phase === "open", closeAt, lastDay: new Date(closeAt.getTime() - 1), paused: s.phaseSource === "forced" };
 }

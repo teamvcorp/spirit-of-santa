@@ -394,6 +394,7 @@
     "intro": "Paga la Magia Navideña que le falta a un regalo ({rate} = 1 de Magia Navideña) y quedará listo para Navidad: se envía como cualquier otro regalo.",
     "deadline": "Puedes completar regalos hasta el {closes}. Los regalos que sigan incompletos después salen de la lista y su Magia Navideña pasa a Spirit of Santa.",
     "closed": "Se pueden completar regalos desde el {opens} hasta el {closes}.",
+    "waiting": "Primero se reparten las donaciones de la comunidad, para que solo pagues lo que de verdad falta. Vuelve a revisar pronto.",
     "none": "Todos los regalos de las listas de tus hijos están completos. ¡No hay nada que hacer!",
     "missing": "Le falta {points} de Magia Navideña: {amount}",
     "button": "Completar por {amount}",
@@ -738,7 +739,8 @@
   },
   "Giving": {
     "note": "Las donaciones cierran después del {date} para que cada regalo llegue para Navidad.",
-    "closed": "Las donaciones para esta Navidad ya cerraron, para que cada regalo llegue a tiempo. Vuelven a abrir el 1 de enero."
+    "closed": "Las donaciones para esta Navidad ya cerraron, para que cada regalo llegue a tiempo. Vuelven a abrir el 1 de enero.",
+    "paused": "Las donaciones están en pausa por un momento. Vuelve a revisar pronto."
   },
   "SeasonClosed": {
     "closed": {

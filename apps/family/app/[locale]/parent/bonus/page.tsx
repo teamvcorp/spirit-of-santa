@@ -30,7 +30,7 @@ async function Content({ searchParams }: { searchParams: PageProps<"/[locale]/pa
   const [kids, win, t] = await Promise.all([listKids(parent), giftWindow(), getTranslations("Bonus")]);
   const registered = kids.filter((k) => k.registered).map((k) => ({ id: k.id, firstName: k.firstName }));
   if (registered.length === 0) return <p className="text-muted">{t("noKids")}</p>;
-  if (!win.open) return <GivingClosed />;
+  if (!win.open) return <GivingClosed paused={win.paused} />;
   const preselect = typeof sp.kid === "string" && registered.some((k) => k.id === sp.kid) ? sp.kid : undefined;
   return (
     <>

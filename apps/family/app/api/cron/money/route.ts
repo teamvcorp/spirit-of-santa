@@ -8,7 +8,7 @@
  *  2. Switch off expired pay-later text links (Phase 5 slice 4b), BEFORE the season end.
  *     Then wish lists (Phase 6): lock EVERY fully funded item (secured; held until the December ship window) and SPEND their magic (ledger
  *     "spend", Phase 8); sweep unallocated
- *     points; Dec 25 close (unfinished gifts drop off, points → Spirit of Santa); then email each store its new gifts to set aside / ready to ship (needs STORE_APP_URL);
+ *     points; drop-off when pay-up ends (Dec 4, after the split landed: unfinished gifts drop off, points → Spirit of Santa); then email each store its new gifts to set aside / ready to ship (needs STORE_APP_URL);
  *     then retry failed "gift on its way" parent emails (needs FAMILY_APP_URL); finish "deliver, then delete"
  *     account deletions whose gifts arrived (Phase 8); delete addresses no gift needs;
  *     Phase 7: each parent's daily summary (magic + deeds) and the season reminders (email only).
@@ -65,7 +65,7 @@ export async function GET(request: Request): Promise<Response> {
   // below work on escrow, so the order is safe.
   const seasonEnd = await settle(() => runSeasonReset());
   // Wish lists: every fully funded gift → locked + magic spent (year-round, owner 2026-11-07); then a safety sweep of unallocated points.
-  // Then the Dec 25 close: unfinished gifts drop off, their points go to Spirit of Santa (BEFORE the Jan 1 reset).
+  // Then the drop-off once pay-up is over (Dec 4; waits for the split): unfinished gifts drop off, their points go to Spirit of Santa.
   const wishLists = await settle(async () => ({ locked: await lockFundedItems(), sweep: await sweepAllocations(), closed: await closeUnfunded() }));
   // After locking, so gifts locked today are in today's "ready to ship" email.
   const storeOrders = await settle(() => sendStoreDigests());
@@ -99,7 +99,8 @@ export async function GET(request: Request): Promise<Response> {
   // A digest that ran but couldn't email some stores also counts as failed (it never throws per store).
   const digestFailed = storeOrders.status === "fulfilled" && storeOrders.value.failed > 0;
   const noticesFailed = familyNotices.status === "fulfilled" && familyNotices.value.failed > 0;
-  const closeFailed = wishLists.status === "fulfilled" && wishLists.value.closed.failed > 0;
+  // waitingForSplit: pay-up is over by the calendar but the community share-out never landed (fee missing?). Loud daily.
+  const closeFailed = wishLists.status === "fulfilled" && (wishLists.value.closed.failed > 0 || wishLists.value.closed.waitingForSplit);
   const lockFailed = wishLists.status === "fulfilled" && wishLists.value.locked.failed > 0;
   const closingFailed = closing.status === "fulfilled" && closing.value.failed > 0;
   // The Jan 1 reset ran but didn't finish, or finished with kids flagged for an admin: the family site may be

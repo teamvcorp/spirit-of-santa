@@ -21,7 +21,7 @@ import { Deed, Kid, PayLaterRequest, Payment, Transaction, trusted, withTransact
 import { MAX_DONATION_CENTS, MAX_TIP_CENTS, MIN_DONATION_CENTS, MIN_TIP_CENTS, REGISTRATION_FEE_CENTS, MIN_STRIPE_CHARGE_CENTS } from "@repo/lib/limits";
 import { centsToCentipoints, centipointsToCents } from "@repo/lib/points";
 import { getSeasonYear } from "@repo/lib/season";
-import { getSeasonState } from "@repo/stores/season";
+import { getSeasonState, giftWindow } from "@repo/stores/season";
 import { getStripe } from "./client.ts";
 import { parsePaymentMetadata, type PaymentMetadata } from "./metadata.ts";
 import { allocateForKid } from "@repo/wishlists/engine";
@@ -207,6 +207,11 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
     // Pay-up (Phase 6 slice 4): the gift must be THIS kid's. If it was finished or removed in the
     // meantime, the money still becomes the kid's points (filling the next gift as usual).
     let payUpLate: string | null = null;
+    // Tips / bonus paid after giving closed (only possible through a link or checkout issued before an admin
+    // moved the freeze date earlier or force-froze): still credited (the money is in), flagged for an admin.
+    if ((meta.sos_purpose === "tip" || meta.sos_purpose === "bonus") && !(await giftWindow(new Date(pi.created * 1000))).open) {
+      payUpLate = "Paid after giving closed (freeze date moved or emergency freeze): credited as the kid's points";
+    }
     if (meta.sos_purpose === "payup") {
       const w = await WishListItem.findOne({ _id: meta.sos_wish_list_item_id, kidId: meta.sos_kid_id, familyId: meta.sos_family_id })
         .select({ status: 1, seasonYear: 1 })

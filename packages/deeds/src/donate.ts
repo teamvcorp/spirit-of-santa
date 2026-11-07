@@ -72,14 +72,14 @@ async function findKid(token: unknown): Promise<KidLite | null> {
     .lean<KidLite>();
 }
 
-export type DonationPage = { state: "invalid" } | { state: "open"; kidName: string; familyAlias?: string; givingOpen: boolean; givingEndsAt: Date; givingLastDay: Date };
+export type DonationPage = { state: "invalid" } | { state: "open"; kidName: string; familyAlias?: string; givingOpen: boolean; givingPaused: boolean; givingEndsAt: Date; givingLastDay: Date };
 
 async function view(token: unknown): Promise<{ page: DonationPage; kid: KidLite | null }> {
   const kid = await findKid(token);
   if (!kid || kid.registration?.status !== "registered") return { page: { state: "invalid" }, kid: null };
   const [fam, season] = await Promise.all([Family.findById(kid.familyId).select("alias showAliasPublicly aliasReview").lean(), publicSeason()]);
   return {
-    page: { state: "open", kidName: kid.displayName, familyAlias: publicFamilyAlias(fam), givingOpen: season.givingOpen, givingEndsAt: season.givingEndsAt, givingLastDay: season.givingLastDay },
+    page: { state: "open", kidName: kid.displayName, familyAlias: publicFamilyAlias(fam), givingOpen: season.givingOpen, givingPaused: season.givingPaused, givingEndsAt: season.givingEndsAt, givingLastDay: season.givingLastDay },
     kid,
   };
 }

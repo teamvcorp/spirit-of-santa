@@ -750,6 +750,10 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   16 audit actions had no labels → added en/es + unit test (packages/db/test/audit-labels.test.ts).
   E2E `browser-family-deliver-then-delete.ts` (20).
 
+- **Slice 2b "what we store" (2026-11-07).** /parent/our-data (PIN) + /parent/our-data/download (route handler, PIN, no-store,
+  no-referrer, JSON attachment). ONE source: `familyDataExport` @repo/families/data-export (never hashes, tokens or
+  encrypted blobs; address decrypted). Dashboard link next to "Delete our family account". E2E browser-family-our-data (10).
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.

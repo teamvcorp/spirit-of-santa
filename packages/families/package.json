@@ -6,6 +6,7 @@
   "exports": {
     "./kids": "./src/kids.ts",
     "./erase": "./src/erase.ts",
+    "./data-export": "./src/data-export.ts",
     "./registration": "./src/registration.ts",
     "./schemas": "./src/schemas.ts",
     "./votes": "./src/votes.ts",

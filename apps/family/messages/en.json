@@ -158,7 +158,8 @@
     "addressAlert": "A gift is funded! Tell us where to deliver it.",
     "addressLink": "Add a delivery address",
     "emailSettings": "Email settings",
-    "deleteAccount": "Delete our family account"
+    "deleteAccount": "Delete our family account",
+    "ourData": "See what we store about your family"
   },
   "Register": {
     "title": "Register your children",
@@ -666,5 +667,63 @@
     "title": "Your children's information is deleted",
     "body": "Your children's information and your sign-in are gone. A paid gift is still on its way to you: until it arrives we keep only your email, family name and delivery address, then we delete those too and email you.\nThank you for being part of Spirit of Santa.",
     "home": "Back to the home page"
+  },
+  "OurData": {
+    "title": "What we store about your family",
+    "back": "Parent area",
+    "intro": "Everything Spirit of Santa keeps about you and your children. You can download a copy, change most of it in the parent area, or delete it all.",
+    "download": "Download a copy (JSON file)",
+    "notFound": "We couldn't find your family account.",
+    "none": "None",
+    "yes": "Yes",
+    "no": "No",
+    "magic": "{magic} Christmas Magic",
+    "parentTitle": "You (the parent)",
+    "email": "Email",
+    "name": "Name",
+    "language": "Language",
+    "created": "Account created",
+    "familyTitle": "Your family",
+    "familyName": "Family name (private)",
+    "alias": "Public alias",
+    "shown": "shown publicly",
+    "hidden": "not shown",
+    "zip": "ZIP code",
+    "address": "Delivery address",
+    "emails": "Emails we send you",
+    "emailKinds": {
+      "magic": "Christmas Magic received",
+      "deeds": "Good deeds thanked",
+      "reminders": "Season reminders"
+    },
+    "consent": "Your consent",
+    "consentValue": "Version {version}, agreed {date}",
+    "pin": "Parent PIN set",
+    "displayName": "Name shown to others",
+    "birthYear": "Birth year",
+    "registered": "Registered",
+    "available": "Christmas Magic to spend",
+    "held": "Christmas Magic held for gifts",
+    "wishList": "Wish list ({count})",
+    "giftLine": "{gift}: {status} ({funded} of {cost} Christmas Magic)",
+    "giftStatus": {
+      "active": "collecting Christmas Magic",
+      "fully_funded": "fully funded",
+      "locked": "secured with the store",
+      "removed": "removed",
+      "unfunded": "not finished by Christmas",
+      "shipped": "on its way",
+      "delivered": "delivered"
+    },
+    "deeds": "Good deeds ({count})",
+    "aDeed": "A good deed",
+    "votes": "Nice / naughty votes ({count})",
+    "vote": {
+      "nice": "nice",
+      "naughty": "naughty"
+    },
+    "historyNote": "Christmas Magic history: {count} entries (every amount earned, held, spent or returned; in the download).",
+    "changeNote": "Something wrong? Most of this can be changed in the parent area. You can also",
+    "deleteLink": "delete your family account."
   }
 }

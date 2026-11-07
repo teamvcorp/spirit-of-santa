@@ -27,7 +27,7 @@ export async function goTo(href: string): Promise<never> {
 /**
  * Where to go after the PIN (`?next=`). ONLY these family-app paths are accepted, so the link can
  * never send anyone to another site (no open redirect): /parent, /parent/kids/new,
- * /parent/kids/<id>, /parent/register, /parent/bonus[?kid=<id>], /parent/payup, /parent/address, /parent/notifications, /parent/delete-account,
+ * /parent/kids/<id>, /parent/register, /parent/bonus[?kid=<id>], /parent/payup, /parent/address, /parent/notifications, /parent/delete-account, /parent/our-data,
  * /kids/<id>, /kids/<id>/deed,
  * /kids/<id>/wishlist/<wishId>/remove.
  */
@@ -37,7 +37,7 @@ export function safeNext(raw: unknown): string | null {
 }
 const ID = OBJECT_ID_PATTERN;
 const SAFE_NEXT = new RegExp(
-  `^/(?:parent(?:/(?:kids/new|kids/${ID}|register|payup|address|notifications|delete-account|bonus(?:\\?kid=${ID})?))?|kids/${ID}(?:/deed|/wishlist/${ID}/remove)?)$`,
+  `^/(?:parent(?:/(?:kids/new|kids/${ID}|register|payup|address|notifications|delete-account|our-data|bonus(?:\\?kid=${ID})?))?|kids/${ID}(?:/deed|/wishlist/${ID}/remove)?)$`,
 );
 
 /**

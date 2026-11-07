@@ -158,7 +158,8 @@
     "addressAlert": "¡Un regalo está completo! Dinos dónde entregarlo.",
     "addressLink": "Agregar dirección de entrega",
     "emailSettings": "Correos",
-    "deleteAccount": "Eliminar nuestra cuenta familiar"
+    "deleteAccount": "Eliminar nuestra cuenta familiar",
+    "ourData": "Ver lo que guardamos sobre tu familia"
   },
   "Register": {
     "title": "Registra a tus hijos",
@@ -666,5 +667,63 @@
     "title": "Se eliminó la información de tus hijos",
     "body": "La información de tus hijos y tu acceso ya no existen. Un regalo pagado sigue en camino hacia ti: hasta que llegue guardamos solo tu correo, tu apellido familiar y tu dirección de entrega, y luego también los eliminamos y te avisamos por correo.\nGracias por ser parte de Spirit of Santa.",
     "home": "Volver a la página principal"
+  },
+  "OurData": {
+    "title": "Lo que guardamos sobre tu familia",
+    "back": "Área para padres",
+    "intro": "Todo lo que Spirit of Santa guarda sobre ti y tus hijos. Puedes descargar una copia, cambiar casi todo en el área para padres o eliminarlo todo.",
+    "download": "Descargar una copia (archivo JSON)",
+    "notFound": "No encontramos tu cuenta familiar.",
+    "none": "Ninguno",
+    "yes": "Sí",
+    "no": "No",
+    "magic": "{magic} de Magia Navideña",
+    "parentTitle": "Tú (madre, padre o tutor)",
+    "email": "Correo",
+    "name": "Nombre",
+    "language": "Idioma",
+    "created": "Cuenta creada",
+    "familyTitle": "Tu familia",
+    "familyName": "Apellido familiar (privado)",
+    "alias": "Alias público",
+    "shown": "se muestra",
+    "hidden": "no se muestra",
+    "zip": "Código postal",
+    "address": "Dirección de entrega",
+    "emails": "Correos que te enviamos",
+    "emailKinds": {
+      "magic": "Magia Navideña recibida",
+      "deeds": "Buenas acciones agradecidas",
+      "reminders": "Recordatorios de la temporada"
+    },
+    "consent": "Tu consentimiento",
+    "consentValue": "Versión {version}, aceptado el {date}",
+    "pin": "PIN de padres creado",
+    "displayName": "Nombre que ven otros",
+    "birthYear": "Año de nacimiento",
+    "registered": "Registrado",
+    "available": "Magia Navideña para usar",
+    "held": "Magia Navideña reservada para regalos",
+    "wishList": "Lista de deseos ({count})",
+    "giftLine": "{gift}: {status} ({funded} de {cost} de Magia Navideña)",
+    "giftStatus": {
+      "active": "reuniendo Magia Navideña",
+      "fully_funded": "financiado por completo",
+      "locked": "asegurado con la tienda",
+      "removed": "quitado",
+      "unfunded": "no se completó para Navidad",
+      "shipped": "en camino",
+      "delivered": "entregado"
+    },
+    "deeds": "Buenas acciones ({count})",
+    "aDeed": "Una buena acción",
+    "votes": "Votos de bueno / travieso ({count})",
+    "vote": {
+      "nice": "bueno",
+      "naughty": "travieso"
+    },
+    "historyNote": "Historial de Magia Navideña: {count} movimientos (todo lo ganado, reservado, usado o devuelto; en la descarga).",
+    "changeNote": "¿Algo no está bien? Casi todo se puede cambiar en el área para padres. También puedes",
+    "deleteLink": "eliminar tu cuenta familiar."
   }
 }

@@ -109,7 +109,10 @@ async function Content() {
         )}
       </Card>
       {/* At the bottom on purpose: a destructive action is never one of the everyday buttons. */}
-      <p className="mt-8 text-sm">
+      <p className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        <Link href="/parent/our-data" className="text-muted underline underline-offset-4">
+          {t("ourData")}
+        </Link>
         <Link href="/parent/delete-account" className="text-muted underline underline-offset-4">
           {t("deleteAccount")}
         </Link>

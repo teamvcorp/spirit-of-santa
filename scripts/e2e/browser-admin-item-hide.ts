@@ -19,7 +19,8 @@ import { getSeasonYear } from "@repo/lib/season";
 import { browseGifts, giftDetail, parseGiftQuery } from "@repo/wishlists/catalog";
 import { addToList } from "@repo/wishlists/engine";
 import { readFileSync } from "node:fs";
-import { archiveItem, createItem } from "@repo/stores/items";
+import { archiveItem, createItem, updateItem } from "@repo/stores/items";
+import { unhideItem } from "@repo/stores/admin";
 import { getSeasonState } from "@repo/stores/season";
 import { createMfaAdmin, makeChecks, signIn } from "./lib.ts";
 
@@ -114,13 +115,23 @@ try {
   const repActor = { id: String(rep._id), role: "store_rep", storeId: String(store._id) };
   const windowOpen = (await getSeasonState()).storeWindowOpen;
   const repTry = await createItem(repActor, { name: `Rep Swap ${tag}`, inventory: 2 }, String(item._id));
-  check("a rep cannot add the replacement outside the item window", windowOpen || (!repTry.ok && repTry.error === "windowClosed"), JSON.stringify(repTry));
+  check("a rep cannot use the replacement (owner only)", !repTry.ok && !(await Item.exists({ name: `Rep Swap ${tag}` })), JSON.stringify(repTry));
   const swap = await createItem(ownerActor, { name: `Snow Globe ${tag}`, priceCents: 1500, inventory: 3 }, String(item._id));
   const linked = await Item.findById(item._id).lean();
   check("owner adds the replacement any time of year, linked to the hidden item", swap.ok && String(linked?.replacedByItemId) === swap.itemId, JSON.stringify(swap));
   check("the replacement is in the gift browser", await inBrowser(`Snow Globe ${tag}`));
   const again = await createItem(ownerActor, { name: `Second Swap ${tag}`, priceCents: 1500, inventory: 3 }, String(item._id));
   check("a second replacement for the same hidden item is refused", !again.ok && !(await Item.exists({ name: `Second Swap ${tag}` })));
+  // The owner can still fix a fresh replacement outside the window (name, price, photo) for a few days.
+  const fix = await updateItem(ownerActor, swap.ok ? swap.itemId! : "", { name: `Snow Globe XL ${tag}`, priceCents: 1600, inventory: 3 }, 3);
+  check("owner can edit the fresh replacement outside the window", windowOpen || (fix.ok && (await Item.exists({ name: `Snow Globe XL ${tag}` })) !== null), JSON.stringify(fix));
+
+  // Showing the hidden item again must not push the store past 50 listed items (it now has a replacement).
+  const fillers = Array.from({ length: 48 }, (_, i) => ({ storeId: store._id, seasonYear: year, name: `Filler ${i} ${tag}`, priceCents: 500, inventory: 1, status: "active", createdAt: new Date(), updatedAt: new Date() }));
+  await Item.collection.insertMany(fillers);
+  const full = await unhideItem({ id: admin.id, role: "admin" }, String(item._id));
+  check("store already at 50 listed items: 'show again' refused (limitReached)", !full.ok && full.error === "limitReached" && (await Item.findById(item._id).lean())?.status === "hidden", JSON.stringify(full));
+  await Item.collection.deleteMany({ storeId: store._id, name: { $regex: `^Filler .* ${tag}$` } });
 
   // A store can't undo a hide by archiving and restoring the item (review 2026-11-07).
   // Open the store window for this check (it is closed outside Jan 1 – Mar 31), then put it back.

@@ -87,6 +87,7 @@
     "viewStore": "Ver la tienda",
     "errors": {
       "notFound": "Esa tienda ya no existe.",
+      "limitReached": "Esta tienda ya tiene 50 artículos publicados (puede que haya agregado un reemplazo). Pide a la tienda que archive uno primero.",
       "badStatus": "El estado de esta tienda cambió mientras tanto. Actualiza la página e inténtalo de nuevo.",
       "emailInUse": "Ese correo ya tiene una cuenta.",
       "ownerUnverified": "El dueño aún no confirmó su correo, así que la tienda no se puede aprobar.",

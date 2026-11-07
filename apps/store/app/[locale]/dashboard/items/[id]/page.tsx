@@ -30,7 +30,8 @@ async function Content({ params, searchParams }: { params: PageProps<"/[locale]/
   const created = (await searchParams).created === "1";
   const { item } = data;
   const archived = item.status === "archived";
-  const canEdit = data.editable && data.window.open && !archived;
+  // Outside Jan 1 - Mar 31 the OWNER may still edit a fresh replacement for a hidden item (REPLACEMENT_EDIT_DAYS).
+  const canEdit = data.editable && !archived && (data.window.open || (data.isOwner && item.replacementGrace && !data.window.closedByAdmin));
   return (
     <>
       {created && <Alert className="mb-4">{t("created")}</Alert>}

@@ -87,6 +87,7 @@
     "viewStore": "View the store",
     "errors": {
       "notFound": "That store no longer exists.",
+      "limitReached": "This store already has 50 listed items (it may have added a replacement). Ask the store to archive one first.",
       "badStatus": "This store's status changed meanwhile. Refresh the page and try again.",
       "emailInUse": "That email already has an account.",
       "ownerUnverified": "The owner hasn't confirmed their email yet, so the store can't be approved.",

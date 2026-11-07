@@ -98,7 +98,7 @@ async function transition(
 // ── Item moderation (owner 2026-11-07): hide ONE item from families instead of suspending the whole store ──
 
 export type AdminItemRow = { id: string; name: string; priceCents?: number; status: "draft" | "active" | "hidden"; hiddenReason?: string };
-export type ItemModerationResult = { ok: true } | { ok: false; error: "notFound" | "badStatus" };
+export type ItemModerationResult = { ok: true } | { ok: false; error: "notFound" | "badStatus" | "limitReached" };
 
 /** This season's listed items of one store (drafts, active and hidden; archived ones are already off the site). */
 export async function listItemsForAdmin(actor: AdminActor, storeId: string): Promise<AdminItemRow[]> {
@@ -107,7 +107,7 @@ export async function listItemsForAdmin(actor: AdminActor, storeId: string): Pro
   const rows = await Item.find({ storeId, seasonYear: getSeasonYear(), status: trusted({ $in: ["draft", "active", "hidden"] }) })
     .select("name priceCents status hiddenReason")
     .sort({ status: 1, name: 1 })
-    .limit(STORE_ITEM_LIMIT + 10)
+    .limit(STORE_ITEM_LIMIT * 4) // hidden items don't count toward the limit, so there can be more than 50
     .lean<{ _id: unknown; name: string; priceCents?: number; status: AdminItemRow["status"]; hiddenReason?: string }[]>();
   return rows.map((r) => ({ id: String(r._id), name: r.name, priceCents: r.priceCents, status: r.status, hiddenReason: r.hiddenReason || undefined }));
 }
@@ -135,8 +135,10 @@ export async function hideItem(actor: AdminActor, itemId: string, reason: string
   if (!hidden) return { ok: false, error: (await Item.exists({ _id: itemId })) ? "badStatus" : "notFound" };
   // AFTER the commit (never email from inside a transaction that could still roll back): ask the owner for a
   // replacement, linking straight to the "replace" form (owner 2026-11-07). A failed email never undoes the hide.
-  const store = await Store.findById(hidden.storeId).select("name ownerUserId").lean<{ name: string; ownerUserId?: unknown }>();
-  if (store?.ownerUserId) {
+  // Only when the store can act on it: still editable, and the item is from THIS season (review 2026-11-07).
+  const store = await Store.findById(hidden.storeId).select("name ownerUserId status").lean<{ name: string; ownerUserId?: unknown; status: string }>();
+  const current = (await Item.findById(itemId).select("seasonYear").lean<{ seasonYear: number }>())?.seasonYear === getSeasonYear();
+  if (store?.ownerUserId && (store.status === "approved" || store.status === "pending") && current) {
     await emailOwner(
       store.ownerUserId,
       (link) => ({ template: "itemHidden", values: { storeName: store.name, itemName: hidden.name, reason, link } }),
@@ -151,6 +153,13 @@ export async function unhideItem(actor: AdminActor, itemId: string): Promise<Ite
   assertAdmin(actor);
   await connectDb();
   return withTransaction(async (session): Promise<ItemModerationResult> => {
+    // Showing it again counts toward the store's limit again: take the store's item lock (same as a store add) and
+    // refuse at 50, e.g. when the store already added a replacement (review 2026-11-07).
+    const target = await Item.findOne({ _id: itemId, status: "hidden" }).select("storeId seasonYear").session(session).lean<{ storeId: unknown; seasonYear: number }>();
+    if (!target) return { ok: false, error: (await Item.exists({ _id: itemId }).session(session)) ? "badStatus" : "notFound" };
+    await Store.updateOne({ _id: String(target.storeId) }, { $inc: { itemLockSeq: 1 } }, { session });
+    const counted = await Item.countDocuments({ storeId: String(target.storeId), seasonYear: target.seasonYear, status: trusted({ $nin: ["archived", "hidden"] as ("archived" | "hidden")[] }) }).session(session);
+    if (counted >= STORE_ITEM_LIMIT) return { ok: false, error: "limitReached" };
     const before = await Item.findOneAndUpdate(
       { _id: itemId, status: "hidden" },
       { $set: { status: "active" }, $unset: { hiddenReason: 1, hiddenAt: 1, hiddenByAdminId: 1 } },

@@ -24,6 +24,12 @@ export const MAX_KIDS_PER_FAMILY = 10;
 /** Kids are under 18: birth year between (this year - 17) and this year. */
 export const MAX_KID_AGE_YEARS = 17;
 
+/**
+ * A replacement for an admin-hidden item (added any time of year) stays editable by the OWNER for this many days
+ * after it is created, so a photo can be added and mistakes fixed outside Jan 1 - Mar 31 (review 2026-11-07).
+ */
+export const REPLACEMENT_EDIT_DAYS = 14;
+
 /** Adding a wish-list item needs at least this many AVAILABLE centipoints (1 point; roadmap). */
 export const MIN_CENTIPOINTS_TO_ADD_ITEM = 100;
 

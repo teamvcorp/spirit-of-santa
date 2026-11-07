@@ -25,7 +25,8 @@
  */
 import "server-only";
 import { AuditLog, Item, Store, trusted, withTransaction, type AuditAction, type DbSession } from "@repo/db";
-import { STORE_ITEM_LIMIT } from "@repo/lib/limits";
+import { REPLACEMENT_EDIT_DAYS, STORE_ITEM_LIMIT } from "@repo/lib/limits";
+import { DAY_MS } from "@repo/lib/time";
 import { getSeasonYear } from "@repo/lib/season";
 import { getSeasonState } from "./season.ts";
 import { isStoreEditable, wholesaleCents } from "@repo/lib/store";
@@ -52,17 +53,39 @@ const COUNTS_TOWARD_LIMIT = () => trusted({ $nin: ["archived", "hidden"] as ("ar
 const NOT_ARCHIVED = () => trusted({ $ne: "archived" as const });
 
 /** Is the store item window open now? (Admin switch on /season first, then Jan 1–Mar 31.) */
-export async function storeItemWindow(now = new Date()): Promise<{ open: boolean; seasonYear: number }> {
+export async function storeItemWindow(now = new Date()): Promise<{ open: boolean; seasonYear: number; closedByAdmin: boolean }> {
   const s = await getSeasonState(now);
-  return { open: s.storeWindowOpen, seasonYear: s.year };
+  // closedByAdmin: an admin's "closed" switch also stops the replacement exception (review 2026-11-07).
+  return { open: s.storeWindowOpen, seasonYear: s.year, closedByAdmin: s.storeWindowMode === "closed" };
 }
 
+/** Is this item a replacement still inside its owner edit grace (REPLACEMENT_EDIT_DAYS after creation)? */
+const inReplacementGrace = (item: { replacesItemId?: unknown; createdAt?: Date | string | null }, now = Date.now()) =>
+  !!item.replacesItemId && !!item.createdAt && now - new Date(item.createdAt).getTime() < REPLACEMENT_EDIT_DAYS * DAY_MS;
+
 /** Shared gate for item changes. Membership and the window are looked up in parallel. */
-async function gate(actor: StoreActor, needWindow: boolean): Promise<{ store: MemberStore; seasonYear: number } | { error: ItemResult & { ok: false } }> {
+/**
+ * needWindow: "window" = the item window must be open; "replacement" = adding a replacement for a hidden item
+ * (owner only, any time unless an admin closed the window); { itemId } = editing that item: the window must be open,
+ * OR it is the owner editing a replacement inside its grace (REPLACEMENT_EDIT_DAYS); false = any time (stock).
+ */
+async function gate(
+  actor: StoreActor,
+  needWindow: boolean | "replacement" | { itemId: string },
+): Promise<{ store: MemberStore; seasonYear: number } | { error: ItemResult & { ok: false } }> {
   const [store, win] = await Promise.all([memberStore(actor), storeItemWindow()]);
   if (!store) return { error: { ok: false, error: "notFound" } };
   if (!isStoreEditable(store.status)) return { error: { ok: false, error: "readOnly" } };
-  if (needWindow && !win.open) return { error: { ok: false, error: "windowClosed" } };
+  if (needWindow && !win.open) {
+    const owner = actor.role === "store_owner";
+    let allowed = false;
+    if (owner && !win.closedByAdmin && needWindow === "replacement") allowed = true;
+    if (owner && !win.closedByAdmin && typeof needWindow === "object") {
+      const it = await Item.findOne({ _id: needWindow.itemId, storeId: store._id, seasonYear: win.seasonYear }).select("replacesItemId createdAt").lean<{ replacesItemId?: unknown; createdAt?: Date }>();
+      allowed = !!it && inReplacementGrace(it);
+    }
+    if (!allowed) return { error: { ok: false, error: "windowClosed" } };
+  }
   return { store, seasonYear: win.seasonYear };
 }
 
@@ -108,6 +131,8 @@ export type ItemRow = {
   hiddenReason?: string;
   /** Hidden and not replaced yet: the owner may add ONE replacement, any time of year. */
   replaceable: boolean;
+  /** A replacement still inside its owner edit grace (editable outside the window). */
+  replacementGrace: boolean;
   photo?: { url: string; pathname: string };
   /** Engagement (slice 5): views counter + wish-list totals. Totals only, never who. */
   stats: ItemStats;
@@ -134,6 +159,7 @@ function toRow(item: Record<string, unknown> & { _id: unknown }, isOwner: boolea
     status: item.status as ItemRow["status"],
     hiddenReason: (item.hiddenReason as string) || undefined,
     replaceable: item.status === "hidden" && !item.replacedByItemId,
+    replacementGrace: inReplacementGrace(item as { replacesItemId?: unknown; createdAt?: Date }),
     photo: photo?.url ? { url: photo.url, pathname: photo.pathname } : undefined,
     stats: toStats(stats.views ?? 0, lists),
   };
@@ -154,7 +180,8 @@ export async function listStoreItems(store: MemberStore, isOwner: boolean) {
   const scope = { storeId: store._id, seasonYear: getSeasonYear(now) };
   const [win, current, archived, count, lists, viewSum] = await Promise.all([
     storeItemWindow(now),
-    Item.find({ ...scope, status: NOT_ARCHIVED() }).sort({ createdAt: 1 }).limit(STORE_ITEM_LIMIT + 10).lean(),
+    // Hidden items don't count toward the limit, so a store can list more than 50 (room for many hidden ones).
+    Item.find({ ...scope, status: NOT_ARCHIVED() }).sort({ createdAt: 1 }).limit(STORE_ITEM_LIMIT * 4).lean(),
     Item.find({ ...scope, status: "archived" }).sort({ updatedAt: -1 }).limit(100).lean(),
     Item.countDocuments({ ...scope, status: COUNTS_TOWARD_LIMIT() }),
     wishListTotals(scope.storeId, scope.seasonYear),
@@ -208,7 +235,9 @@ export async function getStoreItem(store: MemberStore, isOwner: boolean, itemId:
  */
 export async function createItem(actor: StoreActor, input: ItemInput, replacesItemId?: string): Promise<ItemResult> {
   const isOwner = actor.role === "store_owner";
-  const g = await gate(actor, !(replacesItemId && isOwner));
+  // Only the OWNER uses a hidden item's replacement (a rep's unpriced draft must not use it up).
+  if (replacesItemId && !isOwner) return { ok: false, error: "notFound" };
+  const g = await gate(actor, replacesItemId ? "replacement" : true);
   if ("error" in g) return g.error;
   if (isOwner && input.priceCents == null) return { ok: false, error: "priceRequired" };
   // Bounds create/archive churn (archived items are kept for history).
@@ -252,7 +281,7 @@ export async function createItem(actor: StoreActor, input: ItemInput, replacesIt
 
 /** `inventoryWas` = the stock number the form showed (compare-and-set; see the header). */
 export async function updateItem(actor: StoreActor, itemId: string, input: ItemInput, inventoryWas: number): Promise<ItemResult> {
-  const g = await gate(actor, true);
+  const g = await gate(actor, { itemId });
   if ("error" in g) return g.error;
   const isOwner = actor.role === "store_owner";
   const existing = await Item.findOne({ _id: itemId, ...scopeOf(g), status: NOT_ARCHIVED() }).select("status priceCents").lean();
@@ -339,7 +368,7 @@ export async function restoreItem(actor: StoreActor, itemId: string): Promise<It
 
 /** Set or replace the item's photo (owner or rep). The old file is deleted after the swap. */
 export async function setItemPhoto(actor: StoreActor, itemId: string, file: Blob): Promise<ItemResult> {
-  const g = await gate(actor, true);
+  const g = await gate(actor, { itemId });
   if ("error" in g) return g.error;
   const storeId = String(g.store._id);
   const filter = { _id: itemId, ...scopeOf(g), status: NOT_ARCHIVED() };
@@ -373,7 +402,7 @@ export async function setItemPhoto(actor: StoreActor, itemId: string, file: Blob
 
 /** Item photos live under items/<storeId>/… so ownership is checked by store. */
 export async function removeItemPhoto(actor: StoreActor, itemId: string): Promise<ItemResult> {
-  const g = await gate(actor, true);
+  const g = await gate(actor, { itemId });
   if ("error" in g) return g.error;
   const storeId = String(g.store._id);
   const before = await Item.findOneAndUpdate({ _id: itemId, ...scopeOf(g), status: NOT_ARCHIVED() }, { $unset: { photo: 1 } })

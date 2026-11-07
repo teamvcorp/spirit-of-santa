@@ -855,7 +855,11 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   (template itemHidden: item, reason, link /dashboard/items/new?replaces=<id>, sent after the commit); the OWNER may add
   ONE replacement per hidden item any time of year (createItem(actor, input, replacesItemId): window skipped for owners,
   CAS links hidden.replacedByItemId; reps only inside the window); hidden items no longer count toward the 50 limit
-  (COUNTS_TOWARD_LIMIT). E2E browser-admin-item-hide (17, needs the dev log).
+  (COUNTS_TOWARD_LIMIT). Review fixes: replacements OWNER-only; an admin "closed" switch also stops them; the owner may
+  edit/photo a replacement for REPLACEMENT_EDIT_DAYS (14) outside the window (gate({ itemId })); unhide takes the store
+  item lock and refuses at 50 ("limitReached"); the email only for editable stores and this season's items; list caps
+  raised to 4x the limit. Known gap: the email link loses ?replaces= when the owner must sign in first (Items page has
+  the link). E2E browser-admin-item-hide (19, needs the dev log).
   Owner 2026-11-07: Spanish pay-later SMS LATER (after Twilio verification, register as an extra sample).
   Copies SHARE the photo blob: items.ts `deleteUnusedPhoto` deletes a blob only if no item uses it (index on
   photo.pathname). Stock: forms send hidden `inventoryWas`; `setInventory`/`updateItem` compare-and-set on it

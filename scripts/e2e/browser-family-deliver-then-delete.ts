@@ -64,6 +64,14 @@ const ready = (p: Page) =>
   }, undefined, { timeout: 60_000 });
 const main = (p: Page) => p.locator("main:visible").first();
 const log = () => readFileSync(logFile, "utf8");
+// Emails sent from THIS process (markSentToFamily, the finaliser) print here in dev, not in the server log.
+const mail: string[] = [];
+const origInfo = console.info;
+console.info = (...a: unknown[]) => {
+  mail.push(a.map(String).join(" "));
+  origInfo(...a);
+};
+const mailSince = (n: number) => mail.slice(n).join(" | ");
 
 try {
   // ── 1. Through the browser: family A (address on file) chooses "deliver first".
@@ -115,19 +123,23 @@ try {
   const q = await adminFulfilment(String(admin._id));
   const row = q.toSend.rows.find((r) => r.id === String(A.giftId));
   check("admin queue: address shown, 'account closing, send by' date shown", Array.isArray(row?.address) && row.address.join(" ").includes("1 Elf Road") && !!row.closingBy);
-  const before3 = log().length;
+  const m3 = mail.length;
   const sent = await markSentToFamily(String(admin._id), String(A.giftId));
-  await new Promise((r) => setTimeout(r, 500));
   const g = await WishListItem.findById(A.giftId).lean();
-  check("'Sent to family' works and the name-less delivery email goes to the kept contact", sent.ok && g?.status === "delivered" && !!g.familyNotifiedAt);
-  void before3;
+  const onItsWay = mailSince(m3);
+  check("'Sent to family' works; the delivery email goes to the KEPT contact (closing template)",
+    sent.ok && g?.status === "delivered" && !!g.familyNotifiedAt && onItsWay.includes(`to=${A.user.email} template=giftOnItsWayClosing`) && onItsWay.includes(`Sled ${tag}`), onItsWay.slice(0, 200));
+  check("…without the child's name or a sign-in link", !onItsWay.includes(`Kida${tag}`) && !onItsWay.includes("/kids/") && !onItsWay.includes("/signin"));
 
   // ── 4. Delivered + emailed → the finaliser deletes the rest, once.
+  const m4 = mail.length;
   const f2 = await finalizeClosingFamilies();
   check("after delivery: family deleted (address gone with it)", f2.finalized >= 1 && !(await Family.exists({ _id: A.fam._id })));
+  check("the final 'account deleted' email goes to the kept contact", mailSince(m4).includes(`to=${A.user.email} template=accountDeleted`));
   check("finalisation audited as 'delivered'", (await AuditLog.findOne({ action: "family.delete_finalized", targetId: String(A.fam._id) }).lean())?.details?.by === "delivered");
+  const m5 = mail.length;
   const f3 = await finalizeClosingFamilies();
-  check("running the finaliser again does nothing", !(await Family.exists({ _id: A.fam._id })) && f3.failed === 0);
+  check("running the finaliser again does nothing (no second email)", !(await Family.exists({ _id: A.fam._id })) && f3.failed === 0 && !mailSince(m5).includes(`to=${A.user.email}`));
 
   // ── 5. 45-day cap: family B closing with a locked gift that never ships → deleted, Spirit of Santa keeps it.
   const B = await mkFamily("b", true);

@@ -602,7 +602,9 @@ async function notifyFamilies(ids: string[], budgetMs = Infinity): Promise<Notic
           locale: cl,
           template: "giftOnItsWayClosing",
           values: { link: `${familyAppOrigin()}${localizePath("/", cl)}`, itemName: names.get(String(r.itemId)) ?? "" },
-          idempotencyKey: `gift-on-its-way/${wishId}`,
+          // Its OWN key: the email provider rejects one key reused with a different body (the normal email may
+          // already have been attempted for this gift before the family started closing).
+          idempotencyKey: `gift-on-its-way-closing/${wishId}`,
         });
         await WishListItem.updateOne({ _id: wishId, familyNotifiedAt: null }, { $set: { familyNotifiedAt: new Date() } });
         totals.sent += 1;

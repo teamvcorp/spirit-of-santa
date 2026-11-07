@@ -137,14 +137,15 @@ export type EraseFamilyResult = { ok: true; pending: false } | { ok: true; pendi
 export const DELIVER_THEN_DELETE_DAYS = 45;
 
 /**
- * Latest date a closing family is finalised: 45 days after the request, but never past Jan 31 after that
- * Christmas (gifts lock by Dec 1 and arrive by Dec 25), and always at least 14 days away.
+ * Latest date a closing family is finalised: 45 days after the request, and NEVER past Jan 31 after that
+ * Christmas (owner rule; hard cap, review 2026-11-07: an earlier "at least 14 days" floor could break it).
+ * A deadline that is very close just means the next daily run finalises it (undelivered gifts → Spirit of Santa).
  */
 export function deletionDeadline(now: Date): Date {
   const byDays = now.getTime() + DELIVER_THEN_DELETE_DAYS * DAY_MS;
   const janYear = now.getUTCMonth() >= 1 ? now.getUTCFullYear() + 1 : now.getUTCFullYear(); // Feb..Dec → next Jan
   const jan31 = Date.UTC(janYear, 0, 31, 23, 59, 59);
-  return new Date(Math.max(Math.min(byDays, jan31), now.getTime() + 14 * DAY_MS));
+  return new Date(Math.min(byDays, jan31));
 }
 
 /** A delivery address that actually DECRYPTS (a stored but unreadable one can't ship anything). */
@@ -252,15 +253,22 @@ export type FinalizeResult = { finalized: number; byCap: number; waiting: number
  * "on its way" email was sent or given up, or that reached deletionDeadline (then any gift still on its way is
  * kept by Spirit of Santa; stores are still paid). Safe to run twice: the second run finds nothing.
  */
-export async function finalizeClosingFamilies(now = new Date()): Promise<FinalizeResult> {
+export async function finalizeClosingFamilies(now = new Date(), opts: { timeBudgetMs?: number } = {}): Promise<FinalizeResult> {
   await connectDb();
   const out: FinalizeResult = { finalized: 0, byCap: 0, waiting: 0, failed: 0 };
-  const fams = await Family.find({ deletionRequestedAt: trusted({ $ne: null }) })
+  const startedAt = Date.now();
+  const budget = opts.timeBudgetMs ?? 60_000;
+  // ALL closing families, OVERDUE FIRST (earliest deadline first; a missing one sorts first and counts as
+  // overdue), streamed: a fixed page of 500 let waiting families hide overdue ones (review 2026-11-07), keeping
+  // addresses past the promised date. A time budget leaves room for the rest of the daily job; tomorrow continues.
+  const cursor = Family.find({ deletionRequestedAt: trusted({ $ne: null }) })
     .select("+deletionContactEnc deletionDeadline")
-    .limit(500)
-    .lean<{ _id: unknown; deletionDeadline?: Date; deletionContactEnc?: string }[]>();
+    .sort({ deletionDeadline: 1, _id: 1 })
+    .lean<{ _id: unknown; deletionDeadline?: Date; deletionContactEnc?: string }>()
+    .cursor();
   const noticeWindowStart = new Date(now.getTime() - FAMILY_NOTICE_RETRY_DAYS * DAY_MS);
-  for (const f of fams) {
+  for await (const f of cursor) {
+    if (Date.now() - startedAt > budget) break;
     const fid = String(f._id);
     const cap = !f.deletionDeadline || now.getTime() >= f.deletionDeadline.getTime();
     if (!cap) {

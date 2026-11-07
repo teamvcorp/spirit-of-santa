@@ -48,7 +48,7 @@
         "DEED_QR_KEY",
         "VERCEL",
         "VERCEL_ENV",
-        "VERCEL_URL",
+        "VERCEL_BRANCH_URL",
         "VERCEL_PROJECT_PRODUCTION_URL"
       ],
       "outputs": [

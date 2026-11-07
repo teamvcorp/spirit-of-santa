@@ -1,7 +1,7 @@
 /**
  * Link-preview ("share") image: the picture Facebook, iMessage, WhatsApp, Slack, X etc. show when someone shares a
- * link (Open Graph `og:image`, 1200×630). Each public app has an `app/[locale]/opengraph-image.tsx` that calls this
- * with its own translated title + tagline, so a Spanish link gets a Spanish card.
+ * link (Open Graph `og:image`, 1200×630). Each public app serves it from `app/[locale]/share-image/route.ts`
+ * (prerendered per language) with its own translated title + tagline, so a Spanish link gets a Spanish card.
  *
  * Generic on purpose: it never shows anything about a child or family (QR pages share this same card).
  * Colours MUST match theme.css (PNG renderers can't read CSS variables): night #1b2a4a, gold #e0a526,
@@ -9,9 +9,7 @@
  */
 import { ImageResponse } from "next/og";
 import { LOGO_DATA_URL } from "./brand-art.generated.ts";
-
-/** The size every platform expects (1.91:1). */
-export const SHARE_IMAGE_SIZE = { width: 1200, height: 630 };
+import { SHARE_IMAGE_SIZE } from "./share-image-size.ts";
 
 export function renderShareImage({ title, tagline }: { title: string; tagline: string }): ImageResponse {
   const logo = 420;

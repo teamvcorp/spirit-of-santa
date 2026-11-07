@@ -10,7 +10,7 @@ import { DEFAULT_LOCALE, isLocale, LOCALES } from "@repo/lib/locales";
 import { metadataOrigin } from "@repo/lib/site";
 import { fontVariables } from "@repo/ui/fonts";
 import { Logo } from "@repo/ui/logo";
-import { SHARE_IMAGE_SIZE } from "@repo/ui/share-image";
+import { SHARE_IMAGE_SIZE } from "@repo/ui/share-image-size";
 import { SiteHeader } from "@repo/ui/site-header";
 import { authOptions } from "@/auth";
 import { getPathname, Link } from "@/i18n/navigation";

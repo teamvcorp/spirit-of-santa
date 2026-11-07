@@ -879,10 +879,10 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   `packages/ui/src/brand-art.generated.ts` (data: URLs, server-only, for next/og). Header: `LogoMark` = <img> of the
   STATIC IMPORT (hashed /_next/static/media URL, cached forever; `src/assets.d.ts` gives the ui package the svg types).
   Icons: badge (transparent ≤48px; on a tile above; admin tile now snow). Link previews (family + store layouts):
-  metadataBase = `metadataOrigin()` (@repo/lib/site: *_APP_URL → VERCEL_PROJECT_PRODUCTION_URL → VERCEL_URL →
+  metadataBase = `metadataOrigin()` (@repo/lib/site: *_APP_URL → VERCEL_PROJECT_PRODUCTION_URL → VERCEL_BRANCH_URL (not VERCEL_URL: per-deploy, breaks build cache) →
   localhost; never throws; unit test site.test.ts), openGraph incl. images → `app/[locale]/share-image/route.ts`
   (NOT opengraph-image: its /en/ URL redirects under as-needed, and root-params can't be read in route handlers),
-  twitter summary_large_image. Card = `renderShareImage` (@repo/ui/share-image), generic (never child data). Guide:
+  twitter summary_large_image. Card = `renderShareImage` (@repo/ui/share-image; layouts import ONLY `SHARE_IMAGE_SIZE` from @repo/ui/share-image-size so pages don't bundle next/og + the logo data), generic (never child data). Guide:
   docs/brand.md. Page audit 241 green.
 
 ## Open items / TODO

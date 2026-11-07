@@ -35,7 +35,7 @@ file stops it with an error saying what it didn't find. Adjust the script's sett
 - It's a plain route rather than Next's `opengraph-image` file. The file convention always puts `/en/` in English
   addresses, which our URLs drop, so every English preview would start with a redirect.
 - Preview addresses must be absolute. The site address comes from `metadataOrigin()` (`@repo/lib/site`): the app's
-  `FAMILY_APP_URL` / `STORE_APP_URL`, else Vercel's production domain, else the preview address, else localhost.
+  `FAMILY_APP_URL` / `STORE_APP_URL`, else Vercel's production domain, else the preview branch address, else localhost.
 - The card is generic on purpose. It never shows a child, a family or a deed, even when the shared link is a child's
   QR page.
 - To see what a platform shows after deploy, use Facebook's Sharing Debugger (developers.facebook.com/tools/debug)

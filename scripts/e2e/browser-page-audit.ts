@@ -121,6 +121,7 @@ function fieldsOutsideBox(page: Page): Promise<string[]> {
 }
 
 const errors: string[] = [];
+const cspViolations: string[] = [];
 const incompletes: string[] = [];
 let browser: Browser | undefined;
 try {
@@ -130,6 +131,13 @@ try {
     if (group.login) check(`${group.app}: signed in`, !!cookie);
     for (const scheme of ["light", "dark"] as const) {
       const ctx = await browser.newContext({ colorScheme: scheme, reducedMotion: "reduce" });
+      // Phase 8: report anything our Content-Security-Policy blocks (it must block nothing we use).
+      await ctx.exposeFunction("__cspViolation", (v: string) => cspViolations.push(`${group.app}: ${v}`));
+      await ctx.addInitScript(() =>
+        document.addEventListener("securitypolicyviolation", (e) =>
+          (window as unknown as { __cspViolation: (v: string) => void }).__cspViolation(`${location.pathname} ${e.violatedDirective} ${e.blockedURI}`),
+        ),
+      );
       if (cookie) {
         // "a=1; b=2" -> cookies for this app's origin (dev apps differ only by port; cookies ignore ports,
         // which is why each app gets its own browser context).
@@ -177,7 +185,29 @@ try {
   await probe.setContent('<main><p style="color:#aaaaaa;background:#ffffff;font-size:16px">Too faint to read</p></main>');
   check("negative control: axe flags grey-on-white text", (await contrast(probe)).violations.length === 1);
   await probe.close();
+
+  // CSP negative control: on a real app page, an image from an unknown site must be BLOCKED and reported.
+  // (Own page, no init script: this violation must not count against "blocked nothing" below.)
+  const cspProbe = await browser.newPage();
+  await cspProbe.goto(`${family}/signin`);
+  const blocked = await cspProbe.evaluate(
+    () =>
+      new Promise<string>((resolve) => {
+        document.addEventListener("securitypolicyviolation", (e) => resolve(e.violatedDirective), { once: true });
+        const img = document.createElement("img");
+        img.src = "https://example.com/tracker.png";
+        document.body.append(img);
+        setTimeout(() => resolve("not blocked"), 5000);
+      }),
+  );
+  check("negative control: CSP blocks an image from an unknown site", blocked.startsWith("img-src"), blocked);
+  check("family pages send the security headers", await (async () => {
+    const h = (await cspProbe.request.get(`${family}/`)).headers();
+    return !!h["content-security-policy"]?.includes("frame-ancestors 'none'") && h["x-content-type-options"] === "nosniff";
+  })());
+  await cspProbe.close();
   check("no browser errors", errors.length === 0, errors.slice(0, 3).join(" | "));
+  check("Content-Security-Policy blocked nothing", cspViolations.length === 0, [...new Set(cspViolations)].slice(0, 5).join(" | "));
 } finally {
   await browser?.close();
   await Promise.all([

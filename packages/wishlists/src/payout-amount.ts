@@ -1,5 +1,5 @@
 /**
- * What Spirit O Santa owes a store for ONE received gift (Phase 6 slice 5). SERVER-ONLY.
+ * What Spirit of Santa owes a store for ONE received gift (Phase 6 slice 5). SERVER-ONLY.
  * = wholesaleCents(gift's cost snapshot, store's discount) (@repo/lib/store, the ONE formula; the
  * store app shows the same number). The cost snapshot is the retail price in cents (1 centipoint =
  * 1 retail cent), taken when the gift was added (prices can't change after the item window).

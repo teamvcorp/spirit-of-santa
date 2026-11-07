@@ -2,7 +2,7 @@
  * PlatformSettings = ONE document (key "platform") of admin-set business settings (Phase 5 slice 2).
  * Read/write only through @repo/payments/settings (admin-only writes, audited "settings.update").
  *
- *  - donationFeeBps: Spirit O Santa's share of community-donation pools, taken off the top at the
+ *  - donationFeeBps: Spirit of Santa's share of community-donation pools, taken off the top at the
  *    Dec 1 split (user decision 2026-11-06). Basis points: 1000 = 10%. NO default on purpose:
  *    the split refuses to run until an admin has chosen it.
  *  - charity: the 501(c)(3) named on tax receipts (Edynsgate). receiptsEnabled stays OFF until the

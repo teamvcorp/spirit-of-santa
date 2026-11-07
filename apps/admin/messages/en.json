@@ -1,16 +1,16 @@
 {
   "Metadata": {
-    "title": "Spirit O Santa Admin",
-    "description": "Internal administration for the Spirit O Santa team."
+    "title": "Spirit of Santa Admin",
+    "description": "Internal administration for the Spirit of Santa team."
   },
   "HomePage": {
-    "title": "Spirit O Santa Admin",
+    "title": "Spirit of Santa Admin",
     "intro": "Sign in with your team account to continue.",
     "needsAttention": "Needs your attention",
     "pendingStores": "{count, plural, =0 {No stores waiting for review} one {# store waiting for review} other {# stores waiting for review}}"
   },
   "SignInPage": {
-    "intro": "Spirit O Santa team only."
+    "intro": "Spirit of Santa team only."
   },
   "StoreAdmin": {
     "queueTitle": "Stores",
@@ -60,7 +60,7 @@
     "discountTitle": "Change agreed discount",
     "saveDiscount": "Save discount",
     "discountLabel": "Discount off retail (%)",
-    "discountHint": "For example 20 or 17.5. The store bills Spirit O Santa the retail price minus this discount.",
+    "discountHint": "For example 20 or 17.5. The store bills Spirit of Santa the retail price minus this discount.",
     "saved": "Saved.",
     "inviteTitle": "Invite a store",
     "inviteIntro": "The owner gets an email link (valid 7 days) to set a password and accept the agreement. The store is approved as soon as they accept.",
@@ -427,7 +427,7 @@
   "Settings": {
     "title": "Settings",
     "donationsTitle": "Community donations",
-    "donationsIntro": "Gifts on the public donation page are pooled and shared equally among registered children at the season freeze. Spirit O Santa's fee is taken off the top and shown to donors before they give.",
+    "donationsIntro": "Gifts on the public donation page are pooled and shared equally among registered children at the season freeze. Spirit of Santa's fee is taken off the top and shown to donors before they give.",
     "fee": "Platform fee (%)",
     "feeHint": "0 to 30, up to two decimals (e.g. 10 or 12.5). Shown on the donation page.",
     "feeMissing": "The platform fee isn't set yet: the public donation page stays closed (and the Dec 1 split won't run) until you save one.",
@@ -456,7 +456,7 @@
     "fromDayHint": "The day the charity arrangement took effect. Gifts before this day never get a receipt.",
     "before": "{count, plural, one {# gift was made before {day} and gets no receipt.} other {# gifts were made before {day} and get no receipt.}}",
     "shippingTitle": "Gift shipping (wish lists)",
-    "shippingAddress": "Spirit O Santa shipping address",
+    "shippingAddress": "Spirit of Santa shipping address",
     "shippingHint": "Stores ship fully funded gifts here. Shown in store emails and on the store's Orders page. Up to 6 lines.",
     "shippingMissing": "The shipping address isn't set: stores aren't told about funded gifts until you save one."
   },
@@ -589,7 +589,7 @@
     "wholesaleMargin": "Wholesale margin (retail − store payouts)",
     "paidVsOwed": "Still owed to stores (paid so far: {paid})",
     "breakage": "Breakage: points never spent ({reset} reset Jan 1, {forfeit} from unfinished gifts)",
-    "moneyNote": "Card processing fees aren't included (see the Stripe dashboard). Gifts count once Spirit O Santa received them.",
+    "moneyNote": "Card processing fees aren't included (see the Stripe dashboard). Gifts count once Spirit of Santa received them.",
     "historyTitle": "Payments made",
     "noHistory": "No payments recorded yet.",
     "gifts": "{count, plural, one {# gift} other {# gifts}}",

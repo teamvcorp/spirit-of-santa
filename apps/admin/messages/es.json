@@ -1,16 +1,16 @@
 {
   "Metadata": {
-    "title": "Administración de Spirit O Santa",
-    "description": "Administración interna para el equipo de Spirit O Santa."
+    "title": "Administración de Spirit of Santa",
+    "description": "Administración interna para el equipo de Spirit of Santa."
   },
   "HomePage": {
-    "title": "Administración de Spirit O Santa",
+    "title": "Administración de Spirit of Santa",
     "intro": "Inicie sesión con su cuenta del equipo para continuar.",
     "needsAttention": "Requiere tu atención",
     "pendingStores": "{count, plural, =0 {No hay tiendas esperando revisión} one {# tienda esperando revisión} other {# tiendas esperando revisión}}"
   },
   "SignInPage": {
-    "intro": "Solo para el equipo de Spirit O Santa."
+    "intro": "Solo para el equipo de Spirit of Santa."
   },
   "StoreAdmin": {
     "queueTitle": "Tiendas",
@@ -60,7 +60,7 @@
     "discountTitle": "Cambiar el descuento acordado",
     "saveDiscount": "Guardar descuento",
     "discountLabel": "Descuento sobre el precio de venta (%)",
-    "discountHint": "Por ejemplo 20 o 17.5. La tienda le cobra a Spirit O Santa el precio de venta menos este descuento.",
+    "discountHint": "Por ejemplo 20 o 17.5. La tienda le cobra a Spirit of Santa el precio de venta menos este descuento.",
     "saved": "Guardado.",
     "inviteTitle": "Invitar una tienda",
     "inviteIntro": "El dueño recibe un enlace por correo (válido 7 días) para crear su contraseña y aceptar el acuerdo. La tienda queda aprobada en cuanto acepta.",
@@ -427,7 +427,7 @@
   "Settings": {
     "title": "Ajustes",
     "donationsTitle": "Donaciones de la comunidad",
-    "donationsIntro": "Los regalos de la página pública de donaciones se juntan y se reparten en partes iguales entre los niños registrados al congelar la temporada. La comisión de Spirit O Santa se descuenta primero y se muestra a los donantes antes de donar.",
+    "donationsIntro": "Los regalos de la página pública de donaciones se juntan y se reparten en partes iguales entre los niños registrados al congelar la temporada. La comisión de Spirit of Santa se descuenta primero y se muestra a los donantes antes de donar.",
     "fee": "Comisión de la plataforma (%)",
     "feeHint": "De 0 a 30, hasta dos decimales (p. ej. 10 o 12.5). Se muestra en la página de donaciones.",
     "feeMissing": "La comisión aún no está definida: la página pública de donaciones sigue cerrada (y el reparto del 1 de diciembre no se ejecutará) hasta que guardes una.",
@@ -456,7 +456,7 @@
     "fromDayHint": "El día en que empezó el acuerdo con la organización. Los regalos anteriores nunca reciben recibo.",
     "before": "{count, plural, one {# regalo se hizo antes del {day} y no recibe recibo.} other {# regalos se hicieron antes del {day} y no reciben recibo.}}",
     "shippingTitle": "Envío de regalos (listas de deseos)",
-    "shippingAddress": "Dirección de envío de Spirit O Santa",
+    "shippingAddress": "Dirección de envío de Spirit of Santa",
     "shippingHint": "Las tiendas envían aquí los regalos completos. Aparece en los correos a las tiendas y en su página de Pedidos. Hasta 6 líneas.",
     "shippingMissing": "Falta la dirección de envío: las tiendas no reciben aviso de regalos completos hasta que la guardes."
   },
@@ -589,7 +589,7 @@
     "wholesaleMargin": "Margen mayorista (venta − pagos a tiendas)",
     "paidVsOwed": "Todavía adeudado a tiendas (pagado hasta ahora: {paid})",
     "breakage": "Puntos nunca usados ({reset} reiniciados el 1 de enero, {forfeit} de regalos incompletos)",
-    "moneyNote": "No incluye las comisiones de tarjeta (ver el panel de Stripe). Los regalos cuentan cuando Spirit O Santa los recibe.",
+    "moneyNote": "No incluye las comisiones de tarjeta (ver el panel de Stripe). Los regalos cuentan cuando Spirit of Santa los recibe.",
     "historyTitle": "Pagos realizados",
     "noHistory": "Todavía no hay pagos registrados.",
     "gifts": "{count, plural, one {# regalo} other {# regalos}}",

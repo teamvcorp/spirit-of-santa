@@ -10,7 +10,7 @@
  * to these helpers.
  */
 
-/** Spirit O Santa operates from Storm Lake, Iowa. */
+/** Spirit of Santa operates from Storm Lake, Iowa. */
 export const SEASON_TIME_ZONE = "America/Chicago";
 
 /** month is 1-12 (human style, NOT JS's 0-11). */

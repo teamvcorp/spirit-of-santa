@@ -72,6 +72,18 @@
         "transit"
       ],
       "outputs": []
+    },
+    "@repo/i18n#test": {
+      "dependsOn": [
+        "transit"
+      ],
+      "outputs": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/apps/*/messages/**",
+        "$TURBO_ROOT$/packages/*/messages/**",
+        "$TURBO_ROOT$/packages/lib/src/**"
+      ]
     }
   }
 }

@@ -17,6 +17,7 @@ import { deedToken, hashDeedToken, phoneKey } from "@repo/deeds/qr";
 import { getSeasonYear } from "@repo/lib/season";
 import { buildPaymentMetadata, getStripe } from "@repo/payments/checkout";
 import { makeChecks } from "./lib.ts";
+import { SMS_CONSENT_VERSION } from "@repo/lib/family";
 
 const [base] = process.argv.slice(2);
 if (!base) throw new Error("usage: browser-family-paylater.ts <familyUrl>");
@@ -84,7 +85,7 @@ try {
   // 1. The form on the deed page: registered wording, unticked.
   const s = section(page);
   check("deed page has 'Pay later by text' with the registered wording, box unticked",
-    (await s.innerText()).includes("Spirit O Santa will send 1 text with a secure payment link that expires in 7 days") && !(await s.locator('input[name="consent"]').isChecked()));
+    (await s.innerText()).includes("Spirit of Santa will send 1 text with a secure payment link that expires in 7 days") && !(await s.locator('input[name="consent"]').isChecked()));
 
   // 2. Server refuses: no consent, bad number. Typing kept, box unticked again.
   await submit(page, { phone: PHONE, tick: false });
@@ -104,7 +105,7 @@ try {
   check("success shows only a masked number", shown.includes("•••-•••-0199") && !shown.includes("234-0199"));
   const req = await PayLaterRequest.findOne({ deedId: d1._id }).lean();
   check("consent record: number, time, wording version, language; status sent",
-    req?.status === "sent" && req.phoneE164 === E164 && req.phoneKey === phoneKey(E164) && req.consentVersion === "sms-2026-11-06" && req.consentLocale === "en" && !!req.consentAt && req.amountCents === 1000 && /^dev-/.test(req.smsSid ?? ""));
+    req?.status === "sent" && req.phoneE164 === E164 && req.phoneKey === phoneKey(E164) && req.consentVersion === SMS_CONSENT_VERSION && req.consentLocale === "en" && !!req.consentAt && req.amountCents === 1000 && /^dev-/.test(req.smsSid ?? ""));
   const link = await getStripe().paymentLinks.retrieve(req!.paymentLinkId!);
   check("Stripe link: active, single-use, $10 deed tip metadata",
     link.active && link.restrictions?.completed_sessions?.limit === 1 && link.metadata?.sos_deed_id === String(d1._id) && link.url.startsWith("https://buy.stripe.com/"),
@@ -119,11 +120,11 @@ try {
 
   // 5. Per-number limit: 3 per day (2 more fake records + d2's request = refused).
   await PayLaterRequest.collection.insertMany(
-    [0, 1].map(() => ({ deedId: new mongooseLib.Types.ObjectId(), kidId: kid._id, familyId: fam._id, phoneE164: E164, phoneKey: phoneKey(E164), consentAt: new Date(), consentVersion: "sms-2026-11-06", consentLocale: "en", amountCents: 500, status: "sent", expiresAt: new Date(Date.now() + 86_400_000), createdAt: new Date(), updatedAt: new Date() })),
+    [0, 1].map(() => ({ deedId: new mongooseLib.Types.ObjectId(), kidId: kid._id, familyId: fam._id, phoneE164: E164, phoneKey: phoneKey(E164), consentAt: new Date(), consentVersion: SMS_CONSENT_VERSION, consentLocale: "en", amountCents: 500, status: "sent", expiresAt: new Date(Date.now() + 86_400_000), createdAt: new Date(), updatedAt: new Date() })),
   );
   // Failed attempts (nothing delivered) must NOT count toward the limit.
   await PayLaterRequest.collection.insertMany(
-    [0, 1, 2].map(() => ({ deedId: new mongooseLib.Types.ObjectId(), kidId: kid._id, familyId: fam._id, phoneE164: "+15552340197", phoneKey: phoneKey("+15552340197"), consentAt: new Date(), consentVersion: "sms-2026-11-06", consentLocale: "en", amountCents: 500, status: "failed", expiresAt: new Date(Date.now() + 86_400_000), createdAt: new Date(), updatedAt: new Date() })),
+    [0, 1, 2].map(() => ({ deedId: new mongooseLib.Types.ObjectId(), kidId: kid._id, familyId: fam._id, phoneE164: "+15552340197", phoneKey: phoneKey("+15552340197"), consentAt: new Date(), consentVersion: SMS_CONSENT_VERSION, consentLocale: "en", amountCents: 500, status: "failed", expiresAt: new Date(Date.now() + 86_400_000), createdAt: new Date(), updatedAt: new Date() })),
   );
   const p2 = await newPage();
   await openDeed(p2, d2.token);
@@ -188,7 +189,7 @@ try {
   const es = await newPage();
   await es.goto(`${base}/es/d/${d2.token}`);
   await es.locator("main:visible h1").first().waitFor({ timeout: 60_000 });
-  check("Spanish deed page: Spanish consent wording", (await es.locator("main:visible").innerText()).includes("Spirit O Santa enviará 1 mensaje de texto"));
+  check("Spanish deed page: Spanish consent wording", (await es.locator("main:visible").innerText()).includes("Spirit of Santa enviará 1 mensaje de texto"));
   check("no browser errors", errors.length === 0, errors.slice(0, 3).join(" || "));
 } catch (err) {
   report();

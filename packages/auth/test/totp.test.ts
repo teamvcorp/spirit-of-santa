@@ -56,15 +56,15 @@ test("base32 round trip (RFC 4648 example + random)", () => {
 });
 
 test("otpauth URI has what authenticator apps need, safely encoded", () => {
-  const uri = new URL(otpauthUri(RFC_SECRET, "a+b@x.test", "Spirit O Santa Admin"));
+  const uri = new URL(otpauthUri(RFC_SECRET, "a+b@x.test", "Spirit of Santa Admin"));
   assert.equal(uri.protocol, "otpauth:");
   assert.equal(uri.searchParams.get("secret"), base32Encode(RFC_SECRET));
-  assert.equal(uri.searchParams.get("issuer"), "Spirit O Santa Admin");
+  assert.equal(uri.searchParams.get("issuer"), "Spirit of Santa Admin");
   assert.equal(uri.searchParams.get("digits"), "6");
   assert.equal(uri.searchParams.get("period"), "30");
   // otpauth://totp/<label>: "totp" parses as the host, the label as the path.
   assert.equal(uri.host, "totp");
-  assert.equal(decodeURIComponent(uri.pathname.slice(1)), "Spirit O Santa Admin:a+b@x.test");
+  assert.equal(decodeURIComponent(uri.pathname.slice(1)), "Spirit of Santa Admin:a+b@x.test");
 });
 
 test("recovery codes: 10 unique, readable format, normalised input", () => {

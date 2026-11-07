@@ -1,6 +1,6 @@
 /**
  * Season end (Phase 5 slice 3), run by the daily money cron AFTER the split. SERVER-ONLY.
- * Roadmap: "Jan 1: unclaimed pooled funds retained by Spirit O Santa; point balances reset to zero".
+ * Roadmap: "Jan 1: unclaimed pooled funds retained by Spirit of Santa; point balances reset to zero".
  *
  * When: only in the OFF-SEASON (from Jan 1 Central Time until the next season opens), once per
  * ended season (SeasonReset record, unique per year), and NEVER while a donation split is still

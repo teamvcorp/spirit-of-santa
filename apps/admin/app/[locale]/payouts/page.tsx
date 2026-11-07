@@ -1,5 +1,5 @@
 /**
- * /payouts (Phase 6 slice 5): what Spirit O Santa owes each store for received gifts, recording
+ * /payouts (Phase 6 slice 5): what Spirit of Santa owes each store for received gifts, recording
  * payments made outside the app (check / transfer), the history, and the season money summary
  * (collected, given back, wholesale, breakage, net). Admin only. `?year=` picks the season.
  */

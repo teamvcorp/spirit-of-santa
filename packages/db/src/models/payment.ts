@@ -11,7 +11,7 @@
  *
  * Written ONLY by the Stripe webhook (packages/payments). Unlike the ledger it is mutable
  * (status, refund and dispute fields change as Stripe tells us things), but points never
- * change because of those updates: Spirit O Santa has a NO-REFUNDS policy (user decision
+ * change because of those updates: Spirit of Santa has a NO-REFUNDS policy (user decision
  * 2026-11-05), so refunds/chargebacks are recorded and flagged for admin, not clawed back.
  */
 // Default import: mongoose is CommonJS, so named runtime imports fail under plain Node ESM.

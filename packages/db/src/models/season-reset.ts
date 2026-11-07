@@ -1,6 +1,6 @@
 /**
  * SeasonReset = the season-end job for ONE ended season (Phase 5 slice 3), run on/after Jan 1.
- * Roadmap: "Jan 1: unclaimed pooled funds retained by Spirit O Santa; point balances reset to zero".
+ * Roadmap: "Jan 1: unclaimed pooled funds retained by Spirit of Santa; point balances reset to zero".
  *  - Community-donation gifts still HELD for that season (not shared by the freeze split) become
  *    "retained" (platform), counted here so nothing disappears silently.
  *  - Every kid's available points go to 0 with a `season_reset` ledger row (amount = the balance).

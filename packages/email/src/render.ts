@@ -47,7 +47,7 @@ export type EmailTemplates = {
    */
   storeOrders: { link: string; storeName: string; setAside: string; readyToShip: string; address: string };
   /**
-   * To the PARENT when Spirit O Santa sends a gift on to the family (Phase 6 slice 3b). kidName =
+   * To the PARENT when Spirit of Santa sends a gift on to the family (Phase 6 slice 3b). kidName =
    * the child's first name as the parent typed it; itemName typed by the store. Link = the kid's page.
    */
   giftOnItsWay: { link: string; kidName: string; itemName: string };
@@ -140,7 +140,7 @@ export function renderEmail<T extends EmailTemplateName>(
 <html lang="${safeLocale}"><body style="margin:0;padding:24px;background:#f6f6f6;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:8px">
 <tr><td style="padding:24px 28px;border-top:6px solid #b3261e;border-radius:8px 8px 0 0">
-<p style="margin:0 0 4px;font-weight:bold;color:#8c1d18">Spirit O Santa</p>
+<p style="margin:0 0 4px;font-weight:bold;color:#8c1d18">Spirit of Santa</p>
 <h1 style="margin:0 0 16px;font-size:22px">${e(heading)}</h1>
 <p style="margin:0 0 20px;line-height:1.5;white-space:pre-line">${e(body)}</p>
 <p style="margin:0 0 20px"><a href="${e(link)}" style="display:inline-block;background:#b3261e;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:6px;font-weight:bold">${e(button)}</a></p>
@@ -159,15 +159,15 @@ ${showIgnore ? `<p style="margin:0;color:#555;font-size:13px">${e(tt("ignore"))}
 
 /**
  * The per-child lines of a daily summary, in the parent's language, e.g.
- * "Maya: 12.5 points of magic · 1 point of magic". Points are formatted HERE (number + correct plural).
+ * "Maya: 12.5 Christmas Magic · 1 good deed thanked" (points are called "Christmas Magic" in all copy;
+ * user 2026-11-06). The amount is formatted HERE in the reader's number format.
  */
 export function digestLines(locale: unknown, rows: { kid: string; centipoints?: number; deeds?: number }[]): string {
   const safeLocale = isLocale(locale) ? locale : DEFAULT_LOCALE;
   const t = createTranslator({ locale: safeLocale, messages: MESSAGES[safeLocale], namespace: "Email" }) as unknown as (key: string, v?: Record<string, string | number>) => string;
   return rows
     .map((r) => {
-      const n = (r.centipoints ?? 0) / 100;
-      const parts = [n > 0 ? t("familyDigest.magic", { points: formatPoints(r.centipoints!, intlLocale(safeLocale)), n }) : "", r.deeds ? t("familyDigest.deeds", { count: r.deeds }) : ""].filter(Boolean);
+      const parts = [(r.centipoints ?? 0) > 0 ? t("familyDigest.magic", { points: formatPoints(r.centipoints!, intlLocale(safeLocale)) }) : "", r.deeds ? t("familyDigest.deeds", { count: r.deeds }) : ""].filter(Boolean);
       return `${r.kid}: ${parts.join(" · ")}`;
     })
     .join("\n");

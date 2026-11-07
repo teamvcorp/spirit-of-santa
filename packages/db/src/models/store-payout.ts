@@ -1,5 +1,5 @@
 /**
- * StorePayout = one payment Spirit O Santa made to a store, OUTSIDE the app (check, bank transfer):
+ * StorePayout = one payment Spirit of Santa made to a store, OUTSIDE the app (check, bank transfer):
  * roadmap "store payouts recorded by admin (no Stripe Connect)" (Phase 6 slice 5).
  * It covers specific received gifts (WishListItem.payoutId points here), so every dollar paid can be
  * traced to the gifts it paid for. Append-only in practice: a mistake is fixed by an admin note +

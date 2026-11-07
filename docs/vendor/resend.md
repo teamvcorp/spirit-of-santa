@@ -6,7 +6,7 @@
 ## Setup
 
 - Sending domain **fyht4.com** (verified by the user). From: `RESEND_FROM`, default
-  `Spirit O Santa <no-reply@fyht4.com>`.
+  `Spirit of Santa <no-reply@fyht4.com>`.
 - `RESEND_API_KEY` in each app's env (store, admin, family). Create it with **sending access
   only**, restricted to fyht4.com (least privilege: a leaked key can't read logs/contacts).
 - Turbo: `RESEND_API_KEY`, `RESEND_FROM` are in `turbo.json` build env.

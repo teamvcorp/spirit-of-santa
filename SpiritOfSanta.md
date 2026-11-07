@@ -1,10 +1,10 @@
-# Spirit O Santa — Project Roadmap
+# Spirit of Santa — Project Roadmap
 
 Nov 4, 2026 · @Robert
 
 ## Project Overview
 
-Spirit O Santa is a community-service incentive platform where children earn Christmas Magic points by performing good deeds, then spend those points building a funded Christmas wish list. Three separate Next.js web apps — family, store, and admin — share one MongoDB database on Vercel. Target launch: October 1, 2027 (live Christmas season).
+Spirit of Santa is a community-service incentive platform where children earn Christmas Magic points by performing good deeds, then spend those points building a funded Christmas wish list. Three separate Next.js web apps — family, store, and admin — share one MongoDB database on Vercel. Target launch: October 1, 2027 (live Christmas season).
 
 **Apps**
 
@@ -12,9 +12,9 @@ Spirit O Santa is a community-service incentive platform where children earn Chr
 | --- | --- | --- |
 | Family | spiritofsanta.com | Children, Parents, Community Members |
 | Store | store.spiritofsanta.com | Store Owners, Store Reps |
-| Admin | admin.spiritofsanta.com | Spirit O Santa team |
+| Admin | admin.spiritofsanta.com | Spirit of Santa team |
 
-**Key mechanic:** $1.50 in tips = 1 magic point. Kids add items to their Christmas list (point cost = item price); points are escrowed on add. Once an item is fully funded and has been on the list 30+ days, it locks and ships to Spirit O Santa for delivery by December 25.
+**Key mechanic:** $1.50 in tips = 1 magic point. Kids add items to their Christmas list (point cost = item price); points are escrowed on add. Once an item is fully funded and has been on the list 30+ days, it locks and ships to Spirit of Santa for delivery by December 25.
 
 ## Tech Stack & Architecture
 
@@ -34,7 +34,7 @@ Spirit O Santa is a community-service incentive platform where children earn Chr
 **Monorepo structure (recommended)**
 
 ```
-spirit-o-santa/
+spirit-of-santa/
 ├── apps/
 │   ├── family/          # spiritofsanta.com
 │   ├── store/           # store.spiritofsanta.com
@@ -149,7 +149,7 @@ The financial layer. Every dollar in and out flows through Stripe; every point h
 - [ ] Transaction ledger: every point earned, spent, escrowed, and refunded logged with timestamp and source
 - [ ] Real-time balance display per child
 - [ ] $1.50 = 1 point conversion applied server-side (never client-trusted)
-- [ ] Platform profit tracked: Spirit O Santa margin = tip collected minus wholesale payout to store
+- [ ] Platform profit tracked: Spirit of Santa margin = tip collected minus wholesale payout to store
 
 **Corporate donation page**
 
@@ -161,7 +161,7 @@ The financial layer. Every dollar in and out flows through Stripe; every point h
 
 - [ ] Dec 25 cron: flag all unfunded items; notify parents of “pay-up” option
 - [ ] Parent pay-up: Stripe payment covers funding gap; item moves to fully funded and locks
-- [ ] Jan 1 cron: unclaimed pooled funds retained by Spirit O Santa; point balances reset to zero
+- [ ] Jan 1 cron: unclaimed pooled funds retained by Spirit of Santa; point balances reset to zero
 
 ## Phase 6 — Wish List & Fulfillment
 
@@ -187,9 +187,9 @@ Where magic points become Christmas presents.
 
 **Fulfillment**
 
-- [x] Store notification on full funding: email + in-app alert to store owner and reps with item, quantity, and Spirit O Santa shipping address
+- [x] Store notification on full funding: email + in-app alert to store owner and reps with item, quantity, and Spirit of Santa shipping address
 - [x] Store rep marks item as shipped in store app
-- [x] Spirit O Santa admin confirms receipt and logs delivery to family
+- [x] Spirit of Santa admin confirms receipt and logs delivery to family
 - [x] Family notified when item is on its way
 
 ## Phase 7 — Notifications (email)
@@ -322,7 +322,7 @@ Create one `CLAUDE.md` at the **monorepo root** for shared conventions, and opti
 **Recommended root `CLAUDE.md` sections:**
 
 ```markdown
-# Spirit O Santa — Monorepo
+# Spirit of Santa — Monorepo
 
 ## Project structure
 Three Next.js apps (App Router) + shared packages in a Turborepo monorepo.

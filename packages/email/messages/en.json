@@ -1,75 +1,75 @@
 {
   "Email": {
-    "footer": "Spirit O Santa · Kids earn gifts with good deeds. You got this email because someone used this address on Spirit O Santa.",
+    "footer": "Spirit of Santa · Kids earn gifts with good deeds. You got this email because someone used this address on Spirit of Santa.",
     "ignore": "If this wasn't you, you can ignore this email. Nothing will change.",
     "linkFallback": "If the button doesn't work, copy this link into your browser:",
     "verifyEmail": {
-      "subject": "Confirm your email for Spirit O Santa",
+      "subject": "Confirm your email for Spirit of Santa",
       "heading": "Confirm your email",
-      "body": "Thanks for signing up your store on Spirit O Santa. Please confirm this is your email address.",
+      "body": "Thanks for signing up your store on Spirit of Santa. Please confirm this is your email address.",
       "button": "Confirm email",
       "expiry": "This link works once and expires in 24 hours."
     },
     "accountExists": {
-      "subject": "You already have a Spirit O Santa account",
+      "subject": "You already have a Spirit of Santa account",
       "heading": "You already have an account",
       "body": "Someone tried to sign up with this email address, but it already has an account. You can sign in, or reset your password if you've forgotten it.",
       "button": "Sign in"
     },
     "resetPassword": {
-      "subject": "Reset your Spirit O Santa password",
+      "subject": "Reset your Spirit of Santa password",
       "heading": "Reset your password",
       "body": "We got a request to reset the password for this email address.",
       "button": "Choose a new password",
       "expiry": "This link works once and expires in 1 hour."
     },
     "inviteOwner": {
-      "subject": "You're invited to list your store on Spirit O Santa",
+      "subject": "You're invited to list your store on Spirit of Santa",
       "heading": "Your store is invited",
-      "body": "Spirit O Santa has invited {storeName} to list gift items for local kids. Set your password and accept the store agreement to get started.",
+      "body": "Spirit of Santa has invited {storeName} to list gift items for local kids. Set your password and accept the store agreement to get started.",
       "button": "Accept the invitation",
       "expiry": "This link works once and expires in 7 days."
     },
     "storeApproved": {
-      "subject": "{storeName} is approved on Spirit O Santa",
+      "subject": "{storeName} is approved on Spirit of Santa",
       "heading": "Your store is approved",
       "body": "Good news: {storeName} is approved. Families can now see your store and items. Sign in to manage your item list.",
       "button": "Sign in"
     },
     "storeRejected": {
-      "subject": "About your Spirit O Santa application",
+      "subject": "About your Spirit of Santa application",
       "heading": "Application not approved",
-      "body": "We weren't able to approve {storeName} at this time. Reason: {reason}. If you have questions, contact the Spirit O Santa team.",
+      "body": "We weren't able to approve {storeName} at this time. Reason: {reason}. If you have questions, contact the Spirit of Santa team.",
       "button": "Sign in"
     },
     "inviteRep": {
-      "subject": "You're invited to help run a store on Spirit O Santa",
+      "subject": "You're invited to help run a store on Spirit of Santa",
       "heading": "Join your store's team",
-      "body": "You've been invited to help manage {storeName}'s gift items on Spirit O Santa. Choose your name and password to get started.",
+      "body": "You've been invited to help manage {storeName}'s gift items on Spirit of Santa. Choose your name and password to get started.",
       "button": "Accept the invitation",
       "expiry": "This link works once and expires in 7 days."
     },
     "mfaEnabled": {
       "subject": "Two-step sign-in was turned on for your admin account",
       "heading": "Two-step sign-in is on",
-      "body": "Two-step sign-in (an authenticator app) was just turned on for your Spirit O Santa admin account. If this was you, there's nothing else to do. If it wasn't you, someone knows your password: contact the Spirit O Santa team right away so the account can be locked and reset.",
+      "body": "Two-step sign-in (an authenticator app) was just turned on for your Spirit of Santa admin account. If this was you, there's nothing else to do. If it wasn't you, someone knows your password: contact the Spirit of Santa team right away so the account can be locked and reset.",
       "button": "Go to admin sign-in"
     },
     "verifyParentEmail": {
-      "subject": "Confirm your email for Spirit O Santa",
+      "subject": "Confirm your email for Spirit of Santa",
       "heading": "Confirm your email",
-      "body": "Thanks for creating a family account on Spirit O Santa. Please confirm this is your email address. After that you can sign in and add your children.",
+      "body": "Thanks for creating a family account on Spirit of Santa. Please confirm this is your email address. After that you can sign in and add your children.",
       "button": "Confirm email",
       "expiry": "This link works once and expires in 24 hours."
     },
     "donationReceipt": {
       "subject": "Your donation receipt from {orgName}",
       "heading": "Thank you for your gift",
-      "body": "Thank you for supporting children through Spirit O Santa, a program of {orgName}.\n\nReceipt number: {receiptNo}\nDate: {date}\nAmount: {amount}\nDonor: {donorName}\n\n{orgName}, EIN {ein}\n{orgAddress}\n\nNo goods or services were provided in exchange for this contribution. {orgName} is a tax-exempt organization under section 501(c)(3) of the Internal Revenue Code. Please keep this receipt for your tax records.",
-      "button": "Visit Spirit O Santa"
+      "body": "Thank you for supporting children through Spirit of Santa, a program of {orgName}.\n\nReceipt number: {receiptNo}\nDate: {date}\nAmount: {amount}\nDonor: {donorName}\n\n{orgName}, EIN {ein}\n{orgAddress}\n\nNo goods or services were provided in exchange for this contribution. {orgName} is a tax-exempt organization under section 501(c)(3) of the Internal Revenue Code. Please keep this receipt for your tax records.",
+      "button": "Visit Spirit of Santa"
     },
     "storeOrders": {
-      "subject": "Spirit O Santa gift orders for {storeName}",
+      "subject": "Spirit of Santa gift orders for {storeName}",
       "heading": "Gift orders",
       "body": "Hi {storeName}! Here's today's update on gifts children have funded.\n\nSET ASIDE (fully funded: please keep these for us, don't ship yet):\n{setAside}\n\nREADY TO SHIP (locked in: please ship now and mark them shipped on your Orders page):\n{readyToShip}\n\nShip to:\n{address}\n\nPlease write each reference code on the package.",
       "button": "Open my orders"
@@ -77,17 +77,17 @@
     "giftOnItsWay": {
       "subject": "A gift is on its way!",
       "heading": "A gift is on its way",
-      "body": "Good news! {kidName}'s gift, {itemName}, is on its way from Spirit O Santa.\n\nThank you for helping {kidName} earn it with good deeds.",
+      "body": "Good news! {kidName}'s gift, {itemName}, is on its way from Spirit of Santa.\n\nThank you for helping {kidName} earn it with good deeds.",
       "button": "See the wish list"
     },
     "optOut": "Stop emails like this",
     "manage": "Choose which emails you get",
     "familyDigest": {
-      "subject": "Today's magic on Spirit O Santa",
+      "subject": "Today's magic on Spirit of Santa",
       "heading": "Good news from today",
       "body": "Here's what happened for your children:\n\n{lines}\n\nPoints go to the oldest gift on each wish list first.",
       "button": "Open the family area",
-      "magic": "{points} {n, plural, one {point} other {points}} of magic",
+      "magic": "{points} Christmas Magic",
       "deeds": "{count, plural, one {# good deed thanked} other {# good deeds thanked}}"
     },
     "cutoffReminder": {
@@ -99,7 +99,7 @@
     "payUpReminder": {
       "subject": "Last days to finish gifts: until {date}",
       "heading": "Finish gifts before {date}",
-      "body": "Some gifts on your children's lists aren't fully funded yet. You can pay what's missing until {date}. Gifts still unfinished at the season's close drop off the list, and the points on them go to Spirit O Santa.",
+      "body": "Some gifts on your children's lists aren't fully funded yet. You can pay what's missing until {date}. Gifts still unfinished at the season's close drop off the list, and the points on them go to Spirit of Santa.",
       "button": "Finish gifts"
     }
   }

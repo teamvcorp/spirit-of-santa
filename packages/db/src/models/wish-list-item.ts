@@ -9,9 +9,9 @@
  *
  * Fulfilment (slice 3, user decisions 2026-11-06): the store is told to SET ASIDE the item at full
  * funding, but ships only once it's LOCKED (30 days, or at the Dec 1 freeze, when nothing can be
- * removed any more) → "shipped" (store → Spirit O Santa) → admin marks it received (receivedAt) →
+ * removed any more) → "shipped" (store → Spirit of Santa) → admin marks it received (receivedAt) →
  * admin sends it to the family → "delivered" + the parent is emailed. The store never sees
- * anything about the child: only the item, a reference code and Spirit O Santa's address.
+ * anything about the child: only the item, a reference code and Spirit of Santa's address.
  */
 // Default import: mongoose is CommonJS, so named runtime imports fail under plain Node ESM.
 import mongoose, { type InferSchemaType, type Model } from "mongoose";
@@ -62,7 +62,7 @@ const wishListItemSchema = new Schema(
     needsSubstitute: { type: Boolean },
     lockedAt: Date,
     removedAt: Date,
-    /** Dec 25 close: not fully funded → "unfunded"; its escrowed points went to Spirit O Santa. */
+    /** Dec 25 close: not fully funded → "unfunded"; its escrowed points went to Spirit of Santa. */
     forfeitedAt: Date,
     forfeitedCentipoints: { type: Number, min: 0 },
     /** The Dec 25 close failed on this gift (data needs a human); skipped until cleared. */
@@ -75,14 +75,14 @@ const wishListItemSchema = new Schema(
     substituteArrangedAt: Date,
     substituteNote: { type: String, trim: true, maxlength: 300 },
 
-    shippedAt: Date, // store → Spirit O Santa
+    shippedAt: Date, // store → Spirit of Santa
     shippedByUserId: objectId("User", false),
     /** Carrier + tracking number as typed by the store (optional). */
     trackingNote: { type: String, trim: true, maxlength: 100 },
-    receivedAt: Date, // Spirit O Santa has it
+    receivedAt: Date, // Spirit of Santa has it
     receivedByUserId: objectId("User", false),
     /**
-     * What Spirit O Santa owes the store for this gift (slice 5): wholesaleCents(cost, store discount),
+     * What Spirit of Santa owes the store for this gift (slice 5): wholesaleCents(cost, store discount),
      * FIXED when the gift is received (a later discount change never rewrites an existing debt).
      */
     payoutOwedCents: { type: Number, min: 0 },

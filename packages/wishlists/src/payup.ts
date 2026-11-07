@@ -7,7 +7,7 @@
  *    locks and ships like any other. (Checkout itself lives in @repo/families/payup: this package
  *    can't import @repo/payments, which imports it.)
  *  - At the close (Dec 25), every gift still not fully funded DROPS OFF ("unfunded") and the points
- *    already on it go to Spirit O Santa: ledger row "forfeit", the kid's escrow goes down by it.
+ *    already on it go to Spirit of Santa: ledger row "forfeit", the kid's escrow goes down by it.
  *    Nothing is ever taken from points the kid has spare (those are zeroed by the Jan 1 reset).
  */
 import "server-only";
@@ -101,7 +101,7 @@ export type CloseResult = { seasons: number[]; dropped: number; forfeitedCentipo
 
 /**
  * Dec 25 close (daily money job; does nothing before a season's close): every gift of a CLOSED
- * season still "active" (not fully funded) → "unfunded", and its points go to Spirit O Santa.
+ * season still "active" (not fully funded) → "unfunded", and its points go to Spirit of Santa.
  * One short transaction per gift (compare-and-set on status + funded amount), so a partial run
  * simply continues the next day. Runs BEFORE the Jan 1 reset in the money job.
  */

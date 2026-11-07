@@ -6,7 +6,7 @@
  * conversion ($1.50/point in vs $1/point retail out) + wholesale (retail − store payout) + breakage
  * (points never spent), all kept; season total = money collected − store payouts − refunds/disputes.
  *
- * A store is OWED for a gift once Spirit O Santa received it (amount fixed then: payoutOwedCents).
+ * A store is OWED for a gift once Spirit of Santa received it (amount fixed then: payoutOwedCents).
  * Recording a payout covers ALL gifts owed to that store at that moment, in one transaction
  * (compare-and-set on payoutId), so a double click or two admins can never pay a gift twice.
  *
@@ -21,7 +21,7 @@ import { centipointsToCents } from "@repo/lib/points";
 import { parseIsoDay } from "@repo/lib/season";
 import { owedAt } from "./payout-amount.ts";
 
-/** Gifts received by Spirit O Santa and not yet paid for. */
+/** Gifts received by Spirit of Santa and not yet paid for. */
 const OWED = { receivedAt: trusted({ $ne: null }), payoutId: null };
 
 /**
@@ -182,7 +182,7 @@ export type SeasonMoney = {
   collectedTotal: number;
   /** Refunded + chargebacks lost (cents): money we had to give back. */
   givenBack: number;
-  /** Gifts Spirit O Santa received from stores this season. */
+  /** Gifts Spirit of Santa received from stores this season. */
   gifts: { count: number; retailCents: number; wholesaleOwedCents: number; wholesalePaidCents: number; withoutAmount: number };
   /** Wholesale margin on received gifts = retail − wholesale. */
   wholesaleMarginCents: number;

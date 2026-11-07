@@ -1,75 +1,75 @@
 {
   "Email": {
-    "footer": "Spirit O Santa · Los niños ganan regalos con buenas acciones. Recibiste este correo porque alguien usó esta dirección en Spirit O Santa.",
+    "footer": "Spirit of Santa · Los niños ganan regalos con buenas acciones. Recibiste este correo porque alguien usó esta dirección en Spirit of Santa.",
     "ignore": "Si no fuiste tú, puedes ignorar este correo. No cambiará nada.",
     "linkFallback": "Si el botón no funciona, copia este enlace en tu navegador:",
     "verifyEmail": {
-      "subject": "Confirma tu correo para Spirit O Santa",
+      "subject": "Confirma tu correo para Spirit of Santa",
       "heading": "Confirma tu correo",
-      "body": "Gracias por registrar tu tienda en Spirit O Santa. Confirma que esta es tu dirección de correo.",
+      "body": "Gracias por registrar tu tienda en Spirit of Santa. Confirma que esta es tu dirección de correo.",
       "button": "Confirmar correo",
       "expiry": "Este enlace funciona una sola vez y vence en 24 horas."
     },
     "accountExists": {
-      "subject": "Ya tienes una cuenta de Spirit O Santa",
+      "subject": "Ya tienes una cuenta de Spirit of Santa",
       "heading": "Ya tienes una cuenta",
       "body": "Alguien intentó registrarse con esta dirección de correo, pero ya tiene una cuenta. Puedes iniciar sesión o restablecer tu contraseña si la olvidaste.",
       "button": "Iniciar sesión"
     },
     "resetPassword": {
-      "subject": "Restablece tu contraseña de Spirit O Santa",
+      "subject": "Restablece tu contraseña de Spirit of Santa",
       "heading": "Restablece tu contraseña",
       "body": "Recibimos una solicitud para restablecer la contraseña de esta dirección de correo.",
       "button": "Elegir una nueva contraseña",
       "expiry": "Este enlace funciona una sola vez y vence en 1 hora."
     },
     "inviteOwner": {
-      "subject": "Te invitamos a inscribir tu tienda en Spirit O Santa",
+      "subject": "Te invitamos a inscribir tu tienda en Spirit of Santa",
       "heading": "Tu tienda está invitada",
-      "body": "Spirit O Santa invitó a {storeName} a publicar artículos de regalo para los niños de tu zona. Crea tu contraseña y acepta el acuerdo para tiendas para empezar.",
+      "body": "Spirit of Santa invitó a {storeName} a publicar artículos de regalo para los niños de tu zona. Crea tu contraseña y acepta el acuerdo para tiendas para empezar.",
       "button": "Aceptar la invitación",
       "expiry": "Este enlace funciona una sola vez y vence en 7 días."
     },
     "storeApproved": {
-      "subject": "{storeName} fue aprobada en Spirit O Santa",
+      "subject": "{storeName} fue aprobada en Spirit of Santa",
       "heading": "Tu tienda fue aprobada",
       "body": "Buenas noticias: {storeName} fue aprobada. Las familias ya pueden ver tu tienda y tus artículos. Inicia sesión para administrar tu lista de artículos.",
       "button": "Iniciar sesión"
     },
     "storeRejected": {
-      "subject": "Sobre tu solicitud en Spirit O Santa",
+      "subject": "Sobre tu solicitud en Spirit of Santa",
       "heading": "Solicitud no aprobada",
-      "body": "No pudimos aprobar {storeName} en este momento. Motivo: {reason}. Si tienes preguntas, comunícate con el equipo de Spirit O Santa.",
+      "body": "No pudimos aprobar {storeName} en este momento. Motivo: {reason}. Si tienes preguntas, comunícate con el equipo de Spirit of Santa.",
       "button": "Iniciar sesión"
     },
     "inviteRep": {
-      "subject": "Te invitan a ayudar a administrar una tienda en Spirit O Santa",
+      "subject": "Te invitan a ayudar a administrar una tienda en Spirit of Santa",
       "heading": "Únete al equipo de tu tienda",
-      "body": "Te invitaron a ayudar a administrar los artículos de regalo de {storeName} en Spirit O Santa. Elige tu nombre y contraseña para empezar.",
+      "body": "Te invitaron a ayudar a administrar los artículos de regalo de {storeName} en Spirit of Santa. Elige tu nombre y contraseña para empezar.",
       "button": "Aceptar la invitación",
       "expiry": "Este enlace funciona una sola vez y vence en 7 días."
     },
     "mfaEnabled": {
       "subject": "Se activó el inicio de sesión en dos pasos en tu cuenta de administración",
       "heading": "El inicio de sesión en dos pasos está activado",
-      "body": "Se acaba de activar el inicio de sesión en dos pasos (una app de autenticación) en tu cuenta de administración de Spirit O Santa. Si fuiste tú, no tienes que hacer nada más. Si no fuiste tú, alguien conoce tu contraseña: comunícate de inmediato con el equipo de Spirit O Santa para bloquear y restablecer la cuenta.",
+      "body": "Se acaba de activar el inicio de sesión en dos pasos (una app de autenticación) en tu cuenta de administración de Spirit of Santa. Si fuiste tú, no tienes que hacer nada más. Si no fuiste tú, alguien conoce tu contraseña: comunícate de inmediato con el equipo de Spirit of Santa para bloquear y restablecer la cuenta.",
       "button": "Ir al inicio de sesión de administración"
     },
     "verifyParentEmail": {
-      "subject": "Confirma tu correo para Spirit O Santa",
+      "subject": "Confirma tu correo para Spirit of Santa",
       "heading": "Confirma tu correo",
-      "body": "Gracias por crear una cuenta familiar en Spirit O Santa. Confirma que este es tu correo electrónico. Después podrás iniciar sesión y agregar a tus hijos.",
+      "body": "Gracias por crear una cuenta familiar en Spirit of Santa. Confirma que este es tu correo electrónico. Después podrás iniciar sesión y agregar a tus hijos.",
       "button": "Confirmar correo",
       "expiry": "Este enlace funciona una vez y vence en 24 horas."
     },
     "donationReceipt": {
       "subject": "Tu recibo de donación de {orgName}",
       "heading": "Gracias por tu regalo",
-      "body": "Gracias por apoyar a los niños a través de Spirit O Santa, un programa de {orgName}.\n\nNúmero de recibo: {receiptNo}\nFecha: {date}\nCantidad: {amount}\nDonante: {donorName}\n\n{orgName}, EIN {ein}\n{orgAddress}\n\nNo se proporcionaron bienes ni servicios a cambio de esta contribución. {orgName} es una organización exenta de impuestos según la sección 501(c)(3) del Código de Rentas Internas. Guarda este recibo para tus registros de impuestos.",
-      "button": "Visitar Spirit O Santa"
+      "body": "Gracias por apoyar a los niños a través de Spirit of Santa, un programa de {orgName}.\n\nNúmero de recibo: {receiptNo}\nFecha: {date}\nCantidad: {amount}\nDonante: {donorName}\n\n{orgName}, EIN {ein}\n{orgAddress}\n\nNo se proporcionaron bienes ni servicios a cambio de esta contribución. {orgName} es una organización exenta de impuestos según la sección 501(c)(3) del Código de Rentas Internas. Guarda este recibo para tus registros de impuestos.",
+      "button": "Visitar Spirit of Santa"
     },
     "storeOrders": {
-      "subject": "Pedidos de regalos de Spirit O Santa para {storeName}",
+      "subject": "Pedidos de regalos de Spirit of Santa para {storeName}",
       "heading": "Pedidos de regalos",
       "body": "¡Hola, {storeName}! Esta es la actualización de hoy sobre los regalos que los niños han completado.\n\nAPARTAR (completos: guárdalos para nosotros, todavía no los envíes):\n{setAside}\n\nLISTOS PARA ENVIAR (asegurados: envíalos ahora y márcalos como enviados en tu página de Pedidos):\n{readyToShip}\n\nEnviar a:\n{address}\n\nEscribe cada código de referencia en el paquete.",
       "button": "Abrir mis pedidos"
@@ -77,17 +77,17 @@
     "giftOnItsWay": {
       "subject": "¡Un regalo va en camino!",
       "heading": "Un regalo va en camino",
-      "body": "¡Buenas noticias! El regalo de {kidName}, {itemName}, va en camino desde Spirit O Santa.\n\nGracias por ayudar a {kidName} a ganarlo con buenas acciones.",
+      "body": "¡Buenas noticias! El regalo de {kidName}, {itemName}, va en camino desde Spirit of Santa.\n\nGracias por ayudar a {kidName} a ganarlo con buenas acciones.",
       "button": "Ver la lista de deseos"
     },
     "optOut": "Dejar de recibir correos como este",
     "manage": "Elegir qué correos recibes",
     "familyDigest": {
-      "subject": "La magia de hoy en Spirit O Santa",
+      "subject": "La magia de hoy en Spirit of Santa",
       "heading": "Buenas noticias de hoy",
       "body": "Esto pasó hoy para tus hijos:\n\n{lines}\n\nLos puntos van primero al regalo más antiguo de cada lista de deseos.",
       "button": "Abrir el área familiar",
-      "magic": "{points} {n, plural, one {punto} other {puntos}} de magia",
+      "magic": "{points} de Magia Navideña",
       "deeds": "{count, plural, one {# buena acción agradecida} other {# buenas acciones agradecidas}}"
     },
     "cutoffReminder": {
@@ -99,7 +99,7 @@
     "payUpReminder": {
       "subject": "Últimos días para completar regalos: hasta el {date}",
       "heading": "Completa los regalos antes del {date}",
-      "body": "Algunos regalos de las listas de tus hijos todavía no están completos. Puedes pagar lo que falta hasta el {date}. Los regalos que sigan incompletos al cierre de la temporada salen de la lista y sus puntos pasan a Spirit O Santa.",
+      "body": "Algunos regalos de las listas de tus hijos todavía no están completos. Puedes pagar lo que falta hasta el {date}. Los regalos que sigan incompletos al cierre de la temporada salen de la lista y sus puntos pasan a Spirit of Santa.",
       "button": "Completar regalos"
     }
   }

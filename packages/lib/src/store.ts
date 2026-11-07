@@ -50,7 +50,7 @@ export const STORE_AGREEMENT_VERSION = "2026-11-05";
 export const MAX_DISCOUNT_BPS = 9000; // 90%: a typo guard, not a business target
 
 /**
- * What Spirit O Santa owes the store for one item = retail minus the store's discount.
+ * What Spirit of Santa owes the store for one item = retail minus the store's discount.
  * The store bills us this; we keep the difference (platform margin).
  * Rounded to the nearest cent (half up); both parties see the same number on screen.
  */

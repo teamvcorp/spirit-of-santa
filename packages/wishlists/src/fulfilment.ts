@@ -10,7 +10,7 @@
  * once it's LOCKED (it can't be removed any more); the family is emailed only when the admin sends
  * the gift on to them.
  *
- * Privacy (kids are minors; COPPA): stores see ONLY the item, a reference code and Spirit O Santa's
+ * Privacy (kids are minors; COPPA): stores see ONLY the item, a reference code and Spirit of Santa's
  * address. Never a child's or family's name, and never which family a gift is for.
  *
  * Stores are told by a DAILY DIGEST (sendStoreDigests, from the family app's money cron) instead
@@ -39,7 +39,7 @@ import { owedForGift } from "./payout-amount.ts";
 export const orderRef = (id: string) => id.slice(-6).toUpperCase();
 
 /**
- * Spirit O Santa's shipping address (admin Settings). Read from the model directly because
+ * Spirit of Santa's shipping address (admin Settings). Read from the model directly because
  * @repo/payments (which owns the settings service) imports this package: no import cycle.
  */
 export async function shippingAddress(): Promise<string> {
@@ -64,7 +64,7 @@ export type StoreOrders = {
   setAside: OrderRow[];
   /** Locked: ship now. */
   ready: OrderRow[];
-  /** Funded but the store had none left: Spirit O Santa arranges a substitute (admin). */
+  /** Funded but the store had none left: Spirit of Santa arranges a substitute (admin). */
   outOfStock: OrderRow[];
   /** Shipped in the last 60 days (newest first). */
   shipped: OrderRow[];
@@ -152,7 +152,7 @@ export async function orderCounts(storeId: unknown): Promise<{ ready: number; se
 export type ShipResult = { ok: true } | { ok: false; error: "notFound" | "notReady" };
 
 /**
- * Store marks one gift shipped to Spirit O Santa. Only LOCKED gifts of the actor's OWN store that
+ * Store marks one gift shipped to Spirit of Santa. Only LOCKED gifts of the actor's OWN store that
  * don't wait for a substitute; compare-and-set on the status, so a double click ships once.
  */
 export async function markShipped(actor: StoreActor, rawWishId: string, trackingNote: string, now = new Date()): Promise<ShipResult> {
@@ -209,7 +209,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * Email each store its NEW gifts to set aside and gifts now ready to ship (owner + active reps).
- * Waits (sends nothing) until the admin has saved Spirit O Santa's shipping address.
+ * Waits (sends nothing) until the admin has saved Spirit of Santa's shipping address.
  * Gifts waiting for a substitute are left out (the admin deals with them; once a substitute is
  * arranged they appear in the next digest).
  */
@@ -321,7 +321,7 @@ export type AdminFulfilmentRow = {
   trackingNote: string;
   receivedAt: Date | null;
   deliveredAt: Date | null;
-  /** Only for gifts Spirit O Santa has (received / delivered): who it goes to. */
+  /** Only for gifts Spirit of Santa has (received / delivered): who it goes to. */
   kidName?: string;
   familyName?: string;
   parentEmail?: string;
@@ -473,7 +473,7 @@ export function arrangeSubstitute(adminId: string, rawId: string, note: string, 
 }
 
 /**
- * Spirit O Santa received the store's package. From now on the store is OWED for it (slice 5): the
+ * Spirit of Santa received the store's package. From now on the store is OWED for it (slice 5): the
  * amount is fixed here (payoutOwedCents) so a later discount change never rewrites the debt.
  */
 export async function markReceived(adminId: string, rawId: string, now = new Date()): Promise<AdminStepResult> {

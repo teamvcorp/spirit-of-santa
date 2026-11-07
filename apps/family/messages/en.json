@@ -1,10 +1,10 @@
 {
   "Metadata": {
-    "title": "Spirit O Santa",
+    "title": "Spirit of Santa",
     "description": "Kids do good deeds, earn points, and the community helps make their wishes come true."
   },
   "HomePage": {
-    "title": "Welcome to Spirit O Santa",
+    "title": "Welcome to Spirit of Santa",
     "intro": "Good deeds earn points. Points make wishes come true.",
     "signUp": "Create a family account",
     "signIn": "Sign in",
@@ -42,7 +42,7 @@
     "title": "Privacy Policy and Children's Privacy Notice",
     "version": "Version {version} · Children's Privacy Notice (what parents agree to): version {childVersion}",
     "draft": "DRAFT: this notice is being reviewed and will be finalised before launch.",
-    "intro": "This policy covers families who use Spirit O Santa and visitors who thank a child, give a tip or donation, or ask for a pay-later text. It includes our Children's Privacy Notice. Spirit O Santa lets children earn points for good deeds and spend them on a Christmas wish list. Children never create their own accounts: a parent or guardian sets everything up and stays in control.",
+    "intro": "This policy covers families who use Spirit of Santa and visitors who thank a child, give a tip or donation, or ask for a pay-later text. It includes our Children's Privacy Notice. Spirit of Santa lets children earn points for good deeds and spend them on a Christmas wish list. Children never create their own accounts: a parent or guardian sets everything up and stays in control.",
     "sections": {
       "collect": {
         "title": "What we collect",
@@ -389,7 +389,7 @@
   "PayUp": {
     "title": "Finish gifts",
     "intro": "Pay the points a gift still needs ({rate} = 1 point) and it's set for Christmas: it ships like any other gift.",
-    "deadline": "You can finish gifts until {closes}. Gifts that still aren't fully funded on {close} drop off the list, and the points on them go to Spirit O Santa.",
+    "deadline": "You can finish gifts until {closes}. Gifts that still aren't fully funded on {close} drop off the list, and the points on them go to Spirit of Santa.",
     "closed": "Finishing gifts is possible from {opens} until {closes}.",
     "none": "Every gift on your children's lists is fully funded. Nothing to do!",
     "missing": "Needs {points} more points: {amount}",
@@ -414,7 +414,7 @@
   },
   "Address": {
     "title": "Delivery address",
-    "intro": "Where Spirit O Santa sends your children's funded gifts. We store it encrypted, only our team can see it, and we delete it as soon as every gift has been delivered.",
+    "intro": "Where Spirit of Santa sends your children's funded gifts. We store it encrypted, only our team can see it, and we delete it as soon as every gift has been delivered.",
     "back": "Parent area",
     "name": "Deliver to (name on the package)",
     "line1": "Street address",
@@ -446,10 +446,10 @@
   },
   "Community": {
     "navLink": "Donate",
-    "title": "Give to Spirit O Santa kids",
+    "title": "Give to Spirit of Santa kids",
     "intro": "Your gift becomes magic points for children who earn Christmas gifts with good deeds. Give to every child, or to children in one ZIP code.",
-    "how": "Gifts are pooled and shared equally among registered children on {day}. {fee} of each gift supports running Spirit O Santa; the rest becomes points ({rate} = 1 point).",
-    "charity": "Spirit O Santa is a program of {orgName} (EIN {ein}), a 501(c)(3) nonprofit. You'll get a tax receipt by email.",
+    "how": "Gifts are pooled and shared equally among registered children on {day}. {fee} of each gift supports running Spirit of Santa; the rest becomes points ({rate} = 1 point).",
+    "charity": "Spirit of Santa is a program of {orgName} (EIN {ein}), a 501(c)(3) nonprofit. You'll get a tax receipt by email.",
     "raised": "Given this season so far: {amount}",
     "who": "Who should your gift help?",
     "all": "All children",
@@ -481,7 +481,7 @@
   "PayLater": {
     "title": "Pay later by text",
     "phone": "Your mobile number",
-    "consent": "Text me a link to pay this tip later. Spirit O Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help.",
+    "consent": "Text me a link to pay this tip later. Spirit of Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "button": "Text me the link",
@@ -508,7 +508,7 @@
     }
   },
   "TextMessages": {
-    "title": "Text messages from Spirit O Santa",
+    "title": "Text messages from Spirit of Santa",
     "intro": "We send one kind of text message: a link to pay a tip later, only when you ask for it.",
     "sections": {
       "how": {
@@ -542,8 +542,8 @@
     "draft": "DRAFT: these terms are being reviewed and will be finalised before launch.",
     "sections": {
       "about": {
-        "title": "About Spirit O Santa",
-        "body": "Spirit O Santa is a program where children earn points (\"Christmas magic\") for good deeds and use them toward Christmas gifts from local stores. By using spiritofsanta.com you agree to these terms."
+        "title": "About Spirit of Santa",
+        "body": "Spirit of Santa is a program where children earn points (\"Christmas magic\") for good deeds and use them toward Christmas gifts from local stores. By using spiritofsanta.com you agree to these terms."
       },
       "accounts": {
         "title": "Accounts",
@@ -551,7 +551,7 @@
       },
       "points": {
         "title": "Points",
-        "body": "Points are calculated by Spirit O Santa from money actually received (currently {rate} = 1 point). Points have no cash value, can't be exchanged for money and reset to zero every January 1."
+        "body": "Points are calculated by Spirit of Santa from money actually received (currently {rate} = 1 point). Points have no cash value, can't be exchanged for money and reset to zero every January 1."
       },
       "payments": {
         "title": "Payments",
@@ -559,11 +559,11 @@
       },
       "donations": {
         "title": "Community donations",
-        "body": "Gifts on our donation page are pooled and shared equally among registered children when the season freezes (December 1). A platform fee, shown on the donation page before you give, supports running Spirit O Santa."
+        "body": "Gifts on our donation page are pooled and shared equally among registered children when the season freezes (December 1). A platform fee, shown on the donation page before you give, supports running Spirit of Santa."
       },
       "texts": {
         "title": "Text messages (pay later)",
-        "body": "Program: Spirit O Santa pay-later tip links. If you choose \"Pay later by text\" and agree, we send you one text message with a secure payment link for the tip you chose; the link expires after {days} days. One message per request; no marketing. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for help. Carriers are not liable for delayed or undelivered messages. See our Privacy Policy for how we handle your number."
+        "body": "Program: Spirit of Santa pay-later tip links. If you choose \"Pay later by text\" and agree, we send you one text message with a secure payment link for the tip you chose; the link expires after {days} days. One message per request; no marketing. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for help. Carriers are not liable for delayed or undelivered messages. See our Privacy Policy for how we handle your number."
       },
       "conduct": {
         "title": "Acceptable use",
@@ -609,7 +609,7 @@
       "notFound": "Your family account wasn't found. Sign out and in again."
     },
     "unsubscribeTitle": "Unsubscribe",
-    "unsubscribeIntro": "Stop getting \"{kind}\" emails from Spirit O Santa?",
+    "unsubscribeIntro": "Stop getting \"{kind}\" emails from Spirit of Santa?",
     "stop": "Stop \"{kind}\" emails",
     "unsubscribed": "Done: you won't get \"{kind}\" emails any more.",
     "badLink": "This unsubscribe link isn't valid. You can change your email settings in the parent area.",

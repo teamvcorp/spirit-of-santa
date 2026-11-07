@@ -35,7 +35,7 @@ const PHONE_DAILY_LIMIT = 3;
  * the registered sample; a Spanish version must be registered before it is used.
  */
 export function payLaterText(url: string, days: number): string {
-  return `Spirit O Santa: here is your link to pay the tip for the good deed you received. It expires in ${days} ${days === 1 ? "day" : "days"}: ${url} Msg & data rates may apply. Reply STOP to opt out, HELP for help`;
+  return `Spirit of Santa: here is your link to pay the tip for the good deed you received. It expires in ${days} ${days === 1 ? "day" : "days"}: ${url} Msg & data rates may apply. Reply STOP to opt out, HELP for help`;
 }
 
 /**
@@ -116,7 +116,7 @@ export async function startPayLater(
   let link: { id: string; url: string };
   try {
     link = await getStripe().paymentLinks.create({
-      line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: amountCents, product_data: { name: "Tip for a good deed (Spirit O Santa)" } } }],
+      line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: amountCents, product_data: { name: "Tip for a good deed (Spirit of Santa)" } } }],
       // No submit_type "donate": that serves the link from donate.stripe.com, but the text sample
       // REGISTERED with the carriers shows buy.stripe.com (docs/vendor/twilio.md). Keep them matching.
       metadata, // copied to the Checkout Session (onCheckoutSessionPaid switches the link off once paid)

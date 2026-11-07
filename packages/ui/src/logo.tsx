@@ -1,5 +1,5 @@
 /**
- * Spirit O Santa logo: PLACEHOLDER (Phase 8.5; the owner has a real logo to add later).
+ * Spirit of Santa logo: PLACEHOLDER (Phase 8.5; the owner has a real logo to add later).
  *
  * TO SWAP IN THE REAL LOGO: replace the <svg> in LogoMark below with the logo's SVG (keep
  * viewBox + `aria-hidden`), or swap it for <img src="/brand/logo.svg" alt="" …> once the file is in each
@@ -20,7 +20,7 @@ export function LogoMark({ size = 32, className }: { size?: number; className?: 
   );
 }
 
-/** Mark + "Spirit O Santa" wordmark (the visible text is the accessible name). */
+/** Mark + "Spirit of Santa" wordmark (the visible text is the accessible name). */
 export function Logo({ label, className }: { label: string; className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5 font-display text-xl font-bold tracking-tight", className)}>

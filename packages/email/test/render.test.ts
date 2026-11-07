@@ -6,14 +6,14 @@ const LINK = "https://store.spiritofsanta.com/verify?token=abc123";
 
 test("renders English and Spanish with subject, text and html", () => {
   const en = renderEmail("verifyEmail", { link: LINK }, "en");
-  assert.equal(en.subject, "Confirm your email for Spirit O Santa");
+  assert.equal(en.subject, "Confirm your email for Spirit of Santa");
   assert.ok(en.text.includes(LINK));
   assert.ok(en.html.includes('lang="en"') && en.html.includes(LINK));
   const es = renderEmail("verifyEmail", { link: LINK }, "es");
-  assert.equal(es.subject, "Confirma tu correo para Spirit O Santa");
+  assert.equal(es.subject, "Confirma tu correo para Spirit of Santa");
   assert.ok(es.html.includes('lang="es"'));
   // Unknown locale from a bad DB value falls back to English instead of failing.
-  assert.equal(renderEmail("resetPassword", { link: LINK }, "xx").subject, "Reset your Spirit O Santa password");
+  assert.equal(renderEmail("resetPassword", { link: LINK }, "xx").subject, "Reset your Spirit of Santa password");
 });
 
 test("user-supplied values are escaped in HTML", () => {

@@ -42,7 +42,7 @@ const itemSchema = new Schema(
         "priceCents is required unless the item is a draft",
       ],
     },
-    /** What Spirit O Santa pays the store (after the agreed discount). Must be <= price. */
+    /** What Spirit of Santa pays the store (after the agreed discount). Must be <= price. */
     payoutCents: {
       ...centsField(false),
       validate: {

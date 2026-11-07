@@ -1,5 +1,5 @@
 /**
- * /parent/address (Phase 6 slice 4b): where Spirit O Santa sends funded gifts. PIN required.
+ * /parent/address (Phase 6 slice 4b): where Spirit of Santa sends funded gifts. PIN required.
  * Only asked for while a gift is on its way; stored encrypted; deleted once every gift is delivered
  * (@repo/families/address explains the data-minimisation rules).
  */

@@ -1,10 +1,10 @@
 {
   "Metadata": {
-    "title": "Spirit O Santa for Stores",
+    "title": "Spirit of Santa for Stores",
     "description": "List gift items for local kids and get paid when they earn them."
   },
   "HomePage": {
-    "title": "Spirit O Santa for Stores",
+    "title": "Spirit of Santa for Stores",
     "intro": "List up to 50 gift items. Kids earn them with good deeds, and you get paid.",
     "dashboard": "Go to your dashboard",
     "register": "List your store",
@@ -16,7 +16,7 @@
     "register": "Create a store account"
   },
   "RegisterPage": {
-    "title": "List your store on Spirit O Santa",
+    "title": "List your store on Spirit of Santa",
     "intro": "Local kids earn gifts with good deeds. Sign up, add up to 50 items, and bill us the agreed wholesale cost when an item is earned.",
     "you": "About you",
     "ownerName": "Your name",
@@ -47,16 +47,16 @@
   "StoreAgreement": {
     "title": "Store discount and guarantee agreement",
     "p1": "You list items at your normal retail price. Each item's price in magic points equals its retail price in dollars.",
-    "p2": "Spirit O Santa agrees a discount off retail with your store when we approve it. When a child's item is funded, you bill Spirit O Santa the agreed wholesale cost (retail price minus that discount).",
+    "p2": "Spirit of Santa agrees a discount off retail with your store when we approve it. When a child's item is funded, you bill Spirit of Santa the agreed wholesale cost (retail price minus that discount).",
     "p3": "You guarantee listed items stay available at the listed price for the season, or you offer an equal or better substitute.",
-    "p4": "Spirit O Santa keeps the difference between retail and wholesale to run the program.",
-    "p5": "Spirit O Santa pays your invoices by check or another method outside the app. No bank details are stored in the app.",
+    "p4": "Spirit of Santa keeps the difference between retail and wholesale to run the program.",
+    "p5": "Spirit of Santa pays your invoices by check or another method outside the app. No bank details are stored in the app.",
     "version": "Agreement version {version}",
     "accept": "I have read and accept the store discount and guarantee agreement."
   },
   "AcceptInvitePage": {
     "title": "Accept your store invitation",
-    "intro": "Spirit O Santa has invited {storeName}. Set up your owner account to start listing items.",
+    "intro": "Spirit of Santa has invited {storeName}. Set up your owner account to start listing items.",
     "email": "Account email",
     "ownerName": "Your name",
     "password": "Choose a password",
@@ -65,7 +65,7 @@
     "submitting": "Creating account…",
     "done": "You're all set! Your store is approved and your account is ready.",
     "signIn": "Sign in",
-    "invalid": "This invitation link has expired or was already used. Ask Spirit O Santa to send a new one."
+    "invalid": "This invitation link has expired or was already used. Ask Spirit of Santa to send a new one."
   },
   "Dashboard": {
     "title": "Store dashboard",
@@ -84,7 +84,7 @@
       "invited": "Your store invitation hasn't been accepted yet.",
       "approved": "Your store is approved and visible to families.",
       "rejected": "Your store wasn't approved. Reason: {reason}",
-      "suspended": "Your store is suspended and hidden from families. Contact Spirit O Santa to resolve this."
+      "suspended": "Your store is suspended and hidden from families. Contact Spirit of Santa to resolve this."
     },
     "profileCardTitle": "Store profile",
     "profileCardBody": "Your store's details and photos, as families will see them.",
@@ -104,7 +104,7 @@
       "too_large": "That photo is too big (max 4 MB).",
       "unsupported_type": "Please use a JPEG, PNG or WebP photo.",
       "unreadable": "That file couldn't be read as a photo.",
-      "notApproved": "You can invite reps once Spirit O Santa has approved your store.",
+      "notApproved": "You can invite reps once Spirit of Santa has approved your store.",
       "emailFailed": "We couldn't send the email. Please try again in a few minutes.",
       "windowClosed": "Item lists are closed for changes right now (they're normally open January 1 – March 31).",
       "limitReached": "You've reached the item limit. Archive an item to add another.",
@@ -149,7 +149,7 @@
   },
   "AcceptRepInvitePage": {
     "title": "Join your store's team",
-    "intro": "You've been invited to help manage {storeName} on Spirit O Santa.",
+    "intro": "You've been invited to help manage {storeName} on Spirit of Santa.",
     "email": "Account email",
     "name": "Your name",
     "password": "Choose a password",
@@ -172,7 +172,7 @@
     "windowOpen": "Your item list is open for changes.",
     "windowClosed": "Your item list is closed for changes right now (it's normally open January 1 – March 31). You can still update stock counts.",
     "readOnly": "Items can't be changed while your store has this status.",
-    "discountNote": "Your agreed discount is {discount}. Wholesale is what you bill Spirit O Santa when an item is earned.",
+    "discountNote": "Your agreed discount is {discount}. Wholesale is what you bill Spirit of Santa when an item is earned.",
     "empty": "No items yet.",
     "needsPrice": "Needs a price",
     "colItem": "Item",
@@ -220,7 +220,7 @@
     "noPhoto": "No photo yet.",
     "addPhoto": "Add a photo",
     "replacePhoto": "Replace the photo",
-    "wholesaleLine": "Retail {price} · you bill Spirit O Santa {wholesale}",
+    "wholesaleLine": "Retail {price} · you bill Spirit of Santa {wholesale}",
     "archiveTitle": "Archive this item",
     "archiveHelp": "Removes it from your list and frees a slot. You can restore it later.",
     "restoreTitle": "Restore this item",
@@ -241,13 +241,13 @@
     "title": "Gift orders",
     "intro": "Gifts children have fully funded at your store. We never share anything about the children: use the reference code to match each package.",
     "readyTitle": "Ready to ship ({count})",
-    "readyIntro": "These gifts are locked in. Please ship each one to Spirit O Santa, write its reference code on the package, then mark it shipped.",
+    "readyIntro": "These gifts are locked in. Please ship each one to Spirit of Santa, write its reference code on the package, then mark it shipped.",
     "shipTo": "Ship to:",
-    "noAddress": "Spirit O Santa hasn't set its shipping address yet. Please wait before shipping; we'll email you.",
+    "noAddress": "Spirit of Santa hasn't set its shipping address yet. Please wait before shipping; we'll email you.",
     "setAsideTitle": "Set aside ({count})",
     "setAsideIntro": "Fully funded, but the family can still change the list. Please keep one aside for each and don't ship yet: they move to \"Ready to ship\" when they lock in (30 days, or December 1).",
     "outTitle": "Out of stock ({count})",
-    "outIntro": "These were funded when you had none left. Spirit O Santa will contact you about a substitute.",
+    "outIntro": "These were funded when you had none left. Spirit of Santa will contact you about a substitute.",
     "shippedTitle": "Shipped (last 60 days)",
     "none": "Nothing here right now.",
     "fundedOn": "Fully funded {date}",
@@ -261,7 +261,7 @@
       "notReady": "That gift can't be shipped right now (it may have been shipped already). Reload the page.",
       "tracking": "Keep the tracking note under 100 characters."
     },
-    "paymentsTitle": "Payments from Spirit O Santa",
+    "paymentsTitle": "Payments from Spirit of Santa",
     "owedNow": "Owed to you now: {amount} for {count, plural, one {# gift} other {# gifts}} we've received.",
     "paidLine": "{amount} on {date} · {count, plural, one {# gift} other {# gifts}} · {method}",
     "noPayments": "No payments yet.",
@@ -270,6 +270,6 @@
       "bank_transfer": "bank transfer",
       "other": "other"
     },
-    "owedPending": "{count, plural, one {# more gift is} other {# more gifts are}} received and waiting for Spirit O Santa to confirm your discount."
+    "owedPending": "{count, plural, one {# more gift is} other {# more gifts are}} received and waiting for Spirit of Santa to confirm your discount."
   }
 }

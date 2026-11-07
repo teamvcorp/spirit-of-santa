@@ -82,7 +82,7 @@ export function buildPaymentMetadata(input: WithoutVersion<PaymentMetadata>): Re
   );
 }
 
-/** Read metadata from a Stripe object. null = not a Spirit O Santa payment (or malformed). */
+/** Read metadata from a Stripe object. null = not a Spirit of Santa payment (or malformed). */
 export function parsePaymentMetadata(
   metadata: Record<string, string> | null | undefined,
 ): PaymentMetadata | null {

@@ -1,10 +1,10 @@
 {
   "Metadata": {
-    "title": "Spirit O Santa",
+    "title": "Spirit of Santa",
     "description": "Los niños hacen buenas acciones, ganan puntos y la comunidad ayuda a hacer realidad sus deseos."
   },
   "HomePage": {
-    "title": "Bienvenidos a Spirit O Santa",
+    "title": "Bienvenidos a Spirit of Santa",
     "intro": "Las buenas acciones ganan puntos. Los puntos hacen realidad los deseos.",
     "signUp": "Crear una cuenta familiar",
     "signIn": "Iniciar sesión",
@@ -42,7 +42,7 @@
     "title": "Política de privacidad y Aviso de privacidad infantil",
     "version": "Versión {version} · Aviso de privacidad infantil (lo que aceptan los padres): versión {childVersion}",
     "draft": "BORRADOR: este aviso está en revisión y se finalizará antes del lanzamiento.",
-    "intro": "Esta política cubre a las familias que usan Spirit O Santa y a los visitantes que agradecen a un niño, dan una propina o donación, o piden un mensaje para pagar más tarde. Incluye nuestro Aviso de privacidad infantil. Spirit O Santa permite que los niños ganen puntos por buenas acciones y los usen en una lista de deseos de Navidad. Los niños nunca crean sus propias cuentas: un padre, madre o tutor configura todo y mantiene el control.",
+    "intro": "Esta política cubre a las familias que usan Spirit of Santa y a los visitantes que agradecen a un niño, dan una propina o donación, o piden un mensaje para pagar más tarde. Incluye nuestro Aviso de privacidad infantil. Spirit of Santa permite que los niños ganen puntos por buenas acciones y los usen en una lista de deseos de Navidad. Los niños nunca crean sus propias cuentas: un padre, madre o tutor configura todo y mantiene el control.",
     "sections": {
       "collect": {
         "title": "Qué recopilamos",
@@ -389,7 +389,7 @@
   "PayUp": {
     "title": "Completar regalos",
     "intro": "Paga los puntos que le faltan a un regalo ({rate} = 1 punto) y quedará listo para Navidad: se envía como cualquier otro regalo.",
-    "deadline": "Puedes completar regalos hasta el {closes}. Los regalos que sigan incompletos el {close} salen de la lista y sus puntos pasan a Spirit O Santa.",
+    "deadline": "Puedes completar regalos hasta el {closes}. Los regalos que sigan incompletos el {close} salen de la lista y sus puntos pasan a Spirit of Santa.",
     "closed": "Se pueden completar regalos desde el {opens} hasta el {closes}.",
     "none": "Todos los regalos de las listas de tus hijos están completos. ¡No hay nada que hacer!",
     "missing": "Le faltan {points} puntos: {amount}",
@@ -414,7 +414,7 @@
   },
   "Address": {
     "title": "Dirección de entrega",
-    "intro": "A dónde Spirit O Santa envía los regalos completos de tus hijos. La guardamos cifrada, solo nuestro equipo la ve y la borramos en cuanto se entregan todos los regalos.",
+    "intro": "A dónde Spirit of Santa envía los regalos completos de tus hijos. La guardamos cifrada, solo nuestro equipo la ve y la borramos en cuanto se entregan todos los regalos.",
     "back": "Área de padres",
     "name": "Entregar a (nombre en el paquete)",
     "line1": "Dirección",
@@ -446,10 +446,10 @@
   },
   "Community": {
     "navLink": "Donar",
-    "title": "Regala a los niños de Spirit O Santa",
+    "title": "Regala a los niños de Spirit of Santa",
     "intro": "Tu regalo se convierte en puntos mágicos para niños que ganan regalos de Navidad con buenas acciones. Regala a todos los niños o a los niños de un código postal.",
-    "how": "Los regalos se juntan y se reparten en partes iguales entre los niños registrados el {day}. El {fee} de cada regalo ayuda a mantener Spirit O Santa; el resto se convierte en puntos ({rate} = 1 punto).",
-    "charity": "Spirit O Santa es un programa de {orgName} (EIN {ein}), una organización sin fines de lucro 501(c)(3). Recibirás un recibo para impuestos por correo electrónico.",
+    "how": "Los regalos se juntan y se reparten en partes iguales entre los niños registrados el {day}. El {fee} de cada regalo ayuda a mantener Spirit of Santa; el resto se convierte en puntos ({rate} = 1 punto).",
+    "charity": "Spirit of Santa es un programa de {orgName} (EIN {ein}), una organización sin fines de lucro 501(c)(3). Recibirás un recibo para impuestos por correo electrónico.",
     "raised": "Donado esta temporada hasta ahora: {amount}",
     "who": "¿A quién quieres ayudar?",
     "all": "A todos los niños",
@@ -481,7 +481,7 @@
   "PayLater": {
     "title": "Pagar más tarde por mensaje de texto",
     "phone": "Tu número de celular",
-    "consent": "Envíenme un enlace para pagar esta propina más tarde. Spirit O Santa enviará 1 mensaje de texto con un enlace de pago seguro que vence en 7 días. Sin publicidad. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para cancelar, HELP para ayuda.",
+    "consent": "Envíenme un enlace para pagar esta propina más tarde. Spirit of Santa enviará 1 mensaje de texto con un enlace de pago seguro que vence en 7 días. Sin publicidad. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para cancelar, HELP para ayuda.",
     "privacy": "Política de privacidad",
     "terms": "Términos del servicio",
     "button": "Envíenme el enlace",
@@ -508,7 +508,7 @@
     }
   },
   "TextMessages": {
-    "title": "Mensajes de texto de Spirit O Santa",
+    "title": "Mensajes de texto de Spirit of Santa",
     "intro": "Enviamos un solo tipo de mensaje de texto: un enlace para pagar una propina más tarde, solo cuando lo pides.",
     "sections": {
       "how": {
@@ -542,8 +542,8 @@
     "draft": "BORRADOR: estos términos se están revisando y se finalizarán antes del lanzamiento.",
     "sections": {
       "about": {
-        "title": "Sobre Spirit O Santa",
-        "body": "Spirit O Santa es un programa en el que los niños ganan puntos (\"magia navideña\") por buenas acciones y los usan para regalos de Navidad de tiendas locales. Al usar spiritofsanta.com aceptas estos términos."
+        "title": "Sobre Spirit of Santa",
+        "body": "Spirit of Santa es un programa en el que los niños ganan puntos (\"magia navideña\") por buenas acciones y los usan para regalos de Navidad de tiendas locales. Al usar spiritofsanta.com aceptas estos términos."
       },
       "accounts": {
         "title": "Cuentas",
@@ -551,7 +551,7 @@
       },
       "points": {
         "title": "Puntos",
-        "body": "Spirit O Santa calcula los puntos a partir del dinero realmente recibido (actualmente {rate} = 1 punto). Los puntos no tienen valor en efectivo, no se cambian por dinero y vuelven a cero cada 1 de enero."
+        "body": "Spirit of Santa calcula los puntos a partir del dinero realmente recibido (actualmente {rate} = 1 punto). Los puntos no tienen valor en efectivo, no se cambian por dinero y vuelven a cero cada 1 de enero."
       },
       "payments": {
         "title": "Pagos",
@@ -559,11 +559,11 @@
       },
       "donations": {
         "title": "Donaciones de la comunidad",
-        "body": "Los regalos de nuestra página de donaciones se juntan y se reparten en partes iguales entre los niños registrados cuando la temporada se congela (1 de diciembre). Una comisión de la plataforma, que se muestra en la página antes de donar, ayuda a mantener Spirit O Santa."
+        "body": "Los regalos de nuestra página de donaciones se juntan y se reparten en partes iguales entre los niños registrados cuando la temporada se congela (1 de diciembre). Una comisión de la plataforma, que se muestra en la página antes de donar, ayuda a mantener Spirit of Santa."
       },
       "texts": {
         "title": "Mensajes de texto (pagar más tarde)",
-        "body": "Programa: enlaces de Spirit O Santa para pagar propinas más tarde. Si eliges \"Pagar más tarde por mensaje de texto\" y aceptas, te enviamos un mensaje de texto con un enlace de pago seguro para la propina que elegiste; el enlace vence a los {days} días. Un mensaje por solicitud; sin publicidad. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para cancelar en cualquier momento, o HELP para ayuda. Las operadoras no son responsables de mensajes retrasados o no entregados. Consulta nuestra Política de privacidad para saber cómo tratamos tu número."
+        "body": "Programa: enlaces de Spirit of Santa para pagar propinas más tarde. Si eliges \"Pagar más tarde por mensaje de texto\" y aceptas, te enviamos un mensaje de texto con un enlace de pago seguro para la propina que elegiste; el enlace vence a los {days} días. Un mensaje por solicitud; sin publicidad. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para cancelar en cualquier momento, o HELP para ayuda. Las operadoras no son responsables de mensajes retrasados o no entregados. Consulta nuestra Política de privacidad para saber cómo tratamos tu número."
       },
       "conduct": {
         "title": "Uso aceptable",
@@ -609,7 +609,7 @@
       "notFound": "No se encontró tu cuenta familiar. Cierra sesión y vuelve a entrar."
     },
     "unsubscribeTitle": "Cancelar suscripción",
-    "unsubscribeIntro": "¿Dejar de recibir correos de \"{kind}\" de Spirit O Santa?",
+    "unsubscribeIntro": "¿Dejar de recibir correos de \"{kind}\" de Spirit of Santa?",
     "stop": "Dejar de recibir \"{kind}\"",
     "unsubscribed": "Listo: ya no recibirás correos de \"{kind}\".",
     "badLink": "Este enlace para cancelar la suscripción no es válido. Puedes cambiar tus correos en el área de padres.",

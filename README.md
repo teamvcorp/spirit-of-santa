@@ -1,4 +1,4 @@
-# Spirit O Santa
+# Spirit of Santa
 
 Community-service incentive platform: kids earn Christmas Magic points for good deeds and
 spend them on a funded Christmas wish list. Roadmap: [SpiritOfSanta.md](SpiritOfSanta.md).

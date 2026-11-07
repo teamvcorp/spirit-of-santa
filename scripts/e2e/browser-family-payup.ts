@@ -1,6 +1,6 @@
 /**
  * E2E for Phase 6 slice 4a: the pay-up window (parent pays the missing amount of a gift) and the
- * Dec 25 close (unfinished gifts drop off, their points go to Spirit O Santa). Real browser (Edge)
+ * Dec 25 close (unfinished gifts drop off, their points go to Spirit of Santa). Real browser (Edge)
  * for the parent pages; the payment itself goes through the dev server's SIGNED webhook.
  *
  *   family dev server on :3000 (restart after model changes), then:
@@ -163,7 +163,7 @@ try {
   check("within 7 days of the close: pay-up refused", !late.ok && late.error === "windowClosed");
 
   // 5. Close day: the unfinished Bike drops off; ALL points on it (10 + the 10 from the duplicate pay-up)
-  // go to Spirit O Santa. The locked Book stays. A gift whose kid escrow is out of sync is PARKED.
+  // go to Spirit of Santa. The locked Book stays. A gift whose kid escrow is out of sync is PARKED.
   const bad = await mkWish(other, bookItem, 1000, 500, 3); // claims 5 points the other kid never had
   await setDates(dayIso(-1), dayIso(0));
   const c1 = await closeUnfunded();

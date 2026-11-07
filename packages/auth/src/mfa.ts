@@ -38,7 +38,7 @@ import {
 } from "./totp.ts";
 
 /** Name shown in the authenticator app next to the admin's email. */
-export const MFA_ISSUER = "Spirit O Santa Admin";
+export const MFA_ISSUER = "Spirit of Santa Admin";
 /** A pending (scanned-but-unconfirmed) secret can be confirmed for this long... */
 const PENDING_MINUTES = 15;
 /** ...and a reload only shows the SAME QR code while at least 5 minutes are left (review 2026-11-05). */

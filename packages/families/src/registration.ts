@@ -85,7 +85,7 @@ export async function startRegistration(parent: Parent, kidIds: string[], promo:
       line_items: [
         {
           quantity,
-          price_data: { currency: "usd", unit_amount: REGISTRATION_FEE_CENTS, product_data: { name: "Spirit O Santa child registration" } },
+          price_data: { currency: "usd", unit_amount: REGISTRATION_FEE_CENTS, product_data: { name: "Spirit of Santa child registration" } },
         },
       ],
       // Metadata on BOTH the session and the PaymentIntent (the webhook reads the PaymentIntent).

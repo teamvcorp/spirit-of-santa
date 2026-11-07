@@ -140,8 +140,8 @@ Deadline that matters most: **Store MVP live Jan 1, 2027.**
 
 ## Phase 2 decisions (user, 2026-11-05)
 
-- **Email:** Resend, sending domain `fyht4.com` (verified). Default from: `Spirit O Santa <no-reply@fyht4.com>`.
-- **Payout:** per-store discount % agreed with admin at approval. Store bills Spirit O Santa the agreed wholesale
+- **Email:** Resend, sending domain `fyht4.com` (verified). Default from: `Spirit of Santa <no-reply@fyht4.com>`.
+- **Payout:** per-store discount % agreed with admin at approval. Store bills Spirit of Santa the agreed wholesale
   cost (retail − discount); we keep the difference. Stored as integer basis points on Store.
 - **Pending/invited stores** may set up profile + items immediately; dashboards show a Pending/Invited badge;
   families see a store only once approved.
@@ -533,7 +533,7 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   familyNotifiedAt). All compare-and-set + audited ("wish.substitute/receive/deliver"; targetType wish_list_item).
   Failed parent emails retried by `sendFamilyNotices` in /api/cron/money (14 days). `familyAppOrigin()`
   (FAMILY_APP_URL, admin + family projects) next to `storeAppOrigin()` in @repo/stores/urls. Family labels: shipped
-  = "Being prepared", delivered = "On its way!" (user: family hears only when Spirit O Santa sends it).
+  = "Being prepared", delivered = "On its way!" (user: family hears only when Spirit of Santa sends it).
   No family delivery address is stored (privacy): admin arranges delivery with the parent by email (open question).
   E2E `browser-admin-fulfilment.ts` (16). Review fixes: parent emails batched (bulk lookups), paced (600 ms) with a
   60 s budget; familyNotifiedAt ONLY when an email really went out; child/family deleted → familyNoticeSkippedAt;
@@ -570,7 +570,7 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   (bidi overrides, zero-width); line2 of spaces = blank; one AddressPanel for save+delete feedback; dashboard uses
   `addressMissing` (presence only, no decrypt).
 - **Slice 5 store payouts + money summary (2026-11-06).** Roadmap: paid OUTSIDE the app (check/transfer), recorded
-  by admin. Owed once Spirit O Santa RECEIVES a gift: `markReceived` fixes `payoutOwedCents` =
+  by admin. Owed once Spirit of Santa RECEIVES a gift: `markReceived` fixes `payoutOwedCents` =
   `owedForGift` (payout-amount.ts → `wholesaleCents(cost, store discount)`, the ONE formula); null when the store
   has no discount (filled in later by `fillMissingAmounts`). `StorePayout` model (amount computed, never typed;
   method/reference/paidOn/note; gifts link via WishListItem.payoutId). `@repo/wishlists/payouts`: `owedByStore`,
@@ -579,7 +579,7 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   (collected by purpose − refunds/lost disputes − wholesale for received gifts = net; wholesale margin; breakage =
   season_reset + forfeit points at $1.50; Stripe fees NOT included). Admin `/payouts` (?year=, confirm box with the
   exact amount; action refuses if the amount changed since the page loaded; success = redirect ?paid=<id> because
-  the store's row disappears). Store Orders page: "Payments from Spirit O Santa". E2E `browser-admin-payouts.ts` (19).
+  the store's row disappears). Store Orders page: "Payments from Spirit of Santa". E2E `browser-admin-payouts.ts` (19).
   Review fixes: confirmed amount (seenCents) compared INSIDE the payout transaction; concurrent payout → "changed"
   (PayoutChanged, not a 500); action input via Zod; amount owed fixed INSIDE the receive transaction (adminStep accepts
   a set-factory run with the session); fillMissingAmounts = distinct stores WITH a discount + bulkWrite (no N+1, no

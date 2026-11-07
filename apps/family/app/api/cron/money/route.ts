@@ -7,7 +7,7 @@
  *  1. Split held donation pools (only while frozen, fee set). Daily runs share late gifts too.
  *  2. Switch off expired pay-later text links (Phase 5 slice 4b), BEFORE the season end.
  *     Then wish lists (Phase 6): lock items (30 days funded, or all at the freeze); sweep unallocated
- *     points; Dec 25 close (unfinished gifts drop off, points → Spirit O Santa); then email each store its new gifts to set aside / ready to ship (needs STORE_APP_URL);
+ *     points; Dec 25 close (unfinished gifts drop off, points → Spirit of Santa); then email each store its new gifts to set aside / ready to ship (needs STORE_APP_URL);
  *     then retry failed "gift on its way" parent emails (needs FAMILY_APP_URL); delete addresses no gift needs;
  *     Phase 7: each parent's daily summary (magic + deeds) and the season reminders (email only).
  *  3. Season end (only in the off-season, once per ended season): unshared donation money
@@ -58,7 +58,7 @@ export async function GET(request: Request): Promise<Response> {
   // Expired pay-later links off BEFORE the season end, so none is payable after points reset.
   const payLater = await settle(() => expirePayLaterLinks());
   // Wish lists (Phase 6): fully funded 30+ days → locked; then a safety sweep of unallocated points.
-  // Then the Dec 25 close: unfinished gifts drop off, their points go to Spirit O Santa (BEFORE the Jan 1 reset).
+  // Then the Dec 25 close: unfinished gifts drop off, their points go to Spirit of Santa (BEFORE the Jan 1 reset).
   const wishLists = await settle(async () => ({ locked: await lockFundedItems(), sweep: await sweepAllocations(), closed: await closeUnfunded() }));
   // After locking, so gifts locked today are in today's "ready to ship" email.
   const storeOrders = await settle(() => sendStoreDigests());

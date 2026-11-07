@@ -25,7 +25,7 @@ const tag = randomBytes(4).toString("hex");
 const mail = (n: string) => `e2e-ord-${n}-${tag}@spiritofsanta.test`;
 const PW = `orders pass ${tag}`;
 const DAY = 86_400_000;
-const ADDRESS = `Spirit O Santa ${tag}\n100 North Pole Way\nAustin, TX 78701`;
+const ADDRESS = `Spirit of Santa ${tag}\n100 North Pole Way\nAustin, TX 78701`;
 const KID_NAME = `Zebulon${tag}`; // must NEVER appear on store pages or emails
 
 const mongoose = await connectDb();

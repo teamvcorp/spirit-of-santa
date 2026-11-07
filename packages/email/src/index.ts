@@ -4,7 +4,7 @@
  *   await sendEmail({ to, locale: user.locale, template: "resetPassword", values: { link },
  *                     idempotencyKey: `reset/${tokenId}` });
  *
- * - Sender: RESEND_FROM (default "Spirit O Santa <no-reply@fyht4.com>"; fyht4.com is the
+ * - Sender: RESEND_FROM (default "Spirit of Santa <no-reply@fyht4.com>"; fyht4.com is the
  *   verified sending domain, user decision 2026-11-05).
  * - Development without RESEND_API_KEY: the email is printed to the server console instead
  *   of sent (so flows can be tested locally). Production without a key THROWS: we never
@@ -21,7 +21,7 @@ import { assertSafeLink, renderEmail, type EmailTemplateName, type EmailTemplate
 
 export { renderEmail, escapeHtml, assertSafeLink, digestLines, type EmailTemplateName, type EmailTemplates, type OptOutLinks } from "./render.ts";
 
-const DEFAULT_FROM = "Spirit O Santa <no-reply@fyht4.com>";
+const DEFAULT_FROM = "Spirit of Santa <no-reply@fyht4.com>";
 let client: Resend | null = null;
 
 export type SendEmailInput<T extends EmailTemplateName> = {

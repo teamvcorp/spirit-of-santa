@@ -21,7 +21,7 @@ Node.js version: 24.x (Project → Settings → General).
 | `NEXTAUTH_SECRET` | ✓ | ✓ | ✓ | NEW random value per app (don't reuse dev ones) |
 | `NEXTAUTH_URL` | `https://spiritofsanta.com` | `https://store.spiritofsanta.com` | `https://admin.spiritofsanta.com` | this app's public URL |
 | `RESEND_API_KEY` | ✓ | ✓ | ✓ | Resend → API Keys (sending access, fyht4.com only) |
-| `RESEND_FROM` | opt | opt | opt | blank = `Spirit O Santa <no-reply@fyht4.com>` |
+| `RESEND_FROM` | opt | opt | opt | blank = `Spirit of Santa <no-reply@fyht4.com>` |
 | `RESEND_REPLY_TO` | opt | opt | opt | a monitored inbox (recommended) |
 | `BLOB_STORE_ID` | ✓ | auto | ✓ | not secret; store project gets it by connecting the Blob store |
 | `BLOB_READ_WRITE_TOKEN` | – | auto/✓ | – | connect the Blob store to the **store** project only (OIDC); token only if not using OIDC |

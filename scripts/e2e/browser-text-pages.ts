@@ -13,7 +13,7 @@ const [base] = process.argv.slice(2);
 if (!base) throw new Error("usage: browser-text-pages.ts <familyUrl>");
 const { check, report } = makeChecks();
 // The sentence registered with the carriers (docs/vendor/twilio.md). Must match the page exactly.
-const REGISTERED = "Text me a link to pay this tip later. Spirit O Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help.";
+const REGISTERED = "Text me a link to pay this tip later. Spirit of Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help.";
 
 const browser = await chromium.launch({ channel: "msedge", headless: true });
 const errors: string[] = [];
@@ -62,7 +62,7 @@ try {
   const es = await (await browser.newContext()).newPage();
   es.on("pageerror", (e) => errors.push(e.message));
   const esTm = await open(es, `${base}/es/text-messages`);
-  check("Spanish /es/text-messages", esTm.status === 200 && esTm.text.includes("Mensajes de texto de Spirit O Santa") && esTm.text.includes("Responde STOP"));
+  check("Spanish /es/text-messages", esTm.status === 200 && esTm.text.includes("Mensajes de texto de Spirit of Santa") && esTm.text.includes("Responde STOP"));
   check("no browser errors", errors.length === 0, errors.slice(0, 3).join(" || "));
 } catch (err) {
   report();

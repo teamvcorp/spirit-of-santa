@@ -1,7 +1,7 @@
 /**
  * /parent/payup (Phase 6 slice 4): during the pay-up window (freeze date → 7 days before the
  * close) a parent can pay the missing amount of each unfinished gift. Needs the PIN unlock.
- * Gifts still unfinished at the close drop off and their points go to Spirit O Santa.
+ * Gifts still unfinished at the close drop off and their points go to Spirit of Santa.
  */
 import type { Metadata } from "next";
 import { connection } from "next/server";

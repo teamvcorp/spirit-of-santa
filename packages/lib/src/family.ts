@@ -25,8 +25,9 @@ export const TERMS_VERSION = "2026-11-06-draft";
  * of SHA-256 of messages PayLater.consent): the i18n test FAILS if the wording changes without a
  * new version + hash (and the carriers must be told about new wording).
  */
-export const SMS_CONSENT_VERSION = "sms-2026-11-06";
-export const SMS_CONSENT_SHA256: Record<"en" | "es", string> = { en: "640402c5ce04a63c", es: "afeef3fe8d1f137d" };
+// Bumped 2026-11-06b: brand renamed "Spirit O Santa" → "Spirit of Santa" in the consent text (carriers told).
+export const SMS_CONSENT_VERSION = "sms-2026-11-06b";
+export const SMS_CONSENT_SHA256: Record<"en" | "es", string> = { en: "8e1214175ce66a11", es: "c834cdd8acee6f31" };
 
 /** Daily Naughty/Nice vote values: ONE list for the model, the form schema and the service. */
 export const KID_VOTES = ["nice", "naughty"] as const;

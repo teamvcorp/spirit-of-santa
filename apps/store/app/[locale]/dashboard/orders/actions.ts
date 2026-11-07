@@ -14,7 +14,7 @@ import { authOptions } from "@/auth";
 
 const schema = z.object({
   wishId: z.string().regex(OBJECT_ID_RE),
-  // Optional "UPS 1Z999..." (plain text, shown back to Spirit O Santa's team only).
+  // Optional "UPS 1Z999..." (plain text, shown back to Spirit of Santa's team only).
   tracking: z.string().trim().max(100),
 });
 

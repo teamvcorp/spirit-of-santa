@@ -8,7 +8,7 @@
  *    server constant), never from anything the browser sent.
  *  - Only while the season is open or frozen: a bonus paid after Dec 25 would be wiped a few days
  *    later by the Jan 1 reset. Checkout expires at min(season close, 23.5 h).
- *  - Stripe only sees "Spirit O Santa bonus magic": no child's name leaves our system.
+ *  - Stripe only sees "Spirit of Santa bonus magic": no child's name leaves our system.
  *  - 10 checkout starts per 15 min per parent, counted BEFORE any lookup (no flood, no probing).
  *  - Tips, donation links and bonuses deliberately share ONE set of amount limits (TIP_PRESETS_CENTS,
  *    MIN/MAX_TIP_CENTS): they are all "small gifts to a kid"; the webhook re-checks the same bounds.
@@ -52,7 +52,7 @@ export async function startBonus(parent: Parent, rawKidId: string, amountCents: 
       ui_mode: "embedded_page",
       mode: "payment",
       expires_at: Math.floor(endsAt / 1000),
-      line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: amountCents, product_data: { name: "Spirit O Santa bonus magic" } } }],
+      line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: amountCents, product_data: { name: "Spirit of Santa bonus magic" } } }],
       // Metadata on BOTH the session and the PaymentIntent (the webhook reads the PaymentIntent).
       metadata,
       payment_intent_data: { metadata },

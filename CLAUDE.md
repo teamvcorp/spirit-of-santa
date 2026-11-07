@@ -1,4 +1,4 @@
-# Spirit O Santa — Monorepo
+# Spirit of Santa — Monorepo
 
 ## Project structure
 Three Next.js apps (App Router) + shared packages in a Turborepo monorepo.

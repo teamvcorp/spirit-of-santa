@@ -193,7 +193,7 @@ try {
       amount: 1000, currency: "usd", payment_method: "pm_card_visa", confirm: true,
       automatic_payment_methods: { enabled: true, allow_redirects: "never" },
       metadata: buildPaymentMetadata({ sos_purpose: "bonus", sos_kid_id: kidId, sos_family_id: familyId }),
-      description: "Spirit O Santa E2E test (test mode)",
+      description: "Spirit of Santa E2E test (test mode)",
     });
     piIds.push(pi.id);
     let real: Stripe.Event | undefined;

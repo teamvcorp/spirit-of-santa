@@ -15,6 +15,6 @@ test("link lasts 7 days, but ends at least a day before the deed/season deadline
 
 test("the text is the registered wording (exactly one link, STOP/HELP, rates)", () => {
   const t = payLaterText("https://buy.stripe.com/abc123", 7);
-  assert.equal(t, "Spirit O Santa: here is your link to pay the tip for the good deed you received. It expires in 7 days: https://buy.stripe.com/abc123 Msg & data rates may apply. Reply STOP to opt out, HELP for help");
+  assert.equal(t, "Spirit of Santa: here is your link to pay the tip for the good deed you received. It expires in 7 days: https://buy.stripe.com/abc123 Msg & data rates may apply. Reply STOP to opt out, HELP for help");
   assert.match(payLaterText("https://buy.stripe.com/x", 1), /expires in 1 day:/);
 });

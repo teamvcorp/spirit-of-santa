@@ -1,5 +1,5 @@
 /**
- * Family DELIVERY address (Phase 6 slice 4b): where Spirit O Santa sends funded gifts.
+ * Family DELIVERY address (Phase 6 slice 4b): where Spirit of Santa sends funded gifts.
  * Client-safe (the form uses the same rules); the SERVER re-validates with this schema and stores
  * it ENCRYPTED (@repo/auth/sealed, ADDRESS_ENCRYPTION_KEY). US addresses only for now.
  */

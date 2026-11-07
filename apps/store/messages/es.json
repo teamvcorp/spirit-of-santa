@@ -1,10 +1,10 @@
 {
   "Metadata": {
-    "title": "Spirit O Santa para tiendas",
+    "title": "Spirit of Santa para tiendas",
     "description": "Publique artículos de regalo para los niños de su comunidad y reciba el pago cuando los ganen."
   },
   "HomePage": {
-    "title": "Spirit O Santa para tiendas",
+    "title": "Spirit of Santa para tiendas",
     "intro": "Publique hasta 50 artículos de regalo. Los niños los ganan con buenas acciones y usted recibe el pago.",
     "dashboard": "Ir a tu panel",
     "register": "Inscribe tu tienda",
@@ -16,7 +16,7 @@
     "register": "Crear una cuenta de tienda"
   },
   "RegisterPage": {
-    "title": "Inscribe tu tienda en Spirit O Santa",
+    "title": "Inscribe tu tienda en Spirit of Santa",
     "intro": "Los niños de tu zona ganan regalos con buenas acciones. Regístrate, agrega hasta 50 artículos y cóbranos el costo mayorista acordado cuando un niño gane un artículo.",
     "you": "Sobre ti",
     "ownerName": "Tu nombre",
@@ -47,16 +47,16 @@
   "StoreAgreement": {
     "title": "Acuerdo de descuento y garantía para tiendas",
     "p1": "Publicas los artículos a tu precio normal de venta. El precio de cada artículo en puntos mágicos es igual a su precio de venta en dólares.",
-    "p2": "Spirit O Santa acuerda un descuento sobre el precio de venta con tu tienda al aprobarla. Cuando se financia el artículo de un niño, le cobras a Spirit O Santa el costo mayorista acordado (precio de venta menos ese descuento).",
+    "p2": "Spirit of Santa acuerda un descuento sobre el precio de venta con tu tienda al aprobarla. Cuando se financia el artículo de un niño, le cobras a Spirit of Santa el costo mayorista acordado (precio de venta menos ese descuento).",
     "p3": "Garantizas que los artículos publicados seguirán disponibles al precio publicado durante la temporada, o ofreces un sustituto igual o mejor.",
-    "p4": "Spirit O Santa se queda con la diferencia entre el precio de venta y el mayorista para operar el programa.",
-    "p5": "Spirit O Santa paga tus facturas con cheque u otro método fuera de la aplicación. No se guardan datos bancarios en la aplicación.",
+    "p4": "Spirit of Santa se queda con la diferencia entre el precio de venta y el mayorista para operar el programa.",
+    "p5": "Spirit of Santa paga tus facturas con cheque u otro método fuera de la aplicación. No se guardan datos bancarios en la aplicación.",
     "version": "Versión del acuerdo {version}",
     "accept": "He leído y acepto el acuerdo de descuento y garantía para tiendas."
   },
   "AcceptInvitePage": {
     "title": "Acepta la invitación de tu tienda",
-    "intro": "Spirit O Santa invitó a {storeName}. Crea tu cuenta de dueño para empezar a publicar artículos.",
+    "intro": "Spirit of Santa invitó a {storeName}. Crea tu cuenta de dueño para empezar a publicar artículos.",
     "email": "Correo de la cuenta",
     "ownerName": "Tu nombre",
     "password": "Elige una contraseña",
@@ -65,7 +65,7 @@
     "submitting": "Creando cuenta…",
     "done": "¡Listo! Tu tienda está aprobada y tu cuenta está lista.",
     "signIn": "Iniciar sesión",
-    "invalid": "Este enlace de invitación venció o ya se usó. Pide a Spirit O Santa que te envíe uno nuevo."
+    "invalid": "Este enlace de invitación venció o ya se usó. Pide a Spirit of Santa que te envíe uno nuevo."
   },
   "Dashboard": {
     "title": "Panel de la tienda",
@@ -84,7 +84,7 @@
       "invited": "La invitación de tu tienda aún no ha sido aceptada.",
       "approved": "Tu tienda está aprobada y visible para las familias.",
       "rejected": "Tu tienda no fue aprobada. Motivo: {reason}",
-      "suspended": "Tu tienda está suspendida y oculta para las familias. Comunícate con Spirit O Santa para resolverlo."
+      "suspended": "Tu tienda está suspendida y oculta para las familias. Comunícate con Spirit of Santa para resolverlo."
     },
     "profileCardTitle": "Perfil de la tienda",
     "profileCardBody": "Los datos y fotos de tu tienda, tal como los verán las familias.",
@@ -104,7 +104,7 @@
       "too_large": "Esa foto es demasiado grande (máximo 4 MB).",
       "unsupported_type": "Usa una foto JPEG, PNG o WebP.",
       "unreadable": "No se pudo leer ese archivo como foto.",
-      "notApproved": "Podrás invitar representantes cuando Spirit O Santa apruebe tu tienda.",
+      "notApproved": "Podrás invitar representantes cuando Spirit of Santa apruebe tu tienda.",
       "emailFailed": "No pudimos enviar el correo. Inténtalo de nuevo en unos minutos.",
       "windowClosed": "Las listas de artículos están cerradas a cambios en este momento (normalmente se abren del 1 de enero al 31 de marzo).",
       "limitReached": "Llegaste al límite de artículos. Archiva un artículo para agregar otro.",
@@ -149,7 +149,7 @@
   },
   "AcceptRepInvitePage": {
     "title": "Únete al equipo de tu tienda",
-    "intro": "Te invitaron a ayudar a administrar {storeName} en Spirit O Santa.",
+    "intro": "Te invitaron a ayudar a administrar {storeName} en Spirit of Santa.",
     "email": "Correo de la cuenta",
     "name": "Tu nombre",
     "password": "Elige una contraseña",
@@ -172,7 +172,7 @@
     "windowOpen": "Tu lista de artículos está abierta a cambios.",
     "windowClosed": "Tu lista de artículos está cerrada a cambios en este momento (normalmente se abre del 1 de enero al 31 de marzo). Aún puedes actualizar el inventario.",
     "readOnly": "Los artículos no se pueden cambiar mientras tu tienda tenga este estado.",
-    "discountNote": "Tu descuento acordado es {discount}. El precio mayorista es lo que le cobras a Spirit O Santa cuando un niño gana un artículo.",
+    "discountNote": "Tu descuento acordado es {discount}. El precio mayorista es lo que le cobras a Spirit of Santa cuando un niño gana un artículo.",
     "empty": "Aún no hay artículos.",
     "needsPrice": "Falta el precio",
     "colItem": "Artículo",
@@ -220,7 +220,7 @@
     "noPhoto": "Aún no hay foto.",
     "addPhoto": "Agregar una foto",
     "replacePhoto": "Cambiar la foto",
-    "wholesaleLine": "Venta {price} · le cobras a Spirit O Santa {wholesale}",
+    "wholesaleLine": "Venta {price} · le cobras a Spirit of Santa {wholesale}",
     "archiveTitle": "Archivar este artículo",
     "archiveHelp": "Lo quita de tu lista y libera un lugar. Puedes restaurarlo después.",
     "restoreTitle": "Restaurar este artículo",
@@ -241,13 +241,13 @@
     "title": "Pedidos de regalos",
     "intro": "Regalos que los niños completaron en tu tienda. Nunca compartimos nada sobre los niños: usa el código de referencia para identificar cada paquete.",
     "readyTitle": "Listos para enviar ({count})",
-    "readyIntro": "Estos regalos están asegurados. Envía cada uno a Spirit O Santa, escribe su código de referencia en el paquete y márcalo como enviado.",
+    "readyIntro": "Estos regalos están asegurados. Envía cada uno a Spirit of Santa, escribe su código de referencia en el paquete y márcalo como enviado.",
     "shipTo": "Enviar a:",
-    "noAddress": "Spirit O Santa todavía no tiene dirección de envío. Espera antes de enviar; te avisaremos por correo.",
+    "noAddress": "Spirit of Santa todavía no tiene dirección de envío. Espera antes de enviar; te avisaremos por correo.",
     "setAsideTitle": "Apartar ({count})",
     "setAsideIntro": "Completos, pero la familia todavía puede cambiar la lista. Aparta uno de cada uno y no los envíes todavía: pasan a \"Listos para enviar\" cuando se aseguran (30 días o el 1 de diciembre).",
     "outTitle": "Agotados ({count})",
-    "outIntro": "Se completaron cuando ya no te quedaban. Spirit O Santa te contactará sobre un sustituto.",
+    "outIntro": "Se completaron cuando ya no te quedaban. Spirit of Santa te contactará sobre un sustituto.",
     "shippedTitle": "Enviados (últimos 60 días)",
     "none": "No hay nada aquí por ahora.",
     "fundedOn": "Completo el {date}",
@@ -261,7 +261,7 @@
       "notReady": "Ese regalo no se puede enviar ahora (quizás ya se envió). Vuelve a cargar la página.",
       "tracking": "La nota de rastreo debe tener menos de 100 caracteres."
     },
-    "paymentsTitle": "Pagos de Spirit O Santa",
+    "paymentsTitle": "Pagos de Spirit of Santa",
     "owedNow": "Se te debe ahora: {amount} por {count, plural, one {# regalo} other {# regalos}} que ya recibimos.",
     "paidLine": "{amount} el {date} · {count, plural, one {# regalo} other {# regalos}} · {method}",
     "noPayments": "Todavía no hay pagos.",
@@ -270,6 +270,6 @@
       "bank_transfer": "transferencia bancaria",
       "other": "otro"
     },
-    "owedPending": "{count, plural, one {# regalo más está recibido} other {# regalos más están recibidos}} y esperan a que Spirit O Santa confirme tu descuento."
+    "owedPending": "{count, plural, one {# regalo más está recibido} other {# regalos más están recibidos}} y esperan a que Spirit of Santa confirme tu descuento."
   }
 }

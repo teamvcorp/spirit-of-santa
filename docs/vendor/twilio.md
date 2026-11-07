@@ -58,7 +58,7 @@ open the links; an unreachable opt-in page is a common rejection reason.
 > They scan the deed's QR code, which opens a web page on https://spiritofsanta.com (example:
 > https://spiritofsanta.com/d/<code>). On that page they may choose "Pay later by text", type their own
 > mobile number, and tick an unchecked consent box that reads: "Text me a link to pay this tip later.
-> Spirit O Santa will send 1 text message to this number with a secure payment link that expires in 7
+> Spirit of Santa will send 1 text message to this number with a secure payment link that expires in 7
 > days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help. Privacy Policy:
 > https://spiritofsanta.com/privacy Terms: https://spiritofsanta.com/terms". The form cannot be
 > submitted without the box ticked. We record the time of consent with the number. We send exactly one
@@ -68,7 +68,7 @@ open the links; an unreachable opt-in page is a common rejection reason.
 
 **Short version (706 characters, for the <1000 limit):**
 
-> Adults who received a good deed from a child in our program scan the deed's QR code, which opens a web page on https://spiritofsanta.com. There they may choose "Pay later by text", enter their own mobile number and tick an unchecked box: "Text me a link to pay this tip later. Spirit O Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help." The form can't be sent without the box ticked; we record the consent time. We send one transactional message per request, never marketing, and never buy, rent or share numbers. Privacy Policy: https://spiritofsanta.com/privacy Terms: https://spiritofsanta.com/terms
+> Adults who received a good deed from a child in our program scan the deed's QR code, which opens a web page on https://spiritofsanta.com. There they may choose "Pay later by text", enter their own mobile number and tick an unchecked box: "Text me a link to pay this tip later. Spirit of Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help." The form can't be sent without the box ticked; we record the consent time. We send one transactional message per request, never marketing, and never buy, rent or share numbers. Privacy Policy: https://spiritofsanta.com/privacy Terms: https://spiritofsanta.com/terms
 
 
 **Gotcha (2026-11-06):** the description box rejects a link followed by punctuation ("https://spiritofsanta.com." with a
@@ -76,11 +76,11 @@ full stop) with "The url you entered is invalid". Never put a full stop or comma
 
 **Version A (728 chars, links at the end):**
 
-> Adults who received a good deed from a child in our program scan the deed's QR code, which opens a page on our website spiritofsanta dot com. There they may choose "Pay later by text", enter their own mobile number and tick an unchecked box: "Text me a link to pay this tip later. Spirit O Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help." The form can't be sent without the box ticked; we record the consent time. We send one transactional message per request, never marketing, and never buy, rent or share numbers. Privacy Policy and Terms of Service: https://spiritofsanta.com/privacy and https://spiritofsanta.com/terms
+> Adults who received a good deed from a child in our program scan the deed's QR code, which opens a page on our website spiritofsanta dot com. There they may choose "Pay later by text", enter their own mobile number and tick an unchecked box: "Text me a link to pay this tip later. Spirit of Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help." The form can't be sent without the box ticked; we record the consent time. We send one transactional message per request, never marketing, and never buy, rent or share numbers. Privacy Policy and Terms of Service: https://spiritofsanta.com/privacy and https://spiritofsanta.com/terms
 
 **Version B (664 chars, no links: if the box also checks that links load, use this until the site is live):**
 
-> Adults who received a good deed from a child in our program scan the deed's QR code, which opens a page on our website. There they may choose "Pay later by text", enter their own mobile number and tick an unchecked box: "Text me a link to pay this tip later. Spirit O Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help." The form can't be sent without the box ticked; we record the consent time. We send one transactional message per request, never marketing, and never buy, rent or share numbers. Our Privacy Policy and Terms of Service are linked on that page.
+> Adults who received a good deed from a child in our program scan the deed's QR code, which opens a page on our website. There they may choose "Pay later by text", enter their own mobile number and tick an unchecked box: "Text me a link to pay this tip later. Spirit of Santa will send 1 text with a secure payment link that expires in 7 days. No marketing. Msg & data rates may apply. Reply STOP to opt out, HELP for help." The form can't be sent without the box ticked; we record the consent time. We send one transactional message per request, never marketing, and never buy, rent or share numbers. Our Privacy Policy and Terms of Service are linked on that page.
 
 **Proof-of-consent box** ("For proof of consent by web form, provide a link…"): ONLY links, one per line,
 each starting with https://. The form isn't published yet, so upload `docs/vendor/twilio-optin-form.png`
@@ -97,7 +97,7 @@ screenshot and the wording above** (one text, 7-day link, STOP/HELP, privacy + t
 **Opt-in message (optional box), submitted 2026-11-06.** Our flow has NO separate confirmation text (we
 registered exactly 1 text per request), so this is the one message itself:
 
-> Spirit O Santa: here is your link to pay the tip for the good deed you received. It expires in 7 days: https://buy.stripe.com/abc123 Msg & data rates may apply. Reply STOP to opt out, HELP for help
+> Spirit of Santa: here is your link to pay the tip for the good deed you received. It expires in 7 days: https://buy.stripe.com/abc123 Msg & data rates may apply. Reply STOP to opt out, HELP for help
 
 (197 chars = 2 SMS segments. No child's name in texts. Link = a Stripe Payment Link on buy.stripe.com, never a
 public URL shortener (carriers block those). Slice 4 must send exactly this wording, with the real link.)
@@ -109,7 +109,7 @@ public URL shortener (carriers block those). Slice 4 must send exactly this word
    "Create API key" → name `spiritofsanta-family`, type **Standard** → copy the SID and the Secret (the secret is
    shown ONCE). If unsure which secret belongs to an existing key, make a new key and revoke the old one.
 3. `TWILIO_MESSAGING_SERVICE_SID` (MG…): Messaging → Services → the service linked to the A2P campaign
-   (create one, e.g. "Spirit O Santa pay-later", if needed) → Service SID. Add the phone number to its Sender Pool.
+   (create one, e.g. "Spirit of Santa pay-later", if needed) → Service SID. Add the phone number to its Sender Pool.
 4. `TWILIO_PHONE_NUMBER` (+1…): Phone Numbers → Manage → Active numbers. Only needed without a Messaging Service.
 
 Put them in `apps/family/.env.local` (local) and the Vercel **family** project (production). Remove the old
@@ -129,6 +129,6 @@ safer (revocable without changing the main token).
 box. Tell the carriers (e.g. add to the opt-in description or a reviewer note): "The page is also available
 in Spanish with this consent text:"
 
-> Envíenme un enlace para pagar esta propina más tarde. Spirit O Santa enviará 1 mensaje de texto con un enlace de pago seguro que vence en 7 días. Sin publicidad. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para cancelar, HELP para ayuda.
+> Envíenme un enlace para pagar esta propina más tarde. Spirit of Santa enviará 1 mensaje de texto con un enlace de pago seguro que vence en 7 días. Sin publicidad. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para cancelar, HELP para ayuda.
 
 Both sentences are pinned by SMS_CONSENT_SHA256 (@repo/lib/family); the i18n test fails if either changes.

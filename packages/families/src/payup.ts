@@ -7,7 +7,7 @@
  *    points × $1.50, rounded up, ≥ Stripe's $0.50 minimum), never sent by the browser.
  *  - The webhook re-checks the gift belongs to that kid + family, credits "earn_payup" and fills
  *    THAT gift first. If tips finished it meanwhile, the money still becomes the kid's points.
- *  - Checkout expires at min(window close, 23.5 h). Stripe only sees "Spirit O Santa gift
+ *  - Checkout expires at min(window close, 23.5 h). Stripe only sees "Spirit of Santa gift
  *    pay-up": no child's or item's name leaves our system.
  *  - NO DELAYED PAYMENT METHODS (bank debits, vouchers, customer balance): they settle days later,
  *    possibly after the close when the gift has already dropped off (review 2026-11-06). Stripe SDK
@@ -58,7 +58,7 @@ export async function startPayUp(parent: Parent, rawWishId: string, origin: stri
       mode: "payment",
       excluded_payment_method_types: [...DELAYED_PAYMENT_METHODS],
       expires_at: Math.floor(endsAt / 1000),
-      line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: amountCents, product_data: { name: "Spirit O Santa gift pay-up" } } }],
+      line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: amountCents, product_data: { name: "Spirit of Santa gift pay-up" } } }],
       // Metadata on BOTH the session and the PaymentIntent (the webhook reads the PaymentIntent).
       metadata,
       payment_intent_data: { metadata },

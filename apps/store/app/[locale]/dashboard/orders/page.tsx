@@ -1,9 +1,9 @@
 /**
  * /dashboard/orders (Phase 6 slice 3): gifts children have funded at this store.
  *  - Set aside: fully funded, the parent can still remove it → keep one, don't ship.
- *  - Ready to ship: locked → ship to Spirit O Santa's address, write the reference on the package,
+ *  - Ready to ship: locked → ship to Spirit of Santa's address, write the reference on the package,
  *    then "Mark shipped".
- *  - Out of stock: funded but none left → Spirit O Santa contacts the store about a substitute.
+ *  - Out of stock: funded but none left → Spirit of Santa contacts the store about a substitute.
  *  - Shipped: the last 60 days.
  * Owners AND reps. Shows only the item + reference code: never anything about the child.
  */

@@ -60,7 +60,7 @@ export async function startCommunityDonation(
       line_items: [
         {
           quantity: 1,
-          price_data: { currency: "usd", unit_amount: amountCents, product_data: { name: zip ? `Gift for Spirit O Santa kids in ${zip}` : "Gift for all Spirit O Santa kids" } },
+          price_data: { currency: "usd", unit_amount: amountCents, product_data: { name: zip ? `Gift for Spirit of Santa kids in ${zip}` : "Gift for all Spirit of Santa kids" } },
         },
       ],
       // Metadata on BOTH the session and the PaymentIntent (the webhook reads the PaymentIntent;

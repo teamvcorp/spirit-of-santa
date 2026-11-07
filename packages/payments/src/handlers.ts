@@ -21,6 +21,7 @@ import { Deed, Kid, PayLaterRequest, Payment, Transaction, trusted, withTransact
 import { MAX_DONATION_CENTS, MAX_TIP_CENTS, MIN_DONATION_CENTS, MIN_TIP_CENTS, REGISTRATION_FEE_CENTS, MIN_STRIPE_CHARGE_CENTS } from "@repo/lib/limits";
 import { centsToCentipoints, centipointsToCents } from "@repo/lib/points";
 import { getSeasonYear } from "@repo/lib/season";
+import { getSeasonState } from "@repo/stores/season";
 import { getStripe } from "./client.ts";
 import { parsePaymentMetadata, type PaymentMetadata } from "./metadata.ts";
 import { allocateForKid } from "@repo/wishlists/engine";
@@ -66,7 +67,18 @@ function moneyProblem(pi: Stripe.PaymentIntent, meta: PaymentMetadata): string |
 const isDuplicateKey = (err: unknown) => (err as { code?: number }).code === 11000;
 
 // ── payment_intent.succeeded ─────────────────────────────────────────────────────────
+/** Payments that add Christmas Magic to a kid (donation links are "tip" too). */
+const CREDITS_POINTS = new Set(["tip", "bonus", "payup"]);
+
 export async function onPaymentIntentSucceeded(pi: Stripe.PaymentIntent): Promise<Outcome> {
+  // Year-round calendar: on Jan 1, until last season's reset is done ("resetting"), a payment that would add
+  // Christmas Magic must NOT be credited (the reset would wipe it, or it would land in the wrong season).
+  // Throwing makes Stripe redeliver later (it retries for days; the reset takes hours). Registration and
+  // community donations credit no points, so they go through (review 2026-11-07).
+  const purpose = parsePaymentMetadata(pi.metadata)?.sos_purpose;
+  if (purpose && CREDITS_POINTS.has(purpose) && (await getSeasonState()).phase === "resetting") {
+    throw new RetryLaterError("season_resetting");
+  }
   let outcome: Outcome;
   try {
     outcome = await creditPaymentIntent(pi);

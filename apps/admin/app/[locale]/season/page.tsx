@@ -12,7 +12,7 @@ import { seasonAdminView } from "@repo/stores/season";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { authOptions } from "@/auth";
-import { DatesForm, ForceFreezeForm, StoreWindowForm } from "./season-forms";
+import { DatesForm, RunResetForm, ForceFreezeForm, StoreWindowForm } from "./season-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Season");
@@ -26,6 +26,7 @@ async function Content() {
   const { state } = view.current;
   // "2027-10-01" → "October 1, 2027". Noon UTC + timeZone UTC: the calendar day never shifts.
   const day = (iso: string) => format.dateTime(new Date(`${iso}T12:00:00Z`), { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
+  const dayBefore = (iso: string) => new Date(Date.parse(`${iso}T12:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
   return (
     <div className="flex flex-col gap-6">
       <Card>
@@ -36,13 +37,22 @@ async function Content() {
             {t(`phase.${state.phase}`)} <span className="font-normal text-muted">({t(`source.${state.phaseSource}`)})</span>
           </dd>
           <dt className="text-muted">{t("datesLabel")}</dt>
-          <dd>{t("datesLine", { open: day(state.dates.open), freeze: day(state.dates.freeze), close: day(state.dates.close) })}</dd>
+          {/* close = FIRST closed day; the season's last day is the day before (Christmas Day by default). */}
+          <dd>{t("datesLine", { freeze: day(state.dates.freeze), shipBy: day(state.shipBy), lastDay: day(dayBefore(state.dates.close)) })}</dd>
           <dt className="text-muted">{t("windowLabel")}</dt>
           <dd data-testid="season-window">
             {state.storeWindowOpen ? t("windowOpen") : t("windowClosed")} <span className="text-muted">({t(`window.${state.storeWindowMode}`)})</span>
           </dd>
         </dl>
       </Card>
+
+      {state.phase === "resetting" && (
+        <Card data-testid="season-resetting">
+          <h2 className="mb-1 text-lg font-semibold">{t("resetTitle")}</h2>
+          <p className="mb-4 text-sm text-muted">{t("resetIntro")}</p>
+          <RunResetForm />
+        </Card>
+      )}
 
       <Card>
         <h2 className="mb-1 text-lg font-semibold">{t("windowTitle")}</h2>

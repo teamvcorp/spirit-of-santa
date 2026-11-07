@@ -140,16 +140,16 @@
   },
   "Season": {
     "title": "Season settings",
-    "intro": "Season dates, when stores can edit their item lists, and the emergency freeze. Every change is recorded in the audit log.",
+    "intro": "The season runs all year: families earn Christmas Magic from January 1, wish lists freeze December 1, the last day is Christmas Day and the site is closed December 26–31. Every change is recorded in the audit log.",
     "loading": "Loading…",
     "saved": "Saved.",
     "nowTitle": "Season {year} right now",
     "phaseLabel": "Status",
     "phase": {
-      "offseason": "Not open yet (off-season)",
       "open": "Open: families earn and build lists",
       "frozen": "Frozen: wish lists can't change",
-      "closed": "Closed"
+      "closed": "Closed for Christmas (back January 1)",
+      "resetting": "Starting the new season (January 1 reset running)"
     },
     "source": {
       "calendar": "standard calendar",
@@ -157,7 +157,7 @@
       "forced": "frozen by an admin"
     },
     "datesLabel": "Dates",
-    "datesLine": "Opens {open} · freezes {freeze} · closes {close}",
+    "datesLine": "Open all year · freezes {freeze} · stores ship by {shipBy} · last day {lastDay}",
     "windowLabel": "Store item lists",
     "windowOpen": "Open for changes",
     "windowClosed": "Closed for changes",
@@ -173,18 +173,17 @@
     },
     "saveWindow": "Save item window",
     "freezeTitle": "Emergency freeze",
-    "freezeIntro": "Freeze every wish list right now, before the scheduled freeze date. Only matters while the season is open.",
+    "freezeIntro": "Freeze every wish list right now, before the scheduled freeze date. Only matters while the season is open. It does not start the donation split or pay-ups (those follow the freeze date).",
     "freezeOnIntro": "Wish lists are frozen by an admin. Unfreeze to go back to the normal dates.",
     "freezeConfirm": "I understand: no family can add or remove wish-list items until this is turned off.",
     "freezeNow": "Freeze wish lists now",
     "unfreeze": "Unfreeze",
     "datesTitle": "Dates for season {year}",
-    "datesIntro": "Leave a date blank to use the standard one. Dates can't change once the season has opened.",
-    "datesLocked": "This season has opened, so its dates are locked. Use the emergency freeze if you need to stop changes.",
+    "datesIntro": "Leave a date blank to use the standard one. The season always opens January 1. This season's dates can change until its freeze date.",
+    "datesLocked": "This season's freeze date has passed, so its dates are locked. Use the emergency freeze if you need to stop changes.",
     "dates": {
-      "openDate": "Opens",
-      "freezeDate": "Wish lists freeze",
-      "closeDate": "Closes",
+      "freezeDate": "Wish lists freeze (Nov 1 – Dec 3)",
+      "closeDate": "First closed day (Dec 26 – 31; the day before is the last day)",
       "defaultHint": "Standard: {date}",
       "blankHelp": "Dates start at midnight, Central Time.",
       "save": "Save dates for {year}"
@@ -192,14 +191,23 @@
     "errors": {
       "invalidDate": "One of the dates isn't a real date.",
       "wrongYear": "Every date must be in that season's year.",
-      "order": "Dates must be in order: opens, then freezes, then closes.",
-      "openInPast": "The opening date must be after today.",
-      "locked": "This season has opened, so its dates are locked.",
+      "locked": "This season's freeze date has passed, so its dates are locked.",
       "changed": "Someone else changed these dates meanwhile. Reload the page and try again.",
       "confirmRequired": "Tick the box to confirm the freeze.",
-      "notOpen": "The season isn't open, so there's nothing to freeze."
+      "notOpen": "The season isn't open, so there's nothing to freeze.",
+      "freezeRange": "The freeze date must be between November 1 and December 3 (stores need time to ship by December 10).",
+      "closeRange": "The first closed day must be between December 26 and December 31 (Christmas Day stays in the season).",
+      "freezeTooSoon": "A new freeze date must be at least a week away (families may already have been told the old date).",
+      "reset_notResetTime": "It isn't time for a reset (the season isn't waiting for one).",
+      "reset_alreadyDone": "Last season's reset is already done.",
+      "reset_splitUnfinished": "The donation split is still running. Try again in a few minutes.",
+      "reset_notFinished": "The reset ran but isn't finished yet. Run it again."
     },
-    "freezeOnlyOpen": "The emergency freeze can only be switched on while the season is open."
+    "freezeOnlyOpen": "The emergency freeze can only be switched on while the season is open.",
+    "resetTitle": "Start the new season now",
+    "resetIntro": "The January 1 reset hasn't finished, so families can't use the site yet. This runs the same job as the nightly cron: last season's unspent Christmas Magic goes to Spirit of Santa, then the new season opens.",
+    "resetConfirm": "I understand: every child's unspent Christmas Magic from last season goes to Spirit of Santa.",
+    "resetRun": "Run the season reset now"
   },
   "Users": {
     "title": "Users",
@@ -324,10 +332,10 @@
   "Dashboard": {
     "seasonLine": "Season {year}:",
     "phase": {
-      "offseason": "not open yet",
       "open": "open",
       "frozen": "frozen",
-      "closed": "closed"
+      "closed": "closed for Christmas",
+      "resetting": "starting the new season"
     },
     "windowOpen": "store item lists open",
     "windowClosed": "store item lists closed",
@@ -423,7 +431,8 @@
     "ledger_backfill_spend": "Ledger correction (spend at lock)",
     "kid_donation_link_reset": "Donation link replaced",
     "settings_update": "Settings changed",
-    "donations_split": "Community gifts shared"
+    "donations_split": "Community gifts shared",
+    "season_reset_run": "Season reset run by hand"
   },
   "Moderation": {
     "title": "Deed text review",

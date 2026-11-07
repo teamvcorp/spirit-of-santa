@@ -11,3 +11,8 @@ import mongoose from "mongoose";
 export function toObjectId(id: string): mongoose.Types.ObjectId {
   return new mongoose.Types.ObjectId(id);
 }
+
+/** A fresh ObjectId (e.g. a run id as the audit target of a system action), without importing mongoose in apps. */
+export function newObjectId(): mongoose.Types.ObjectId {
+  return new mongoose.Types.ObjectId();
+}

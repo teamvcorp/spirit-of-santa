@@ -20,6 +20,7 @@
 import "server-only";
 import { AuditLog, connectDb, DonationSplit, ensureLock, Family, Kid, Payment, takeLock, Transaction, trusted, withTransaction, type DbSession } from "@repo/db";
 import { centsToCentipoints } from "@repo/lib/points";
+import { startOfDayInZone, type SeasonState } from "@repo/lib/season";
 import { getSeasonState } from "@repo/stores/season";
 import { sweepAllocations } from "@repo/wishlists/engine";
 import { getPlatformSettings } from "./settings.ts";
@@ -173,9 +174,12 @@ async function eligibleKids(session?: DbSession): Promise<{ all: KidRef[]; byZip
  * after the close would be wiped by the Jan 1 reset days later (same rule as bonuses). Gifts still
  * held after the close are handled by the season-end job (roadmap: unclaimed pooled funds retained).
  */
-function blockedReason(phase: string, feeBps: number | null): "notYet" | "seasonOver" | "feeMissing" | undefined {
-  if (phase === "closed") return "seasonOver";
-  if (phase !== "frozen") return "notYet";
+function blockedReason(season: SeasonState, feeBps: number | null, now = new Date()): "notYet" | "seasonOver" | "feeMissing" | undefined {
+  if (season.phase === "closed") return "seasonOver";
+  if (season.phase !== "frozen") return "notYet";
+  // The freeze DATE, not just "frozen": since the year-round calendar an admin's emergency force-freeze can
+  // happen in June, and it must never share the pooled donations early (owner: pooled to Dec 1).
+  if (now.getTime() < startOfDayInZone(season.dates.freeze).getTime()) return "notYet";
   if (feeBps === null) return "feeMissing";
   return undefined;
 }
@@ -192,7 +196,7 @@ export type SplitPreview = {
 export async function previewDonationSplit(): Promise<SplitPreview> {
   await connectDb();
   const [season, settings] = await Promise.all([getSeasonState(), getPlatformSettings()]);
-  const reason = blockedReason(season.phase, settings.donationFeeBps);
+  const reason = blockedReason(season, settings.donationFeeBps);
   const [pools, kids] = await Promise.all([heldPools(season.year), eligibleKids()]); // no session: parallel is fine
   const plans = planSplit(pools, kids.byZip, kids.all, settings.donationFeeBps ?? 0);
   return {
@@ -231,7 +235,7 @@ export async function runDonationSplit(opts: { trigger: "cron" | "admin"; adminU
   const planned = await withTransaction(async (session): Promise<Planned> => {
     await takeLock(LOCK, session); // one run at a time
     const [season, settings] = await Promise.all([getSeasonState(), getPlatformSettings()]); // own reads, not on the session
-    const reason = blockedReason(season.phase, settings.donationFeeBps);
+    const reason = blockedReason(season, settings.donationFeeBps);
     if (reason) return { reason };
     const feeBps = settings.donationFeeBps!;
     // Sequential: a transaction session must not run operations in parallel.

@@ -754,6 +754,17 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   no-referrer, JSON attachment). ONE source: `familyDataExport` @repo/families/data-export (never hashes, tokens or
   encrypted blobs; address decrypted). Dashboard link next to "Delete our family account". E2E browser-family-our-data (10).
 
+- **Year-round season, slice 1: calendar + reset gate (2026-11-07).** Plan + both critiques: docs/plans/year-round-season.md.
+  SEASON_CALENDAR open Jan 1, freeze Dec 1, close = FIRST closed day Dec 26, shipBy Dec 10. Phases resetting | open |
+  frozen | closed ("offseason" gone). `getSeasonState` adds the gate: last season's SeasonReset done, or no reset record
+  AND no kid older than Jan 1 (fresh DB) → else "resetting". openDate no longer editable/ignored; freeze Nov 1–Dec 3,
+  close Dec 26–31, a changed freeze ≥7 days away, dates lock at the freeze. runSeasonReset runs while resetting (EARLY in
+  the cron), finishes even with kids flagged (needsAttention, cron fails loudly), admin /season "Run the season reset
+  now" (audited season.reset_run). Webhook: tip/bonus/payup → RetryLaterError while resetting (Stripe redelivers).
+  Donation split gated on the freeze DATE (a June force-freeze can't split). `newObjectId()` in @repo/db.
+  NEXT slices: 2 closed page · 3+4 TOGETHER lock-at-funding + per-gift ship window · 5 pay-up · 6 DtD deadline ·
+  7 store Q1 + stock CAS · 8 docs/legal.
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.

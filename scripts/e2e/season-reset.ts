@@ -31,7 +31,7 @@ const fakeNow = new Date(`${ended + 1}-01-02T18:00:00Z`); // …as if it were Ja
 
 const mongoose = await connectDb();
 if (!mongoose.connection.name.endsWith("_dev")) throw new Error("refusing: not a *_dev database");
-if ((await getSeasonState()).phase === "offseason") throw new Error("refusing: run this test during the season (in the off-season the real reset would run)");
+if ((await getSeasonState()).phase === "resetting") throw new Error("refusing: a real Jan 1 reset is waiting (resetting); let it finish first");
 if (await SeasonReset.exists({ seasonYear: ended })) throw new Error(`refusing: a season-end record for ${ended} already exists`);
 if ((await Payment.countDocuments({ purpose: "donation", fulfilment: "held", seasonYear: ended })) > 0) throw new Error("refusing: real held gifts would be retained");
 
@@ -56,12 +56,12 @@ const browser = await chromium.launch({ channel: "msedge", headless: true });
 const bal = async (id: unknown) => (await Kid.findById(id).lean())?.availableCentipoints ?? -1;
 
 try {
-  // 1. Not the off-season (real date, season running): nothing happens.
+  // 1. Not reset time (real date, season running): nothing happens.
   const real = await runSeasonReset();
-  check("during the season: nothing reset", !real.ok && real.reason === "notOffseason" && (await bal(k1._id)) === 1000);
+  check("during the season: nothing reset", !real.ok && real.reason === "notResetTime" && (await bal(k1._id)) === 1000);
   const cronRes = await fetch(`${familyBase}/api/cron/money`, { headers: { authorization: `Bearer ${cronSecret}` } });
   const cronBody = (await cronRes.json()) as { seasonEnd?: { reason?: string } };
-  check("daily cron includes the season-end step (not its time yet)", cronRes.status === 200 && cronBody.seasonEnd?.reason === "notOffseason", JSON.stringify(cronBody.seasonEnd));
+  check("daily cron includes the season-end step (not its time yet)", cronRes.status === 200 && cronBody.seasonEnd?.reason === "notResetTime", JSON.stringify(cronBody.seasonEnd));
 
   // 1b. A donation split still crediting kids: the reset WAITS (else kids get points after being zeroed).
   const [unfinished] = await DonationSplit.create([{ seasonYear: ended, trigger: "cron", feeBps: 1000, status: "crediting", totalCents: 0, feeCents: 0, creditedCentipoints: 0, kidsCredited: 0 }]);
@@ -71,8 +71,11 @@ try {
   await DonationSplit.collection.deleteOne({ _id: unfinished!._id });
 
   // 2. Jan 2: points to zero with ledger rows; unshared money retained; credited gifts untouched.
+  // Year-round calendar: until the reset is done the new season waits in "resetting" (nothing can earn).
+  check("Jan 2 before the reset: the new season waits ('resetting')", (await getSeasonState(fakeNow)).phase === "resetting");
   const r = await runSeasonReset(fakeNow);
   check("season end ran for the ended season and finished", r.ok && r.seasonYear === ended && r.done, JSON.stringify(r));
+  check("…and the new season is OPEN as soon as it's done", (await getSeasonState(fakeNow)).phase === "open");
   check("test kids at 0 points", (await bal(k1._id)) === 0 && (await bal(k2._id)) === 0 && (await bal(k3._id)) === 0);
   const rows = await Transaction.find({ kidId: trusted({ $in: [k1._id, k2._id, k3._id] }), type: "season_reset" }).lean();
   check("one 'season_reset' ledger row per kid that had points, for the exact amount",
@@ -86,7 +89,8 @@ try {
   // 3. Running again does nothing.
   await Kid.updateOne({ _id: k3._id }, { $set: { availableCentipoints: 77 } }); // (a next-season point)
   const again = await runSeasonReset(fakeNow);
-  check("second run: already done, next-season points untouched", !again.ok && again.reason === "alreadyDone" && (await bal(k3._id)) === 77);
+  // Done → the season is open again, so a second run is refused before it even checks the record: both mean "nothing to do".
+  check("second run: refused (season already reset and open), next-season points untouched", !again.ok && (again.reason === "notResetTime" || again.reason === "alreadyDone") && (await bal(k3._id)) === 77);
 
   // 4. Admin sees it.
   const page = await (await browser.newContext()).newPage();

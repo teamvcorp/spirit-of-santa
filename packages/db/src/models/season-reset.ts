@@ -16,6 +16,8 @@ const seasonResetSchema = new Schema(
     /** The season that ENDED (e.g. 2026, reset on Jan 1 2027). */
     seasonYear: { ...seasonYearField, unique: true },
     status: { type: String, enum: ["running", "done"], default: "running" },
+    /** Kids still holding points after their reset row (race / bad data): flagged for an admin, never blocking. */
+    needsAttention: { type: Number, min: 0 },
     kidsReset: { type: Number, default: 0, min: 0 },
     centipointsReset: { ...centipointsField(), default: 0 },
     retainedCents: { ...centsField(), default: 0 },

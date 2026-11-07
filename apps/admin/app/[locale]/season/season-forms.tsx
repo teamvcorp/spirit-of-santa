@@ -10,7 +10,7 @@ import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
-import { datesAction, forceFreezeAction, storeWindowAction, type SeasonFormState } from "./actions";
+import { datesAction, forceFreezeAction, runResetAction, storeWindowAction, type SeasonFormState } from "./actions";
 
 const INITIAL: SeasonFormState = { status: "idle" };
 
@@ -72,7 +72,8 @@ export function ForceFreezeForm({ on, canFreeze }: { on: boolean; canFreeze: boo
   );
 }
 
-type Dates = { openDate: string; freezeDate: string; closeDate: string };
+/** Open is always Jan 1 (year-round calendar): only freeze and the first closed day are editable. */
+type Dates = { freezeDate: string; closeDate: string };
 
 export function DatesForm({ year, custom, defaults, locked }: { year: number; custom: Dates; defaults: { open: string; freeze: string; close: string }; locked: boolean }) {
   const t = useTranslations("Season");
@@ -94,7 +95,6 @@ export function DatesForm({ year, custom, defaults, locked }: { year: number; cu
     <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-3">
       <Result state={state} />
       <input type="hidden" name="year" value={year} />
-      {field("openDate", defaults.open)}
       {field("freezeDate", defaults.freeze)}
       {field("closeDate", defaults.close)}
       <p className="text-sm text-muted">{t("dates.blankHelp")}</p>
@@ -103,6 +103,25 @@ export function DatesForm({ year, custom, defaults, locked }: { year: number; cu
           {t("dates.save", { year })}
         </Button>
       )}
+    </form>
+  );
+}
+
+/** Shown only while the season is "resetting": re-run the Jan 1 reset by hand (e.g. the cron timed out). */
+export function RunResetForm() {
+  const t = useTranslations("Season");
+  const [state, action, pending] = useActionState(runResetAction, INITIAL);
+  const hydrated = useHydrated();
+  return (
+    <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-3">
+      <Result state={state} />
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="confirm" value="yes" required className="mt-1 size-4" />
+        {t("resetConfirm")}
+      </label>
+      <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">
+        {t("resetRun")}
+      </Button>
     </form>
   );
 }

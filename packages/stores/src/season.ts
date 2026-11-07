@@ -8,14 +8,14 @@
  * The rules themselves are pure and unit-tested: resolveSeason / validateSeasonDates in
  * @repo/lib/season.
  *
- * Admin controls (user decisions 2026-11-05):
- *  - Dates (open / freeze / close) for the current or next season, ONLY before that season
- *    opens; once open they lock.
+ * Admin controls (user decisions 2026-11-05; year-round calendar 2026-11-07):
+ *  - Dates (freeze / close; open is always Jan 1) for the current season until its freeze date,
+ *    and for next season any time.
  *  - Store item window switch (auto / open / closed) and force-freeze: any time.
  * Callers must check the admin role first (requireRole). Every change is audited (before/after).
  */
 import "server-only";
-import { AuditLog, connectDb, Season, withTransaction, type AuditAction } from "@repo/db";
+import { AuditLog, connectDb, Kid, Season, SeasonReset, withTransaction, type AuditAction } from "@repo/db";
 import {
   defaultSeasonDates,
   getSeasonYear,
@@ -41,11 +41,25 @@ type SeasonDocLite = {
 const FIELDS = "year openDate freezeDate closeDate forceFrozen storeWindow";
 const loadSeason = (year: number) => Season.findOne({ year }).select(FIELDS).lean<SeasonDocLite>();
 
-/** The season right now, with any admin overrides applied. */
+/**
+ * Has LAST season's Jan 1 reset finished? (The year-round calendar's gate: until it has, the phase is
+ * "resetting" and nothing can earn.) With no reset record for last season, it counts as done only if no
+ * child existed before this year started (a fresh database has nothing to reset). One indexed lookup
+ * each: the record by season, and the oldest child by _id (an ObjectId carries its creation time).
+ */
+async function prevResetDone(year: number): Promise<boolean> {
+  const rec = await SeasonReset.findOne({ seasonYear: year - 1 }).select("status").lean<{ status: string }>();
+  if (rec) return rec.status === "done";
+  const oldest = await Kid.findOne({}).sort({ _id: 1 }).select("_id").lean<{ _id: { getTimestamp(): Date } }>();
+  return !oldest || oldest._id.getTimestamp().getTime() >= startOfDayInZone(`${year}-01-01`).getTime();
+}
+
+/** The season right now, with any admin overrides applied (incl. the Jan 1 reset gate). */
 export async function getSeasonState(now = new Date()): Promise<SeasonState> {
   await connectDb();
-  const doc = await loadSeason(getSeasonYear(now));
-  return resolveSeason(now, doc ?? {});
+  const year = getSeasonYear(now);
+  const [doc, resetDone] = await Promise.all([loadSeason(year), prevResetDone(year)]);
+  return resolveSeason(now, { ...(doc ?? {}), prevResetDone: resetDone });
 }
 
 /** What the admin /season page shows: this season (live state) and next season (dates only). */
@@ -57,12 +71,12 @@ export async function seasonAdminView(now = new Date()) {
   return {
     current: {
       state: resolveSeason(now, cur ?? {}),
-      custom: { openDate: cur?.openDate ?? "", freezeDate: cur?.freezeDate ?? "", closeDate: cur?.closeDate ?? "" },
+      custom: { freezeDate: cur?.freezeDate ?? "", closeDate: cur?.closeDate ?? "" },
       defaults: defaultSeasonDates(year),
     },
     next: {
       year: year + 1,
-      custom: { openDate: next?.openDate ?? "", freezeDate: next?.freezeDate ?? "", closeDate: next?.closeDate ?? "" },
+      custom: { freezeDate: next?.freezeDate ?? "", closeDate: next?.closeDate ?? "" },
       defaults: nextDef,
     },
   };
@@ -120,8 +134,8 @@ export async function setStoreWindow(adminId: string, mode: StoreWindowMode, now
 
 /**
  * Emergency switch: freeze wish lists now. Turning it ON is only allowed while the season is
- * OPEN: switched on in the off-season it would silently freeze the season from opening day
- * (review 2026-11-05). Turning it off is always allowed.
+ * OPEN (year-round: Jan 1 - Nov 30). Turning it off is always allowed. It only freezes LISTS: jobs
+ * tied to the freeze DATE (donation split, pay-up) ignore it.
  */
 export async function setForceFrozen(adminId: string, on: boolean, now = new Date()): Promise<SeasonResult> {
   await connectDb();
@@ -137,12 +151,12 @@ export async function setForceFrozen(adminId: string, on: boolean, now = new Dat
   return ok ? { ok: true } : { ok: false, error: "changed" };
 }
 
-export type SeasonDatesInput = { openDate?: string; freezeDate?: string; closeDate?: string };
+export type SeasonDatesInput = { freezeDate?: string; closeDate?: string };
 
 /**
- * Custom dates for the current or next season (blank = default). Refused once that season has
- * opened. Validated BEFORE anything is written; the write only applies if the dates are still
- * what we validated against ("changed": reload and retry).
+ * Custom freeze/close dates for the current or next season (blank = default; open is always Jan 1).
+ * Refused once that season's freeze date is reached. Validated BEFORE anything is written; the write
+ * only applies if the dates are still what we validated against ("changed": reload and retry).
  */
 export async function setSeasonDates(adminId: string, year: number, input: SeasonDatesInput, now = new Date()): Promise<SeasonResult> {
   await connectDb();
@@ -150,14 +164,14 @@ export async function setSeasonDates(adminId: string, year: number, input: Seaso
   if (year !== thisYear && year !== thisYear + 1) return { ok: false, error: "wrongYear" };
   const current = (await loadSeason(year)) ?? null;
   const clean = (v?: string) => (v && v.trim() ? v.trim() : null);
-  const next = { openDate: clean(input.openDate), freezeDate: clean(input.freezeDate), closeDate: clean(input.closeDate) };
+  const next = { freezeDate: clean(input.freezeDate), closeDate: clean(input.closeDate) };
   const error = validateSeasonDates(year, next, current ?? {}, now);
   if (error) return { ok: false, error };
-  const before = { openDate: current?.openDate ?? null, freezeDate: current?.freezeDate ?? null, closeDate: current?.closeDate ?? null };
-  if (before.openDate === next.openDate && before.freezeDate === next.freezeDate && before.closeDate === next.closeDate) return { ok: true };
+  const before = { freezeDate: current?.freezeDate ?? null, closeDate: current?.closeDate ?? null };
+  if (before.freezeDate === next.freezeDate && before.closeDate === next.closeDate) return { ok: true };
   const doc = await ensureSeason(year);
   const set: Record<string, unknown> = { updatedByUserId: adminId };
-  const unset: Record<string, 1> = {};
+  const unset: Record<string, 1> = { openDate: 1 }; // a pre-2026-11 open date override is cleared on any edit
   for (const [k, v] of Object.entries(next)) {
     if (v) set[k] = v;
     else unset[k] = 1;
@@ -168,8 +182,8 @@ export async function setSeasonDates(adminId: string, year: number, input: Seaso
 
 /**
  * Gifts (QR tips, donation links, parent bonuses) are accepted while the season is OPEN or FROZEN,
- * and a checkout must end by season close (Central-Time midnight). Single source of truth: a
- * bonus/tip after Dec 25 would be wiped by the Jan 1 reset a few days later.
+ * and a checkout must end by the first closed day (Dec 26, Central-Time midnight). Single source of truth:
+ * a bonus/tip after Christmas would be wiped by the Jan 1 reset a few days later.
  */
 export async function giftWindow(now = new Date()): Promise<{ open: boolean; closeAt: Date }> {
   const s = await getSeasonState(now);

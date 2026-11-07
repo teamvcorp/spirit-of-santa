@@ -6,8 +6,16 @@
  * would hit at 6 pm Nov 30 for Iowa families).
  *
  * These are the DEFAULT dates. The admin app's Season document (packages/db) can override
- * them (force-freeze, early close). Server code should consult the DB first and fall back
+ * them (force-freeze, freeze/close dates). Server code should consult the DB first and fall back
  * to these helpers.
+ *
+ * YEAR-ROUND (owner decision 2026-11-07, plan: docs/plans/year-round-season.md):
+ *   Jan 1 - Nov 30  OPEN     families earn Christmas Magic and build/change wish lists
+ *   Dec 1 - Dec 25  FROZEN   lists fixed, last pushes, stores ship (by Dec 10)
+ *   Dec 26 - Dec 31 CLOSED   (first closed day = "close")
+ *   Jan 1           RESET    last season's unspent magic goes to Spirit of Santa; until that reset is done the
+ *                            phase is "resetting" (nothing earns), then the new season is open.
+ * Stores add/change merchandise only Jan 1 - Mar 31 (store item window); after that items are fixed.
  */
 
 /** Spirit of Santa operates from Storm Lake, Iowa. */
@@ -15,15 +23,17 @@ export const SEASON_TIME_ZONE = "America/Chicago";
 
 /** month is 1-12 (human style, NOT JS's 0-11). */
 export const SEASON_CALENDAR = {
-  open: { month: 10, day: 1 }, // families earn & build lists
+  open: { month: 1, day: 1 }, // families earn & build lists ALL YEAR (fixed: not admin-editable)
   freeze: { month: 12, day: 1 }, // wish lists frozen
-  close: { month: 12, day: 25 }, // season over, unfunded-item handling
-  reset: { month: 1, day: 1 }, // points reset to zero
+  close: { month: 12, day: 26 }, // FIRST CLOSED DAY (the season's last day is Dec 25); unfunded-item handling
+  reset: { month: 1, day: 1 }, // points reset to zero, then the new season opens
+  shipBy: { month: 12, day: 10 }, // stores' last ship day so gifts arrive by Christmas
   storeWindowStart: { month: 1, day: 1 }, // stores may edit item lists...
   storeWindowEnd: { month: 3, day: 31 }, // ...through Mar 31 (locked Apr 1)
 } as const;
 
-export type SeasonPhase = "offseason" | "open" | "frozen" | "closed";
+/** "resetting" = Jan 1 until last season's reset is done (nothing can earn or change). */
+export type SeasonPhase = "resetting" | "open" | "frozen" | "closed";
 
 export interface CalendarDate {
   year: number;
@@ -62,14 +72,13 @@ export function calendarDateIn(
 /** Sortable month/day key: Oct 1 → 1001, Dec 25 → 1225. */
 const key = (d: { month: number; day: number }) => d.month * 100 + d.day;
 
-/** Which phase of the season `at` falls in (default calendar). */
+/** Which phase of the season `at` falls in (default calendar; can't see the reset gate: getSeasonState can). */
 export function getSeasonPhase(at: Date = new Date()): SeasonPhase {
   const k = key(calendarDateIn(at));
   const c = SEASON_CALENDAR;
-  if (k >= key(c.close)) return "closed"; // Dec 25-31
-  if (k >= key(c.freeze)) return "frozen"; // Dec 1-24
-  if (k >= key(c.open)) return "open"; // Oct 1 - Nov 30
-  return "offseason"; // Jan 1 - Sep 30
+  if (k >= key(c.close)) return "closed"; // Dec 26-31
+  if (k >= key(c.freeze)) return "frozen"; // Dec 1-25
+  return "open"; // Jan 1 - Nov 30
 }
 
 /** True while stores may add/edit/price items (Jan 1 – Mar 31). */
@@ -101,11 +110,14 @@ export function getSeasonYear(at: Date = new Date()): number {
 
 export type StoreWindowMode = "auto" | "open" | "closed";
 export type SeasonOverrides = {
+  /** IGNORED since the year-round calendar (open is always Jan 1); kept so old Season documents still parse. */
   openDate?: string | null;
   freezeDate?: string | null;
   closeDate?: string | null;
   forceFrozen?: boolean | null;
   storeWindow?: StoreWindowMode | null;
+  /** false = LAST season's Jan 1 reset hasn't finished yet, so the phase is "resetting". Absent/true = done. */
+  prevResetDone?: boolean | null;
 };
 
 export type SeasonState = {
@@ -113,9 +125,11 @@ export type SeasonState = {
   phase: SeasonPhase;
   /** "forced" = the admin force-freeze switch made it frozen. */
   phaseSource: "calendar" | "custom" | "forced";
-  /** Effective dates (custom or default), "YYYY-MM-DD". */
+  /** Effective dates (custom or default), "YYYY-MM-DD". close = FIRST closed day. */
   dates: { open: string; freeze: string; close: string };
-  /** True once the season has opened: dates can't change any more. */
+  /** Stores' last ship day ("YYYY-MM-DD") so gifts arrive by Christmas. */
+  shipBy: string;
+  /** True once this season's freeze date is reached: its dates can't change any more. */
   datesLocked: boolean;
   forceFrozen: boolean;
   storeWindowOpen: boolean;
@@ -147,18 +161,23 @@ export function defaultSeasonDates(year: number) {
   };
 }
 
+/** Stores' last ship day for a season year. */
+export const shipByDate = (year: number) => isoDay({ year, ...SEASON_CALENDAR.shipBy });
+
 /** Phase, store window and lock state at `at`, with the admin overrides applied. */
 export function resolveSeason(at: Date = new Date(), o: SeasonOverrides = {}): SeasonState {
   const today = isoDay(calendarDateIn(at)); // "YYYY-MM-DD" strings compare correctly as text
   const year = getSeasonYear(at);
   const def = defaultSeasonDates(year);
-  const dates = { open: o.openDate || def.open, freeze: o.freezeDate || def.freeze, close: o.closeDate || def.close };
-  const custom = Boolean(o.openDate || o.freezeDate || o.closeDate);
-  let phase: SeasonPhase = today >= dates.close ? "closed" : today >= dates.freeze ? "frozen" : today >= dates.open ? "open" : "offseason";
+  // Open is always Jan 1 (an old openDate override is ignored).
+  const dates = { open: def.open, freeze: o.freezeDate || def.freeze, close: o.closeDate || def.close };
+  const custom = Boolean(o.freezeDate || o.closeDate);
+  let phase: SeasonPhase =
+    today >= dates.close ? "closed" : o.prevResetDone === false ? "resetting" : today >= dates.freeze ? "frozen" : "open";
   let phaseSource: SeasonState["phaseSource"] = custom ? "custom" : "calendar";
   const forceFrozen = o.forceFrozen === true;
-  // Force-freeze only changes an OPEN season (before it opens there's nothing to freeze; after
-  // the freeze date it's frozen or closed anyway).
+  // Force-freeze only changes an OPEN season (after the freeze date it's frozen or closed anyway). NOTE: a
+  // force-freeze must never trigger date-based jobs (donation split, pay-up): those check the freeze DATE.
   if (forceFrozen && phase === "open") {
     phase = "frozen";
     phaseSource = "forced";
@@ -169,42 +188,50 @@ export function resolveSeason(at: Date = new Date(), o: SeasonOverrides = {}): S
     phase,
     phaseSource,
     dates,
-    datesLocked: today >= dates.open,
+    shipBy: shipByDate(year),
+    datesLocked: today >= dates.freeze,
     forceFrozen,
     storeWindowOpen: mode === "open" ? true : mode === "closed" ? false : isStoreItemWindowOpen(at),
     storeWindowMode: mode,
   };
 }
 
-export type SeasonDatesError = "invalidDate" | "wrongYear" | "order" | "openInPast" | "locked";
+export type SeasonDatesError = "invalidDate" | "wrongYear" | "freezeRange" | "closeRange" | "freezeTooSoon" | "locked";
+
+/** A changed freeze date must be at least this many days away (the cutoff reminder goes out 3 days before). */
+export const FREEZE_CHANGE_MIN_DAYS = 7;
 
 /**
- * Check an admin's new dates for season `year` (blank = default). Rules:
- *  - real days inside that year; open < freeze < close;
- *  - the season mustn't have opened yet (dates lock once open), and the new open date must be
- *    after today (no opening a season retroactively by typing a past date).
+ * Check an admin's new dates for season `year` (blank = default). Rules (year-round calendar):
+ *  - real days inside that year; open is fixed (Jan 1);
+ *  - freeze between Nov 1 and Dec 3 (stores need time to ship by Dec 10, pay-up needs days before that);
+ *  - close (FIRST closed day) between Dec 26 and Dec 31: Christmas Day always stays in the season;
+ *  - locked once this season's current freeze date is reached; a CHANGED freeze date must be at least
+ *    FREEZE_CHANGE_MIN_DAYS away (families may already have been told the old date).
  */
 export function validateSeasonDates(
   year: number,
-  input: { openDate?: string | null; freezeDate?: string | null; closeDate?: string | null },
+  input: { freezeDate?: string | null; closeDate?: string | null },
   current: SeasonOverrides,
   at: Date = new Date(),
 ): SeasonDatesError | null {
   const def = defaultSeasonDates(year);
   const today = isoDay(calendarDateIn(at));
-  // Locked if the CURRENTLY effective open date has been reached.
-  if (today >= (current.openDate || def.open)) return "locked";
-  for (const v of [input.openDate, input.freezeDate, input.closeDate]) {
+  if (today >= (current.freezeDate || def.freeze)) return "locked";
+  for (const v of [input.freezeDate, input.closeDate]) {
     if (!v) continue;
     const d = parseIsoDay(v);
     if (!d) return "invalidDate";
     if (d.year !== year) return "wrongYear";
   }
-  const open = input.openDate || def.open;
   const freeze = input.freezeDate || def.freeze;
   const close = input.closeDate || def.close;
-  if (!(open < freeze && freeze < close)) return "order";
-  if (open <= today) return "openInPast";
+  if (freeze < `${year}-11-01` || freeze > `${year}-12-03`) return "freezeRange";
+  if (close < `${year}-12-26` || close > `${year}-12-31`) return "closeRange";
+  if (freeze !== (current.freezeDate || def.freeze)) {
+    const soonest = isoDay(calendarDateIn(new Date(at.getTime() + FREEZE_CHANGE_MIN_DAYS * 86_400_000)));
+    if (freeze < soonest) return "freezeTooSoon";
+  }
   return null;
 }
 

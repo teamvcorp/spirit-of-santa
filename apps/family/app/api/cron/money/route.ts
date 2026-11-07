@@ -12,8 +12,8 @@
  *     then retry failed "gift on its way" parent emails (needs FAMILY_APP_URL); finish "deliver, then delete"
  *     account deletions whose gifts arrived (Phase 8); delete addresses no gift needs;
  *     Phase 7: each parent's daily summary (magic + deeds) and the season reminders (email only).
- *  3. Season end (only in the off-season, once per ended season): unshared donation money
- *     retained, every kid's points reset to 0 with a ledger row.
+ *  3. Season end (Jan 1, while the new season waits in "resetting"; run EARLY, right after the split):
+ *     unshared donation money retained, every kid's unspent points reset to 0 with a ledger row.
  *  4. Email tax receipts still waiting (receipts switched on, gift on/after the start day).
  * Called by Vercel Cron (apps/family/vercel.json) with `Authorization: Bearer <CRON_SECRET>`;
  * anyone else gets 401. (Vercel Hobby allows 2 cron jobs: this + the store's purge-signups.)
@@ -60,6 +60,10 @@ export async function GET(request: Request): Promise<Response> {
   const split = await settle(() => runDonationSplit({ trigger: "cron" }));
   // Expired pay-later links off BEFORE the season end, so none is payable after points reset.
   const payLater = await settle(() => expirePayLaterLinks());
+  // Year-round calendar: on Jan 1 the whole family site waits in "resetting" until this finishes, so it runs
+  // EARLY (right after the split it depends on). It only zeroes unspent (available) magic; the wish-list steps
+  // below work on escrow, so the order is safe.
+  const seasonEnd = await settle(() => runSeasonReset());
   // Wish lists (Phase 6): fully funded 30+ days → locked + magic spent (Phase 8); then a safety sweep of unallocated points.
   // Then the Dec 25 close: unfinished gifts drop off, their points go to Spirit of Santa (BEFORE the Jan 1 reset).
   const wishLists = await settle(async () => ({ locked: await lockFundedItems(), sweep: await sweepAllocations(), closed: await closeUnfunded() }));
@@ -75,7 +79,6 @@ export async function GET(request: Request): Promise<Response> {
   // Phase 7: parents' daily summary (magic + deeds thanked) and season reminders (email only).
   const digests = await settle(() => sendFamilyDigests());
   const reminders = await settle(() => sendSeasonReminders());
-  const seasonEnd = await settle(() => runSeasonReset());
   const receipts = await settle(() => sendPendingReceipts({ limit: 50 }));
   const result = {
     split: split.status === "fulfilled" ? split.value : "failed",
@@ -96,14 +99,17 @@ export async function GET(request: Request): Promise<Response> {
   const closeFailed = wishLists.status === "fulfilled" && wishLists.value.closed.failed > 0;
   const lockFailed = wishLists.status === "fulfilled" && wishLists.value.locked.failed > 0;
   const closingFailed = closing.status === "fulfilled" && closing.value.failed > 0;
+  // The Jan 1 reset ran but didn't finish, or finished with kids flagged for an admin: the family site may be
+  // waiting in "resetting". Loud every day until fixed (admin /season has "Run the season reset now").
+  const resetStuck = seasonEnd.status === "fulfilled" && seasonEnd.value.ok && (!seasonEnd.value.done || seasonEnd.value.needsAttention > 0);
   // Gifts PARKED for a human (bad data at lock or at the Dec 25 close) keep failing the job EVERY day until fixed:
   // their magic is neither spent nor forfeited, so it must never sit there quietly past the season (Phase 8 review).
   const parked = wishLists.status === "fulfilled" && (wishLists.value.locked.needsAttention > 0 || wishLists.value.closed.needsAttention > 0);
   const parentEmailsFailed = (digests.status === "fulfilled" && digests.value.failed > 0) ||
     (reminders.status === "fulfilled" && [reminders.value.cutoff, reminders.value.payUp].some((r) => r !== "notTime" && r.failed > 0));
-  const failed = digestFailed || noticesFailed || closeFailed || lockFailed || parked || closingFailed || parentEmailsFailed || [split, seasonEnd, payLater, wishLists, storeOrders, familyNotices, closing, addresses, digests, reminders, receipts].some((r) => r.status === "rejected");
+  const failed = digestFailed || noticesFailed || closeFailed || lockFailed || parked || closingFailed || resetStuck || parentEmailsFailed || [split, seasonEnd, payLater, wishLists, storeOrders, familyNotices, closing, addresses, digests, reminders, receipts].some((r) => r.status === "rejected");
   if (failed) {
-    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, closing: closing.status, addresses: addresses.status, digests: digests.status, reminders: reminders.status, receipts: receipts.status, digestFailed, noticesFailed, closeFailed, lockFailed, parked, closingFailed, parentEmailsFailed }));
+    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, closing: closing.status, addresses: addresses.status, digests: digests.status, reminders: reminders.status, receipts: receipts.status, digestFailed, noticesFailed, closeFailed, lockFailed, parked, closingFailed, resetStuck, parentEmailsFailed }));
     return Response.json(result, { status: 500, headers: { "Cache-Control": "no-store" } });
   }
   console.info("[cron] donations", JSON.stringify(result)); // totals/counts only, no personal data

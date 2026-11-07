@@ -140,16 +140,16 @@
   },
   "Season": {
     "title": "Configuración de la temporada",
-    "intro": "Fechas de la temporada, cuándo las tiendas pueden editar sus listas de artículos y la congelación de emergencia. Cada cambio queda en el registro de auditoría.",
+    "intro": "La temporada dura todo el año: las familias ganan Magia Navideña desde el 1 de enero, las listas de deseos se congelan el 1 de diciembre, el último día es Navidad y el sitio cierra del 26 al 31 de diciembre. Cada cambio queda en el registro de auditoría.",
     "loading": "Cargando…",
     "saved": "Guardado.",
     "nowTitle": "Temporada {year} ahora",
     "phaseLabel": "Estado",
     "phase": {
-      "offseason": "Aún no abierta (fuera de temporada)",
-      "open": "Abierta: las familias ganan Magia Navideña y arman listas",
+      "open": "Abierta: las familias ganan y arman listas",
       "frozen": "Congelada: las listas de deseos no pueden cambiar",
-      "closed": "Cerrada"
+      "closed": "Cerrada por Navidad (vuelve el 1 de enero)",
+      "resetting": "Empezando la nueva temporada (reinicio del 1 de enero en curso)"
     },
     "source": {
       "calendar": "calendario estándar",
@@ -157,7 +157,7 @@
       "forced": "congelada por un administrador"
     },
     "datesLabel": "Fechas",
-    "datesLine": "Abre el {open} · se congela el {freeze} · cierra el {close}",
+    "datesLine": "Abierta todo el año · se congela el {freeze} · las tiendas envían antes del {shipBy} · último día {lastDay}",
     "windowLabel": "Listas de artículos de las tiendas",
     "windowOpen": "Abiertas a cambios",
     "windowClosed": "Cerradas a cambios",
@@ -173,18 +173,17 @@
     },
     "saveWindow": "Guardar periodo de artículos",
     "freezeTitle": "Congelación de emergencia",
-    "freezeIntro": "Congela todas las listas de deseos ahora, antes de la fecha programada. Solo importa mientras la temporada está abierta.",
+    "freezeIntro": "Congela todas las listas de deseos ahora, antes de la fecha programada. Solo importa mientras la temporada está abierta. No inicia el reparto de donaciones ni los pagos para completar regalos (siguen la fecha de congelación).",
     "freezeOnIntro": "Un administrador congeló las listas de deseos. Descongela para volver a las fechas normales.",
     "freezeConfirm": "Entiendo: ninguna familia podrá agregar ni quitar artículos de su lista hasta que se desactive.",
     "freezeNow": "Congelar las listas ahora",
     "unfreeze": "Descongelar",
     "datesTitle": "Fechas de la temporada {year}",
-    "datesIntro": "Deja una fecha en blanco para usar la estándar. Las fechas no se pueden cambiar una vez abierta la temporada.",
-    "datesLocked": "Esta temporada ya abrió, así que sus fechas están bloqueadas. Usa la congelación de emergencia si necesitas detener cambios.",
+    "datesIntro": "Deja una fecha en blanco para usar la estándar. La temporada siempre abre el 1 de enero. Las fechas de esta temporada se pueden cambiar hasta su fecha de congelación.",
+    "datesLocked": "Ya pasó la fecha de congelación de esta temporada, así que sus fechas están bloqueadas. Usa la congelación de emergencia si necesitas detener cambios.",
     "dates": {
-      "openDate": "Abre",
-      "freezeDate": "Las listas se congelan",
-      "closeDate": "Cierra",
+      "freezeDate": "Las listas se congelan (1 nov – 3 dic)",
+      "closeDate": "Primer día cerrado (26 – 31 dic; el día anterior es el último)",
       "defaultHint": "Estándar: {date}",
       "blankHelp": "Las fechas empiezan a medianoche, hora del Centro.",
       "save": "Guardar fechas de {year}"
@@ -192,14 +191,23 @@
     "errors": {
       "invalidDate": "Una de las fechas no es válida.",
       "wrongYear": "Todas las fechas deben estar en el año de esa temporada.",
-      "order": "Las fechas deben ir en orden: abre, luego se congela, luego cierra.",
-      "openInPast": "La fecha de apertura debe ser posterior a hoy.",
-      "locked": "Esta temporada ya abrió, así que sus fechas están bloqueadas.",
+      "locked": "Ya pasó la fecha de congelación de esta temporada, así que sus fechas están bloqueadas.",
       "changed": "Otra persona cambió estas fechas mientras tanto. Recarga la página e inténtalo de nuevo.",
       "confirmRequired": "Marca la casilla para confirmar la congelación.",
-      "notOpen": "La temporada no está abierta, así que no hay nada que congelar."
+      "notOpen": "La temporada no está abierta, así que no hay nada que congelar.",
+      "freezeRange": "La fecha de congelación debe estar entre el 1 de noviembre y el 3 de diciembre (las tiendas necesitan tiempo para enviar antes del 10 de diciembre).",
+      "closeRange": "El primer día cerrado debe estar entre el 26 y el 31 de diciembre (Navidad sigue siendo parte de la temporada).",
+      "freezeTooSoon": "Una nueva fecha de congelación debe ser al menos dentro de una semana (puede que ya se haya avisado a las familias la fecha anterior).",
+      "reset_notResetTime": "No es momento de un reinicio (la temporada no está esperando uno).",
+      "reset_alreadyDone": "El reinicio de la temporada pasada ya está hecho.",
+      "reset_splitUnfinished": "El reparto de donaciones sigue en curso. Inténtalo de nuevo en unos minutos.",
+      "reset_notFinished": "El reinicio se ejecutó pero aún no termina. Ejecútalo de nuevo."
     },
-    "freezeOnlyOpen": "La congelación de emergencia solo se puede activar mientras la temporada está abierta."
+    "freezeOnlyOpen": "La congelación de emergencia solo se puede activar mientras la temporada está abierta.",
+    "resetTitle": "Iniciar la nueva temporada ahora",
+    "resetIntro": "El reinicio del 1 de enero no ha terminado, así que las familias aún no pueden usar el sitio. Esto ejecuta el mismo trabajo que el cron nocturno: la Magia Navideña sin usar de la temporada pasada pasa a Spirit of Santa y luego abre la nueva temporada.",
+    "resetConfirm": "Entiendo: la Magia Navideña sin usar de cada niño de la temporada pasada pasa a Spirit of Santa.",
+    "resetRun": "Ejecutar el reinicio de temporada ahora"
   },
   "Users": {
     "title": "Usuarios",
@@ -324,10 +332,10 @@
   "Dashboard": {
     "seasonLine": "Temporada {year}:",
     "phase": {
-      "offseason": "aún no abierta",
       "open": "abierta",
       "frozen": "congelada",
-      "closed": "cerrada"
+      "closed": "cerrada por Navidad",
+      "resetting": "empezando la nueva temporada"
     },
     "windowOpen": "listas de las tiendas abiertas",
     "windowClosed": "listas de las tiendas cerradas",
@@ -423,7 +431,8 @@
     "ledger_backfill_spend": "Corrección del registro (gasto al bloquear)",
     "kid_donation_link_reset": "Enlace de donación reemplazado",
     "settings_update": "Ajustes cambiados",
-    "donations_split": "Regalos comunitarios repartidos"
+    "donations_split": "Regalos comunitarios repartidos",
+    "season_reset_run": "Reinicio de temporada ejecutado a mano"
   },
   "Moderation": {
     "title": "Revisión de textos de acciones",

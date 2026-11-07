@@ -58,7 +58,7 @@ try {
   await page.locator('[data-testid="season-phase"]').waitFor({ timeout: 15_000 });
   const expected = resolveSeason(new Date(), before.cur ?? {});
   const phaseText = await page.locator('[data-testid="season-phase"]').innerText();
-  const phaseWord = { offseason: "Not open yet", open: "Open", frozen: "Frozen", closed: "Closed" }[expected.phase];
+  const phaseWord = { resetting: "Starting the new season", open: "Open", frozen: "Frozen", closed: "Closed for Christmas" }[expected.phase];
   check("status matches the rule book", phaseText.startsWith(phaseWord), phaseText);
   check("header has a Season link", (await page.locator('header a[href$="/season"]').count()) > 0);
 
@@ -91,41 +91,44 @@ try {
   await card("Emergency freeze").locator("button", { hasText: "Freeze wish lists now" }).waitFor({ timeout: 15_000 });
   check("unfreeze works", (await seasonDoc(Y))?.forceFrozen === false);
 
-  // 4. This season's dates are locked once it has opened.
+  // 4. Year-round: the season always opens Jan 1, so there is NO opening-date field; this season's dates lock at
+  //    its freeze date.
+  const cur = card(`Dates for season ${Y}`);
+  check("no opening-date field (the season opens January 1)", (await page.locator('input[name="openDate"]').count()) === 0);
   if (expected.datesLocked) {
-    const cur = card(`Dates for season ${Y}`);
-    check("this season's dates are locked (fields disabled, no save button)",
-      (await cur.locator('input[name="openDate"]').isDisabled()) && (await cur.locator("button[type=submit]").count()) === 0 && (await cur.innerText()).includes("dates are locked"));
+    check("this season's dates are locked after its freeze date (fields disabled, no save button)",
+      (await cur.locator('input[name="freezeDate"]').isDisabled()) && (await cur.locator("button[type=submit]").count()) === 0 && (await cur.innerText()).includes("dates are locked"));
+  } else {
+    check("before its freeze date this season's dates can still change", !(await cur.locator('input[name="freezeDate"]').isDisabled()));
   }
 
-  // 5. Next season: wrong order refused; valid dates saved + audited; blank = back to defaults.
+  // 5. Next season: a freeze date out of range refused; valid dates saved + audited; blank = back to defaults.
   const nxt = () => card(`Dates for season ${N}`);
   await hydrated(page);
-  await nxt().locator('input[name="openDate"]').fill(`${N}-12-10`); // after the default freeze date
+  await nxt().locator('input[name="freezeDate"]').fill(`${N}-12-10`); // after Dec 3: no time to ship by Dec 10
   await nxt().locator("button[type=submit]").click();
-  await nxt().locator('[role="alert"]').filter({ hasText: "must be in order" }).waitFor({ timeout: 15_000 });
-  check("dates out of order are refused with a clear message", !(await seasonDoc(N))?.openDate);
-  check("…and the typed date is kept (not wiped)", (await nxt().locator('input[name="openDate"]').inputValue()) === `${N}-12-10`);
+  await nxt().locator('[role="alert"]').filter({ hasText: "between November 1 and December 3" }).waitFor({ timeout: 15_000 });
+  check("a freeze date after Dec 3 is refused with a clear message", !(await seasonDoc(N))?.freezeDate);
+  check("…and the typed date is kept (not wiped)", (await nxt().locator('input[name="freezeDate"]').inputValue()) === `${N}-12-10`);
   await hydrated(page);
-  await nxt().locator('input[name="openDate"]').fill(`${N}-10-15`);
-  await nxt().locator('input[name="freezeDate"]').fill(`${N}-12-05`);
-  await nxt().locator('input[name="closeDate"]').fill(`${N}-12-24`);
+  await nxt().locator('input[name="freezeDate"]').fill(`${N}-11-20`);
+  await nxt().locator('input[name="closeDate"]').fill(`${N}-12-28`);
   await nxt().locator("button[type=submit]").click();
   await nxt().locator('[role="status"]').filter({ hasText: "Saved." }).waitFor({ timeout: 15_000 });
   const saved = await seasonDoc(N);
-  check("next season's custom dates saved", saved?.openDate === `${N}-10-15` && saved.freezeDate === `${N}-12-05` && saved.closeDate === `${N}-12-24`);
+  check("next season's custom dates saved", saved?.freezeDate === `${N}-11-20` && saved.closeDate === `${N}-12-28`);
   const dateAudit = await AuditLog.findOne({ actorUserId: new mongoose.Types.ObjectId(admin.id), action: "season.dates" }).lean();
-  check("…audited with before/after", (dateAudit?.details as { to?: { openDate?: string } } | undefined)?.to?.openDate === `${N}-10-15`);
+  check("…audited with before/after", (dateAudit?.details as { to?: { freezeDate?: string } } | undefined)?.to?.freezeDate === `${N}-11-20`);
   await hydrated(page);
-  for (const f of ["openDate", "freezeDate", "closeDate"]) await nxt().locator(`input[name="${f}"]`).fill("");
+  for (const f of ["freezeDate", "closeDate"]) await nxt().locator(`input[name="${f}"]`).fill("");
   await nxt().locator("button[type=submit]").click();
   // The previous "Saved." is still on screen until this action returns: wait for the DB instead.
   let cleared = await seasonDoc(N);
-  for (let i = 0; i < 30 && cleared?.openDate; i++) {
+  for (let i = 0; i < 30 && cleared?.freezeDate; i++) {
     await page.waitForTimeout(500);
     cleared = await seasonDoc(N);
   }
-  check("blank dates = back to the standard calendar", !cleared?.openDate && !cleared?.freezeDate && !cleared?.closeDate);
+  check("blank dates = back to the standard calendar", !cleared?.freezeDate && !cleared?.closeDate);
 
   // 6. Spanish.
   await page.goto(`${base}/es/season`);

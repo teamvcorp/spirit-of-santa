@@ -9,7 +9,7 @@
 import "server-only";
 
 export { connectDb, trusted, withTransaction, type DbSession } from "./connect.ts";
-export { toObjectId } from "./object-id.ts";
+export { newObjectId, toObjectId } from "./object-id.ts";
 export { StorePayout, PAYOUT_METHODS, type StorePayoutDoc } from "./models/store-payout.ts";
 export { User, USER_STATUSES, type UserDoc } from "./models/user.ts";
 export { Family, type FamilyDoc } from "./models/family.ts";

@@ -8,6 +8,8 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 import { requireRole } from "@repo/auth";
 import { setForceFrozen, setSeasonDates, setStoreWindow, type SeasonResult } from "@repo/stores/season";
+import { runSeasonReset } from "@repo/payments/season-end";
+import { AuditLog, connectDb, newObjectId } from "@repo/db";
 import { authOptions } from "@/auth";
 
 export type SeasonFormState = {
@@ -49,15 +51,32 @@ export async function forceFreezeAction(_prev: SeasonFormState, fd: FormData): P
 }
 
 const day = z.union([z.literal(""), z.string().regex(/^\d{4}-\d{2}-\d{2}$/)]);
-const datesSchema = z.object({ year: z.coerce.number().int().min(2026).max(2100), openDate: day, freezeDate: day, closeDate: day });
+const datesSchema = z.object({ year: z.coerce.number().int().min(2026).max(2100), freezeDate: day, closeDate: day });
 
 export async function datesAction(_prev: SeasonFormState, fd: FormData): Promise<SeasonFormState> {
   const id = await adminId();
-  const raw = { year: str(fd, "year"), openDate: str(fd, "openDate"), freezeDate: str(fd, "freezeDate"), closeDate: str(fd, "closeDate") };
+  const raw = { year: str(fd, "year"), freezeDate: str(fd, "freezeDate"), closeDate: str(fd, "closeDate") };
   const values = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, v.slice(0, 10)]));
   const parsed = datesSchema.safeParse(raw);
   if (!parsed.success) return { ...invalid(), values };
   const { year, ...dates } = parsed.data;
   const r = finish(await setSeasonDates(id, year, dates));
   return r.status === "error" ? { ...r, values } : r;
+}
+
+/**
+ * "Run the season reset now" (year-round calendar): the same job the daily cron runs on Jan 1, for when it failed
+ * or timed out and the family site is waiting in "resetting". Admin only; audited; safe to repeat (the reset is
+ * idempotent per kid and refuses outside its time).
+ */
+export async function runResetAction(_prev: SeasonFormState, fd: FormData): Promise<SeasonFormState> {
+  const id = await adminId();
+  if (str(fd, "confirm") !== "yes") return { status: "error", error: "confirmRequired", nonce: randomUUID() };
+  const r = await runSeasonReset();
+  await connectDb();
+  await AuditLog.create({ actorUserId: id, action: "season.reset_run", targetType: "season", targetId: newObjectId(), details: r.ok ? { done: r.done, kidsReset: r.kidsReset, needsAttention: r.needsAttention } : { refused: r.reason } });
+  if (!r.ok) return { status: "error", error: `reset_${r.reason}`, nonce: randomUUID() };
+  if (!r.done) return { status: "error", error: "reset_notFinished", nonce: randomUUID() };
+  refresh();
+  return { status: "done", nonce: randomUUID() };
 }

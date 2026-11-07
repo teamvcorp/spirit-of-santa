@@ -30,14 +30,15 @@ const BATCH = 500;
 const resetKey = (season: number, kidId: string) => `season-reset:${season}:${kidId}`;
 
 export type SeasonEndResult =
-  | { ok: true; seasonYear: number; done: boolean; kidsReset: number; centipointsReset: number; retainedCents: number; retainedCount: number }
-  | { ok: false; reason: "notOffseason" | "alreadyDone" | "splitUnfinished" };
+  | { ok: true; seasonYear: number; done: boolean; kidsReset: number; centipointsReset: number; retainedCents: number; retainedCount: number; needsAttention: number }
+  | { ok: false; reason: "notResetTime" | "alreadyDone" | "splitUnfinished" };
 
 /** `now` is injectable for tests; the cron always uses the real time. */
 export async function runSeasonReset(now = new Date()): Promise<SeasonEndResult> {
   await connectDb();
   const season = await getSeasonState(now);
-  if (season.phase !== "offseason") return { ok: false, reason: "notOffseason" };
+  // Year-round calendar: the reset runs on Jan 1 while the new season waits in "resetting" (getSeasonState).
+  if (season.phase !== "resetting") return { ok: false, reason: "notResetTime" };
   const ended = season.year - 1;
   const existing = await SeasonReset.findOne({ seasonYear: ended }).select("status").lean();
   if (existing?.status === "done") return { ok: false, reason: "alreadyDone" };
@@ -105,13 +106,24 @@ export async function runSeasonReset(now = new Date()): Promise<SeasonEndResult>
     });
   }
 
-  // 3. Done only if no kid has points left (inside the lock).
-  const done = await withTransaction(async (session) => {
+  // 3. Done once every kid with points has been handled (inside the lock). A kid that still has points
+  //    although its reset row exists (a race or bad data) is FLAGGED for an admin and does not block: with the
+  //    year-round calendar the whole family site waits in "resetting" until this says done (review 2026-11-07).
+  const { done, needsAttention } = await withTransaction(async (session) => {
     await takeLock(LOCK, session);
-    if (await Kid.exists({ availableCentipoints: trusted({ $gt: 0 }) }).session(session)) return false;
-    await SeasonReset.updateOne({ seasonYear: ended, status: "running" }, { $set: { status: "done", finishedAt: new Date() } }, { session });
-    return true;
+    const left = await Kid.find({ availableCentipoints: trusted({ $gt: 0 }) }).select("_id").limit(5000).session(session).lean<{ _id: unknown }[]>();
+    const flagged = left.length
+      ? await Transaction.countDocuments({ idempotencyKey: trusted({ $in: left.map((k) => resetKey(ended, String(k._id))) }) }).session(session)
+      : 0;
+    if (left.length > flagged) return { done: false, needsAttention: flagged }; // unprocessed kids: next run continues
+    await SeasonReset.updateOne(
+      { seasonYear: ended, status: "running" },
+      { $set: { status: "done", finishedAt: new Date(), ...(flagged ? { needsAttention: flagged } : {}) } },
+      { session },
+    );
+    return { done: true, needsAttention: flagged };
   });
+  if (needsAttention > 0) console.error(`[season-end] ${needsAttention} kid(s) still have points after their reset row: an admin must check them`);
   const rec = await SeasonReset.findOne({ seasonYear: ended }).lean();
   return {
     ok: true,
@@ -121,6 +133,7 @@ export async function runSeasonReset(now = new Date()): Promise<SeasonEndResult>
     centipointsReset: rec?.centipointsReset ?? 0,
     retainedCents: rec?.retainedCents ?? 0,
     retainedCount: rec?.retainedCount ?? 0,
+    needsAttention,
   };
 }
 

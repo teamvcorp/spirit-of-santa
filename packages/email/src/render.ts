@@ -50,10 +50,18 @@ export type EmailTemplates = {
    * the child's first name as the parent typed it; itemName typed by the store. Link = the kid's page.
    */
   giftOnItsWay: { link: string; kidName: string; itemName: string };
+  /**
+   * Phase 7 daily summary to a PARENT: one line per child, built by digestLines() (child names typed
+   * by the parent; escaped like every value).
+   */
+  familyDigest: { link: string; lines: string };
+  /** Phase 7 season reminders (date already formatted in the parent's language). */
+  cutoffReminder: { link: string; date: string };
+  payUpReminder: { link: string; date: string };
 };
 
 /** Security alerts and "you already have an account": "ignore this email" would be wrong advice. */
-const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled", "donationReceipt", "storeOrders", "giftOnItsWay"]);
+const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled", "donationReceipt", "storeOrders", "giftOnItsWay", "familyDigest", "cutoffReminder", "payUpReminder"]);
 export type EmailTemplateName = keyof EmailTemplates;
 
 export type RenderedEmail = { subject: string; text: string; html: string };
@@ -146,4 +154,19 @@ ${showIgnore ? `<p style="margin:0;color:#555;font-size:13px">${e(tt("ignore"))}
 </table></body></html>`;
 
   return { subject, text, html };
+}
+
+/**
+ * The per-child lines of a daily summary, in the parent's language, e.g.
+ * "Maya: 12.5 points of magic · 2 good deeds thanked". `points` is pre-formatted (formatPoints).
+ */
+export function digestLines(locale: unknown, rows: { kid: string; points?: string; deeds?: number }[]): string {
+  const safeLocale = isLocale(locale) ? locale : DEFAULT_LOCALE;
+  const t = createTranslator({ locale: safeLocale, messages: MESSAGES[safeLocale], namespace: "Email" }) as unknown as (key: string, v?: Record<string, string | number>) => string;
+  return rows
+    .map((r) => {
+      const parts = [r.points ? t("familyDigest.magic", { points: r.points }) : "", r.deeds ? t("familyDigest.deeds", { count: r.deeds }) : ""].filter(Boolean);
+      return `${r.kid}: ${parts.join(" · ")}`;
+    })
+    .join("\n");
 }

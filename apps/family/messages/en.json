@@ -600,6 +600,10 @@
       "reminders": {
         "label": "Season reminders",
         "help": "A reminder before wish lists freeze (December 1) and before the deadline to finish gifts."
+      },
+      "digest": {
+        "label": "Daily summary (magic + good deeds)",
+        "help": ""
       }
     },
     "save": "Save",

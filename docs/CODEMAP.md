@@ -601,7 +601,18 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   email that can't be built fails alone; missing RESEND_API_KEY throws (loud); token must be exactly 3 parts (Zod at
   the route/action); unsubscribe change+audit in one transaction; settings form echoes choices on error; NOTIFY_KINDS
   in `@repo/lib/notify` (client-safe, one list); ONE key-derivation helper `@repo/auth/purpose-key` (unlock cookie,
-  item views, unsubscribe, MFA recovery: byte-identical keys). NEXT 7.2: daily digest (magic + deeds) + cutoff/pay-up reminders in the money cron.
+  item views, unsubscribe, MFA recovery: byte-identical keys).
+- **Slice 7.2 digests + reminders (2026-11-06).** `@repo/families/digest` (money cron, after the address purge):
+  `sendFamilyDigests` = one daily summary per family (template familyDigest, lines via `digestLines`): points from
+  OTHERS only (earn_tip, earn_donation; never the parent's own bonus/pay-up) + deeds thanked, only news newer than
+  notify.lastDigestAt (set to the NEWEST item included, not the run time), 7-day look-back, respects magic/deeds
+  prefs, active parents only. Unsubscribe scope "digest" (= magic + deeds off: one email carries both).
+  `sendSeasonReminders`: cutoffReminder 3 days before the freeze DATE (families with a registered kid) and
+  payUpReminder 3 days before the pay-up deadline (families with an unfinished gift); once per season
+  (notify.cutoffSentYear / payUpSentYear). All via `sendEmailBatch`; cron alerts on failed sends; cron logs the full
+  stack of a failed job in DEVELOPMENT only (production: error type). E2E `family-digest.ts` (13).
+  Unexplained once: the digest step failed inside the dev server on its first run after this change (not reproduced
+  in 4 runs since): watch the dev log line "[cron] job failed".
 
 ## Open items / TODO
 

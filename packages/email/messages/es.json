@@ -81,6 +81,26 @@
       "button": "Ver la lista de deseos"
     },
     "optOut": "Dejar de recibir correos como este",
-    "manage": "Elegir qué correos recibes"
+    "manage": "Elegir qué correos recibes",
+    "familyDigest": {
+      "subject": "La magia de hoy en Spirit O Santa",
+      "heading": "Buenas noticias de hoy",
+      "body": "Esto pasó hoy para tus hijos:\n\n{lines}\n\nLos puntos van primero al regalo más antiguo de cada lista de deseos.",
+      "button": "Abrir el área familiar",
+      "magic": "{points} puntos de magia",
+      "deeds": "{count, plural, one {# buena acción agradecida} other {# buenas acciones agradecidas}}"
+    },
+    "cutoffReminder": {
+      "subject": "Las listas de deseos se cierran el {date}",
+      "heading": "Las listas de deseos se cierran pronto",
+      "body": "El {date} todas las listas de deseos se cierran para Navidad: después ya no se pueden agregar ni quitar regalos.\n\nEs un buen momento para revisar las listas con tus hijos.",
+      "button": "Abrir el área familiar"
+    },
+    "payUpReminder": {
+      "subject": "Últimos días para completar regalos: hasta el {date}",
+      "heading": "Completa los regalos antes del {date}",
+      "body": "Algunos regalos de las listas de tus hijos todavía no están completos. Puedes pagar lo que falta hasta el {date}. Los regalos que sigan incompletos al cierre de la temporada salen de la lista y sus puntos pasan a Spirit O Santa.",
+      "button": "Completar regalos"
+    }
   }
 }

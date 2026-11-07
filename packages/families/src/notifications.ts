@@ -25,7 +25,15 @@ import { familyAppOrigin } from "@repo/stores/urls";
 import { NOTIFY_KINDS, type NotifyKind, type NotifyPrefs } from "@repo/lib/notify";
 export { NOTIFY_KINDS, type NotifyKind, type NotifyPrefs };
 
-const isKind = (v: unknown): v is NotifyKind => typeof v === "string" && (NOTIFY_KINDS as readonly string[]).includes(v);
+/**
+ * What an unsubscribe link switches off: one kind, or "digest" = the daily summary, which carries
+ * BOTH magic and deeds news (a link that stopped only one would leave the email coming).
+ */
+export const UNSUB_SCOPES = [...NOTIFY_KINDS, "digest"] as const;
+export type UnsubScope = (typeof UNSUB_SCOPES)[number];
+const SCOPE_KINDS: Record<UnsubScope, NotifyKind[]> = { magic: ["magic"], deeds: ["deeds"], reminders: ["reminders"], digest: ["magic", "deeds"] };
+
+const isScope = (v: unknown): v is UnsubScope => typeof v === "string" && (UNSUB_SCOPES as readonly string[]).includes(v);
 /** Missing = never chosen = ON (the default). */
 export const prefsOf = (notify?: Partial<Record<NotifyKind, boolean | null>> | null): NotifyPrefs =>
   Object.fromEntries(NOTIFY_KINDS.map((k) => [k, notify?.[k] !== false])) as NotifyPrefs;
@@ -50,37 +58,38 @@ export async function setNotifyPrefs(parent: Parent, prefs: NotifyPrefs): Promis
 
 // ── Signed unsubscribe tokens ─────────────────────────────────────────────────────────
 
-const sign = (fid: string, kind: NotifyKind) => createHmac("sha256", sessionPurposeKey("sos/unsubscribe/v1")).update(`${fid}.${kind}`).digest("base64url");
+const sign = (fid: string, kind: UnsubScope) => createHmac("sha256", sessionPurposeKey("sos/unsubscribe/v1")).update(`${fid}.${kind}`).digest("base64url");
 
 /** Shape check for untrusted input (Zod, like every input): a short string, nothing else. */
 export const unsubscribeTokenSchema = z.string().min(30).max(120);
 
-export function unsubscribeToken(familyId: string, kind: NotifyKind): string {
+export function unsubscribeToken(familyId: string, kind: UnsubScope): string {
   return `${familyId}.${kind}.${sign(familyId, kind)}`;
 }
 
 /** The family + kind a token is for, or null if it's malformed or the signature is wrong. */
-export function readUnsubscribeToken(token: unknown): { familyId: string; kind: NotifyKind } | null {
+export function readUnsubscribeToken(token: unknown): { familyId: string; kind: UnsubScope } | null {
   const parsed = unsubscribeTokenSchema.safeParse(token);
   if (!parsed.success) return null;
   const parts = parsed.data.split(".");
   if (parts.length !== 3) return null; // exact format: nothing may be appended
   const [fid, kind, sig] = parts;
-  if (!fid || !OBJECT_ID_RE.test(fid) || !isKind(kind) || !sig) return null;
+  if (!fid || !OBJECT_ID_RE.test(fid) || !isScope(kind) || !sig) return null;
   const want = Buffer.from(sign(fid, kind));
   const got = Buffer.from(sig);
   return got.length === want.length && timingSafeEqual(got, want) ? { familyId: fid, kind } : null; // constant-time compare
 }
 
-/** Switch one kind OFF via a signed link (no sign-in). Idempotent. Returns the kind, or null for a bad link. */
-export async function unsubscribe(token: unknown): Promise<NotifyKind | null> {
+/** Switch one scope OFF via a signed link (no sign-in). Idempotent. Returns the scope, or null for a bad link. */
+export async function unsubscribe(token: unknown): Promise<UnsubScope | null> {
   const t = readUnsubscribeToken(token);
   if (!t) return null;
   await connectDb();
   const found = await withTransaction(async (session) => {
-    const res = await Family.updateOne({ _id: t.familyId }, { $set: { [`notify.${t.kind}`]: false } }, { session });
+    const off = Object.fromEntries(SCOPE_KINDS[t.kind].map((k) => [`notify.${k}`, false]));
+    const res = await Family.updateOne({ _id: t.familyId }, { $set: off }, { session });
     if (res.modifiedCount === 1) {
-      await AuditLog.create([{ action: "family.notify_prefs", targetType: "family", targetId: t.familyId, details: { [t.kind]: false, by: "unsubscribe_link" } }], { session });
+      await AuditLog.create([{ action: "family.notify_prefs", targetType: "family", targetId: t.familyId, details: { scope: t.kind, by: "unsubscribe_link" } }], { session });
     }
     return res.matchedCount === 1;
   });
@@ -88,7 +97,7 @@ export async function unsubscribe(token: unknown): Promise<NotifyKind | null> {
 }
 
 /** Footer + header links for one notification email to this family. */
-export function optOutLinksFor(familyId: string, kind: NotifyKind, locale: Locale): OptOutLinks {
+export function optOutLinksFor(familyId: string, kind: UnsubScope, locale: Locale): OptOutLinks {
   const origin = familyAppOrigin();
   const t = encodeURIComponent(unsubscribeToken(familyId, kind));
   return {

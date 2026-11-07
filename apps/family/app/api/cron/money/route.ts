@@ -8,7 +8,8 @@
  *  2. Switch off expired pay-later text links (Phase 5 slice 4b), BEFORE the season end.
  *     Then wish lists (Phase 6): lock items (30 days funded, or all at the freeze); sweep unallocated
  *     points; Dec 25 close (unfinished gifts drop off, points → Spirit O Santa); then email each store its new gifts to set aside / ready to ship (needs STORE_APP_URL);
- *     then retry failed "gift on its way" parent emails (needs FAMILY_APP_URL).
+ *     then retry failed "gift on its way" parent emails (needs FAMILY_APP_URL); delete addresses no gift needs;
+ *     Phase 7: each parent's daily summary (magic + deeds) and the season reminders (email only).
  *  3. Season end (only in the off-season, once per ended season): unshared donation money
  *     retained, every kid's points reset to 0 with a ledger row.
  *  4. Email tax receipts still waiting (receipts switched on, gift on/after the start day).
@@ -22,6 +23,7 @@ import { runSeasonReset } from "@repo/payments/season-end";
 import { runDonationSplit } from "@repo/payments/split";
 import { lockFundedItems, sweepAllocations } from "@repo/wishlists/engine";
 import { closeUnfunded } from "@repo/wishlists/payup";
+import { sendFamilyDigests, sendSeasonReminders } from "@repo/families/digest";
 import { purgeUnneededAddresses, sendFamilyNotices, sendStoreDigests } from "@repo/wishlists/fulfilment";
 
 /**
@@ -45,6 +47,10 @@ export async function GET(request: Request): Promise<Response> {
     try {
       return { status: "fulfilled", value: await job() };
     } catch (reason) {
+      // Production: error TYPE only (messages can hold connection details). Development: the full
+      // stack, so a failing job can actually be diagnosed.
+      const dev = process.env.NODE_ENV !== "production";
+      console.error("[cron] job failed:", reason instanceof Error ? (dev ? reason.stack : reason.name) : "unknown");
       return { status: "rejected", reason };
     }
   };
@@ -60,6 +66,9 @@ export async function GET(request: Request): Promise<Response> {
   const familyNotices = await settle(() => sendFamilyNotices());
   // Delivery addresses are kept only while a gift is on its way (data minimisation).
   const addresses = await settle(() => purgeUnneededAddresses());
+  // Phase 7: parents' daily summary (magic + deeds thanked) and season reminders (email only).
+  const digests = await settle(() => sendFamilyDigests());
+  const reminders = await settle(() => sendSeasonReminders());
   const seasonEnd = await settle(() => runSeasonReset());
   const receipts = await settle(() => sendPendingReceipts({ limit: 50 }));
   const result = {
@@ -70,15 +79,19 @@ export async function GET(request: Request): Promise<Response> {
     storeOrders: storeOrders.status === "fulfilled" ? storeOrders.value : "failed",
     familyNotices: familyNotices.status === "fulfilled" ? familyNotices.value : "failed",
     addressesPurged: addresses.status === "fulfilled" ? addresses.value : "failed",
+    digests: digests.status === "fulfilled" ? digests.value : "failed",
+    reminders: reminders.status === "fulfilled" ? reminders.value : "failed",
     receipts: receipts.status === "fulfilled" ? receipts.value : "failed",
   };
   // A digest that ran but couldn't email some stores also counts as failed (it never throws per store).
   const digestFailed = storeOrders.status === "fulfilled" && storeOrders.value.failed > 0;
   const noticesFailed = familyNotices.status === "fulfilled" && familyNotices.value.failed > 0;
   const closeFailed = wishLists.status === "fulfilled" && wishLists.value.closed.failed > 0;
-  const failed = digestFailed || noticesFailed || closeFailed || [split, seasonEnd, payLater, wishLists, storeOrders, familyNotices, addresses, receipts].some((r) => r.status === "rejected");
+  const parentEmailsFailed = (digests.status === "fulfilled" && digests.value.failed > 0) ||
+    (reminders.status === "fulfilled" && [reminders.value.cutoff, reminders.value.payUp].some((r) => r !== "notTime" && r.failed > 0));
+  const failed = digestFailed || noticesFailed || closeFailed || parentEmailsFailed || [split, seasonEnd, payLater, wishLists, storeOrders, familyNotices, addresses, digests, reminders, receipts].some((r) => r.status === "rejected");
   if (failed) {
-    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, addresses: addresses.status, receipts: receipts.status, digestFailed, noticesFailed, closeFailed }));
+    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, addresses: addresses.status, digests: digests.status, reminders: reminders.status, receipts: receipts.status, digestFailed, noticesFailed, closeFailed, parentEmailsFailed }));
     return Response.json(result, { status: 500, headers: { "Cache-Control": "no-store" } });
   }
   console.info("[cron] donations", JSON.stringify(result)); // totals/counts only, no personal data

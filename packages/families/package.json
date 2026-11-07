@@ -12,7 +12,8 @@
     "./bonus": "./src/bonus.ts",
     "./payup": "./src/payup.ts",
     "./address": "./src/address.ts",
-    "./notifications": "./src/notifications.ts"
+    "./notifications": "./src/notifications.ts",
+    "./digest": "./src/digest.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

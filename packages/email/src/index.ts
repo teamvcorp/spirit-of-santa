@@ -19,7 +19,7 @@ import { createHash } from "node:crypto";
 import { Resend } from "resend";
 import { assertSafeLink, renderEmail, type EmailTemplateName, type EmailTemplates, type OptOutLinks } from "./render.ts";
 
-export { renderEmail, escapeHtml, assertSafeLink, type EmailTemplateName, type EmailTemplates, type OptOutLinks } from "./render.ts";
+export { renderEmail, escapeHtml, assertSafeLink, digestLines, type EmailTemplateName, type EmailTemplates, type OptOutLinks } from "./render.ts";
 
 const DEFAULT_FROM = "Spirit O Santa <no-reply@fyht4.com>";
 let client: Resend | null = null;

@@ -600,6 +600,10 @@
       "reminders": {
         "label": "Recordatorios de la temporada",
         "help": "Un recordatorio antes de que las listas se cierren (1 de diciembre) y antes de la fecha límite para completar regalos."
+      },
+      "digest": {
+        "label": "Resumen diario (magia + buenas acciones)",
+        "help": ""
       }
     },
     "save": "Guardar",

@@ -156,7 +156,8 @@
     "payUpAlert": "{count, plural, one {# regalo todavía no está completo.} other {# regalos todavía no están completos.}} Puedes completarlos antes de la fecha límite; si no, salen de la lista el {close}.",
     "payUpLink": "Completar regalos",
     "addressAlert": "¡Un regalo está completo! Dinos dónde entregarlo.",
-    "addressLink": "Agregar dirección de entrega"
+    "addressLink": "Agregar dirección de entrega",
+    "emailSettings": "Correos"
   },
   "Register": {
     "title": "Registra a tus hijos",
@@ -582,5 +583,37 @@
     "privacy": "Política de privacidad",
     "terms": "Términos del servicio",
     "texts": "Mensajes de texto"
+  },
+  "Notify": {
+    "title": "Correos que recibes",
+    "intro": "Elige qué novedades te enviamos por correo. Los correos de la cuenta (inicio de sesión, recibos, \"tu regalo va en camino\") se envían siempre.",
+    "back": "Área de padres",
+    "kinds": {
+      "magic": {
+        "label": "Magia recibida",
+        "help": "Un resumen diario cuando tus hijos reciben puntos (propinas y donaciones de la comunidad)."
+      },
+      "deeds": {
+        "label": "Buenas acciones agradecidas",
+        "help": "En el mismo resumen diario: cuando alguien agradece a tu hijo o hija una buena acción."
+      },
+      "reminders": {
+        "label": "Recordatorios de la temporada",
+        "help": "Un recordatorio antes de que las listas se cierren (1 de diciembre) y antes de la fecha límite para completar regalos."
+      }
+    },
+    "save": "Guardar",
+    "saved": "Guardado.",
+    "errors": {
+      "locked": "El área de padres se bloqueó (15 minutos). Escribe tu PIN otra vez.",
+      "notFound": "No se encontró tu cuenta familiar. Cierra sesión y vuelve a entrar."
+    },
+    "unsubscribeTitle": "Cancelar suscripción",
+    "unsubscribeIntro": "¿Dejar de recibir correos de \"{kind}\" de Spirit O Santa?",
+    "stop": "Dejar de recibir \"{kind}\"",
+    "unsubscribed": "Listo: ya no recibirás correos de \"{kind}\".",
+    "badLink": "Este enlace para cancelar la suscripción no es válido. Puedes cambiar tus correos en el área de padres.",
+    "manageHint": "Puedes activar o desactivar los correos cuando quieras en el área de padres:",
+    "manageLink": "Correos que recibes"
   }
 }

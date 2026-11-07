@@ -79,6 +79,8 @@
       "heading": "A gift is on its way",
       "body": "Good news! {kidName}'s gift, {itemName}, is on its way from Spirit O Santa.\n\nThank you for helping {kidName} earn it with good deeds.",
       "button": "See the wish list"
-    }
+    },
+    "optOut": "Stop emails like this",
+    "manage": "Choose which emails you get"
   }
 }

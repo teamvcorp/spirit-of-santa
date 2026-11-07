@@ -37,3 +37,13 @@ test("links must point to our hosts (or localhost in dev)", () => {
   }
   assert.throws(() => renderEmail("resetPassword", { link: "https://evil.example" }, "en"));
 });
+
+test("notification emails get the opt-out footer links (escaped), only when given; foreign links refused", () => {
+  const links = { optOut: "https://www.spiritofsanta.com/unsubscribe?t=a.b.c", oneClick: "https://www.spiritofsanta.com/api/unsubscribe?t=a.b.c", manage: "https://www.spiritofsanta.com/parent/notifications" };
+  const r = renderEmail("giftOnItsWay", { link: LINK, kidName: "Mia", itemName: "Kite" }, "en", links);
+  assert.ok(r.text.includes(`Stop emails like this: ${links.optOut}`) && r.text.includes(links.manage));
+  assert.ok(r.html.includes("unsubscribe?t=a.b.c") && r.html.includes("Choose which emails you get"));
+  const plain = renderEmail("giftOnItsWay", { link: LINK, kidName: "Mia", itemName: "Kite" }, "en");
+  assert.ok(!plain.text.includes("Stop emails like this"));
+  assert.throws(() => renderEmail("giftOnItsWay", { link: LINK, kidName: "Mia", itemName: "Kite" }, "en", { ...links, optOut: "https://evil.example/x" }));
+});

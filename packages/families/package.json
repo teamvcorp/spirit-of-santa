@@ -11,7 +11,8 @@
     "./settings": "./src/settings.ts",
     "./bonus": "./src/bonus.ts",
     "./payup": "./src/payup.ts",
-    "./address": "./src/address.ts"
+    "./address": "./src/address.ts",
+    "./notifications": "./src/notifications.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -21,6 +22,8 @@
   "dependencies": {
     "@repo/auth": "*",
     "@repo/db": "*",
+    "@repo/email": "*",
+    "@repo/i18n": "*",
     "@repo/lib": "*",
     "@repo/payments": "*",
     "@repo/stores": "*",

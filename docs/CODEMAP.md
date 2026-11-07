@@ -587,6 +587,18 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   card is OWNER-only (wholesale reveals the discount), shows pendingCount.
   **PHASE 6 COMPLETE (2026-11-06).**
 
+## Phase 7 (notifications): EMAIL only, parents only (user 2026-11-06; no web push/SMS)
+
+- **Slice 7.1 foundations (2026-11-06).** `@repo/email`: `sendEmailBatch` (Resend batch, 100/request, idempotency key
+  per chunk, failed chunks reported) + `optOutLinks` on any send (footer "Stop emails like this" + "Choose which emails
+  you get", and List-Unsubscribe + List-Unsubscribe-Post one-click headers: Gmail/Yahoo bulk-sender rules).
+  `@repo/families/notifications`: kinds magic/deeds/reminders (Family.notify.*, missing = ON), get/setNotifyPrefs
+  (audited "family.notify_prefs"), signed unsubscribe tokens "<fid>.<kind>.<HMAC>" (HKDF label sos/unsubscribe/v1
+  from NEXTAUTH_SECRET; constant-time verify; only ever switches ONE kind OFF; no expiry), `optOutLinksFor`.
+  Pages: `/parent/notifications` (PIN, "Email settings" on the dashboard), public `/unsubscribe?t=` (opening it
+  changes nothing; button confirms), `POST /api/unsubscribe?t=` (RFC 8058 one-click; GET 405). E2E
+  `browser-family-notify.ts` (11). NEXT 7.2: daily digest (magic + deeds) + cutoff/pay-up reminders in the money cron.
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.

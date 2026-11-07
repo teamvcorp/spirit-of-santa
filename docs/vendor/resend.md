@@ -21,6 +21,10 @@
 - Payload: `from`, `to` (≤ 50), `subject`, `html` and/or `text` (or `react`), `replyTo`,
   `headers`, `tags: [{ name, value }]` (ASCII ≤ 256), `scheduledAt`, `attachments` (≤ 40 MB).
 - Rate limit: 10 requests/s per team (429 above that).
+- **Batch** (resend 6.x): `resend.batch.send([...payloads], { idempotencyKey })`: max **100** emails per request, one
+  idempotency key for the whole batch, no attachments / scheduledAt. Used for Phase 7 daily digests (`sendEmailBatch`).
+- **One-click unsubscribe** (Gmail/Yahoo bulk-sender rules, RFC 8058): headers `List-Unsubscribe: <https://...>` +
+  `List-Unsubscribe-Post: List-Unsubscribe=One-Click`; the URL must accept a POST with no sign-in (`/api/unsubscribe`).
 - **Test inboxes** (no reputation impact): `delivered@resend.dev`, `bounced@resend.dev`,
   `complained@resend.dev`; labels allowed: `delivered+anything@resend.dev`.
 

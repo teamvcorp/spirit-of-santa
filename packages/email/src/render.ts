@@ -73,10 +73,24 @@ export function assertSafeLink(link: string): string {
   return u.toString();
 }
 
+/**
+ * Notification emails (Phase 7) carry two extra footer links: stop THIS kind of email (one click,
+ * signed link, no sign-in) and choose which emails you get (parent area). Both must be our links.
+ */
+export type OptOutLinks = {
+  /** Footer link: a confirmation PAGE (a link scanner opening it unsubscribes nobody). */
+  optOut: string;
+  /** List-Unsubscribe header: endpoint that unsubscribes on POST (RFC 8058 one-click). */
+  oneClick: string;
+  /** "Choose which emails you get" (parent area, sign-in + PIN). */
+  manage: string;
+};
+
 export function renderEmail<T extends EmailTemplateName>(
   template: T,
   values: EmailTemplates[T],
   locale: unknown,
+  optOutLinks?: OptOutLinks,
 ): RenderedEmail {
   const safeLocale = isLocale(locale) ? locale : DEFAULT_LOCALE;
   const t = createTranslator({ locale: safeLocale, messages: MESSAGES[safeLocale], namespace: "Email" });
@@ -93,6 +107,7 @@ export function renderEmail<T extends EmailTemplateName>(
   const button = tt(`${template}.button`);
   const expiry = has(`${template}.expiry`) ? tt(`${template}.expiry`) : "";
   const showIgnore = !NO_IGNORE_LINE.has(template);
+  const optOut = optOutLinks ? { stop: assertSafeLink(optOutLinks.optOut), manage: assertSafeLink(optOutLinks.manage) } : null;
 
   const text = [
     heading,
@@ -105,6 +120,8 @@ export function renderEmail<T extends EmailTemplateName>(
     "",
     "--",
     tt("footer"),
+    optOut ? `${tt("optOut")}: ${optOut.stop}` : "",
+    optOut ? `${tt("manage")}: ${optOut.manage}` : "",
   ]
     .filter((line, i, all) => line !== "" || all[i - 1] !== "")
     .join("\n");
@@ -124,7 +141,9 @@ ${expiry ? `<p style="margin:0 0 12px;color:#555;font-size:14px">${e(expiry)}</p
 <p style="margin:0 0 16px;font-size:13px;word-break:break-all"><a href="${e(link)}" style="color:#8c1d18">${e(link)}</a></p>
 ${showIgnore ? `<p style="margin:0;color:#555;font-size:13px">${e(tt("ignore"))}</p>` : ""}
 </td></tr>
-<tr><td style="padding:16px 28px;color:#767676;font-size:12px;border-top:1px solid #eee">${e(tt("footer"))}</td></tr>
+<tr><td style="padding:16px 28px;color:#767676;font-size:12px;border-top:1px solid #eee">${e(tt("footer"))}${
+    optOut ? `<br><a href="${e(optOut.stop)}" style="color:#767676">${e(tt("optOut"))}</a> · <a href="${e(optOut.manage)}" style="color:#767676">${e(tt("manage"))}</a>` : ""
+  }</td></tr>
 </table></body></html>`;
 
   return { subject, text, html };

@@ -156,7 +156,8 @@
     "payUpAlert": "{count, plural, one {# gift isn't fully funded yet.} other {# gifts aren't fully funded yet.}} You can finish them before the deadline, or they drop off on {close}.",
     "payUpLink": "Finish gifts",
     "addressAlert": "A gift is funded! Tell us where to deliver it.",
-    "addressLink": "Add a delivery address"
+    "addressLink": "Add a delivery address",
+    "emailSettings": "Email settings"
   },
   "Register": {
     "title": "Register your children",
@@ -582,5 +583,37 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "texts": "Text messages"
+  },
+  "Notify": {
+    "title": "Email settings",
+    "intro": "Choose which updates we email you. Account emails (sign-in, receipts, \"your gift is on its way\") are always sent.",
+    "back": "Parent area",
+    "kinds": {
+      "magic": {
+        "label": "Magic received",
+        "help": "A daily summary when your children receive points (tips and community donations)."
+      },
+      "deeds": {
+        "label": "Good deeds thanked",
+        "help": "In the same daily summary: when someone thanks your child for a good deed."
+      },
+      "reminders": {
+        "label": "Season reminders",
+        "help": "A reminder before wish lists freeze (December 1) and before the deadline to finish gifts."
+      }
+    },
+    "save": "Save",
+    "saved": "Saved.",
+    "errors": {
+      "locked": "The parent area locked itself (15 minutes). Enter your PIN again.",
+      "notFound": "Your family account wasn't found. Sign out and in again."
+    },
+    "unsubscribeTitle": "Unsubscribe",
+    "unsubscribeIntro": "Stop getting \"{kind}\" emails from Spirit O Santa?",
+    "stop": "Stop \"{kind}\" emails",
+    "unsubscribed": "Done: you won't get \"{kind}\" emails any more.",
+    "badLink": "This unsubscribe link isn't valid. You can change your email settings in the parent area.",
+    "manageHint": "You can turn emails on or off any time in the parent area:",
+    "manageLink": "Email settings"
   }
 }

@@ -79,6 +79,8 @@
       "heading": "Un regalo va en camino",
       "body": "¡Buenas noticias! El regalo de {kidName}, {itemName}, va en camino desde Spirit O Santa.\n\nGracias por ayudar a {kidName} a ganarlo con buenas acciones.",
       "button": "Ver la lista de deseos"
-    }
+    },
+    "optOut": "Dejar de recibir correos como este",
+    "manage": "Elegir qué correos recibes"
   }
 }

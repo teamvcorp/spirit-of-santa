@@ -21,6 +21,19 @@ const familySchema = new Schema(
      */
     deliveryAddressEnc: { type: String, maxlength: 2000, select: false },
     deliveryAddressUpdatedAt: Date,
+
+    /**
+     * Parent email notifications (Phase 7). Missing = ON. Bookkeeping so nothing is sent twice:
+     * lastDigestAt = news up to here was already emailed; *SentYear = that season's reminder went out.
+     */
+    notify: {
+      magic: Boolean,
+      deeds: Boolean,
+      reminders: Boolean,
+      lastDigestAt: Date,
+      cutoffSentYear: Number,
+      payUpSentYear: Number,
+    },
     /** Optional public family alias, shown on QR pages only when showAliasPublicly is set. */
     alias: { type: String, trim: true, maxlength: 80 },
     showAliasPublicly: { type: Boolean, default: false },

@@ -107,6 +107,12 @@
       "heading": "Your password was changed",
       "body": "The password for this Spirit of Santa account was just changed using a reset link, and every device was signed out. If this was you, there's nothing else to do. If it wasn't you, reset your password again right away and contact the Spirit of Santa team.",
       "button": "Sign in"
+    },
+    "accountDeleted": {
+      "subject": "Your Spirit of Santa family account was deleted",
+      "heading": "Your family account was deleted",
+      "body": "As you asked, we deleted your Spirit of Santa family account: your children's names, birth years, good deeds and wish lists, your delivery address and your sign-in. Any Christmas Magic left went to Spirit of Santa to help other children. We keep only payment and donation records with no names, as the law requires. If you didn't ask for this, contact the Spirit of Santa team right away.",
+      "button": "Visit Spirit of Santa"
     }
   }
 }

@@ -545,10 +545,13 @@
       "emailed": "parent emailed",
       "pending": "parent email pending (retried daily for 14 days)",
       "failed": "parent email NOT sent: please contact the parent",
-      "none": "no email (child or family deleted)"
+      "none": "no email (child or family deleted)",
+      "kept": "kept by Spirit of Santa (account deleted)"
     },
     "addressMissing": "No delivery address yet: the parent is asked for it in their parent area. You can also email them.",
-    "addressUnreadable": "The saved address can't be read (encryption key changed?). Ask the parent to enter it again."
+    "addressUnreadable": "The saved address can't be read (encryption key changed?). Ask the parent to enter it again.",
+    "familyDeleted": "This family deleted its account. There's no one to send it to: Spirit of Santa keeps the gift.",
+    "markKept": "Keep for Spirit of Santa"
   },
   "Payouts": {
     "title": "Store payouts",

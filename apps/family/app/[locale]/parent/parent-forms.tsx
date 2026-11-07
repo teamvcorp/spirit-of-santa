@@ -7,7 +7,7 @@ import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
-import { aliasAction, deleteKidAction, lockAction, saveKidAction, setPinAction, unlockAction, voteAction, type ParentFormState } from "./actions";
+import { aliasAction, deleteAccountAction, deleteKidAction, lockAction, saveKidAction, setPinAction, unlockAction, voteAction, type ParentFormState } from "./actions";
 
 const INITIAL: ParentFormState = { status: "idle" };
 
@@ -167,6 +167,28 @@ export function AliasForm({ alias, show }: { alias: string; show: boolean }) {
       </label>
       <Button type="submit" variant="secondary" pending={pending} disabled={!hydrated} className="self-start">
         {t("aliasSave")}
+      </Button>
+    </form>
+  );
+}
+
+/**
+ * Delete the whole family account (Phase 8, COPPA). Password + a typed word, so it can't happen by a
+ * stray click or by a child on an unlocked device. The server re-checks everything (deleteAccountAction).
+ */
+export function DeleteAccountForm() {
+  const t = useTranslations("DeleteAccount");
+  const [state, action, pending] = useActionState(deleteAccountAction, INITIAL);
+  const hydrated = useHydrated();
+  useFullReload(state);
+  return (
+    <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-4">
+      <LocaleField />
+      {state.status === "error" && state.error && <Alert tone="error">{t(`errors.${state.error}` as never)}</Alert>}
+      <TextField label={t("password")} name="password" type="password" autoComplete="current-password" required maxLength={256} />
+      <TextField label={t("confirmLabel", { word: t("confirmWord") })} name="confirm" required maxLength={20} autoComplete="off" spellCheck={false} />
+      <Button type="submit" variant="secondary" pending={pending} disabled={!hydrated} className="self-start">
+        {t("submit")}
       </Button>
     </form>
   );

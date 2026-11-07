@@ -33,8 +33,11 @@ export function SubstituteForm({ wishId, refCode }: { wishId: string; refCode: s
   );
 }
 
-/** One-button step ("Received" / "Sent to family"). */
-export function StepButton({ wishId, kind }: { wishId: string; kind: "received" | "sent" }) {
+/**
+ * One-button step ("Received" / "Sent to family" / "Keep for Spirit of Santa"). "kept" is the SAME server step
+ * as "sent" (closes the row as delivered); only the label differs, for gifts of a deleted family.
+ */
+export function StepButton({ wishId, kind }: { wishId: string; kind: "received" | "sent" | "kept" }) {
   const t = useTranslations("Fulfilment");
   const [state, action, pending] = useActionState(kind === "received" ? receivedAction : sentAction, IDLE);
   const hydrated = useHydrated();
@@ -43,7 +46,7 @@ export function StepButton({ wishId, kind }: { wishId: string; kind: "received" 
       <Errors state={state} />
       <input type="hidden" name="wishId" value={wishId} />
       <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">
-        {t(kind === "received" ? "markReceived" : "markSent")}
+        {t(kind === "received" ? "markReceived" : kind === "kept" ? "markKept" : "markSent")}
       </Button>
     </form>
   );

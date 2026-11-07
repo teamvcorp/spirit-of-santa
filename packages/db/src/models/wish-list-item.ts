@@ -88,6 +88,12 @@ const wishListItemSchema = new Schema(
     payoutOwedCents: { type: Number, min: 0 },
     /** The StorePayout that paid it (null = still owed). */
     payoutId: objectId("StorePayout", false),
+    /**
+     * The family deleted its account (COPPA, Phase 8) after this gift was locked: the store still ships and is
+     * paid, but Spirit of Santa KEEPS the gift (no address, nobody to send it to). kidId/familyId then point at
+     * deleted records (anonymised).
+     */
+    familyDeletedAt: Date,
     deliveredAt: Date, // sent on to the family (parent emailed)
     deliveredByUserId: objectId("User", false),
     familyNotifiedAt: Date, // the parent's "on its way" email really went out

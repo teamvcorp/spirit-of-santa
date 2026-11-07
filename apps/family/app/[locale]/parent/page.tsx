@@ -108,6 +108,12 @@ async function Content() {
           <p className="mt-3 text-sm text-muted">{settings.review === "rejected" ? t("aliasRejected") : t("aliasPending")}</p>
         )}
       </Card>
+      {/* At the bottom on purpose: a destructive action is never one of the everyday buttons. */}
+      <p className="mt-8 text-sm">
+        <Link href="/parent/delete-account" className="text-muted underline underline-offset-4">
+          {t("deleteAccount")}
+        </Link>
+      </p>
     </>
   );
 }

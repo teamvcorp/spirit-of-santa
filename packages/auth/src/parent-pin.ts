@@ -19,12 +19,12 @@
  */
 import "server-only";
 import { cookies } from "next/headers";
-import { AuditLog, connectDb, Family, User, withTransaction } from "@repo/db";
-import { failAttempt, PIN_ATTEMPTS, releaseAttempt, reserveAttempt, unlocked } from "./attempts.ts";
-import { LOGIN_ATTEMPTS } from "./options.ts";
+import { AuditLog, connectDb, Family, withTransaction } from "@repo/db";
+import { failAttempt, PIN_ATTEMPTS, releaseAttempt, reserveAttempt } from "./attempts.ts";
+import { verifyAccountPassword } from "./reauth.ts";
 import { hitRateLimit } from "./rate-limit.ts";
 import { baseCookieOptions, cookieName } from "./cookies.ts";
-import { burnVerifyTime, hashSecret, verifySecret } from "./password.ts";
+import { hashSecret, verifySecret } from "./password.ts";
 import { pinSchema } from "./schemas.ts";
 import {
   PIN_UNLOCK_SECONDS,
@@ -90,28 +90,8 @@ export async function setParentPinWithPassword(user: ParentUser, password: unkno
   if ((await hasParentPin(user)) && !(await isParentUnlocked(user))) return { ok: false, error: "locked" };
   await connectDb();
   if (!(await hitRateLimit(`pin-set:${user.id}`, 5, 900))) return { ok: false, error: "rateLimited" };
-  const account = await User.findOne({ _id: user.id, role: "parent", status: "active" }).select("+passwordHash").lean();
-  if (!account) return { ok: false, error: "wrongPassword" };
-  // Same lockout as sign-in, reserved before verifying (attempts.ts).
-  const me = { _id: account._id };
-  if (!(await reserveAttempt(User, me, LOGIN_ATTEMPTS))) {
-    await burnVerifyTime(password); // same answer + timing as a wrong password
-    return { ok: false, error: "wrongPassword" };
-  }
-  let right: boolean;
-  try {
-    right = await verifySecret(password, account.passwordHash);
-  } catch (err) {
-    await releaseAttempt(User, me, LOGIN_ATTEMPTS).catch(() => {}); // a crash is not a strike
-    throw err;
-  }
-  if (!right) {
-    await failAttempt(User, me, LOGIN_ATTEMPTS);
-    return { ok: false, error: "wrongPassword" };
-  }
-  // Right password: clears earlier strikes too, like a successful sign-in (only while unlocked: never
-  // undo a lock another request set meanwhile).
-  await User.updateOne({ ...me, ...unlocked(LOGIN_ATTEMPTS) }, { $set: { failedLoginCount: 0 } });
+  // Password re-check with the sign-in lockout (shared: reauth.ts).
+  if (!(await verifyAccountPassword(user.id, password, { role: "parent" }))) return { ok: false, error: "wrongPassword" };
   const hash = await hashSecret(parsedPin.data);
   const saved = await withTransaction(async (session) => {
     const res = await Family.updateOne(

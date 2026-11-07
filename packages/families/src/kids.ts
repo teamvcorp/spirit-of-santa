@@ -12,7 +12,7 @@
  * stay (with an id that no longer points at anyone).
  */
 import "server-only";
-import { AuditLog, Deed, ensureLock, Kid, KidVote, takeLock, WishListItem, withTransaction } from "@repo/db";
+import { AuditLog, ensureLock, Kid, takeLock, withTransaction } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_KIDS_PER_FAMILY } from "@repo/lib/limits";
 import type { KidInput } from "./schemas.ts";
@@ -68,7 +68,7 @@ export async function getKid(parent: Parent, rawId: string): Promise<KidRow | nu
 
 export type KidResult = { ok: true; id?: string } | { ok: false; error: "notFound" | "limitReached" };
 
-async function audit(parentId: string, action: "kid.add" | "kid.update" | "kid.delete", kidId: unknown, session: Parameters<Parameters<typeof withTransaction>[0]>[0]) {
+async function audit(parentId: string, action: "kid.add" | "kid.update", kidId: unknown, session: Parameters<Parameters<typeof withTransaction>[0]>[0]) {
   await AuditLog.create([{ actorUserId: parentId, action, targetType: "kid", targetId: String(kidId), details: {} }], { session });
 }
 
@@ -107,18 +107,4 @@ export async function updateKid(parent: Parent, rawId: string, input: KidInput):
 }
 
 /** Really delete the kid's record (COPPA deletion right). */
-export async function deleteKid(parent: Parent, rawId: string): Promise<KidResult> {
-  const id = normalizeObjectId(rawId);
-  const fid = await ownFamilyId(parent);
-  if (!id || !fid) return { ok: false, error: "notFound" };
-  return withTransaction(async (session) => {
-    const res = await Kid.deleteOne({ _id: id, familyId: fid }, { session });
-    if (res.deletedCount !== 1) return { ok: false, error: "notFound" } as const;
-    // Their deeds (may hold a free-text description) and wish-list rows go too.
-    await Deed.deleteMany({ kidId: id }, { session });
-    await WishListItem.deleteMany({ kidId: id }, { session });
-    await KidVote.deleteMany({ kidId: id }, { session });
-    await audit(parent.id, "kid.delete", id, session);
-    return { ok: true } as const;
-  });
-}
+// Deleting a child: eraseKid in ./erase.ts (releases gifts, keeps store-owed rows, forfeits magic).

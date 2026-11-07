@@ -321,6 +321,8 @@ export type AdminFulfilmentRow = {
   trackingNote: string;
   receivedAt: Date | null;
   deliveredAt: Date | null;
+  /** The family deleted its account: Spirit of Santa keeps this gift ("Keep" closes the row, no email). */
+  familyDeletedAt: Date | null;
   /** Only for gifts Spirit of Santa has (received / delivered): who it goes to. */
   kidName?: string;
   familyName?: string;
@@ -354,6 +356,7 @@ type AdminRaw = RawWish & {
   deliveredAt?: Date | null;
   familyNotifiedAt?: Date | null;
   familyNoticeSkippedAt?: Date | null;
+  familyDeletedAt?: Date | null;
 };
 export const ADMIN_LIMIT = 300;
 
@@ -381,7 +384,7 @@ async function recipients(rows: { kidId: unknown; familyId: unknown }[]) {
  */
 export async function adminFulfilment(adminId: string, now = new Date()): Promise<AdminFulfilment> {
   await connectDb();
-  const fields = "itemId storeId kidId familyId status needsSubstitute fullyFundedAt shippedAt trackingNote receivedAt deliveredAt familyNotifiedAt familyNoticeSkippedAt";
+  const fields = "itemId storeId kidId familyId status needsSubstitute fullyFundedAt shippedAt trackingNote receivedAt deliveredAt familyNotifiedAt familyNoticeSkippedAt familyDeletedAt";
   const filters = {
     substitutes: { needsSubstitute: true, status: trusted({ $in: ["fully_funded", "locked"] }) },
     inTransit: { status: "shipped", receivedAt: null },
@@ -422,8 +425,9 @@ export async function adminFulfilment(adminId: string, now = new Date()): Promis
       trackingNote: r.trackingNote ?? "",
       receivedAt: r.receivedAt ?? null,
       deliveredAt: r.deliveredAt ?? null,
+      familyDeletedAt: r.familyDeletedAt ?? null,
       ...(w ? { kidName: w.kidName ?? "", familyName: w.familyName ?? "", parentEmail: w.parent?.email ?? "", familyNotice: notice(r) } : {}),
-      ...(r.status === "shipped" && r.receivedAt ? { address: addresses.get(String(r.familyId)) ?? "missing" } : {}),
+      ...(r.status === "shipped" && r.receivedAt && !r.familyDeletedAt ? { address: addresses.get(String(r.familyId)) ?? "missing" } : {}),
     };
   };
   const list = ([rows, total]: [AdminRaw[], number], who: boolean): AdminList => ({ rows: rows.map((r) => toRow(r, who)), total });

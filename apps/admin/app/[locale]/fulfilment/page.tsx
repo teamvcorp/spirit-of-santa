@@ -88,6 +88,14 @@ async function Content() {
               {f.toSend.rows.map((r) => (
                 <li key={r.id} className="flex flex-col gap-2 py-3" data-ref={r.ref}>
                   {head(r)}
+                  {r.familyDeletedAt ? (
+                    // COPPA deletion: nobody to send it to. Spirit of Santa keeps the gift; "Keep" closes the row.
+                    <>
+                      <p className="text-sm font-semibold" data-testid="family-deleted">{t("familyDeleted")}</p>
+                      <StepButton wishId={r.id} kind="kept" />
+                    </>
+                  ) : (
+                  <>
                   {who(r)}
                   {Array.isArray(r.address) ? (
                     <address className="whitespace-pre-line rounded-lg bg-foreground/5 p-3 text-sm not-italic" data-testid="address">
@@ -98,6 +106,8 @@ async function Content() {
                   )}
                   <p className="text-sm text-muted">{t("receivedOn", { date: day(r.receivedAt) })}</p>
                   <StepButton wishId={r.id} kind="sent" />
+                  </>
+                  )}
                 </li>
               ))}
             </ul>
@@ -116,7 +126,7 @@ async function Content() {
                   {head(r)}
                   {who(r)}
                   <p className="text-sm text-muted">
-                    {t("sentOn", { date: day(r.deliveredAt) })} · <span data-notice={r.familyNotice}>{t(`notice.${r.familyNotice ?? "pending"}`)}</span>
+                    {t("sentOn", { date: day(r.deliveredAt) })} · <span data-notice={r.familyNotice}>{r.familyDeletedAt ? t("notice.kept") : t(`notice.${r.familyNotice ?? "pending"}`)}</span>
                   </p>
                 </li>
               ))}

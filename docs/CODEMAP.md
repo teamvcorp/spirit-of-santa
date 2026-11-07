@@ -703,6 +703,17 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   (parent-pin.ts needs Next, tests import the real rule). Accepted: a release can cancel one later strike in a rare
   interleaving (documented in attempts.ts).
 
+- **Slice 2a account deletion (2026-11-07).** `@repo/families/erase`: eraseKid (replaces deleteKid, which deleted
+  store-OWED wish rows) + eraseFamily + erasePreview. Open gifts → `releaseGiftInSession` (@repo/wishlists/engine,
+  the ONE release path, also used by removeFromList) then all magic → one ledger "forfeit" (key erase:<kidId>, counted
+  as kept by SoS in seasonMoney). Locked/shipped/delivered rows KEPT with `familyDeletedAt` (admin "Keep for Spirit of
+  Santa" = same server step as Sent, no address/email). Deeds, votes, kid, family, parent user, email tokens deleted;
+  ledger/payments/audit kept (ids only). Deed creation re-checks the kid under the kid-deeds lock. Page
+  /parent/delete-account (PIN + password via `@repo/auth/reauth` verifyAccountPassword + DELETE/BORRAR), goodbye page
+  /account-deleted, `accountDeleted` email, `@repo/auth/end-session` (expires __Host- cookies with their options).
+  Server redirect, not reloadTo (cookie-changing action re-renders the current page → would bounce to sign-in).
+  E2E `browser-family-erase.ts` (25). Stale `apps/*/tsconfig.tsbuildinfo` can hide NEW message namespaces: delete it.
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.

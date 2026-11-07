@@ -157,7 +157,8 @@
     "payUpLink": "Finish gifts",
     "addressAlert": "A gift is funded! Tell us where to deliver it.",
     "addressLink": "Add a delivery address",
-    "emailSettings": "Email settings"
+    "emailSettings": "Email settings",
+    "deleteAccount": "Delete our family account"
   },
   "Register": {
     "title": "Register your children",
@@ -630,5 +631,30 @@
     "title": "Fully funded!",
     "body": "{item} is all yours. The store is setting one aside.",
     "button": "Hooray!"
+  },
+  "DeleteAccount": {
+    "title": "Delete our family account",
+    "back": "Parent area",
+    "intro": "This deletes your family's account and your children's information from Spirit of Santa, as our privacy policy promises.",
+    "willDelete": "{children, plural, =0 {Your family name, delivery address, PIN and sign-in are deleted.} one {Your child's name, birth year, good deeds and wish list are deleted, and so are your family name, delivery address, PIN and sign-in.} other {Your # children's names, birth years, good deeds and wish lists are deleted, and so are your family name, delivery address, PIN and sign-in.}}",
+    "willGiveMagic": "The {magic} Christmas Magic your children have goes to Spirit of Santa to help other children.",
+    "willKeepGifts": "{count, plural, one {One gift is already on its way from a store. Spirit of Santa keeps it (we can't send it without your address).} other {# gifts are already on their way from stores. Spirit of Santa keeps them (we can't send them without your address).}}",
+    "willKeepRecords": "We keep only payment and donation records, with no names, because the law requires it.",
+    "cannotUndo": "This can't be undone.",
+    "password": "Your account password",
+    "confirmLabel": "Type {word} to confirm",
+    "confirmWord": "DELETE",
+    "submit": "Delete our family account",
+    "errors": {
+      "locked": "Your parent area is locked. Enter your PIN and try again.",
+      "confirmWord": "Type the word exactly as shown to confirm.",
+      "wrongPassword": "That password isn't right. After several tries, it's paused for 15 minutes.",
+      "notFound": "We couldn't find your family account."
+    }
+  },
+  "AccountDeleted": {
+    "title": "Your family account was deleted",
+    "body": "Your children's information and your account are gone, and we've emailed you a confirmation.\nThank you for being part of Spirit of Santa.",
+    "home": "Back to the home page"
   }
 }

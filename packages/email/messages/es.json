@@ -107,6 +107,12 @@
       "heading": "Se cambió tu contraseña",
       "body": "La contraseña de esta cuenta de Spirit of Santa se acaba de cambiar con un enlace de restablecimiento y se cerró la sesión en todos los dispositivos. Si fuiste tú, no tienes que hacer nada más. Si no fuiste tú, restablece tu contraseña de nuevo de inmediato y comunícate con el equipo de Spirit of Santa.",
       "button": "Iniciar sesión"
+    },
+    "accountDeleted": {
+      "subject": "Se eliminó tu cuenta familiar de Spirit of Santa",
+      "heading": "Se eliminó tu cuenta familiar",
+      "body": "Como lo pediste, eliminamos tu cuenta familiar de Spirit of Santa: los nombres y años de nacimiento de tus hijos, sus buenas acciones y listas de deseos, tu dirección de entrega y tu acceso. La Magia Navideña que quedaba pasó a Spirit of Santa para ayudar a otros niños. Solo guardamos registros de pagos y donaciones sin nombres, como lo exige la ley. Si no pediste esto, comunícate de inmediato con el equipo de Spirit of Santa.",
+      "button": "Visitar Spirit of Santa"
     }
   }
 }

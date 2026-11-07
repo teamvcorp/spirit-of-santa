@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./kids": "./src/kids.ts",
+    "./erase": "./src/erase.ts",
     "./registration": "./src/registration.ts",
     "./schemas": "./src/schemas.ts",
     "./votes": "./src/votes.ts",

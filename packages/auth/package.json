@@ -26,6 +26,8 @@
     "./token-slot": "./src/token-slot.tsx",
     "./family-owner": "./src/family-owner.ts",
     "./sealed": "./src/sealed.ts",
+    "./reauth": "./src/reauth.ts",
+    "./end-session": "./src/end-session.ts",
     "./purpose-key": "./src/purpose-key.ts"
   },
   "scripts": {

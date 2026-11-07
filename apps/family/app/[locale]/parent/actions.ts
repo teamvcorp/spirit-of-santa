@@ -7,7 +7,10 @@ import { randomUUID } from "node:crypto";
 import { refresh } from "next/cache";
 import { setParentPinWithPassword, unlockParentDashboard, lockParentDashboard } from "@repo/auth/parent-pin";
 import { fieldErrors } from "@repo/auth/schemas";
-import { addKid, deleteKid, getKid, updateKid } from "@repo/families/kids";
+import { addKid, getKid, updateKid } from "@repo/families/kids";
+import { eraseFamily, eraseKid } from "@repo/families/erase";
+import { endSessionCookies } from "@repo/auth/end-session";
+import { verifyAccountPassword } from "@repo/auth/reauth";
 import { familyAliasSchema, kidSchema, voteSchema } from "@repo/families/schemas";
 import { setFamilyAlias } from "@repo/families/settings";
 import { castVote } from "@repo/families/votes";
@@ -102,7 +105,7 @@ export async function deleteKidAction(_prev: ParentFormState, fd: FormData): Pro
   const parent = await unlockedParentOrNull();
   if (!parent) return err("locked");
   if (str(fd, "confirm") !== "yes") return err("confirmRequired");
-  const r = await deleteKid(parent, str(fd, "id"));
+  const r = await eraseKid(parent, str(fd, "id"));
   if (!r.ok) return err(r.error);
   refresh();
   return { status: "done", nonce: randomUUID() };
@@ -131,4 +134,27 @@ export async function aliasAction(_prev: ParentFormState, fd: FormData): Promise
   if (!r.ok) return err("noFamily", values);
   refresh();
   return { status: "done", nonce: randomUUID() };
+}
+
+/** Words that confirm "delete my family account" (either language, any capitals). */
+const DELETE_WORDS = new Set(["DELETE", "BORRAR"]);
+
+/**
+ * Delete the WHOLE family account (Phase 8, COPPA deletion right). Three checks, all on the server:
+ * PIN unlocked, the typed confirmation word, and the account password (sign-in lockout, reauth.ts).
+ * Then @repo/families/erase does the deletion (and emails the parent a confirmation); this browser is
+ * signed out, then REDIRECTED (server side) to the public goodbye page. Not reloadTo: changing cookies in an action
+ * makes Next re-render the CURRENT page, which (account gone) would bounce to sign-in before the client could
+ * follow a returned path. A server redirect renders the goodbye page instead (found by browser-family-erase E2E).
+ */
+export async function deleteAccountAction(_prev: ParentFormState, fd: FormData): Promise<ParentFormState> {
+  const parent = await unlockedParentOrNull();
+  if (!parent) return err("locked");
+  if (!DELETE_WORDS.has(str(fd, "confirm").trim().toUpperCase())) return err("confirmWord");
+  if (!(await verifyAccountPassword(parent.id, str(fd, "password"), { role: "parent" }))) return err("wrongPassword");
+  const r = await eraseFamily(parent);
+  if (!r.ok) return err("notFound");
+  await lockParentDashboard();
+  await endSessionCookies("family");
+  return go("/account-deleted", fd);
 }

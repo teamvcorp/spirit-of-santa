@@ -157,7 +157,8 @@
     "payUpLink": "Completar regalos",
     "addressAlert": "¡Un regalo está completo! Dinos dónde entregarlo.",
     "addressLink": "Agregar dirección de entrega",
-    "emailSettings": "Correos"
+    "emailSettings": "Correos",
+    "deleteAccount": "Eliminar nuestra cuenta familiar"
   },
   "Register": {
     "title": "Registra a tus hijos",
@@ -630,5 +631,30 @@
     "title": "¡Completo!",
     "body": "{item} ya es tuyo. La tienda está apartando uno.",
     "button": "¡Bravo!"
+  },
+  "DeleteAccount": {
+    "title": "Eliminar nuestra cuenta familiar",
+    "back": "Área para padres",
+    "intro": "Esto elimina la cuenta de tu familia y la información de tus hijos de Spirit of Santa, como lo promete nuestra política de privacidad.",
+    "willDelete": "{children, plural, =0 {Se eliminan tu apellido familiar, dirección de entrega, PIN y acceso.} one {Se eliminan el nombre, el año de nacimiento, las buenas acciones y la lista de deseos de tu hijo, y también tu apellido familiar, dirección de entrega, PIN y acceso.} other {Se eliminan los nombres, años de nacimiento, buenas acciones y listas de deseos de tus # hijos, y también tu apellido familiar, dirección de entrega, PIN y acceso.}}",
+    "willGiveMagic": "Los {magic} de Magia Navideña de tus hijos pasan a Spirit of Santa para ayudar a otros niños.",
+    "willKeepGifts": "{count, plural, one {Un regalo ya viene en camino desde una tienda. Spirit of Santa se lo queda (no podemos enviarlo sin tu dirección).} other {# regalos ya vienen en camino desde tiendas. Spirit of Santa se los queda (no podemos enviarlos sin tu dirección).}}",
+    "willKeepRecords": "Solo guardamos registros de pagos y donaciones, sin nombres, porque la ley lo exige.",
+    "cannotUndo": "Esto no se puede deshacer.",
+    "password": "La contraseña de tu cuenta",
+    "confirmLabel": "Escribe {word} para confirmar",
+    "confirmWord": "BORRAR",
+    "submit": "Eliminar nuestra cuenta familiar",
+    "errors": {
+      "locked": "Tu área para padres está bloqueada. Ingresa tu PIN e inténtalo de nuevo.",
+      "confirmWord": "Escribe la palabra exactamente como se muestra para confirmar.",
+      "wrongPassword": "Esa contraseña no es correcta. Después de varios intentos, se pausa por 15 minutos.",
+      "notFound": "No encontramos tu cuenta familiar."
+    }
+  },
+  "AccountDeleted": {
+    "title": "Se eliminó tu cuenta familiar",
+    "body": "La información de tus hijos y tu cuenta ya no existen, y te enviamos una confirmación por correo.\nGracias por ser parte de Spirit of Santa.",
+    "home": "Volver a la página principal"
   }
 }

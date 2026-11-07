@@ -61,6 +61,8 @@ export async function recordDeed(parent: Parent, rawKidId: string, input: Record
   await ensureLock(lock);
   const created = await withTransaction(async (session) => {
     await takeLock(lock, session);
+    // The child may have been deleted since it was looked up (families/erase.ts takes this same lock).
+    if (!(await Kid.exists({ _id: kid.kidId }).session(session))) return false;
     const today = await Deed.countDocuments({ kidId: kid.kidId, createdAt: trusted({ $gte: todayStart }) }).session(session);
     if (today >= MAX_DEEDS_PER_KID_PER_DAY) return false;
     await Deed.create(

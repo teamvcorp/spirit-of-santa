@@ -276,6 +276,50 @@ export async function addToList(
   }
 }
 
+/** A gift row as releaseGiftInSession needs it. */
+export type ReleasableGift = {
+  _id: unknown;
+  kidId: unknown;
+  familyId: unknown;
+  itemId: unknown;
+  /** Only gifts not yet locked can be released. */
+  status: "active" | "fully_funded";
+  fundedCentipoints: number;
+  inventoryReserved?: boolean | null;
+  seasonYear: number;
+};
+
+/**
+ * THE one way a not-yet-locked gift leaves a wish list (shared by the parent's "Remove" and account/child
+ * deletion, Phase 8): status → removed, its points back from escrow to available (ledger "release"), and a
+ * unit the store set aside goes back to the store's stock. Runs inside the caller's transaction; the caller
+ * decides what happens to the released points next (re-allocate to the next gift, or forfeit on deletion).
+ * Compare-and-set on status + funded amount: throws if the row changed meanwhile (the transaction retries).
+ */
+export async function releaseGiftInSession(w: ReleasableGift, session: DbSession, now = new Date()): Promise<void> {
+  const id = String(w._id);
+  const kidId = String(w.kidId);
+  const res = await WishListItem.updateOne(
+    { _id: id, status: w.status, fundedCentipoints: w.fundedCentipoints },
+    { $set: { status: "removed", removedAt: now } },
+    { session },
+  );
+  if (res.modifiedCount !== 1) throw new Error("wish list item changed during removal");
+  if (w.fundedCentipoints > 0) {
+    const k = await Kid.updateOne(
+      { _id: kidId, escrowedCentipoints: trusted({ $gte: w.fundedCentipoints }) },
+      { $inc: { availableCentipoints: w.fundedCentipoints, escrowedCentipoints: -w.fundedCentipoints } },
+      { session },
+    );
+    if (k.modifiedCount !== 1) throw new Error("escrow balance mismatch");
+    await Transaction.create(
+      [{ kidId, familyId: String(w.familyId), seasonYear: w.seasonYear, type: "release", amountCentipoints: w.fundedCentipoints, wishListItemId: id }],
+      { session },
+    );
+  }
+  if (w.inventoryReserved) await Item.updateOne({ _id: String(w.itemId) }, { $inc: { inventory: 1 } }, { session }); // unit back to the store
+}
+
 export type RemoveResult =
   | { ok: true; releasedCentipoints: number; kidId: string }
   | { ok: false; error: "notFound" | "seasonNotOpen" | "locked" };
@@ -322,48 +366,8 @@ export async function removeFromList(
       if (!isRemovable(w.status, w.fullyFundedAt, now))
         return { ok: false, error: "locked" };
       const kidId = String(w.kidId);
-      const res = await WishListItem.updateOne(
-        { _id: id, status: w.status, fundedCentipoints: w.fundedCentipoints },
-        { $set: { status: "removed", removedAt: now } },
-        { session },
-      );
-      if (res.modifiedCount !== 1)
-        throw new Error("wish list item changed during removal");
-      if (w.fundedCentipoints > 0) {
-        const k = await Kid.updateOne(
-          {
-            _id: kidId,
-            escrowedCentipoints: trusted({ $gte: w.fundedCentipoints }),
-          },
-          {
-            $inc: {
-              availableCentipoints: w.fundedCentipoints,
-              escrowedCentipoints: -w.fundedCentipoints,
-            },
-          },
-          { session },
-        );
-        if (k.modifiedCount !== 1) throw new Error("escrow balance mismatch");
-        await Transaction.create(
-          [
-            {
-              kidId,
-              familyId: fid,
-              seasonYear: w.seasonYear,
-              type: "release",
-              amountCentipoints: w.fundedCentipoints,
-              wishListItemId: id,
-            },
-          ],
-          { session },
-        );
-      }
-      if (w.inventoryReserved)
-        await Item.updateOne(
-          { _id: String(w.itemId) },
-          { $inc: { inventory: 1 } },
-          { session },
-        ); // unit back to the store
+      // Status narrowed by the check above (only active / fully_funded reach here).
+      await releaseGiftInSession({ ...w, status: w.status as "active" | "fully_funded", _id: id, familyId: fid }, session, now);
       await allocateForKid(kidId, session, now); // released points flow to the next oldest item
       if ((await getSeasonState(new Date())).phase !== "open")
         throw new SeasonChanged(); // freeze landed mid-request: undo

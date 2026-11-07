@@ -545,10 +545,13 @@
       "emailed": "correo enviado al padre/madre",
       "pending": "correo al padre/madre pendiente (se reintenta cada día durante 14 días)",
       "failed": "correo NO enviado: contacta al padre o la madre",
-      "none": "sin correo (niño o familia eliminados)"
+      "none": "sin correo (niño o familia eliminados)",
+      "kept": "lo guardó Spirit of Santa (cuenta eliminada)"
     },
     "addressMissing": "Todavía no hay dirección de entrega: se le pide al padre o la madre en su área de padres. También puedes escribirle por correo.",
-    "addressUnreadable": "La dirección guardada no se puede leer (¿cambió la clave de cifrado?). Pide al padre o la madre que la escriba de nuevo."
+    "addressUnreadable": "La dirección guardada no se puede leer (¿cambió la clave de cifrado?). Pide al padre o la madre que la escriba de nuevo.",
+    "familyDeleted": "Esta familia eliminó su cuenta. No hay a quién enviarlo: Spirit of Santa se queda con el regalo.",
+    "markKept": "Lo guarda Spirit of Santa"
   },
   "Payouts": {
     "title": "Pagos a tiendas",

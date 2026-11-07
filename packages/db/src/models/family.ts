@@ -23,6 +23,18 @@ const familySchema = new Schema(
     deliveryAddressUpdatedAt: Date,
 
     /**
+     * "Deliver, then delete" (Phase 8, owner decision 2026-11-07): the parent deleted the account while a paid
+     * gift was on its way and chose to receive it. The children and the sign-in are already gone; this record
+     * is then cut down to ONLY familyName + the delivery address + the contact below, refused by every family
+     * action (ownFamilyId), and deleted by the daily job once the gifts are delivered, at the latest by
+     * deletionDeadline (@repo/families/erase).
+     */
+    deletionRequestedAt: { type: Date, index: { sparse: true } },
+    deletionDeadline: Date,
+    /** Parent email + language for the delivery email and the final "deleted" email, ENCRYPTED (address key). */
+    deletionContactEnc: { type: String, maxlength: 2000, select: false },
+
+    /**
      * Parent email notifications (Phase 7). Missing = ON. Bookkeeping so nothing is sent twice:
      * lastDigestAt = news up to here was already emailed; *SentYear = that season's reminder went out.
      */

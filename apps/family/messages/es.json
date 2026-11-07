@@ -66,7 +66,7 @@
       },
       "keep": {
         "title": "Cuánto tiempo la guardamos",
-        "body": "La Magia Navideña se reinicia cada 1 de enero. Guardamos la información de tu familia mientras tu cuenta esté abierta y borramos la información de un niño cuando nos lo pidas.\nVisitantes: los datos de los recibos de donación se guardan como registros de la organización benéfica; el número de celular para pagar más tarde y la hora en que aceptaste se guardan hasta 13 meses y luego se borran.\nLa dirección de entrega se borra automáticamente en cuanto se entregan todos los regalos completos; puedes borrarla tú cuando quieras."
+        "body": "La Magia Navideña se reinicia cada 1 de enero. Guardamos la información de tu familia mientras tu cuenta esté abierta y borramos la información de un niño cuando nos lo pidas.\nVisitantes: los datos de los recibos de donación se guardan como registros de la organización benéfica; el número de celular para pagar más tarde y la hora en que aceptaste se guardan hasta 13 meses y luego se borran.\nLa dirección de entrega se borra automáticamente en cuanto se entregan todos los regalos completos; puedes borrarla tú cuando quieras.\nSi eliminas tu cuenta mientras un regalo pagado va en camino, puedes elegir recibirlo primero: entonces eliminamos de inmediato la información de tus hijos y guardamos solo tu correo, tu apellido familiar y tu dirección de entrega hasta que llegue (como máximo 45 días), y luego también los eliminamos."
       },
       "contact": {
         "title": "Contacto",
@@ -636,9 +636,9 @@
     "title": "Eliminar nuestra cuenta familiar",
     "back": "Área para padres",
     "intro": "Esto elimina la cuenta de tu familia y la información de tus hijos de Spirit of Santa, como lo promete nuestra política de privacidad.",
-    "willDelete": "{children, plural, =0 {Se eliminan tu apellido familiar, dirección de entrega, PIN y acceso.} one {Se eliminan el nombre, el año de nacimiento, las buenas acciones y la lista de deseos de tu hijo, y también tu apellido familiar, dirección de entrega, PIN y acceso.} other {Se eliminan los nombres, años de nacimiento, buenas acciones y listas de deseos de tus # hijos, y también tu apellido familiar, dirección de entrega, PIN y acceso.}}",
+    "willDelete": "{children, plural, =0 {Se eliminan tu acceso, tu PIN y la configuración de tu familia.} one {Se eliminan el nombre, el año de nacimiento, las buenas acciones y la lista de deseos de tu hijo, y también tu acceso, tu PIN y la configuración de tu familia.} other {Se eliminan los nombres, años de nacimiento, buenas acciones y listas de deseos de tus # hijos, y también tu acceso, tu PIN y la configuración de tu familia.}}",
     "willGiveMagic": "Los {magic} de Magia Navideña de tus hijos pasan a Spirit of Santa para ayudar a otros niños.",
-    "willKeepGifts": "{count, plural, one {Un regalo ya viene en camino desde una tienda. Spirit of Santa se lo queda (no podemos enviarlo sin tu dirección).} other {# regalos ya vienen en camino desde tiendas. Spirit of Santa se los queda (no podemos enviarlos sin tu dirección).}}",
+    "willKeepGifts": "{count, plural, one {Un regalo ya viene en camino desde una tienda. Sin una dirección de entrega no podemos enviarlo, así que Spirit of Santa se lo queda.} other {# regalos ya vienen en camino desde tiendas. Sin una dirección de entrega no podemos enviarlos, así que Spirit of Santa se los queda.}}",
     "willKeepRecords": "Solo guardamos registros de pagos y donaciones, sin nombres, porque la ley lo exige.",
     "cannotUndo": "Esto no se puede deshacer.",
     "password": "La contraseña de tu cuenta",
@@ -651,11 +651,20 @@
       "wrongPassword": "Esa contraseña no es correcta. Después de varios intentos, se pausa por 15 minutos.",
       "notFound": "No encontramos tu cuenta familiar.",
       "failed": "La eliminación no terminó. Inténtalo de nuevo: continúa donde se detuvo."
-    }
+    },
+    "addAddressFirst": "¿Lo quieres? Agrega primero tu dirección de entrega.",
+    "chooseLabel": "{count, plural, one {Un regalo ya viene en camino desde una tienda. ¿Qué hacemos con él?} other {# regalos ya vienen en camino desde tiendas. ¿Qué hacemos con ellos?}}",
+    "deliverFirst": "Entregarlo primero (recomendado). Guardamos solo tu correo, tu apellido familiar y tu dirección de entrega hasta que llegue, como máximo {days} días, y luego también los eliminamos.",
+    "deleteNow": "Eliminar todo ahora. Spirit of Santa se queda con el regalo."
   },
   "AccountDeleted": {
     "title": "Se eliminó tu cuenta familiar",
     "body": "La información de tus hijos y tu cuenta ya no existen, y te enviamos una confirmación por correo.\nGracias por ser parte de Spirit of Santa.",
+    "home": "Volver a la página principal"
+  },
+  "AccountDeletedClosing": {
+    "title": "Se eliminó la información de tus hijos",
+    "body": "La información de tus hijos y tu acceso ya no existen. Un regalo pagado sigue en camino hacia ti: hasta que llegue guardamos solo tu correo, tu apellido familiar y tu dirección de entrega, y luego también los eliminamos y te avisamos por correo.\nGracias por ser parte de Spirit of Santa.",
     "home": "Volver a la página principal"
   }
 }

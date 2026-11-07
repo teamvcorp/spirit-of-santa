@@ -82,7 +82,8 @@ export async function getStoreDetail(storeId: string): Promise<StoreDetail | nul
     Item.countDocuments({ storeId: s._id }),
     AuditLog.find({ targetType: "store", targetId: s._id }).sort({ createdAt: -1 }).limit(20).lean(),
   ]);
-  const actors = await User.find({ _id: trusted({ $in: logs.map((l) => l.actorUserId) }) }).select("email").lean();
+  // System audit rows (daily jobs) have no actor: never put undefined into the query.
+  const actors = await User.find({ _id: trusted({ $in: logs.map((l) => l.actorUserId).filter((id) => id != null) }) }).select("email").lean();
   const actorEmail = new Map(actors.map((a) => [String(a._id), a.email]));
   return {
     id: String(s._id),

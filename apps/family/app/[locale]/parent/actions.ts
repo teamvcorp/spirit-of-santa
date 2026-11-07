@@ -11,6 +11,7 @@ import { addKid, getKid, updateKid } from "@repo/families/kids";
 import { eraseFamily, eraseKid } from "@repo/families/erase";
 import { endSessionCookies } from "@repo/auth/end-session";
 import { verifyAccountPassword } from "@repo/auth/reauth";
+import { ownFamilyId } from "@repo/auth/family-owner";
 import { familyAliasSchema, kidSchema, voteSchema } from "@repo/families/schemas";
 import { setFamilyAlias } from "@repo/families/settings";
 import { castVote } from "@repo/families/votes";
@@ -150,11 +151,13 @@ const DELETE_WORDS = new Set(["DELETE", "BORRAR"]);
 export async function deleteAccountAction(_prev: ParentFormState, fd: FormData): Promise<ParentFormState> {
   const parent = await unlockedParentOrNull();
   if (!parent) return err("locked");
+  // Already deleted or closing (e.g. a second click after the first one went through): just show the goodbye page.
+  if (!(await ownFamilyId(parent))) return go("/account-deleted", fd);
   if (!DELETE_WORDS.has(str(fd, "confirm").trim().toUpperCase())) return err("confirmWord");
   if (!(await verifyAccountPassword(parent.id, str(fd, "password"), { role: "parent" }))) return err("wrongPassword");
   let r;
   try {
-    r = await eraseFamily(parent);
+    r = await eraseFamily(parent, { mode: str(fd, "mode") === "now" ? "now" : "deliverFirst" });
   } catch (e) {
     // Part-way failure (e.g. a child added on another device meanwhile, a database blip): what was finished
     // stays finished, nothing is half-done per child (one transaction each). Trying again continues.
@@ -164,5 +167,5 @@ export async function deleteAccountAction(_prev: ParentFormState, fd: FormData):
   if (!r.ok) return err("notFound");
   await lockParentDashboard();
   await endSessionCookies("family");
-  return go("/account-deleted", fd);
+  return go(r.pending ? "/account-deleted/closing" : "/account-deleted", fd);
 }

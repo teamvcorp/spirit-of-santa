@@ -176,7 +176,11 @@ export function AliasForm({ alias, show }: { alias: string; show: boolean }) {
  * Delete the whole family account (Phase 8, COPPA). Password + a typed word, so it can't happen by a
  * stray click or by a child on an unlocked device. The server re-checks everything (deleteAccountAction).
  */
-export function DeleteAccountForm() {
+/**
+ * `giftsOnTheirWay` > 0 (and a readable address on file): the parent CHOOSES what happens to paid gifts already with a
+ * store (review 2026-11-07: it's their child's address, so it's their call). Default = deliver first.
+ */
+export function DeleteAccountForm({ giftsOnTheirWay, days }: { giftsOnTheirWay: number; days: number }) {
   const t = useTranslations("DeleteAccount");
   const [state, action, pending] = useActionState(deleteAccountAction, INITIAL);
   const hydrated = useHydrated();
@@ -185,6 +189,19 @@ export function DeleteAccountForm() {
     <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-4">
       <LocaleField />
       {state.status === "error" && state.error && <Alert tone="error">{t(`errors.${state.error}` as never)}</Alert>}
+      {giftsOnTheirWay > 0 && (
+        <fieldset className="flex flex-col gap-2" data-testid="delete-choice">
+          <legend className="mb-1 font-semibold">{t("chooseLabel", { count: giftsOnTheirWay })}</legend>
+          <label className="flex items-start gap-2">
+            <input type="radio" name="mode" value="deliverFirst" defaultChecked className="mt-1 size-4" />
+            <span>{t("deliverFirst", { days })}</span>
+          </label>
+          <label className="flex items-start gap-2">
+            <input type="radio" name="mode" value="now" className="mt-1 size-4" />
+            <span>{t("deleteNow")}</span>
+          </label>
+        </fieldset>
+      )}
       <TextField label={t("password")} name="password" type="password" autoComplete="current-password" required maxLength={256} />
       <TextField label={t("confirmLabel", { word: t("confirmWord") })} name="confirm" required maxLength={20} autoComplete="off" spellCheck={false} />
       <Button type="submit" variant="secondary" pending={pending} disabled={!hydrated} className="self-start">

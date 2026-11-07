@@ -407,7 +407,23 @@
     "family_pin_set": "PIN de padres establecido",
     "family_alias": "Apodo familiar cambiado",
     "family_alias_review": "Apodo familiar revisado",
-    "kid_vote": "Voto bueno/travieso"
+    "kid_vote": "Voto bueno/travieso",
+    "wish_ship": "La tienda envió un regalo",
+    "wish_receive": "Regalo recibido por Spirit of Santa",
+    "wish_deliver": "Regalo enviado a la familia",
+    "wish_substitute": "Regalo sustituto acordado",
+    "payout_record": "Pago a tienda registrado",
+    "family_notify_prefs": "Ajustes de correo cambiados",
+    "family_address_update": "Dirección de entrega guardada",
+    "family_address_delete": "Dirección de entrega eliminada",
+    "family_address_view": "Dirección de entrega consultada",
+    "family_delete": "Cuenta familiar eliminada",
+    "family_delete_requested": "Cuenta familiar en cierre (se entrega el regalo primero)",
+    "family_delete_finalized": "Cuenta familiar en cierre eliminada",
+    "ledger_backfill_spend": "Corrección del registro (gasto al bloquear)",
+    "kid_donation_link_reset": "Enlace de donación reemplazado",
+    "settings_update": "Ajustes cambiados",
+    "donations_split": "Regalos comunitarios repartidos"
   },
   "Moderation": {
     "title": "Revisión de textos de acciones",
@@ -551,7 +567,8 @@
     "addressMissing": "Todavía no hay dirección de entrega: se le pide al padre o la madre en su área de padres. También puedes escribirle por correo.",
     "addressUnreadable": "La dirección guardada no se puede leer (¿cambió la clave de cifrado?). Pide al padre o la madre que la escriba de nuevo.",
     "familyDeleted": "Esta familia eliminó su cuenta. No hay a quién enviarlo: Spirit of Santa se queda con el regalo.",
-    "markKept": "Lo guarda Spirit of Santa"
+    "markKept": "Lo guarda Spirit of Santa",
+    "closingBy": "Cuenta en cierre: envíalo antes del {date} o Spirit of Santa se lo queda."
   },
   "Payouts": {
     "title": "Pagos a tiendas",

@@ -39,6 +39,10 @@ export type EmailTemplates = {
   passwordChanged: { link: string };
   /** Confirmation that the family account and the children's information were deleted (Phase 8, COPPA). */
   accountDeleted: { link: string };
+  /** "Deliver, then delete" (Phase 8): children's data gone now; contact + address kept until delivery (date = latest). */
+  accountDeletionStarted: { link: string; date: string };
+  /** A closing family's gift was sent: no child name (deleted) and no sign-in link (account gone). */
+  giftOnItsWayClosing: { link: string; itemName: string };
   /**
    * Tax receipt for a community donation (Phase 5 slice 2). donorName = what the donor typed in
    * Stripe Checkout; org details typed by an admin. Body is multi-line (rendered with line breaks).
@@ -66,7 +70,7 @@ export type EmailTemplates = {
 };
 
 /** Security alerts and "you already have an account": "ignore this email" would be wrong advice. */
-const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled", "passwordChanged", "accountDeleted", "donationReceipt", "storeOrders", "giftOnItsWay", "familyDigest", "cutoffReminder", "payUpReminder"]);
+const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled", "passwordChanged", "accountDeleted", "accountDeletionStarted", "giftOnItsWayClosing", "donationReceipt", "storeOrders", "giftOnItsWay", "familyDigest", "cutoffReminder", "payUpReminder"]);
 
 /**
  * Winter Night look for emails (Phase 8.5.4). Same values as the site palette in

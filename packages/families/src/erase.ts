@@ -25,6 +25,11 @@ import { normalizeObjectId } from "@repo/lib/ids";
 import { getSeasonYear } from "@repo/lib/season";
 import { sendEmail } from "@repo/email";
 import { closePayLaterForDeed } from "@repo/payments/pay-later-links";
+import { sealJson, unsealJson } from "@repo/auth/sealed";
+import { formatLongDate } from "@repo/lib/format";
+import { DAY_MS } from "@repo/lib/time";
+import { ADDRESS_KEY, deletionContactAad, familyAwaitingDelivery, type DeletionContact } from "@repo/wishlists/delivery";
+import { FAMILY_NOTICE_RETRY_DAYS } from "@repo/wishlists/fulfilment";
 import { familyAppOrigin } from "@repo/stores/urls";
 import { releaseGiftInSession, type ReleasableGift } from "@repo/wishlists/engine";
 import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
@@ -124,20 +129,48 @@ export async function eraseKid(parent: Parent, rawKidId: string, now = new Date(
   return done ? { ok: true } : { ok: false, error: "notFound" };
 }
 
-export type EraseFamilyResult = { ok: true } | { ok: false; error: "notFound" };
+/** "deliverFirst" = keep only what delivery needs until the gifts arrive (default); "now" = delete everything now. */
+export type EraseMode = "deliverFirst" | "now";
+export type EraseFamilyResult = { ok: true; pending: false } | { ok: true; pending: true; deadline: Date } | { ok: false; error: "notFound" };
+
+/** Longest a closing family's contact + address are kept for delivery (review 2026-11-07: 90 days was too long). */
+export const DELIVER_THEN_DELETE_DAYS = 45;
+
+/**
+ * Latest date a closing family is finalised: 45 days after the request, but never past Jan 31 after that
+ * Christmas (gifts lock by Dec 1 and arrive by Dec 25), and always at least 14 days away.
+ */
+export function deletionDeadline(now: Date): Date {
+  const byDays = now.getTime() + DELIVER_THEN_DELETE_DAYS * DAY_MS;
+  const janYear = now.getUTCMonth() >= 1 ? now.getUTCFullYear() + 1 : now.getUTCFullYear(); // Feb..Dec → next Jan
+  const jan31 = Date.UTC(janYear, 0, 31, 23, 59, 59);
+  return new Date(Math.max(Math.min(byDays, jan31), now.getTime() + 14 * DAY_MS));
+}
+
+/** A delivery address that actually DECRYPTS (a stored but unreadable one can't ship anything). */
+async function usableAddress(fid: string): Promise<boolean> {
+  const f = await Family.findById(fid).select("+deliveryAddressEnc").lean<{ deliveryAddressEnc?: string }>();
+  return Boolean(f?.deliveryAddressEnc && unsealJson(f.deliveryAddressEnc, fid, ADDRESS_KEY));
+}
 
 /**
  * Delete the WHOLE family account (the caller has checked: PIN unlocked, password re-entered, confirm word).
- * Child by child (each its own transaction, retry-safe), then the family + parent account in one last
- * transaction. If anything fails half-way the parent can simply try again: finished children are gone, the
- * rest continue. Afterwards the parent is emailed a confirmation (a failed email never undoes or fails it).
+ * Child by child (each its own transaction, retry-safe): children's data is ALWAYS deleted now.
+ *
+ * Then, owner decision 2026-11-07 ("deliver, then delete"): if a paid gift is still on its way, the family has a
+ * readable delivery address and the parent chose "deliverFirst", the family is cut down to familyName + address
+ * + an encrypted contact (email, language), the sign-in account is deleted, every family action refuses it, and
+ * finalizeClosingFamilies deletes the rest once the gifts are delivered (at the latest by deletionDeadline).
+ * Otherwise everything is deleted now and Spirit of Santa keeps gifts already with a store (familyDeletedAt).
+ * If anything fails half-way the parent can simply try again: finished children are gone, the rest continue.
  */
-export async function eraseFamily(parent: Parent, now = new Date()): Promise<EraseFamilyResult> {
+export async function eraseFamily(parent: Parent, opts: { mode?: EraseMode } = {}, now = new Date()): Promise<EraseFamilyResult> {
   const fid = await ownFamilyId(parent);
   if (!fid) return { ok: false, error: "notFound" };
   await connectDb();
   const user = await User.findOne({ _id: parent.id, familyId: fid }).select("email locale").lean();
   if (!user) return { ok: false, error: "notFound" };
+  const locale = user.locale ?? "en";
 
   const kids = await Kid.find({ familyId: fid }).select("_id").lean();
   for (const k of kids) {
@@ -148,8 +181,51 @@ export async function eraseFamily(parent: Parent, now = new Date()): Promise<Era
     await closeKidPayLater(kidId);
   }
 
+  const deliver = (opts.mode ?? "deliverFirst") === "deliverFirst" && (await familyAwaitingDelivery(fid)) && (await usableAddress(fid));
+  if (deliver) {
+    const deadline = deletionDeadline(now);
+    const contactEnc = sealJson({ email: user.email, locale } satisfies DeletionContact, deletionContactAad(fid), ADDRESS_KEY);
+    await withTransaction(async (session) => {
+      // A child added in the meantime (another device)? Refuse to orphan it: the parent retries.
+      if (await Kid.exists({ familyId: fid }).session(session)) throw new Error("family still has children");
+      const fam = await Family.findOne({ _id: fid, ownerUserId: parent.id, deletionRequestedAt: null })
+        .select("+deliveryAddressEnc familyName deliveryAddressUpdatedAt ownerUserId")
+        .session(session)
+        .lean<{ _id: unknown; ownerUserId: unknown; familyName: string; deliveryAddressEnc?: string; deliveryAddressUpdatedAt?: Date }>();
+      if (!fam?.deliveryAddressEnc) throw new Error("family changed during deletion");
+      // ALLOW-LIST, not a list of fields to clear: the record is REBUILT with only what delivery needs, so
+      // nothing (alias, ZIP, PIN, consent record, notification settings, …) can be forgotten.
+      await Family.collection.replaceOne(
+        { _id: fam._id as never },
+        {
+          ownerUserId: fam.ownerUserId as never, // kept (unique field); the user it points to is deleted below
+          familyName: fam.familyName,
+          deliveryAddressEnc: fam.deliveryAddressEnc,
+          deliveryAddressUpdatedAt: fam.deliveryAddressUpdatedAt ?? now,
+          deletionRequestedAt: now,
+          deletionDeadline: deadline,
+          deletionContactEnc: contactEnc,
+          updatedAt: now,
+        },
+        { session },
+      );
+      // The sign-in goes NOW: every session is refused at its next check, old reset links die, and the email is
+      // free to sign up again. The contact above is all that's kept.
+      await ActionToken.deleteMany({ email: user.email }, { session });
+      await User.deleteOne({ _id: parent.id }, { session });
+      await AuditLog.create([{ actorUserId: parent.id, action: "family.delete_requested", targetType: "family", targetId: fid, details: { children: kids.length, mode: "deliverFirst", deadline } }], { session });
+    });
+    await sendEmail({
+      to: user.email,
+      locale,
+      template: "accountDeletionStarted",
+      values: { link: `${familyAppOrigin()}/`, date: formatLongDate(deadline, locale) },
+      idempotencyKey: `deletion-started/${fid}`,
+    }).catch((e: unknown) => console.error("[families] deletion-started email failed:", e instanceof Error ? e.message : "unknown"));
+    return { ok: true, pending: true, deadline };
+  }
+
   await withTransaction(async (session) => {
-    // A child added in the meantime (another device)? Refuse to orphan it: the parent retries.
     if (await Kid.exists({ familyId: fid }).session(session)) throw new Error("family still has children");
     // Nobody left to send gifts to: every gift a store still holds or sent us for this family (incl. children
     // deleted earlier one by one) is kept by Spirit of Santa; the store is still paid (rows stay).
@@ -161,15 +237,84 @@ export async function eraseFamily(parent: Parent, now = new Date()): Promise<Era
     await Family.deleteOne({ _id: fid, ownerUserId: parent.id }, { session });
     await ActionToken.deleteMany({ email: user.email }, { session });
     await User.deleteOne({ _id: parent.id }, { session });
-    await AuditLog.create([{ actorUserId: parent.id, action: "family.delete", targetType: "family", targetId: fid, details: { children: kids.length } }], { session });
+    await AuditLog.create([{ actorUserId: parent.id, action: "family.delete", targetType: "family", targetId: fid, details: { children: kids.length, mode: opts.mode ?? "deliverFirst" } }], { session });
   });
-  await sendEmail({ to: user.email, locale: user.locale ?? "en", template: "accountDeleted", values: { link: `${familyAppOrigin()}/` } }).catch((e: unknown) =>
+  await sendEmail({ to: user.email, locale, template: "accountDeleted", values: { link: `${familyAppOrigin()}/` }, idempotencyKey: `account-deleted/${fid}` }).catch((e: unknown) =>
     console.error("[families] account-deleted email failed:", e instanceof Error ? e.message : "unknown"),
   );
-  return { ok: true };
+  return { ok: true, pending: false };
 }
 
-export type ErasePreview = { children: number; magicCentipoints: number; giftsKept: number };
+export type FinalizeResult = { finalized: number; byCap: number; waiting: number; failed: number };
+
+/**
+ * Daily (money cron, AFTER the delivery emails): delete closing families whose gifts have all arrived and whose
+ * "on its way" email was sent or given up, or that reached deletionDeadline (then any gift still on its way is
+ * kept by Spirit of Santa; stores are still paid). Safe to run twice: the second run finds nothing.
+ */
+export async function finalizeClosingFamilies(now = new Date()): Promise<FinalizeResult> {
+  await connectDb();
+  const out: FinalizeResult = { finalized: 0, byCap: 0, waiting: 0, failed: 0 };
+  const fams = await Family.find({ deletionRequestedAt: trusted({ $ne: null }) })
+    .select("+deletionContactEnc deletionDeadline")
+    .limit(500)
+    .lean<{ _id: unknown; deletionDeadline?: Date; deletionContactEnc?: string }[]>();
+  const noticeWindowStart = new Date(now.getTime() - FAMILY_NOTICE_RETRY_DAYS * DAY_MS);
+  for (const f of fams) {
+    const fid = String(f._id);
+    const cap = !f.deletionDeadline || now.getTime() >= f.deletionDeadline.getTime();
+    if (!cap) {
+      if (await familyAwaitingDelivery(fid)) {
+        out.waiting += 1;
+        continue;
+      }
+      // Its "on its way" email is still being tried (daily retry window): wait, it needs the contact.
+      const noticePending = await WishListItem.exists({ familyId: fid, status: "delivered", familyNotifiedAt: null, familyNoticeSkippedAt: null, deliveredAt: trusted({ $gt: noticeWindowStart }) });
+      if (noticePending) {
+        out.waiting += 1;
+        continue;
+      }
+    }
+    const contact = f.deletionContactEnc ? unsealJson<DeletionContact>(f.deletionContactEnc, deletionContactAad(fid), ADDRESS_KEY) : null;
+    try {
+      const done = await withTransaction(async (session) => {
+        const still = await Family.exists({ _id: fid, deletionRequestedAt: trusted({ $ne: null }) }).session(session);
+        if (!still) return false; // another run finished it
+        if (cap) {
+          await WishListItem.updateMany(
+            { familyId: fid, status: trusted({ $in: ["locked", "shipped"] }), familyDeletedAt: null },
+            { $set: { familyDeletedAt: now } },
+            { session },
+          );
+        }
+        await Family.deleteOne({ _id: fid }, { session });
+        await AuditLog.create([{ action: "family.delete_finalized", targetType: "family", targetId: fid, details: { by: cap ? "cap" : "delivered" } }], { session });
+        return true;
+      });
+      if (!done) continue;
+      out.finalized += 1;
+      if (cap) out.byCap += 1;
+      if (contact) {
+        await sendEmail({ to: contact.email, locale: contact.locale, template: "accountDeleted", values: { link: `${familyAppOrigin()}/` }, idempotencyKey: `account-deleted/${fid}` }).catch((e: unknown) =>
+          console.error("[families] account-deleted email failed:", e instanceof Error ? e.message : "unknown"),
+        );
+      }
+    } catch (e) {
+      out.failed += 1;
+      console.error("[families] closing family not finalised (retried tomorrow):", e instanceof Error ? e.name : "unknown");
+    }
+  }
+  return out;
+}
+
+export type ErasePreview = {
+  children: number;
+  magicCentipoints: number;
+  /** Gifts already with a store (locked / shipped). */
+  giftsOnTheirWay: number;
+  /** A readable delivery address is on file, so "deliver, then delete" is possible. */
+  canDeliverFirst: boolean;
+};
 
 /** What deleting the family would do, shown BEFORE the parent confirms (read-only). */
 export async function erasePreview(parent: Parent): Promise<ErasePreview | null> {
@@ -178,12 +323,13 @@ export async function erasePreview(parent: Parent): Promise<ErasePreview | null>
   await connectDb();
   // Same rule as the deletion: available + what open (not yet locked) gifts hold. Never the escrow of gifts
   // already locked with a store (that magic was spent).
-  const [kids, open, giftsKept] = await Promise.all([
+  const [kids, open, giftsOnTheirWay, address] = await Promise.all([
     Kid.find({ familyId: fid }).select("availableCentipoints").lean(),
     WishListItem.find({ familyId: fid, status: trusted({ $in: ["active", "fully_funded"] }) }).select("fundedCentipoints").lean(),
     WishListItem.countDocuments({ familyId: fid, status: trusted({ $in: ["locked", "shipped"] }) }),
+    usableAddress(fid),
   ]);
   const magicCentipoints =
     kids.reduce((sum, k) => sum + (k.availableCentipoints ?? 0), 0) + open.reduce((sum, w) => sum + (w.fundedCentipoints ?? 0), 0);
-  return { children: kids.length, magicCentipoints, giftsKept };
+  return { children: kids.length, magicCentipoints, giftsOnTheirWay, canDeliverFirst: giftsOnTheirWay > 0 && address };
 }

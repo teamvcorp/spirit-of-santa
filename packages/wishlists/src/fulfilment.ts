@@ -32,7 +32,7 @@ import { familyAppOrigin, storeAppOrigin } from "@repo/stores/urls";
 import { unsealJson } from "@repo/auth/sealed";
 import { addressLines, type DeliveryAddress } from "@repo/lib/address";
 import { hitRateLimit } from "@repo/auth/rate-limit";
-import { ADDRESS_KEY, clearAddress, familyAwaitingDelivery } from "./delivery.ts";
+import { ADDRESS_KEY, clearAddress, deletionContactAad, familyAwaitingDelivery, type DeletionContact } from "./delivery.ts";
 import { owedForGift } from "./payout-amount.ts";
 
 /** Short reference printed on the package (last 6 hex of the id, upper case). Not secret, not guessable-useful. */
@@ -323,6 +323,8 @@ export type AdminFulfilmentRow = {
   deliveredAt: Date | null;
   /** The family deleted its account: Spirit of Santa keeps this gift ("Keep" closes the row, no email). */
   familyDeletedAt: Date | null;
+  /** "Deliver, then delete": the family's account is closing; send it before this date or Spirit of Santa keeps it. */
+  closingBy?: Date | null;
   /** Only for gifts Spirit of Santa has (received / delivered): who it goes to. */
   kidName?: string;
   familyName?: string;
@@ -364,7 +366,9 @@ export const ADMIN_LIMIT = 300;
 async function recipients(rows: { kidId: unknown; familyId: unknown }[]) {
   const [kids, families] = await Promise.all([
     Kid.find({ _id: trusted({ $in: [...new Set(rows.map((r) => String(r.kidId)))] }) }).select("firstName").lean<{ _id: unknown; firstName: string }[]>(),
-    Family.find({ _id: trusted({ $in: [...new Set(rows.map((r) => String(r.familyId)))] }) }).select("familyName ownerUserId").lean<{ _id: unknown; familyName: string; ownerUserId: unknown }[]>(),
+    Family.find({ _id: trusted({ $in: [...new Set(rows.map((r) => String(r.familyId)))] }) })
+      .select("familyName ownerUserId deletionRequestedAt deletionDeadline +deletionContactEnc")
+      .lean<{ _id: unknown; familyName: string; ownerUserId: unknown; deletionRequestedAt?: Date; deletionDeadline?: Date; deletionContactEnc?: string }[]>(),
   ]);
   const owners = await User.find({ _id: trusted({ $in: families.map((f) => String(f.ownerUserId)) }) })
     .select("email locale status")
@@ -374,7 +378,11 @@ async function recipients(rows: { kidId: unknown; familyId: unknown }[]) {
   const ownerBy = new Map(owners.map((u) => [String(u._id), u]));
   return (r: { kidId: unknown; familyId: unknown }) => {
     const fam = famBy.get(String(r.familyId));
-    return { kidName: kidBy.get(String(r.kidId)), familyName: fam?.familyName, parent: fam ? ownerBy.get(String(fam.ownerUserId)) : undefined };
+    // "Deliver, then delete" (Phase 8): the account and children are gone; only an encrypted contact remains.
+    const closing = fam?.deletionRequestedAt
+      ? { by: fam.deletionDeadline ?? null, contact: fam.deletionContactEnc ? unsealJson<DeletionContact>(fam.deletionContactEnc, deletionContactAad(String(fam._id)), ADDRESS_KEY) : null }
+      : null;
+    return { kidName: kidBy.get(String(r.kidId)), familyName: fam?.familyName, parent: fam ? ownerBy.get(String(fam.ownerUserId)) : undefined, closing };
   };
 }
 
@@ -426,7 +434,7 @@ export async function adminFulfilment(adminId: string, now = new Date()): Promis
       receivedAt: r.receivedAt ?? null,
       deliveredAt: r.deliveredAt ?? null,
       familyDeletedAt: r.familyDeletedAt ?? null,
-      ...(w ? { kidName: w.kidName ?? "", familyName: w.familyName ?? "", parentEmail: w.parent?.email ?? "", familyNotice: notice(r) } : {}),
+      ...(w ? { kidName: w.kidName ?? "", familyName: w.familyName ?? "", parentEmail: w.parent?.email ?? "", familyNotice: notice(r), ...(w.closing ? { closingBy: w.closing.by } : {}) } : {}),
       ...(r.status === "shipped" && r.receivedAt && !r.familyDeletedAt ? { address: addresses.get(String(r.familyId)) ?? "missing" } : {}),
     };
   };
@@ -579,6 +587,27 @@ async function notifyFamilies(ids: string[], budgetMs = Infinity): Promise<Notic
     const wishId = String(r._id);
     const w = whoFor(r);
     try {
+      if (w.closing) {
+        // Closing family: name-less email to the kept contact, no sign-in link (account gone). Counted as sent,
+        // never as a daily "failed" (the parent can't come back to fix anything).
+        if (!w.closing.contact) {
+          await WishListItem.updateOne({ _id: wishId, familyNotifiedAt: null }, { $set: { familyNoticeSkippedAt: new Date() } });
+          totals.none += 1;
+          continue;
+        }
+        if (i > 0) await sleep(SEND_GAP_MS);
+        const cl = isLocale(w.closing.contact.locale) ? w.closing.contact.locale : DEFAULT_LOCALE;
+        await sendEmail({
+          to: w.closing.contact.email,
+          locale: cl,
+          template: "giftOnItsWayClosing",
+          values: { link: `${familyAppOrigin()}${localizePath("/", cl)}`, itemName: names.get(String(r.itemId)) ?? "" },
+          idempotencyKey: `gift-on-its-way/${wishId}`,
+        });
+        await WishListItem.updateOne({ _id: wishId, familyNotifiedAt: null }, { $set: { familyNotifiedAt: new Date() } });
+        totals.sent += 1;
+        continue;
+      }
       if (!w.kidName || !w.familyName) {
         await WishListItem.updateOne({ _id: wishId, familyNotifiedAt: null }, { $set: { familyNoticeSkippedAt: new Date() } });
         totals.none += 1;

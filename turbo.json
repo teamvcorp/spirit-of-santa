@@ -75,6 +75,16 @@
       ],
       "outputs": []
     },
+    "@repo/db#test": {
+      "dependsOn": [
+        "transit"
+      ],
+      "outputs": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/apps/admin/messages/**"
+      ]
+    },
     "@repo/email#test": {
       "dependsOn": [
         "transit"

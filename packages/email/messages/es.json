@@ -113,6 +113,18 @@
       "heading": "Se eliminó tu cuenta familiar",
       "body": "Como lo pediste, eliminamos tu cuenta familiar de Spirit of Santa: los nombres y años de nacimiento de tus hijos, sus buenas acciones y listas de deseos, tu dirección de entrega y tu acceso. La Magia Navideña que quedaba pasó a Spirit of Santa para ayudar a otros niños. Solo guardamos registros de pagos y donaciones sin nombres, como lo exige la ley. Si no pediste esto, comunícate de inmediato con el equipo de Spirit of Santa.",
       "button": "Visitar Spirit of Santa"
+    },
+    "accountDeletionStarted": {
+      "subject": "Estamos eliminando tu cuenta familiar de Spirit of Santa",
+      "heading": "Se eliminó la información de tus hijos",
+      "body": "Como lo pediste, eliminamos los nombres y años de nacimiento de tus hijos, sus buenas acciones y listas de deseos, y tu acceso. La Magia Navideña que quedaba pasó a Spirit of Santa para ayudar a otros niños.\n\nUn regalo que ya está pagado sigue en camino hacia ti. Hasta que llegue guardamos solo tu correo, tu apellido familiar y tu dirección de entrega, nada más. Cuando se entregue, o a más tardar el {date}, también los eliminamos y te avisamos por correo.\n\nYa no puedes iniciar sesión. Si tu dirección de entrega no es correcta, comunícate con el equipo de Spirit of Santa.",
+      "button": "Visitar Spirit of Santa"
+    },
+    "giftOnItsWayClosing": {
+      "subject": "Tu regalo de Spirit of Santa va en camino",
+      "heading": "Un regalo va en camino hacia ti",
+      "body": "{itemName} fue enviado a tu dirección de entrega. Cuando lleguen todos los regalos, eliminaremos lo último de la información de tu familia, como lo pediste.",
+      "button": "Visitar Spirit of Santa"
     }
   }
 }

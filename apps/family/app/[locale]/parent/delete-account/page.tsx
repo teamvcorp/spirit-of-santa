@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
-import { erasePreview } from "@repo/families/erase";
+import { DELIVER_THEN_DELETE_DAYS, erasePreview } from "@repo/families/erase";
 import { formatPoints } from "@repo/lib/format";
 import { intlLocale } from "@repo/lib/locales";
 import { Alert } from "@repo/ui/alert";
@@ -30,12 +30,20 @@ async function Content() {
       <ul className="mb-4 list-disc pl-5 text-sm" data-testid="erase-preview">
         <li>{t("willDelete", { children: preview.children })}</li>
         {preview.magicCentipoints > 0 && <li>{t("willGiveMagic", { magic: formatPoints(preview.magicCentipoints, intlLocale(locale)) })}</li>}
-        {preview.giftsKept > 0 && <li>{t("willKeepGifts", { count: preview.giftsKept })}</li>}
+        {preview.giftsOnTheirWay > 0 && !preview.canDeliverFirst && (
+          // No usable address: the gift can't be sent. Say so, and how to get it (add the address first).
+          <li data-testid="gifts-kept">
+            {t("willKeepGifts", { count: preview.giftsOnTheirWay })}{" "}
+            <Link href="/parent/address" className="underline underline-offset-4">
+              {t("addAddressFirst")}
+            </Link>
+          </li>
+        )}
         <li>{t("willKeepRecords")}</li>
       </ul>
       <Alert tone="error">{t("cannotUndo")}</Alert>
       <div className="mt-4">
-        <DeleteAccountForm />
+        <DeleteAccountForm giftsOnTheirWay={preview.canDeliverFirst ? preview.giftsOnTheirWay : 0} days={DELIVER_THEN_DELETE_DAYS} />
       </div>
     </>
   );

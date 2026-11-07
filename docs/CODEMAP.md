@@ -736,6 +736,20 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   database); deletion shortfall branch returns the store unit + compare-and-set; `remaining` counts the batch overflow;
   verify pass batched; stronger parked-gift test. E2E: ledger-invariants 16, browser-family-erase 31.
 
+- **Deliver, then delete (2026-11-07, owner decision).** eraseFamily(parent, { mode }) — children ALWAYS erased now.
+  mode "deliverFirst" (default; only if gifts locked/shipped AND an address that DECRYPTS): Family REBUILT by
+  allow-list (familyName, address, deletionContactEnc = sealed {email, locale} with AAD deletionContactAad(fid),
+  deletionRequestedAt, deletionDeadline = min(45 days, Jan 31), ≥14 days); User + ActionTokens deleted now (sessions
+  die at next check, email free to re-register). `ownFamilyId` refuses closing families (every family action, even
+  old sessions). Delivery email for a closing family = `giftOnItsWayClosing` (no child name, no sign-in link) to the
+  kept contact. `finalizeClosingFamilies` in the money cron AFTER family notices: deletes once nothing awaits delivery
+  and the notice was sent/given up, or at the deadline (then undelivered gifts → familyDeletedAt). Audit
+  family.delete_requested / family.delete_finalized. Admin queue badge "send by". Delete page offers the choice;
+  /account-deleted/closing. Privacy "keep" clause; PRIVACY + PARENT_CONSENT versions → 2026-11-07-draft.
+  Found on the way: admin dashboard crashed on actor-less (system) audit rows → filtered (also store history);
+  16 audit actions had no labels → added en/es + unit test (packages/db/test/audit-labels.test.ts).
+  E2E `browser-family-deliver-then-delete.ts` (20).
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.

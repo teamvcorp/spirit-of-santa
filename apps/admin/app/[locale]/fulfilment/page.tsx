@@ -98,6 +98,10 @@ async function Content() {
                   ) : (
                   <>
                   {who(r)}
+                  {r.closingBy && (
+                    // "Deliver, then delete": the family closed its account; this address is kept only until delivery.
+                    <p className="text-sm font-semibold" data-testid="closing">{t("closingBy", { date: day(r.closingBy) })}</p>
+                  )}
                   {Array.isArray(r.address) ? (
                     <address className="whitespace-pre-line rounded-lg bg-foreground/5 p-3 text-sm not-italic" data-testid="address">
                       {r.address.join("\n")}

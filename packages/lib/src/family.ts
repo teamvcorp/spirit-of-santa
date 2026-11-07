@@ -10,15 +10,17 @@
 // NEVER reuse a version string: a family's stored consent.version must identify ONE exact wording.
 // History: 2026-11-05-draft (first) · 2026-11-06-draft (+ text-message & visitor sections, fd24a91) ·
 // 2026-11-06b-draft (+ delivery address, missed at Phase 6 slice 4b, + "Christmas Magic" wording).
+// 2026-11-07-draft ("deliver, then delete": what is kept for delivery when an account is deleted).
 // Families that accepted an older version keep that record (re-consent: Phase 8).
-export const PARENT_CONSENT_VERSION = "2026-11-06b-draft";
+export const PARENT_CONSENT_VERSION = "2026-11-07-draft";
 
 /**
  * Version of the WHOLE /privacy page (bump with any change). Separate from PARENT_CONSENT_VERSION
  * (what parents agreed to about their children): the visitor + text-message sections added
  * 2026-11-06 don't change anything parents agreed to (review 2026-11-06).
  */
-export const PRIVACY_VERSION = "2026-11-06b-draft"; // b: delivery address + "Christmas Magic" wording
+// c (2026-11-07): "deliver, then delete" retention when an account is deleted with a paid gift on its way.
+export const PRIVACY_VERSION = "2026-11-07-draft";
 
 /** Terms of Service version shown on /terms (bump with any change). */
 export const TERMS_VERSION = "2026-11-06b-draft"; // b: "Christmas Magic" wording

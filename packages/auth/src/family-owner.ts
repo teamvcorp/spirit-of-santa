@@ -10,11 +10,13 @@ import { normalizeObjectId } from "@repo/lib/ids";
 /** A signed-in parent as the apps pass it around (from the session). */
 export type Parent = { id: string; familyId?: string };
 
-/** The parent's own family id, or null (no family, or the session's family isn't theirs). */
+/** The parent's own family id, or null (no family, the session's family isn't theirs, or it is being deleted). */
 export async function ownFamilyId(parent: Parent): Promise<string | null> {
   const fid = normalizeObjectId(parent.familyId);
   if (!fid) return null;
   await connectDb();
-  const fam = await Family.exists({ _id: fid, ownerUserId: parent.id });
+  // A family whose account is being deleted ("deliver, then delete") is refused by EVERY family action, even
+  // from a session that hasn't noticed yet (sessions re-check the user only every 5 minutes): one rule here.
+  const fam = await Family.exists({ _id: fid, ownerUserId: parent.id, deletionRequestedAt: null });
   return fam ? fid : null;
 }

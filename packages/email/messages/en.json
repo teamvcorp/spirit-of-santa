@@ -113,6 +113,18 @@
       "heading": "Your family account was deleted",
       "body": "As you asked, we deleted your Spirit of Santa family account: your children's names, birth years, good deeds and wish lists, your delivery address and your sign-in. Any Christmas Magic left went to Spirit of Santa to help other children. We keep only payment and donation records with no names, as the law requires. If you didn't ask for this, contact the Spirit of Santa team right away.",
       "button": "Visit Spirit of Santa"
+    },
+    "accountDeletionStarted": {
+      "subject": "We're deleting your Spirit of Santa family account",
+      "heading": "Your children's information is deleted",
+      "body": "As you asked, we deleted your children's names, birth years, good deeds and wish lists, and your sign-in. Any Christmas Magic left went to Spirit of Santa to help other children.\n\nA gift that's already paid for is still on its way to you. Until it arrives we keep only your email, your family name and your delivery address, nothing else. Once it's delivered, or by {date} at the latest, we delete those too and email you.\n\nYou can't sign in any more. If your delivery address is wrong, contact the Spirit of Santa team.",
+      "button": "Visit Spirit of Santa"
+    },
+    "giftOnItsWayClosing": {
+      "subject": "Your Spirit of Santa gift is on its way",
+      "heading": "A gift is on its way to you",
+      "body": "{itemName} has been sent to your delivery address. When every gift has arrived, we delete the last of your family's information, as you asked.",
+      "button": "Visit Spirit of Santa"
     }
   }
 }

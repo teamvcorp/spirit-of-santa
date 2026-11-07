@@ -66,7 +66,7 @@
       },
       "keep": {
         "title": "How long we keep it",
-        "body": "Christmas Magic resets every January 1. We keep your family's information while your account is open, and delete a child's information when you ask us to.\nVisitors: donation receipt details are kept as the charity's records; a pay-later mobile number and the time you agreed are kept up to 13 months, then deleted.\nA delivery address is deleted automatically as soon as every funded gift has been delivered; you can delete it yourself at any time."
+        "body": "Christmas Magic resets every January 1. We keep your family's information while your account is open, and delete a child's information when you ask us to.\nVisitors: donation receipt details are kept as the charity's records; a pay-later mobile number and the time you agreed are kept up to 13 months, then deleted.\nA delivery address is deleted automatically as soon as every funded gift has been delivered; you can delete it yourself at any time.\nIf you delete your account while a paid gift is on its way, you can choose to receive it first: we then delete your children's information right away and keep only your email, family name and delivery address until it arrives (at most 45 days), then delete those too."
       },
       "contact": {
         "title": "Contact",
@@ -636,9 +636,9 @@
     "title": "Delete our family account",
     "back": "Parent area",
     "intro": "This deletes your family's account and your children's information from Spirit of Santa, as our privacy policy promises.",
-    "willDelete": "{children, plural, =0 {Your family name, delivery address, PIN and sign-in are deleted.} one {Your child's name, birth year, good deeds and wish list are deleted, and so are your family name, delivery address, PIN and sign-in.} other {Your # children's names, birth years, good deeds and wish lists are deleted, and so are your family name, delivery address, PIN and sign-in.}}",
+    "willDelete": "{children, plural, =0 {Your sign-in, PIN and family settings are deleted.} one {Your child's name, birth year, good deeds and wish list are deleted, and so are your sign-in, PIN and family settings.} other {Your # children's names, birth years, good deeds and wish lists are deleted, and so are your sign-in, PIN and family settings.}}",
     "willGiveMagic": "The {magic} Christmas Magic your children have goes to Spirit of Santa to help other children.",
-    "willKeepGifts": "{count, plural, one {One gift is already on its way from a store. Spirit of Santa keeps it (we can't send it without your address).} other {# gifts are already on their way from stores. Spirit of Santa keeps them (we can't send them without your address).}}",
+    "willKeepGifts": "{count, plural, one {One gift is already on its way from a store. Without a delivery address we can't send it, so Spirit of Santa keeps it.} other {# gifts are already on their way from stores. Without a delivery address we can't send them, so Spirit of Santa keeps them.}}",
     "willKeepRecords": "We keep only payment and donation records, with no names, because the law requires it.",
     "cannotUndo": "This can't be undone.",
     "password": "Your account password",
@@ -651,11 +651,20 @@
       "wrongPassword": "That password isn't right. After several tries, it's paused for 15 minutes.",
       "notFound": "We couldn't find your family account.",
       "failed": "The deletion didn't finish. Please try again: it continues where it stopped."
-    }
+    },
+    "addAddressFirst": "Want it? Add your delivery address first.",
+    "chooseLabel": "{count, plural, one {One gift is already on its way from a store. What should happen to it?} other {# gifts are already on their way from stores. What should happen to them?}}",
+    "deliverFirst": "Deliver it first (recommended). We keep only your email, family name and delivery address until it arrives, at most {days} days, then delete them too.",
+    "deleteNow": "Delete everything now. Spirit of Santa keeps the gift."
   },
   "AccountDeleted": {
     "title": "Your family account was deleted",
     "body": "Your children's information and your account are gone, and we've emailed you a confirmation.\nThank you for being part of Spirit of Santa.",
+    "home": "Back to the home page"
+  },
+  "AccountDeletedClosing": {
+    "title": "Your children's information is deleted",
+    "body": "Your children's information and your sign-in are gone. A paid gift is still on its way to you: until it arrives we keep only your email, family name and delivery address, then we delete those too and email you.\nThank you for being part of Spirit of Santa.",
     "home": "Back to the home page"
   }
 }

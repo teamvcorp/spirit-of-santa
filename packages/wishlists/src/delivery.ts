@@ -9,6 +9,13 @@ import { AWAITING_DELIVERY } from "./rules.ts";
 
 export const ADDRESS_KEY = "ADDRESS_ENCRYPTION_KEY" as const;
 
+/**
+ * "Deliver, then delete" contact (parent email + language) kept on a closing family: sealed with the address key
+ * but a DIFFERENT associated-data label, so an address can never be decrypted as a contact or the other way round.
+ */
+export const deletionContactAad = (familyId: string) => `deletion-contact:${familyId}`;
+export type DeletionContact = { email: string; locale: string };
+
 /** Does this family have a funded gift still on its way? */
 export async function familyAwaitingDelivery(familyId: string): Promise<boolean> {
   return Boolean(await WishListItem.exists({ familyId, status: trusted({ $in: [...AWAITING_DELIVERY] }) }));

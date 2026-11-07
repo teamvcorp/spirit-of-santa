@@ -407,7 +407,23 @@
     "family_pin_set": "Parent PIN set",
     "family_alias": "Family nickname changed",
     "family_alias_review": "Family nickname reviewed",
-    "kid_vote": "Naughty/Nice vote"
+    "kid_vote": "Naughty/Nice vote",
+    "wish_ship": "Store shipped a gift",
+    "wish_receive": "Gift received by Spirit of Santa",
+    "wish_deliver": "Gift sent to the family",
+    "wish_substitute": "Substitute gift arranged",
+    "payout_record": "Store payment recorded",
+    "family_notify_prefs": "Email settings changed",
+    "family_address_update": "Delivery address saved",
+    "family_address_delete": "Delivery address deleted",
+    "family_address_view": "Delivery address viewed",
+    "family_delete": "Family account deleted",
+    "family_delete_requested": "Family account closing (gift delivered first)",
+    "family_delete_finalized": "Closing family account deleted",
+    "ledger_backfill_spend": "Ledger correction (spend at lock)",
+    "kid_donation_link_reset": "Donation link replaced",
+    "settings_update": "Settings changed",
+    "donations_split": "Community gifts shared"
   },
   "Moderation": {
     "title": "Deed text review",
@@ -551,7 +567,8 @@
     "addressMissing": "No delivery address yet: the parent is asked for it in their parent area. You can also email them.",
     "addressUnreadable": "The saved address can't be read (encryption key changed?). Ask the parent to enter it again.",
     "familyDeleted": "This family deleted its account. There's no one to send it to: Spirit of Santa keeps the gift.",
-    "markKept": "Keep for Spirit of Santa"
+    "markKept": "Keep for Spirit of Santa",
+    "closingBy": "Account closing: send it by {date}, or Spirit of Santa keeps it."
   },
   "Payouts": {
     "title": "Store payouts",

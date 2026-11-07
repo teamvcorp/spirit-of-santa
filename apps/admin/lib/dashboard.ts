@@ -29,7 +29,9 @@ export async function dashboardStats() {
     countPendingTexts(),
   ]);
   // Who did each recent action (emails of at most 15 accounts).
-  const actorIds = [...new Set(activity.map((a) => String(a.actorUserId)))];
+  // System rows (daily jobs, the spend correction) have NO actor: skip them here (shown as "—"). String(undefined)
+  // used to reach the query and crash the dashboard (found by the page audit, 2026-11-07).
+  const actorIds = [...new Set(activity.filter((a) => a.actorUserId != null).map((a) => String(a.actorUserId)))];
   const actors = await User.find({ _id: trusted({ $in: actorIds }) }).select("email").lean();
   const emailOf = new Map(actors.map((u) => [String(u._id), u.email]));
   return {

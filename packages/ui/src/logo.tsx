@@ -1,29 +1,28 @@
 /**
- * Spirit of Santa logo: PLACEHOLDER (Phase 8.5; the owner has a real logo to add later).
+ * Spirit of Santa logo (owner's artwork, 2026-11-07). Every header in all three apps uses this ONE component.
  *
- * TO SWAP IN THE REAL LOGO: replace the <svg> in LogoMark below with the logo's SVG (keep
- * viewBox + `aria-hidden`), or swap it for <img src="/brand/logo.svg" alt="" …> once the file is in each
- * app's public/brand folder. Every header in all three apps uses this ONE component.
+ * The badge is a static SVG file (packages/ui/assets/logo.svg, built from the designer's original by
+ * scripts/brand/build-logo.mjs). It's IMPORTED, not inlined: Next copies it to /_next/static/media/<hash>.svg, so
+ * browsers download it once and cache it for good (a new logo gets a new hash), instead of ~70 KB of drawing in
+ * every page's HTML. It's an <img> with alt="" because the visible wordmark beside it is the accessible name.
  *
- * The mark is a gold coin with a night-blue star (works on night AND snow backgrounds); the
- * wordmark is the app's display serif.
+ * To change the logo: replace packages/ui/assets/logo-source.svg and run `npm run brand:logo`.
  */
+import logo from "../assets/logo.svg";
 import { cn } from "./cn.ts";
 
-export function LogoMark({ size = 32, className }: { size?: number; className?: string }) {
+export function LogoMark({ className }: { className?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 34 34" aria-hidden="true" className={className}>
-      {/* Colours from the theme tokens (theme.css), so a palette change reaches the logo too. */}
-      <circle cx="17" cy="17" r="16" style={{ fill: "var(--color-gold)" }} />
-      <path d="M17 7l2.6 6.2 6.6.5-5 4.3 1.6 6.5L17 21l-5.8 3.5 1.6-6.5-5-4.3 6.6-.5z" style={{ fill: "var(--color-night)" }} />
-    </svg>
+    // A plain <img>, not next/image: SVGs aren't resized by the image optimiser anyway, and this keeps the
+    // shared package free of image-loader config. width/height reserve the space (no layout jump).
+    <img src={logo.src} width={56} height={56} alt="" decoding="async" className={cn("size-12 sm:size-14", className)} />
   );
 }
 
-/** Mark + "Spirit of Santa" wordmark (the visible text is the accessible name). */
+/** Badge + "Spirit of Santa" wordmark (the visible text is the accessible name). */
 export function Logo({ label, className }: { label: string; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-2.5 font-display text-xl font-bold tracking-tight", className)}>
+    <span className={cn("inline-flex items-center gap-3 font-display text-xl font-bold tracking-tight", className)}>
       <LogoMark />
       <span>{label}</span>
     </span>

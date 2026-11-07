@@ -19,7 +19,7 @@
 | `packages/stores` | **Server-only** store business logic: `engagement.ts` (`recordItemView` for the family app in Phase 6, `wishListTotals`) + pure `engagement-math.ts`, `admin.ts` (approve/reject/suspend/reinstate/discount/invite/resend/cancel: atomic transitions + AuditLog + owner emails), `owner.ts` (profile, photos, reps; ownership re-checked from the DB on every call), `items.ts` (catalog: window, 50 limit, owner-only pricing, photos), `queries.ts` (queue, detail), `schemas.ts` (discount % → bps), `urls.ts` (STORE_APP_URL) |
 | `packages/payments` | **Server-only** Stripe: `client` (`getStripe`, `expectedLivemode`), `metadata` (`sos_*` payment-label contract), `webhook` (verify → dedupe → `handlers`) |
 | `packages/auth` | NextAuth v4 options, guards, argon2id hashing, parent PIN (server-only); UI: `SignInSlot`/`SignInForm`, `AccountMenu`, `SignOutButton`; `safeCallbackPath` (open-redirect guard); `scripts/seed-dev.ts`; account flows (`account-flows.ts`: store sign-up, verify, resend, forgot/reset), `tokens.ts` (hashed single-use links), `rate-limit.ts`, `schemas.ts`, shared forms (`forms.tsx`, `token-slot.tsx`, `form-actions.ts`) |
-| `packages/ui` | Button, TextField, Card, Alert, SiteHeader, `cn`, `theme.css` (brand tokens, `danger`, focus ring), `app-icon` (icon art + manifest factory) |
+| `packages/ui` | Button, TextField, Card, Alert, SiteHeader, `cn`, `theme.css` (brand tokens, `danger`, focus ring), `app-icon` (icon art + manifest factory), `logo`, `share-image` (link-preview card); logo files in `packages/ui/assets/` (guide: docs/brand.md) |
 | `packages/storage` | **Server-only** `images` (`uploadPublicImage`/`deletePublicImage` on public Vercel Blob, sharp re-encode); client-safe `image-rules` (limits, magic-byte sniff, `blobImagesConfig` for next.config) |
 | `packages/eslint-config` | `./base` (packages), `./next-js` (apps). only-warn + `--max-warnings 0` |
 | `packages/typescript-config` | `base`, `nextjs` (apps), `library` (lib/db/auth), `react-library` (ui) |
@@ -630,7 +630,7 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   h1–h3 use font-display (Fraunces) via a base rule; body Nunito Sans. Fonts loaded ONCE in `@repo/ui/fonts`
   (next/font, self-hosted at build; works from the shared package) → `fontVariables` on <html> in each layout.
   `buttonClass(variant, extra)` in @repo/ui/button = the ONE button look (links too); variants primary/secondary/
-  ghost/festive(berry). `Logo`/`LogoMark` in @repo/ui/logo = PLACEHOLDER (swap the SVG there for the real logo).
+  ghost/festive(berry). `Logo`/`LogoMark` in @repo/ui/logo (owner's logo since 2026-11-07, see docs/brand.md).
   SiteHeader = night bar in both modes; it RE-SCOPES --foreground/--muted/--focus so anything placed in it stays
   readable. No more brand-red/green classes anywhere. Test fixes: browser-store-dashboard reads main:visible and
   waits for the re-rendered invite list (it failed before 8.5 too: a race, not the app).
@@ -872,6 +872,18 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   photo.pathname). Stock: forms send hidden `inventoryWas`; `setInventory`/`updateItem` compare-and-set on it
   ("stockChanged" → reload); the item form only touches stock when changed. PROD: run `npm run db:sync-indexes` after
   deploy (2 new Item indexes). E2E: store-catalog (new, service level).
+
+- **Logo + link previews (2026-11-07).** Owner's logo: designer file `packages/ui/assets/logo-source.svg` →
+  `npm run brand:logo` (scripts/brand/build-logo.mjs, svgo 4.1.0 pinned) → `logo.svg` (full badge, square, hidden
+  duplicate <text> removed), `logo-icon.svg` (gift only: lettering noise below ~48px) and
+  `packages/ui/src/brand-art.generated.ts` (data: URLs, server-only, for next/og). Header: `LogoMark` = <img> of the
+  STATIC IMPORT (hashed /_next/static/media URL, cached forever; `src/assets.d.ts` gives the ui package the svg types).
+  Icons: badge (transparent ≤48px; on a tile above; admin tile now snow). Link previews (family + store layouts):
+  metadataBase = `metadataOrigin()` (@repo/lib/site: *_APP_URL → VERCEL_PROJECT_PRODUCTION_URL → VERCEL_URL →
+  localhost; never throws; unit test site.test.ts), openGraph incl. images → `app/[locale]/share-image/route.ts`
+  (NOT opengraph-image: its /en/ URL redirects under as-needed, and root-params can't be read in route handlers),
+  twitter summary_large_image. Card = `renderShareImage` (@repo/ui/share-image), generic (never child data). Guide:
+  docs/brand.md. Page audit 241 green.
 
 ## Open items / TODO
 

@@ -21,7 +21,8 @@
     "./time": "./src/time.ts",
     "./address": "./src/address.ts",
     "./notify": "./src/notify.ts",
-    "./security-headers": "./src/security-headers.ts"
+    "./security-headers": "./src/security-headers.ts",
+    "./site": "./src/site.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

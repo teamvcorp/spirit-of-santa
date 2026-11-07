@@ -28,7 +28,7 @@ Node.js version: 24.x (Project → Settings → General).
 | `BLOB_READ_WRITE_TOKEN` | – | auto/✓ | – | connect the Blob store to the **store** project only (OIDC); token only if not using OIDC |
 | `CRON_SECRET` | ✓ | ✓ | – | long random string (protects the daily jobs: store sign-up cleanup; family money job) |
 | `FAMILY_APP_URL` | ✓ | – | ✓ | `https://www.spiritofsanta.com` (link in the parent's "gift on its way" email, Phase 6) |
-| `STORE_APP_URL` | ✓ | – | ✓ | `https://store.spiritofsanta.com` (links in store emails: admin invites/approvals; the family app's daily store-orders email, Phase 6) |
+| `STORE_APP_URL` | ✓ | opt | ✓ | `https://store.spiritofsanta.com` (links in store emails: admin invites/approvals; the family app's daily store-orders email, Phase 6). In the **store** project it's optional: only the link-preview address, which otherwise uses Vercel's production domain |
 | `ADDRESS_ENCRYPTION_KEY` | ✓ | – | ✓ | NEW random value (same command as MFA below), the SAME value in family + admin. Encrypts families' delivery addresses. If lost, saved addresses can't be read: parents are asked to enter them again (they're short-lived anyway) |
 | `MFA_ENCRYPTION_KEY` | – | – | ✓ | NEW random value (command below). Encrypts admin authenticator secrets. Keep a copy somewhere safe: if it's lost, every admin re-runs setup |
 | `STRIPE_SECRET_KEY` | ✓ | – | – | Stripe live secret key |

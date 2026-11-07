@@ -9,25 +9,24 @@
  *    that opens a normal browser tab. No service worker, no offline mode, nothing to update.
  *  - iPhone uses the apple-touch-icon (180px, square, no transparency; iOS rounds corners).
  *
- * The star is a PLACEHOLDER until there's a real logo: swap <StarArt> and every icon updates.
+ * Artwork (owner's logo, 2026-11-07): the SIMPLE badge (gift + bow, no lettering), because the ring lettering
+ * turns into noise at tab size. Source + how to update: scripts/brand/build-logo.mjs.
  */
 import { ImageResponse } from "next/og";
 import type { MetadataRoute } from "next";
+import { LOGO_ICON_DATA_URL } from "./brand-art.generated.ts";
 
 export type AppIconTheme = {
-  /** Tile background. Family red, store green, admin charcoal: easy to tell apart. */
+  /** Tile behind the round badge (home-screen icons). Lets the owner tell the three apps apart. */
   background: string;
-  /** Star colour. */
-  foreground: string;
 };
 
-// Rendered PNGs can't read CSS variables: these MUST match theme.css (--color-gold, --color-night,
-// --color-night-deep, --color-berry). Winter Night, Phase 8.5.
-const GOLD = "#e0a526";
+// Rendered PNGs can't read CSS variables: these MUST match theme.css (--color-night, --color-night-deep,
+// --color-snow). Admin is snow-white (was berry red) so the red badge doesn't vanish into its tile.
 export const APP_ICON_THEMES = {
-  family: { background: "#1b2a4a", foreground: GOLD },
-  store: { background: "#0f1a33", foreground: GOLD },
-  admin: { background: "#c8102e", foreground: "#f8fafc" },
+  family: { background: "#1b2a4a" },
+  store: { background: "#0f1a33" },
+  admin: { background: "#f8fafc" },
 } satisfies Record<string, AppIconTheme>;
 
 /** Sizes for `generateImageMetadata` in app/icon.tsx → served at /icon/<id>. */
@@ -37,8 +36,13 @@ export const APP_ICON_SIZES = [32, 192, 512].map((px) => ({
   contentType: "image/png",
 }));
 
-function StarArt({ px, theme }: { px: number; theme: AppIconTheme }) {
-  const star = Math.round(px * 0.66);
+/** Up to this size (browser tabs) the badge fills the square on a see-through background: every pixel counts. */
+const TAB_ICON_MAX_PX = 48;
+
+function BadgeArt({ px, theme }: { px: number; theme: AppIconTheme }) {
+  const tab = px <= TAB_ICON_MAX_PX;
+  // Home-screen tiles: opaque tile (iOS requires it) with a margin, so the round badge isn't cut by rounded corners.
+  const badge = tab ? px : Math.round(px * 0.84);
   return (
     <div
       style={{
@@ -47,22 +51,18 @@ function StarArt({ px, theme }: { px: number; theme: AppIconTheme }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: theme.background,
+        background: tab ? "transparent" : theme.background,
       }}
     >
-      <svg width={star} height={star} viewBox="0 0 100 100">
-        <polygon
-          fill={theme.foreground}
-          points="50,4 61.8,36.8 96,36.8 68.4,57.6 78.8,92 50,71.2 21.2,92 31.6,57.6 4,36.8 38.2,36.8"
-        />
-      </svg>
+      {/* Satori (next/og) draws SVG images itself; width/height are required. */}
+      <img src={LOGO_ICON_DATA_URL} width={badge} height={badge} alt="" />
     </div>
   );
 }
 
 /** Render one square PNG icon (used by icon.tsx and apple-icon.tsx). */
 export function renderAppIcon(px: number, theme: AppIconTheme): ImageResponse {
-  return new ImageResponse(<StarArt px={px} theme={theme} />, { width: px, height: px });
+  return new ImageResponse(<BadgeArt px={px} theme={theme} />, { width: px, height: px });
 }
 
 /** Web manifest for "Add to Home screen". `display: "browser"` = shortcut, not an app. */

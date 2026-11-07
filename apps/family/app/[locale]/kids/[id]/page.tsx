@@ -15,6 +15,8 @@ import { listKidDeeds } from "@repo/deeds/deeds";
 import { donationLink, qrImage } from "@repo/deeds/donate";
 import { ResetLinkForm } from "./donation-card";
 import { WishListCard } from "./wish-list-card";
+import { NIGHT_SCOPE } from "@repo/ui/site-header";
+import { Celebration } from "../../../../components/celebration";
 import { kidWishList } from "@repo/wishlists/catalog";
 import { formatPoints } from "@repo/lib/format";
 import { Alert } from "@repo/ui/alert";
@@ -42,24 +44,26 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
   const title = (d: (typeof deeds)[number]) => d.custom || localized(d.title, locale) || t("aDeed");
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">{kid.firstName}</h1>
-          <p className="text-lg">{t("points", { points: formatPoints(kid.availableCentipoints) })}</p>
-          {tallies && <p className="text-sm text-foreground/70" data-testid="kid-tally">{t("tally", { nice: tallies.nice, naughty: tallies.naughty, year: tallies.listYear })}</p>}
+      {/* Night band (Phase 8.5): the child's name, their Christmas Magic and Santa's list. */}
+      <div style={NIGHT_SCOPE} className="mb-6 flex flex-wrap items-end justify-between gap-4 rounded-3xl bg-night p-5 text-foreground shadow-card">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-4xl font-bold">{kid.firstName}</h1>
+          {tallies && <p className="text-sm text-muted" data-testid="kid-tally">{t("tally", { nice: tallies.nice, naughty: tallies.naughty, year: tallies.listYear })}</p>}
         </div>
+        <p className="rounded-2xl bg-accent px-4 py-2 font-display text-xl font-bold text-on-accent">{t("points", { points: formatPoints(kid.availableCentipoints) })}</p>
         {kid.registered && (
-          <Link href={`/kids/${kid.id}/deed`} className={buttonClass("festive")}>
+          <Link href={`/kids/${kid.id}/deed`} className={buttonClass("festive", "w-full sm:w-auto")}>
             {t("record")}
           </Link>
         )}
       </div>
+      <Celebration funded={wishes.rows.filter((w) => w.status === "fully_funded" || w.status === "locked").map((w) => ({ id: w.id, name: w.name }))} />
       {!kid.registered && <Alert className="mb-6">{t("notRegistered")}</Alert>}
       <WishListCard kidId={kid.id} registered={kid.registered} cap={kid.itemCap} list={wishes} />
       {donate && (
         <Card className="mb-6">
           <h2 className="mb-1 text-lg font-semibold">{t("donateTitle")}</h2>
-          <p className="mb-3 text-sm text-foreground/70">{t("donateIntro")}</p>
+          <p className="mb-3 text-sm text-muted">{t("donateIntro")}</p>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             {/* eslint-disable-next-line @next/next/no-img-element -- a data: URL; next/image adds nothing */}
             <img src={donate.image} alt={t("donateQrAlt")} width={220} height={220} className="rounded-lg bg-white p-2" data-donate-url={donate.url} />
@@ -73,14 +77,14 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
       <Card>
         <h2 className="mb-3 text-lg font-semibold">{t("deedsTitle")}</h2>
         {deeds.length === 0 ? (
-          <p className="text-foreground/70">{t("noDeeds")}</p>
+          <p className="text-muted">{t("noDeeds")}</p>
         ) : (
           <ul className="flex flex-col divide-y divide-foreground/10" data-testid="kid-deeds">
             {deeds.map((d) => (
               <li key={d.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="font-semibold">{title(d)}</p>
-                  <p className="text-sm text-foreground/70">
+                  <p className="text-sm text-muted">
                     {day(d.createdAt)} · {t(`status.${d.status}` as never)}
                   </p>
                   {d.qr && <p className="mt-2 max-w-xs text-sm">{t("showQr", { until: day(d.expiresAt) })}</p>}

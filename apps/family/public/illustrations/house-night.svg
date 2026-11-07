@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 300" role="img" aria-label="A snowy house under a starry night sky">
+  <!-- PLACEHOLDER illustration (Phase 8.5). Replace this file with the custom graphic: keep the file
+       name and roughly this 13:10 shape; nothing else needs to change. See docs/illustrations.md. -->
+  <style>
+    .tw { animation: tw 3.2s ease-in-out infinite; }
+    .glow { animation: glow 4s ease-in-out infinite; }
+    @keyframes tw { 0%, 100% { opacity: .25 } 50% { opacity: 1 } }
+    @keyframes glow { 0%, 100% { opacity: .75 } 50% { opacity: 1 } }
+    @media (prefers-reduced-motion: reduce) { .tw, .glow { animation: none } }
+  </style>
+  <circle cx="318" cy="64" r="30" fill="#FFF3C4"/>
+  <circle cx="331" cy="56" r="27" fill="#14244A"/>
+  <g fill="#FFF7D6">
+    <circle class="tw" cx="40" cy="40" r="2"/>
+    <circle class="tw" cx="96" cy="78" r="1.6" style="animation-delay:1.1s"/>
+    <circle class="tw" cx="150" cy="30" r="2.2" style="animation-delay:2s"/>
+    <circle class="tw" cx="210" cy="70" r="1.4" style="animation-delay:.6s"/>
+    <circle class="tw" cx="262" cy="24" r="1.8" style="animation-delay:1.6s"/>
+    <circle class="tw" cx="370" cy="120" r="1.6" style="animation-delay:2.4s"/>
+    <circle class="tw" cx="24" cy="130" r="1.4" style="animation-delay:.9s"/>
+  </g>
+  <path d="M0 230 C 80 190, 170 200, 230 222 S 340 236, 390 214 L390 300 L0 300Z" fill="#DCE6F4"/>
+  <path d="M0 252 C 90 228, 200 240, 290 256 S 370 262, 390 254 L390 300 L0 300Z" fill="#F8FAFC"/>
+  <g transform="translate(150 150)">
+    <path d="M0 50 L45 14 L90 50 L90 104 L0 104Z" fill="#26386A"/>
+    <path d="M-8 54 L45 8 L98 54" fill="none" stroke="#F8FAFC" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect class="glow" x="16" y="62" width="20" height="18" rx="3" fill="#F5C451"/>
+    <rect class="glow" x="54" y="62" width="20" height="18" rx="3" fill="#F5C451" style="animation-delay:1.5s"/>
+    <rect x="38" y="80" width="15" height="24" rx="2" fill="#C8102E"/>
+    <rect x="64" y="18" width="10" height="20" fill="#26386A"/>
+  </g>
+  <g fill="#1F4D3A">
+    <path d="M62 236 l16 -42 l16 42z"/><path d="M84 238 l12 -30 l12 30z"/>
+    <path d="M300 238 l15 -40 l15 40z"/>
+  </g>
+</svg>

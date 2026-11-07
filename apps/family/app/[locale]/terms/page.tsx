@@ -26,7 +26,7 @@ export default async function TermsPage() {
     <main className="mx-auto w-full max-w-3xl flex-1 p-6">
       <Card>
         <h1 className="text-2xl font-bold">{t("title")}</h1>
-        <p className="mb-4 mt-1 text-sm text-foreground/70">{t("version", { version: TERMS_VERSION })}</p>
+        <p className="mb-4 mt-1 text-sm text-muted">{t("version", { version: TERMS_VERSION })}</p>
         <Alert className="mb-6">{t("draft")}</Alert>
         {/* Rate + days from the server constants (never hard-coded in the wording). */}
         <LegalSections namespace="Terms" keys={SECTIONS} values={{ days: PAY_LATER_LINK_DAYS, rate: formatCents(CENTS_PER_POINT) }} />

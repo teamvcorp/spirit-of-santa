@@ -47,7 +47,7 @@ export function DonateForm({ token }: { token: string }) {
       <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">
         {t("button")}
       </Button>
-      <p className="text-xs text-foreground/70">{t("final")}</p>
+      <p className="text-xs text-muted">{t("final")}</p>
     </form>
   );
 }

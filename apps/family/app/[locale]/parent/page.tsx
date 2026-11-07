@@ -64,7 +64,7 @@ async function Content() {
           </Link>
         </div>
         {kids.length === 0 ? (
-          <p className="text-foreground/70">{t("noKids")}</p>
+          <p className="text-muted">{t("noKids")}</p>
         ) : (
           <ul className="flex flex-col divide-y divide-foreground/10">
             {kids.map((k) => (
@@ -73,7 +73,7 @@ async function Content() {
                   <Link href={`/parent/kids/${k.id}`} className="font-semibold underline underline-offset-4">
                     {k.firstName}
                   </Link>
-                  <p className="text-sm text-foreground/70">{t("kidLine", { displayName: k.displayName, year: k.birthYear })}</p>
+                  <p className="text-sm text-muted">{t("kidLine", { displayName: k.displayName, year: k.birthYear })}</p>
                   <p className="text-sm" data-testid={`tally-${k.id}`}>
                     {tallies.has(k.id) && <>{t("tally", { nice: tallies.get(k.id)!.nice, naughty: tallies.get(k.id)!.naughty, year: tallies.get(k.id)!.listYear })} · </>}
                     {t("capLine", { cap: k.itemCap })}
@@ -93,7 +93,7 @@ async function Content() {
             ))}
           </ul>
         )}
-        <p className="mt-4 text-sm text-foreground/70">{t("awaitingNote")}</p>
+        <p className="mt-4 text-sm text-muted">{t("awaitingNote")}</p>
         {kids.some((k) => !k.registered) && (
           <Link href="/parent/register" className={buttonClass("primary", "mt-3")}>
             {t("registerKids")}
@@ -102,10 +102,10 @@ async function Content() {
       </Card>
       <Card className="mt-6">
         <h2 className="mb-1 text-lg font-semibold">{t("familyTitle")}</h2>
-        <p className="mb-4 text-sm text-foreground/70">{t("familyIntro")}</p>
+        <p className="mb-4 text-sm text-muted">{t("familyIntro")}</p>
         <AliasForm alias={settings?.alias ?? ""} show={settings?.show ?? false} />
         {settings?.alias && settings.review !== "approved" && (
-          <p className="mt-3 text-sm text-foreground/70">{settings.review === "rejected" ? t("aliasRejected") : t("aliasPending")}</p>
+          <p className="mt-3 text-sm text-muted">{settings.review === "rejected" ? t("aliasRejected") : t("aliasPending")}</p>
         )}
       </Card>
     </>

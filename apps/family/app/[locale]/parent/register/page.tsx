@@ -22,7 +22,7 @@ async function Content() {
   const parent = await requireUnlockedPage("/parent/register");
   const [kids, t] = await Promise.all([listKids(parent), getTranslations("Register")]);
   const awaiting = kids.filter((k) => !k.registered).map((k) => ({ id: k.id, firstName: k.firstName }));
-  if (awaiting.length === 0) return <p className="text-foreground/70">{t("nothingToDo")}</p>;
+  if (awaiting.length === 0) return <p className="text-muted">{t("nothingToDo")}</p>;
   return <RegisterKidsForm kids={awaiting} feeCents={REGISTRATION_FEE_CENTS} />;
 }
 
@@ -35,7 +35,7 @@ export default async function RegisterKidsPage() {
       </Link>
       <Card>
         <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
-        <p className="mb-6 text-foreground/70">{t("intro")}</p>
+        <p className="mb-6 text-muted">{t("intro")}</p>
         <Suspense fallback={null}>
           <Content />
         </Suspense>

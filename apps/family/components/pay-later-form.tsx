@@ -55,7 +55,7 @@ export function PayLaterPreview() {
       <Button type="submit" disabled className="self-start">
         {t("button")}
       </Button>
-      <p id="paylater-preview-note" className="text-xs text-foreground/70">
+      <p id="paylater-preview-note" className="text-xs text-muted">
         {t("previewNote")}
       </p>
     </form>

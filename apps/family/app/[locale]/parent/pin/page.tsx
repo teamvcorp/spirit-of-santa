@@ -27,7 +27,7 @@ export default async function UnlockPage(props: PageProps<"/[locale]/parent/pin"
     <main className="flex flex-1 items-center justify-center p-6">
       <Card className="w-full max-w-sm">
         <h1 className="text-2xl font-bold">{t("unlockTitle")}</h1>
-        <p className="mb-6 mt-1 text-foreground/70">{t("unlockIntro")}</p>
+        <p className="mb-6 mt-1 text-muted">{t("unlockIntro")}</p>
         <Suspense fallback={null}>
           <Guarded searchParams={props.searchParams} />
         </Suspense>

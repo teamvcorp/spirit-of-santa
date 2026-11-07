@@ -49,11 +49,11 @@ export function QrActions({ token, kidName, rate }: { token: string; kidName: st
         <Button type="submit" pending={thanking} disabled={!hydrated} className="self-start">
           {t("sayThanks")}
         </Button>
-        <p className="text-sm text-foreground/70">{t("sayThanksHelp")}</p>
+        <p className="text-sm text-muted">{t("sayThanksHelp")}</p>
       </form>
       <form key={tip.nonce ?? "initial"} action={tipFormAction} className="flex flex-col gap-3 border-t border-foreground/15 pt-6">
         <h2 className="text-lg font-semibold">{t("tipTitle")}</h2>
-        <p className="text-sm text-foreground/70">{t("tipHelp", { rate })}</p>
+        <p className="text-sm text-muted">{t("tipHelp", { rate })}</p>
         {tipError && (
           <Alert tone="error">
             {tipError === "amount" ? t("errors.amount", { min: formatCents(MIN_TIP_CENTS), max: formatCents(MAX_TIP_CENTS) }) : t(`errors.${tipError}` as never)}
@@ -65,7 +65,7 @@ export function QrActions({ token, kidName, rate }: { token: string; kidName: st
         <Button type="submit" variant="secondary" pending={tipping} disabled={!hydrated} className="self-start">
           {t("tipButton")}
         </Button>
-        <p className="text-xs text-foreground/70">{t("final")}</p>
+        <p className="text-xs text-muted">{t("final")}</p>
       </form>
     </div>
   );

@@ -618,5 +618,17 @@
     "scopes": {
       "digest": "Resumen diario (magia + buenas acciones)"
     }
+  },
+  "Tabs": {
+    "label": "Principal",
+    "home": "Inicio",
+    "wishlist": "Deseos",
+    "gifts": "Regalos",
+    "parent": "Padres"
+  },
+  "Celebrate": {
+    "title": "¡Completo!",
+    "body": "{item} ya es tuyo. La tienda está apartando uno.",
+    "button": "¡Bravo!"
   }
 }

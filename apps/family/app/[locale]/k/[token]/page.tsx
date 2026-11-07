@@ -31,7 +31,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/k/[token]">["p
       <h1 className="text-3xl font-bold" data-testid="kid-name">
         {t("heading", { name: page.kidName })}
       </h1>
-      {page.familyAlias && <p className="text-foreground/70">{t("family", { family: page.familyAlias })}</p>}
+      {page.familyAlias && <p className="text-muted">{t("family", { family: page.familyAlias })}</p>}
       <p>{t("intro", { rate: formatCents(CENTS_PER_POINT), name: page.kidName })}</p>
       {page.seasonOpen ? <DonateForm token={token} /> : <Alert>{t("errors.seasonClosed")}</Alert>}
     </div>

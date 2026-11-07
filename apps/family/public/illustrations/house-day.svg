@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 300" role="img" aria-label="A snowy house on a bright winter day">
+  <!-- PLACEHOLDER illustration (Phase 8.5). Replace this file with the custom graphic: keep the file
+       name and roughly this 13:10 shape; nothing else needs to change. See docs/illustrations.md. -->
+  <circle cx="312" cy="70" r="34" fill="#FFE7A3"/>
+  <circle cx="312" cy="70" r="24" fill="#F5C451"/>
+  <path d="M0 230 C 80 190, 170 200, 230 222 S 340 236, 390 214 L390 300 L0 300Z" fill="#E4ECF7"/>
+  <path d="M0 252 C 90 228, 200 240, 290 256 S 370 262, 390 254 L390 300 L0 300Z" fill="#FFFFFF"/>
+  <g transform="translate(150 150)">
+    <path d="M0 50 L45 14 L90 50 L90 104 L0 104Z" fill="#1B2A4A"/>
+    <path d="M-8 54 L45 8 L98 54" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="16" y="62" width="20" height="18" rx="3" fill="#F5C451"/>
+    <rect x="54" y="62" width="20" height="18" rx="3" fill="#F5C451"/>
+    <rect x="38" y="80" width="15" height="24" rx="2" fill="#C8102E"/>
+    <rect x="64" y="18" width="10" height="20" fill="#1B2A4A"/>
+  </g>
+  <g fill="#1F6A4A">
+    <path d="M62 236 l16 -42 l16 42z"/><path d="M84 238 l12 -30 l12 30z"/>
+    <path d="M300 238 l15 -40 l15 40z"/>
+  </g>
+</svg>

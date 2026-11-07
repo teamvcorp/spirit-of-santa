@@ -37,7 +37,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/d/[token]">["p
         <h1 className="text-3xl font-bold" data-testid="kid-name">
           {t("heading", { name: view.kidName })}
         </h1>
-        {view.familyAlias && <p className="text-foreground/70">{t("family", { family: view.familyAlias })}</p>}
+        {view.familyAlias && <p className="text-muted">{t("family", { family: view.familyAlias })}</p>}
         <p className="mt-3 text-xl" data-testid="deed-text">
           {view.deed ?? t("aGoodDeed")}
         </p>

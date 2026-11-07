@@ -31,7 +31,7 @@ async function Content() {
     <>
       <Alert className="mb-4">{t("deadline", { closes: day(window.lastPayDay), close: day(window.closeAt) })}</Alert>
       {options.length === 0 ? (
-        <p className="text-foreground/70">{t("none")}</p>
+        <p className="text-muted">{t("none")}</p>
       ) : (
         <ul className="flex flex-col divide-y divide-foreground/10" data-testid="payup-list">
           {options.map((o) => (
@@ -39,7 +39,7 @@ async function Content() {
               <p>
                 <span className="font-semibold">{o.itemName}</span> · {o.kidName}
               </p>
-              <p className="text-sm text-foreground/70">{t("missing", { points: formatPoints(o.missingCentipoints), amount: formatCents(o.cents) })}</p>
+              <p className="text-sm text-muted">{t("missing", { points: formatPoints(o.missingCentipoints), amount: formatCents(o.cents) })}</p>
               <PayUpForm wishId={o.wishId} cents={o.cents} label={t("buttonFor", { item: o.itemName, kid: o.kidName })} />
             </li>
           ))}
@@ -59,7 +59,7 @@ export default async function PayUpPage() {
       <Card>
         <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
         {/* Rate from the server constant (never hard-coded). */}
-        <p className="mb-6 text-foreground/70">{t("intro", { rate: formatCents(CENTS_PER_POINT) })}</p>
+        <p className="mb-6 text-muted">{t("intro", { rate: formatCents(CENTS_PER_POINT) })}</p>
         <Suspense fallback={null}>
           <Content />
         </Suspense>

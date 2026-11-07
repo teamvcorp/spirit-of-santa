@@ -32,11 +32,11 @@ export function AddressPanel({ needed, saved, unreadable }: { needed: boolean; s
         // A delete re-mounts the form: its old "saved" message and values are gone.
         <SaveForm key={del.nonce ?? "initial"} saved={deleted ? null : saved} />
       ) : (
-        <p className="text-foreground/70" data-testid="not-needed">{t("notNeeded")}</p>
+        <p className="text-muted" data-testid="not-needed">{t("notNeeded")}</p>
       )}
       {(saved || unreadable) && !deleted && (
         <form action={delAction} className="flex flex-col gap-2 border-t border-foreground/10 pt-4">
-          <p className="text-sm text-foreground/70">{t("deleteHelp")}</p>
+          <p className="text-sm text-muted">{t("deleteHelp")}</p>
           <Button type="submit" variant="secondary" pending={delPending} disabled={!hydrated} className="self-start">
             {t("delete")}
           </Button>

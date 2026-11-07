@@ -27,7 +27,7 @@ export default async function TextMessagesPage() {
         <p className="mb-6 mt-2">{t("intro")}</p>
         <LegalSections namespace="TextMessages" keys={SECTIONS} values={{ days: PAY_LATER_LINK_DAYS }} />
         <div className="mt-6 rounded-xl border border-foreground/15 p-4">
-          <p className="mb-3 text-sm text-foreground/70">{t("formIntro")}</p>
+          <p className="mb-3 text-sm text-muted">{t("formIntro")}</p>
           <PayLaterPreview />
         </div>
         <p className="mt-6 text-sm">

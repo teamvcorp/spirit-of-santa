@@ -39,7 +39,7 @@ export function PayLaterSection({ token, sent }: { token: string; sent: { masked
   return (
     <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-3 border-t border-foreground/15 pt-6">
       <h2 className="text-lg font-semibold">{t("title")}</h2>
-      <p className="text-sm text-foreground/70">{t("intro")}</p>
+      <p className="text-sm text-muted">{t("intro")}</p>
       {error && (
         <Alert tone="error">
           {error === "amount" ? t("errors.amount", { min: formatCents(MIN_TIP_CENTS), max: formatCents(MAX_TIP_CENTS) }) : t(`errors.${error}` as never)}

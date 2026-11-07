@@ -70,15 +70,15 @@ async function Content({ params }: Pick<Props, "params">) {
             <div className="aspect-[4/3] w-full rounded-lg bg-foreground/5" aria-hidden="true" />
           )}
           <div className="flex flex-col gap-3">
-            <h1 className="text-2xl font-bold">{gift.name}</h1>
-            <p className="text-foreground/70">{t("fromStore", { store: gift.storeName })}</p>
-            <p className="text-xl font-semibold" data-testid="gift-cost">
+            <h1 className="text-3xl font-bold">{gift.name}</h1>
+            <p className="text-muted">{t("fromStore", { store: gift.storeName })}</p>
+            <p className="font-display text-3xl font-bold text-accent-text" data-testid="gift-cost">
               {t("cost", { points: formatPoints(gift.costCentipoints) })}
               {gift.soldOut && <span className="ml-2 rounded bg-foreground/10 px-2 py-0.5 text-sm font-medium">{t("soldOut")}</span>}
             </p>
             {gift.description && <p className="whitespace-pre-line">{gift.description}</p>}
             <p className="text-sm">{t("youHave", { name: kid.firstName, points: formatPoints(kid.availableCentipoints) })}</p>
-            <p className="text-sm text-foreground/70">{t("howFunding")}</p>
+            <p className="text-sm text-muted">{t("howFunding")}</p>
             <AddGiftForm kidId={kid.id} itemId={gift.id} blocked={blocked} cap={kid.itemCap} />
           </div>
         </div>

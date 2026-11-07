@@ -9,6 +9,7 @@ import { formatPoints } from "@repo/lib/format";
 import type { KidWishList } from "@repo/wishlists/catalog";
 import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
+import { MagicBar } from "../../../../components/magic-bar";
 import { buttonClass } from "@repo/ui/button";
 
 export async function WishListCard({ kidId, registered, cap, list }: { kidId: string; registered: boolean; cap: number; list: KidWishList }) {
@@ -19,7 +20,7 @@ export async function WishListCard({ kidId, registered, cap, list }: { kidId: st
       <div id="wishlist" className="mb-3 flex flex-wrap items-center justify-between gap-3 scroll-mt-6">
         <div>
           <h2 className="text-lg font-semibold">{t("listTitle")}</h2>
-          <p className="text-sm text-foreground/70" data-testid="wish-count">{t("listCount", { count: list.onList, cap })}</p>
+          <p className="text-sm text-muted" data-testid="wish-count">{t("listCount", { count: list.onList, cap })}</p>
         </div>
         {registered && list.seasonOpen && (
           <Link href={`/kids/${kidId}/gifts`} className={buttonClass()}>
@@ -29,15 +30,15 @@ export async function WishListCard({ kidId, registered, cap, list }: { kidId: st
       </div>
       {!list.seasonOpen && list.rows.length > 0 && <p className="mb-3 text-sm">{t("frozen")}</p>}
       {list.rows.length === 0 ? (
-        <p className="text-foreground/70">{t("listEmpty")}</p>
+        <p className="text-muted">{t("listEmpty")}</p>
       ) : (
         <ul className="flex flex-col divide-y divide-foreground/10" data-testid="wish-list">
           {list.rows.map((w) => (
             <li key={w.id} className="flex gap-4 py-4" data-wish-status={w.status}>
               {w.photoUrl ? (
-                <Image src={w.photoUrl} alt={t("photoAlt", { name: w.name })} width={96} height={72} className="aspect-[4/3] h-18 w-24 shrink-0 rounded object-cover" />
+                <Image src={w.photoUrl} alt={t("photoAlt", { name: w.name })} width={96} height={72} className="aspect-[4/3] h-18 w-24 shrink-0 rounded-2xl object-cover" />
               ) : (
-                <div className="aspect-[4/3] h-18 w-24 shrink-0 rounded bg-foreground/5" aria-hidden="true" />
+                <div className="aspect-[4/3] h-18 w-24 shrink-0 rounded-2xl bg-foreground/5" aria-hidden="true" />
               )}
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 {w.viewable ? (
@@ -47,12 +48,12 @@ export async function WishListCard({ kidId, registered, cap, list }: { kidId: st
                 ) : (
                   <p className="font-semibold">{w.name}</p>
                 )}
-                <p className="text-sm text-foreground/70">
+                <p className="text-sm text-muted">
                   {t("fromStore", { store: w.storeName })} · {t(`status.${w.status}` as never)}
                 </p>
-                <progress className="h-2 w-full accent-meter" max={w.costCentipoints} value={w.fundedCentipoints} aria-label={t("progressLabel", { name: w.name })} />
-                <p className="text-sm">{t("progress", { funded: formatPoints(w.fundedCentipoints), cost: formatPoints(w.costCentipoints) })}</p>
-                {w.status === "fully_funded" && w.lockAt && <p className="text-sm text-foreground/70">{t("lockOn", { date: day(w.lockAt) })}</p>}
+                <MagicBar value={w.fundedCentipoints} max={w.costCentipoints} label={t("progressLabel", { name: w.name })} />
+                <p className="text-sm font-bold">{t("progress", { funded: formatPoints(w.fundedCentipoints), cost: formatPoints(w.costCentipoints) })}</p>
+                {w.status === "fully_funded" && w.lockAt && <p className="text-sm text-muted">{t("lockOn", { date: day(w.lockAt) })}</p>}
                 {w.needsSubstitute && <p className="text-sm">{t("needsSubstitute")}</p>}
                 {w.removable && (
                   <Link href={`/kids/${kidId}/wishlist/${w.id}/remove`} className="self-start text-sm underline underline-offset-4">
@@ -64,7 +65,7 @@ export async function WishListCard({ kidId, registered, cap, list }: { kidId: st
           ))}
         </ul>
       )}
-      {registered && list.seasonOpen && <p className="mt-3 text-sm text-foreground/70">{t("shareHint")}</p>}
+      {registered && list.seasonOpen && <p className="mt-3 text-sm text-muted">{t("shareHint")}</p>}
     </Card>
   );
 }

@@ -32,7 +32,7 @@ async function Content({ searchParams }: { searchParams: PageProps<"/[locale]/un
     <>
       <p className="mb-4">{t("unsubscribeIntro", { kind: kindLabel })}</p>
       <UnsubscribeForm token={token} kindLabel={kindLabel} />
-      <p className="mt-6 text-sm text-foreground/70">
+      <p className="mt-6 text-sm text-muted">
         {t("manageHint")}{" "}
         <Link href="/parent/notifications" className="underline underline-offset-4">
           {t("manageLink")}

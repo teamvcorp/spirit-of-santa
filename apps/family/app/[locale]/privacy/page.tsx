@@ -26,7 +26,7 @@ export default async function PrivacyPage() {
     <main className="mx-auto w-full max-w-3xl flex-1 p-6">
       <Card>
         <h1 className="text-2xl font-bold">{t("title")}</h1>
-        <p className="mb-4 mt-1 text-sm text-foreground/70">{t("version", { version: PRIVACY_VERSION, childVersion: PARENT_CONSENT_VERSION })}</p>
+        <p className="mb-4 mt-1 text-sm text-muted">{t("version", { version: PRIVACY_VERSION, childVersion: PARENT_CONSENT_VERSION })}</p>
         <Alert className="mb-6">{t("draft")}</Alert>
         <p className="mb-6">{t("intro")}</p>
         <LegalSections namespace="Privacy" keys={SECTIONS} />

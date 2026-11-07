@@ -638,6 +638,16 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   night palette (primary/surface/input/accent-text/danger too); fixed palette is `@theme static` (always emitted: the
   logo reads var(--color-gold/night)); Button/buttonClass have a SIZE (sm/md/lg/inline) owning height+padding, extra
   classes are layout-only; `shadow-card` token (mode-aware); app icons Winter Night (hexes must match theme.css).
+- **8.5.2 family app (2026-11-06).** Bottom tab bar (`components/tab-bar.tsx` client + `family-tabs.tsx` server:
+  signed-in PARENT only, never on visitor pages; Wish list/Gifts follow the open child via the path). Home: hero
+  gradient (day/night by device) + `Snowfall` (CSS-only, HOME only) + `<picture>` day/night art; kid cards. Kid page:
+  night band (`NIGHT_SCOPE` exported from @repo/ui/site-header) with the points pill; `MagicBar` (role=progressbar,
+  gold while collecting, green when done, fill + shine); `Celebration` ("Fully funded!" modal once per gift per
+  device via localStorage "sos.celebrated"; Escape/button closes; focus moved in). Animations in
+  `apps/family/app/magic.css` (family only; all off for prefers-reduced-motion). Illustrations: files in
+  `apps/family/public/illustrations/` (house-night, house-day, gift-box; placeholders), paths ONLY in
+  `apps/family/lib/illustrations.ts`, replacement guide `docs/illustrations.md`. Family text-foreground/70 → text-muted.
+  E2E `browser-family-look.ts` (9).
 
 ## Open items / TODO
 

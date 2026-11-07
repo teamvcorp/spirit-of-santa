@@ -28,7 +28,7 @@ export default async function PinSetupPage(props: PageProps<"/[locale]/parent/pi
     <main className="flex flex-1 justify-center p-6">
       <Card className="w-full max-w-sm">
         <h1 className="text-2xl font-bold">{t("setupTitle")}</h1>
-        <p className="mb-6 mt-1 text-foreground/70">{t("setupIntro")}</p>
+        <p className="mb-6 mt-1 text-muted">{t("setupIntro")}</p>
         <Suspense fallback={null}>
           <Guarded searchParams={props.searchParams} />
         </Suspense>

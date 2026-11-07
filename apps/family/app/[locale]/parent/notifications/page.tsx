@@ -35,7 +35,7 @@ export default async function NotificationsPage() {
       </Link>
       <Card>
         <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
-        <p className="mb-6 text-foreground/70">{t("intro")}</p>
+        <p className="mb-6 text-muted">{t("intro")}</p>
         <Suspense fallback={null}>
           <Content />
         </Suspense>

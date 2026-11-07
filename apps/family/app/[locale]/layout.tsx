@@ -12,6 +12,7 @@ import { Logo } from "@repo/ui/logo";
 import { SiteHeader } from "@repo/ui/site-header";
 import { authOptions } from "@/auth";
 import { Link } from "@/i18n/navigation";
+import { FamilyTabs } from "../../components/family-tabs";
 import "../globals.css";
 
 /** Required with Cache Components: pre-render every language at build time. */
@@ -64,7 +65,7 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
             }
           />
           {children}
-          <footer className="mt-auto border-t border-foreground/10 px-6 py-4 text-center text-sm text-foreground/70">
+          <footer className="mt-auto border-t border-foreground/10 px-6 py-4 text-center text-sm text-muted">
             <Link href="/privacy" className="underline-offset-4 hover:underline">
               {footer("privacy")}
             </Link>
@@ -77,6 +78,10 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
               {footer("texts")}
             </Link>
           </footer>
+          {/* Bottom tab bar: signed-in family only (reads the session, so inside Suspense). */}
+          <Suspense fallback={null}>
+            <FamilyTabs />
+          </Suspense>
         </NextIntlClientProvider>
       </body>
     </html>

@@ -21,7 +21,7 @@ export function NotifyForm({ prefs }: { prefs: NotifyPrefs }) {
           <input type="checkbox" name={k} value="on" defaultChecked={(state.values ?? prefs)[k]} className="mt-1 size-5" />
           <span>
             <span className="font-semibold">{t(`kinds.${k}.label`)}</span>
-            <span className="block text-sm text-foreground/70">{t(`kinds.${k}.help`)}</span>
+            <span className="block text-sm text-muted">{t(`kinds.${k}.help`)}</span>
           </span>
         </label>
       ))}

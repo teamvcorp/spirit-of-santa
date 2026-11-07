@@ -30,7 +30,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]/deed
   return (
     <>
       <h1 className="mb-1 text-2xl font-bold">{t("recordTitle")}</h1>
-      <p className="mb-6 text-foreground/70">{t("recordIntro", { name: kid.firstName })}</p>
+      <p className="mb-6 text-muted">{t("recordIntro", { name: kid.firstName })}</p>
       <RecordDeedForm kidId={kid.id} deeds={deeds} />
     </>
   );

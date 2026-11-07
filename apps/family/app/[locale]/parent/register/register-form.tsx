@@ -68,7 +68,7 @@ export function RegisterKidsForm({ kids, feeCents }: { kids: { id: string; first
       <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">
         {t("continue")}
       </Button>
-      <p className="text-sm text-foreground/70">{t("why")}</p>
+      <p className="text-sm text-muted">{t("why")}</p>
     </form>
   );
 }

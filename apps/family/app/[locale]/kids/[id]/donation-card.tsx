@@ -18,7 +18,7 @@ export function ResetLinkForm({ kidId }: { kidId: string }) {
       <Button type="submit" variant="secondary" pending={pending} disabled={!hydrated} className="self-start">
         {t("newLink")}
       </Button>
-      <p className="text-xs text-foreground/70">{t("newLinkHelp")}</p>
+      <p className="text-xs text-muted">{t("newLinkHelp")}</p>
     </form>
   );
 }

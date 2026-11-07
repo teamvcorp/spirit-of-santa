@@ -15,7 +15,7 @@ export default async function ForgotPasswordPage() {
     <main className="flex flex-1 items-center justify-center p-6">
       <Card className="w-full max-w-sm">
         <h1 className="text-2xl font-bold">{t("title")}</h1>
-        <p className="mb-6 mt-1 text-foreground/70">{t("intro")}</p>
+        <p className="mb-6 mt-1 text-muted">{t("intro")}</p>
         <EmailRequestForm action={forgotPasswordAction} mode="forgot" />
       </Card>
     </main>

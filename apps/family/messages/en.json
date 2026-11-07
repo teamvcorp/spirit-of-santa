@@ -618,5 +618,17 @@
     "scopes": {
       "digest": "Daily summary (magic + good deeds)"
     }
+  },
+  "Tabs": {
+    "label": "Main",
+    "home": "Home",
+    "wishlist": "Wish list",
+    "gifts": "Gifts",
+    "parent": "Parent"
+  },
+  "Celebrate": {
+    "title": "Fully funded!",
+    "body": "{item} is all yours. The store is setting one aside.",
+    "button": "Hooray!"
   }
 }

@@ -39,7 +39,7 @@ async function Content() {
         <p>{t("how", { day: shareDay, fee: percent(settings.donationFeeBps, intlLocale), rate: formatCents(CENTS_PER_POINT) })}</p>
       )}
       {settings.receiptsReady && (
-        <p className="text-sm text-foreground/70">{t("charity", { orgName: settings.charity.legalName, ein: settings.charity.ein })}</p>
+        <p className="text-sm text-muted">{t("charity", { orgName: settings.charity.legalName, ein: settings.charity.ein })}</p>
       )}
       {total.cents > 0 && <p className="font-semibold" data-testid="season-total">{t("raised", { amount: formatCents(total.cents) })}</p>}
       {open ? <CommunityDonateForm /> : <Alert>{t("errors.closed")}</Alert>}
@@ -65,7 +65,7 @@ async function Heading() {
   return (
     <>
       <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
-      <p className="mb-6 text-foreground/70">{t("intro")}</p>
+      <p className="mb-6 text-muted">{t("intro")}</p>
     </>
   );
 }

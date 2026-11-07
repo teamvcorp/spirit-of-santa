@@ -28,7 +28,7 @@ export function RecordDeedForm({ kidId, deeds }: { kidId: string; deeds: { id: s
             <input type="radio" name="choice" value={d.id} required defaultChecked={state.values?.choice === d.id} onChange={() => setChoice(d.id)} className="mt-1 size-4" />
             <span>
               <span className="font-semibold">{d.title}</span>
-              {d.description && <span className="block text-sm text-foreground/70">{d.description}</span>}
+              {d.description && <span className="block text-sm text-muted">{d.description}</span>}
             </span>
           </label>
         ))}
@@ -53,7 +53,7 @@ export function RecordDeedForm({ kidId, deeds }: { kidId: string; deeds: { id: s
             aria-invalid={state.fieldError ? true : undefined}
             className="rounded-lg border border-input bg-background px-3 py-2"
           />
-          <p id="other-hint" className="text-sm text-foreground/70">
+          <p id="other-hint" className="text-sm text-muted">
             {t("otherHint")}
           </p>
           {state.fieldError && <p className="text-sm text-danger">{fieldError(state.fieldError)}</p>}

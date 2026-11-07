@@ -50,7 +50,7 @@ async function Content({ params, searchParams }: Pick<Props, "params" | "searchP
         ← {t("backToKid", { name: kid.firstName })}
       </Link>
       <h1 className="text-3xl font-bold">{t("browseTitle")}</h1>
-      <p className="mb-4 text-foreground/70">{t("browseIntro")}</p>
+      <p className="mb-4 text-muted">{t("browseIntro")}</p>
 
       {/* GET form: the filters live in the URL (no Server Action needed for reading). */}
       <form method="get" className="mb-6 grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end" role="search">
@@ -84,7 +84,7 @@ async function Content({ params, searchParams }: Pick<Props, "params" | "searchP
         </button>
       </form>
 
-      <p className="mb-3 text-sm text-foreground/70" data-testid="gift-count">
+      <p className="mb-3 text-sm text-muted" data-testid="gift-count">
         {t("results", { count: result.total })}
       </p>
       {result.items.length === 0 ? (
@@ -103,7 +103,7 @@ async function Content({ params, searchParams }: Pick<Props, "params" | "searchP
                 )}
                 <div className="flex flex-1 flex-col gap-1 p-3">
                   <p className="font-semibold">{g.name}</p>
-                  <p className="text-sm text-foreground/70">{t("fromStore", { store: g.storeName })}</p>
+                  <p className="text-sm text-muted">{t("fromStore", { store: g.storeName })}</p>
                   <p className="mt-auto font-semibold">
                     {t("cost", { points: formatPoints(g.costCentipoints) })}
                     {g.soldOut && <span className="ml-2 rounded bg-foreground/10 px-2 py-0.5 text-xs font-medium">{t("soldOut")}</span>}

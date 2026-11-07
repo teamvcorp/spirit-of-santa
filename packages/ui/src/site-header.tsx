@@ -10,7 +10,11 @@
  */
 import type { CSSProperties, ReactNode } from "react";
 
-const NIGHT_SCOPE = {
+/**
+ * Re-scope the role colours to the starry-night palette for anything drawn on a night-blue band
+ * (header, the kid page's name band). Use with className="bg-night text-foreground".
+ */
+export const NIGHT_SCOPE = {
   "--foreground": "#f8fafc",
   "--muted": "#b8c4db",
   "--focus": "#f5c451",

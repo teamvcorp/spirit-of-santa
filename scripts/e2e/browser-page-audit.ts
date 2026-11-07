@@ -99,6 +99,27 @@ async function contrast(page: Page): Promise<AxeResult> {
   )) as AxeResult;
 }
 
+/**
+ * Visible form fields poking out of their box: the Card (.shadow-card from @repo/ui/card) when inside one,
+ * otherwise <main>. 1px slack for rounding. Returns the field names.
+ */
+function fieldsOutsideBox(page: Page): Promise<string[]> {
+  return page.evaluate(() =>
+    [...document.querySelectorAll("main input:not([type=hidden]), main select, main textarea")]
+      .filter((el) => el.checkVisibility())
+      // Skip what is hidden from people on purpose (the sign-up honeypot sits off-screen in an aria-hidden box).
+      .filter((el) => !el.closest('[aria-hidden="true"]'))
+      .filter((el) => {
+        const box = el.closest(".shadow-card") ?? el.closest("main");
+        if (!box) return false;
+        const r = el.getBoundingClientRect();
+        const c = box.getBoundingClientRect();
+        return r.left < c.left - 1 || r.right > c.right + 1;
+      })
+      .map((el) => (el as HTMLInputElement).name || el.tagName),
+  );
+}
+
 const errors: string[] = [];
 const incompletes: string[] = [];
 let browser: Browser | undefined;
@@ -129,22 +150,16 @@ try {
         check(`${scheme.padEnd(5)} ${group.app} ${path}${landed.endsWith(path) ? "" : ` -> ${landed}`}`, bad.length === 0, bad.slice(0, 6).join(" | "));
         const unsure = res.incomplete.flatMap((v) => v.nodes).length;
         if (unsure) incompletes.push(`${scheme} ${group.app} ${path}: ${unsure}`);
-        // Fields poking out of their card (Card = the .shadow-card box from @repo/ui/card). 1px slack for rounding.
-        const outside = await page.evaluate(() =>
-          [...document.querySelectorAll("main input:not([type=hidden]), main select, main textarea")]
-            .filter((el) => el.checkVisibility())
-            // Skip what is hidden from people on purpose (the sign-up honeypot sits off-screen in an aria-hidden box).
-            .filter((el) => !el.closest('[aria-hidden="true"]'))
-            .filter((el) => {
-              const card = el.closest(".shadow-card");
-              if (!card) return false;
-              const r = el.getBoundingClientRect();
-              const c = card.getBoundingClientRect();
-              return r.left < c.left - 1 || r.right > c.right + 1;
-            })
-            .map((el) => (el as HTMLInputElement).name || el.tagName),
-        );
-        if (scheme === "light") check(`layout ${group.app} ${path}: fields inside their card`, outside.length === 0, outside.join(", "));
+        if (scheme === "light") {
+          // Layout (light pass only: colours don't move boxes). Desktop width, then a tablet width (700px),
+          // where three fields share a row in a narrower card: the store profile overflow showed there too.
+          for (const width of [1280, 700]) {
+            await page.setViewportSize({ width, height: 900 });
+            const outside = await fieldsOutsideBox(page);
+            check(`layout ${width}px ${group.app} ${path}: fields inside their card`, outside.length === 0, outside.join(", "));
+          }
+          await page.setViewportSize({ width: 1280, height: 720 }); // Playwright's default, as before
+        }
         if (shots) {
           // Readable file names; ids replaced so names stay stable between runs.
           const name = `${group.app}${path}`.replace(/[0-9a-f]{24}/g, "id").replace(/[^a-z0-9]+/gi, "-").replace(/-+$/, "");

@@ -68,3 +68,10 @@ test("slugify makes valid Store slugs", () => {
     assert.match(slugify(s), /^[a-z0-9-]{3,60}$/, s);
   }
 });
+
+test("store State must be a real US state (same list as the family address), case-insensitive", async () => {
+  const { storeDetailsSchema } = await import("../src/schemas.ts");
+  const base = { storeName: "Toy Barn", category: "toys", description: "", phone: "", website: "", line1: "1 Main", city: "Storm Lake", zip: "50588" };
+  assert.equal(storeDetailsSchema.safeParse({ ...base, state: "ia" }).data?.state, "IA");
+  for (const bad of ["ZZ", "XX", "", "Iowa"]) assert.equal(storeDetailsSchema.safeParse({ ...base, state: bad }).success, false, bad);
+});

@@ -47,3 +47,14 @@ test("notification emails get the opt-out footer links (escaped), only when give
   assert.ok(!plain.text.includes("Stop emails like this"));
   assert.throws(() => renderEmail("giftOnItsWay", { link: LINK, kidName: "Mia", itemName: "Kite" }, "en", { ...links, optOut: "https://evil.example/x" }));
 });
+
+test("email colours are the site's Winter Night palette (kept in step with packages/ui/src/theme.css)", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const { EMAIL_COLORS } = await import("../src/render.ts");
+  const css = (await readFile(new URL("../../ui/src/theme.css", import.meta.url), "utf8")).toLowerCase();
+  // #e2e8f0 (the footer rule line) is email-only; every other colour must be a site colour.
+  for (const [name, hex] of Object.entries(EMAIL_COLORS)) {
+    if (name === "rule") continue;
+    assert.ok(css.includes(hex.toLowerCase()), `${name} ${hex} is not in theme.css`);
+  }
+});

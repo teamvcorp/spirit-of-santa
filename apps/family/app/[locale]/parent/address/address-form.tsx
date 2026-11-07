@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import { US_STATES, type DeliveryAddress } from "@repo/lib/address";
 import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
+import { SelectField } from "@repo/ui/select-field";
 import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { deleteAddressAction, saveAddressAction, type AddressFormState } from "./actions";
@@ -62,17 +63,14 @@ function SaveForm({ saved }: { saved: DeliveryAddress | null }) {
       <TextField label={t("line2")} name="line2" maxLength={100} autoComplete="address-line2" defaultValue={v.line2} />
       <div className={CITY_STATE_ZIP_ROW}>
         <TextField label={t("city")} name="city" required maxLength={60} autoComplete="address-level2" defaultValue={v.city} />
-        <label className="flex flex-col gap-1">
-          <span className="font-medium">{t("state")}</span>
-          <select name="state" required defaultValue={v.state} autoComplete="address-level1" className="rounded-lg border border-foreground/20 bg-background px-3 py-2">
-            <option value="" />
-            {US_STATES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </label>
+        <SelectField label={t("state")} name="state" required defaultValue={v.state} autoComplete="address-level1">
+          <option value="" />
+          {US_STATES.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </SelectField>
         <TextField label={t("zip")} name="zip" required maxLength={10} inputMode="numeric" pattern="\d{5}(-\d{4})?" autoComplete="postal-code" defaultValue={v.zip} />
       </div>
       <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">

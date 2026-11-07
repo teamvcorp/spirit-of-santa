@@ -39,7 +39,11 @@ async function fillRegister(p: Page, overrides: Record<string, string> = {}) {
     ownerName: "Browser Owner", email: signupEmail, password: `browser pass ${tag}`, storeName: `Browser Toys ${tag}`,
     line1: "2 Test Ave", city: "Storm Lake", state: "IA", zip: "50588", ...overrides,
   };
-  for (const [name, value] of Object.entries(v)) await p.fill(`[name="${name}"]`, value);
+  // State and category are drop-downs (select), the rest are text boxes.
+  for (const [name, value] of Object.entries(v)) {
+    if (name === "state") await p.selectOption('[name="state"]', value);
+    else await p.fill(`[name="${name}"]`, value);
+  }
   await p.selectOption('[name="category"]', "toys");
   await p.check('[name="agree"]');
 }

@@ -3,9 +3,11 @@
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { useFieldError } from "@repo/auth/forms";
+import { US_STATES } from "@repo/lib/address";
 import { STORE_CATEGORIES } from "@repo/lib/store";
 import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
+import { SelectField } from "@repo/ui/select-field";
 import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { saveProfileAction } from "../actions";
@@ -42,18 +44,13 @@ export function ProfileForm({ initial, editable }: { initial: ProfileValues; edi
       {state.status === "error" && !state.error && <Alert tone="error">{reg("fixErrors")}</Alert>}
       <fieldset disabled={!editable} className="flex flex-col gap-4">
         <TextField label={reg("storeName")} name="storeName" required minLength={2} maxLength={120} defaultValue={v.storeName} error={err("storeName")} />
-        <div className="flex flex-col gap-1">
-          <label htmlFor="category" className="text-sm font-medium">
-            {reg("category")}
-          </label>
-          <select id="category" name="category" required defaultValue={v.category} className="min-h-11 rounded-lg border border-input bg-background px-3 py-2">
-            {STORE_CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {cats(c)}
-              </option>
-            ))}
-          </select>
-        </div>
+        <SelectField id="category" label={reg("category")} name="category" required defaultValue={v.category} error={err("category")}>
+          {STORE_CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {cats(c)}
+            </option>
+          ))}
+        </SelectField>
         <div className="flex flex-col gap-1">
           <label htmlFor="description" className="text-sm font-medium">
             {reg("description")}
@@ -79,7 +76,15 @@ export function ProfileForm({ initial, editable }: { initial: ProfileValues; edi
         <TextField label={reg("line1")} name="line1" required maxLength={120} defaultValue={v.line1} error={err("line1")} />
         <div className={CITY_STATE_ZIP_ROW}>
           <TextField label={reg("city")} name="city" required maxLength={60} defaultValue={v.city} error={err("city")} />
-          <TextField label={reg("state")} name="state" required maxLength={2} defaultValue={v.state} error={err("state")} />
+          {/* A list, not free text: only real US states (the server checks the same list, @repo/lib/address). */}
+          <SelectField label={reg("state")} name="state" autoComplete="address-level1" required defaultValue={v.state} error={err("state")}>
+            <option value="" />
+            {US_STATES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </SelectField>
           <TextField label={reg("zip")} name="zip" inputMode="numeric" required pattern="\d{5}" maxLength={5} defaultValue={v.zip} error={err("zip")} />
         </div>
         <Button type="submit" pending={pending} disabled={!hydrated || !editable}>

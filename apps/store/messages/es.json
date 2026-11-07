@@ -34,7 +34,7 @@
     "address": "Dirección de la tienda",
     "line1": "Calle y número",
     "city": "Ciudad",
-    "state": "Estado (2 letras)",
+    "state": "Estado",
     "zip": "Código postal",
     "submit": "Crear cuenta de tienda",
     "submitting": "Creando cuenta…",

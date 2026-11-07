@@ -70,9 +70,12 @@ const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists",
  * and <style> blocks are often stripped, so everything is an inline style.
  * Contrast (WCAG AA needs 4.5:1 for text): text on card 14.2:1, muted on card 7.6:1,
  * button text (night) on gold 6.5:1, gold-light on the night band 8.7:1.
- * Emails stay light-only (color-scheme meta): dark-mode clients that force-invert can't wreck the contrast we checked.
+ * The color-scheme meta ASKS clients to keep the light design (Apple Mail, Outlook desktop honour it). Some
+ * (Gmail apps, Outlook.com) recolour emails in dark mode anyway; we can't control that, so the design
+ * uses one dark band on a light card, which those clients recolour without losing readability.
+ * test/render.test.ts checks every value still exists in theme.css (palette change = update here too).
  */
-const EMAIL_COLORS = {
+export const EMAIL_COLORS = {
   page: "#dde8f7", // sky-day
   card: "#ffffff",
   band: "#1b2a4a", // night

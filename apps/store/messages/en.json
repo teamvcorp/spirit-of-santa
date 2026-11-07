@@ -34,7 +34,7 @@
     "address": "Store address",
     "line1": "Street address",
     "city": "City",
-    "state": "State (2 letters)",
+    "state": "State",
     "zip": "ZIP code",
     "submit": "Create store account",
     "submitting": "Creating account…",

@@ -12,9 +12,11 @@ import { useLocale, useTranslations } from "next-intl";
 import { useFieldError } from "@repo/auth/forms";
 import { INITIAL_FORM_STATE, type FormState } from "@repo/auth/form-state";
 import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "@repo/auth/schemas";
+import { US_STATES } from "@repo/lib/address";
 import { STORE_CATEGORIES } from "@repo/lib/store";
 import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
+import { SelectField } from "@repo/ui/select-field";
 import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { AgreementFields } from "../_components/agreement-fields";
@@ -71,34 +73,16 @@ export function RegisterForm({ action }: { action: Action }) {
       <fieldset className="flex flex-col gap-4">
         <legend className="mb-2 text-lg font-semibold">{t("store")}</legend>
         <TextField label={t("storeName")} name="storeName" autoComplete="organization" required minLength={2} maxLength={120} defaultValue={v.storeName} error={err("storeName")} />
-        <div className="flex flex-col gap-1">
-          <label htmlFor="category" className="text-sm font-medium">
-            {t("category")}
-          </label>
-          <select
-            id="category"
-            name="category"
-            required
-            defaultValue={v.category ?? ""}
-            aria-invalid={state.fieldErrors?.category ? true : undefined}
-            aria-describedby={state.fieldErrors?.category ? "category-error" : undefined}
-            className={`min-h-11 rounded-lg border bg-background px-3 py-2 ${state.fieldErrors?.category ? "border-danger" : "border-input"}`}
-          >
-            <option value="" disabled>
-              {t("categoryPlaceholder")}
+        <SelectField id="category" label={t("category")} name="category" required defaultValue={v.category ?? ""} error={err("category")}>
+          <option value="" disabled>
+            {t("categoryPlaceholder")}
+          </option>
+          {STORE_CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {cats(c)}
             </option>
-            {STORE_CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {cats(c)}
-              </option>
-            ))}
-          </select>
-          {state.fieldErrors?.category && (
-            <p id="category-error" className="text-sm text-danger">
-              {err("category")}
-            </p>
-          )}
-        </div>
+          ))}
+        </SelectField>
         <div className="flex flex-col gap-1">
           <label htmlFor="description" className="text-sm font-medium">
             {t("description")}
@@ -131,7 +115,14 @@ export function RegisterForm({ action }: { action: Action }) {
         <TextField label={t("line1")} name="line1" autoComplete="address-line1" required maxLength={120} defaultValue={v.line1} error={err("line1")} />
         <div className={CITY_STATE_ZIP_ROW}>
           <TextField label={t("city")} name="city" autoComplete="address-level2" required maxLength={60} defaultValue={v.city} error={err("city")} />
-          <TextField label={t("state")} name="state" autoComplete="address-level1" required maxLength={2} defaultValue={v.state} error={err("state")} />
+          <SelectField label={t("state")} name="state" autoComplete="address-level1" required defaultValue={v.state ?? ""} error={err("state")}>
+            <option value="" />
+            {US_STATES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </SelectField>
           <TextField label={t("zip")} name="zip" autoComplete="postal-code" inputMode="numeric" required pattern="\d{5}" maxLength={5} defaultValue={v.zip} error={err("zip")} />
         </div>
       </fieldset>

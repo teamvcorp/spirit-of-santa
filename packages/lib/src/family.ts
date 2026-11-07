@@ -7,9 +7,11 @@
  * (family app /register and /privacy). Bump whenever that wording changes; each Family records
  * the version it accepted. "-draft": the wording is a DRAFT until a lawyer reviews it (COPPA).
  */
-// 2026-11-06: delivery address added to what we collect (Phase 6 slice 4b; the bump was missed then) +
-// "Christmas Magic" wording. Families that accepted the older version keep that record (re-consent: Phase 8).
-export const PARENT_CONSENT_VERSION = "2026-11-06-draft";
+// NEVER reuse a version string: a family's stored consent.version must identify ONE exact wording.
+// History: 2026-11-05-draft (first) · 2026-11-06-draft (+ text-message & visitor sections, fd24a91) ·
+// 2026-11-06b-draft (+ delivery address, missed at Phase 6 slice 4b, + "Christmas Magic" wording).
+// Families that accepted an older version keep that record (re-consent: Phase 8).
+export const PARENT_CONSENT_VERSION = "2026-11-06b-draft";
 
 /**
  * Version of the WHOLE /privacy page (bump with any change). Separate from PARENT_CONSENT_VERSION

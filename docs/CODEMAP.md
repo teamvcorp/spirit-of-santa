@@ -674,6 +674,12 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   custom grid tracks need `minmax(0,…)` (a bare `1fr` won't shrink below an input's ~20ch minimum) →
   ONE `CITY_STATE_ZIP_ROW` in `@repo/ui/layout` used by store profile, store register and family address;
   admin/gift-search custom grids got minmax(0,1fr) too.
+  Review fixes: PARENT_CONSENT_VERSION → "2026-11-06b-draft" ("2026-11-06-draft" had been used for older wording:
+  never reuse; history in family.ts). **`SelectField` (@repo/ui/select-field)** = drop-down twin of TextField
+  (shared `FIELD_CONTROL`, now w-full min-w-0); State is a US_STATES drop-down in store register/profile + family
+  address, store server rule = `z.enum(US_STATES)` (was any 2 letters); row top-aligned (errors sit under boxes).
+  Audit also checks fields at 700px and against <main> when no card (173 checks). EMAIL_COLORS ⊂ theme.css is a
+  unit test (`@repo/email#test` input includes theme.css in turbo.json). Other selects still hand-styled → migrate.
 
 ## Open items / TODO
 

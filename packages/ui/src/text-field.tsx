@@ -7,6 +7,13 @@
 import { useId, type InputHTMLAttributes } from "react";
 import { cn } from "./cn.ts";
 
+/**
+ * The ONE look for form controls (TextField and SelectField share it). w-full + min-w-0 let a control
+ * shrink to its column (an <input> otherwise insists on ~20 characters and overflows narrow grid
+ * cells: see @repo/ui/layout).
+ */
+export const FIELD_CONTROL = "min-h-11 w-full min-w-0 rounded-xl border bg-surface px-3 py-2 text-foreground";
+
 export interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   hint?: string;
@@ -29,10 +36,7 @@ export function TextField({ label, hint, error, id, className, ...input }: TextF
         id={inputId}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
-        className={cn(
-          "min-h-11 rounded-xl border bg-surface px-3 py-2 text-foreground",
-          error ? "border-danger" : "border-input",
-        )}
+        className={cn(FIELD_CONTROL, error ? "border-danger" : "border-input")}
         {...input}
       />
       {hint && (

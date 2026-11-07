@@ -6,6 +6,7 @@
  * them up in the user's language (Common.formErrors.<code>).
  */
 import { z } from "zod";
+import { US_STATES } from "@repo/lib/address";
 import { STORE_CATEGORIES } from "@repo/lib/store";
 
 /**
@@ -73,7 +74,8 @@ export const storeDetailsFields = {
     .optional(),
   line1: z.string().trim().min(1, "required").max(120, "tooLong"),
   city: z.string().trim().min(1, "required").max(60, "tooLong"),
-  state: z.string().trim().toUpperCase().regex(/^[A-Z]{2}$/, "invalid"),
+  // Same list as the family delivery address: real US states only (the form offers exactly these).
+  state: z.string().trim().toUpperCase().pipe(z.enum(US_STATES, "invalid")),
   zip: z.string().trim().regex(/^\d{5}$/, "invalid"),
 };
 export const storeDetailsSchema = z.object(storeDetailsFields);

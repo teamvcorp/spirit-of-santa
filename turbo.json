@@ -73,6 +73,16 @@
       ],
       "outputs": []
     },
+    "@repo/email#test": {
+      "dependsOn": [
+        "transit"
+      ],
+      "outputs": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/ui/src/theme.css"
+      ]
+    },
     "@repo/i18n#test": {
       "dependsOn": [
         "transit"

@@ -21,7 +21,8 @@
  *  - Recovery codes: HMAC-SHA256 under a key derived (HKDF) from MFA_ENCRYPTION_KEY.
  */
 import "server-only";
-import { createCipheriv, createDecipheriv, createHmac, hkdfSync, randomBytes } from "node:crypto";
+import { createHmac, hkdfSync } from "node:crypto";
+import { seal, sealKey, unseal } from "./sealed.ts";
 import QRCode from "qrcode";
 import { AuditLog, connectDb, trusted, User, withTransaction } from "@repo/db";
 import { sendEmail } from "@repo/email";
@@ -47,35 +48,14 @@ const REUSE_MINUTES = 10;
  */
 export const MAX_MFA_FAILURES = 10;
 const MFA_LOCK_HOURS = 24;
-const ENC_VERSION = "v1";
-
 // ── Keys ──────────────────────────────────────────────────────────────────────────────
-function encryptionKey(): Buffer {
-  const raw = process.env.MFA_ENCRYPTION_KEY;
-  if (!raw) throw new Error("MFA_ENCRYPTION_KEY is not set");
-  const key = Buffer.from(raw, "base64url");
-  if (key.length !== 32) throw new Error("MFA_ENCRYPTION_KEY must be 32 bytes (base64url)");
-  return key;
-}
-const recoveryKey = () => Buffer.from(hkdfSync("sha256", encryptionKey(), "", "sos/mfa-recovery/v1", 32));
+// Encryption itself lives in sealed.ts (shared with delivery addresses, each with its own key).
+// Same "v1.<iv>.<tag>.<ct>" format as before, so existing admin secrets still decrypt.
+const recoveryKey = () => Buffer.from(hkdfSync("sha256", sealKey("MFA_ENCRYPTION_KEY"), "", "sos/mfa-recovery/v1", 32));
 
-/** "v1.<iv>.<tag>.<ciphertext>" (base64url parts). */
-export function encryptSecret(secret: Buffer, userId: string): string {
-  const iv = randomBytes(12); // 96-bit nonce, fresh every time (GCM requirement)
-  const cipher = createCipheriv("aes-256-gcm", encryptionKey(), iv);
-  cipher.setAAD(Buffer.from(userId));
-  const ct = Buffer.concat([cipher.update(secret), cipher.final()]);
-  return [ENC_VERSION, iv, cipher.getAuthTag(), ct].map((p) => (typeof p === "string" ? p : p.toString("base64url"))).join(".");
-}
-
-export function decryptSecret(stored: string, userId: string): Buffer {
-  const [v, iv, tag, ct] = stored.split(".");
-  if (v !== ENC_VERSION || !iv || !tag || !ct) throw new Error("unknown MFA secret format");
-  const decipher = createDecipheriv("aes-256-gcm", encryptionKey(), Buffer.from(iv, "base64url"));
-  decipher.setAAD(Buffer.from(userId));
-  decipher.setAuthTag(Buffer.from(tag, "base64url")); // tampering → final() throws
-  return Buffer.concat([decipher.update(Buffer.from(ct, "base64url")), decipher.final()]);
-}
+/** "v1.<iv>.<tag>.<ciphertext>" (base64url parts), bound to the user id. */
+export const encryptSecret = (secret: Buffer, userId: string): string => seal(secret, userId, "MFA_ENCRYPTION_KEY");
+export const decryptSecret = (stored: string, userId: string): Buffer => unseal(stored, userId, "MFA_ENCRYPTION_KEY");
 
 /** decryptSecret, or null if it can't be read (key changed, corrupted value). */
 function tryDecrypt(stored: string, userId: string): Buffer | null {

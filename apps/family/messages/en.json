@@ -46,7 +46,7 @@
     "sections": {
       "collect": {
         "title": "What we collect",
-        "body": "From you (the parent): your name, email address, a password (stored only in scrambled form), a private family name and, if you choose, your ZIP code.\nAbout each child, entered by you: a first name, birth year and a display name you choose; the good deeds you record; their points and wish list."
+        "body": "From you (the parent): your name, email address, a password (stored only in scrambled form), a private family name and, if you choose, your ZIP code.\nAbout each child, entered by you: a first name, birth year and a display name you choose; the good deeds you record; their points and wish list.\nOnly when one of your children's gifts is funded: a delivery address for the gift (stored encrypted)."
       },
       "public": {
         "title": "What others can see",
@@ -66,7 +66,7 @@
       },
       "keep": {
         "title": "How long we keep it",
-        "body": "Points reset every January 1. We keep your family's information while your account is open, and delete a child's information when you ask us to.\nVisitors: donation receipt details are kept as the charity's records; a pay-later mobile number and the time you agreed are kept up to 13 months, then deleted."
+        "body": "Points reset every January 1. We keep your family's information while your account is open, and delete a child's information when you ask us to.\nVisitors: donation receipt details are kept as the charity's records; a pay-later mobile number and the time you agreed are kept up to 13 months, then deleted.\nA delivery address is deleted automatically as soon as every funded gift has been delivered; you can delete it yourself at any time."
       },
       "contact": {
         "title": "Contact",
@@ -154,7 +154,9 @@
     "aliasRejected": "Our team didn't approve this nickname. Please choose another (no real names).",
     "giveBonus": "Give bonus magic",
     "payUpAlert": "{count, plural, one {# gift isn't fully funded yet.} other {# gifts aren't fully funded yet.}} You can finish them before the deadline, or they drop off on {close}.",
-    "payUpLink": "Finish gifts"
+    "payUpLink": "Finish gifts",
+    "addressAlert": "A gift is funded! Tell us where to deliver it.",
+    "addressLink": "Add a delivery address"
   },
   "Register": {
     "title": "Register your children",
@@ -407,6 +409,38 @@
       "locked": "Enter the parent PIN first (parent area), then try again.",
       "rateLimited": "Too many tries. Please wait a few minutes and try again.",
       "stripe": "Payments aren't available right now. Please try again later."
+    }
+  },
+  "Address": {
+    "title": "Delivery address",
+    "intro": "Where Spirit O Santa sends your children's funded gifts. We store it encrypted, only our team can see it, and we delete it as soon as every gift has been delivered.",
+    "back": "Parent area",
+    "name": "Deliver to (name on the package)",
+    "line1": "Street address",
+    "line2": "Apartment, suite, etc. (optional)",
+    "city": "City",
+    "state": "State",
+    "zip": "ZIP code",
+    "save": "Save address",
+    "saved": "Address saved.",
+    "notNeeded": "You'll be asked for an address once one of your children's gifts is fully funded. Nothing is stored until then.",
+    "unreadable": "We couldn't read the saved address. Please enter it again.",
+    "deleteHelp": "You can delete the address at any time. If a gift is still on its way, we'll need it again before we can send it.",
+    "delete": "Delete address",
+    "deleted": "Address deleted.",
+    "errors": {
+      "locked": "The parent area locked itself (15 minutes). Enter your PIN again.",
+      "notFound": "Your family account wasn't found. Sign out and in again.",
+      "notNeeded": "There's no gift waiting to be delivered right now, so we don't need an address.",
+      "invalid": "Please check the address.",
+      "field": {
+        "name": "Enter the name for the package (2 to 80 characters).",
+        "line1": "Enter the street address.",
+        "line2": "Check the apartment or suite line.",
+        "city": "Enter the city.",
+        "state": "Choose the state.",
+        "zip": "Enter a 5-digit ZIP code (or ZIP+4)."
+      }
     }
   },
   "Community": {

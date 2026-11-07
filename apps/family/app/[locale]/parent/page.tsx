@@ -10,6 +10,7 @@ import { AliasForm, DeleteKidForm, LockButton, VoteButtons } from "./parent-form
 import { getFamilySettings } from "@repo/families/settings";
 import { familyTallies } from "@repo/families/votes";
 import { payUpCount } from "@repo/wishlists/payup";
+import { addressState } from "@repo/families/address";
 import { getFormatter } from "next-intl/server";
 import { Alert } from "@repo/ui/alert";
 
@@ -23,6 +24,7 @@ async function Content() {
   await connection();
   const parent = await requireUnlockedPage();
   const [kids, t, tallies, settings, payUp] = await Promise.all([listKids(parent), getTranslations("Parent"), familyTallies(parent), getFamilySettings(parent), payUpCount(parent)]);
+  const address = await addressState(parent);
   const format = await getFormatter();
   return (
     <>
@@ -35,6 +37,14 @@ async function Content() {
           <LockButton label={t("lock")} />
         </div>
       </div>
+      {address?.needed && !address.saved && (
+        <Alert tone="error" className="mb-6">
+          <span data-testid="address-alert">{t("addressAlert")}</span>{" "}
+          <Link href="/parent/address" className="font-semibold underline underline-offset-4">
+            {t("addressLink")}
+          </Link>
+        </Alert>
+      )}
       {payUp.count > 0 && (
         <Alert className="mb-6">
           <span data-testid="payup-alert">{t("payUpAlert", { count: payUp.count, close: format.dateTime(payUp.window.closeAt, { month: "long", day: "numeric" }) })}</span>{" "}

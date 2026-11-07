@@ -13,6 +13,14 @@ const familySchema = new Schema(
     ownerUserId: { ...objectId("User"), unique: true },
     /** PRIVATE (parent's own pages only). Public QR pages never show it (Phase 4 decision). */
     familyName: { type: String, required: true, trim: true, maxlength: 80 },
+
+    /**
+     * Delivery address for funded gifts (Phase 6 slice 4b), ENCRYPTED (AES-256-GCM, ADDRESS_ENCRYPTION_KEY,
+     * bound to this family's id): @repo/auth/sealed. select: false = never loaded unless a query asks
+     * for "+deliveryAddressEnc" on purpose. Deleted once no gift is waiting to be delivered.
+     */
+    deliveryAddressEnc: { type: String, maxlength: 2000, select: false },
+    deliveryAddressUpdatedAt: Date,
     /** Optional public family alias, shown on QR pages only when showAliasPublicly is set. */
     alias: { type: String, trim: true, maxlength: 80 },
     showAliasPublicly: { type: Boolean, default: false },

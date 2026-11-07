@@ -29,6 +29,9 @@ import { DAY_MS } from "@repo/lib/time";
 import { getSeasonState } from "@repo/stores/season";
 import { memberStore, type StoreActor } from "@repo/stores/owner";
 import { familyAppOrigin, storeAppOrigin } from "@repo/stores/urls";
+import { unsealJson } from "@repo/auth/sealed";
+import { addressLines, type DeliveryAddress } from "@repo/lib/address";
+import { AWAITING_DELIVERY } from "./rules.ts";
 
 /** Short reference printed on the package (last 6 hex of the id, upper case). Not secret, not guessable-useful. */
 export const orderRef = (id: string) => id.slice(-6).toUpperCase();
@@ -321,6 +324,11 @@ export type AdminFulfilmentRow = {
   familyName?: string;
   parentEmail?: string;
   familyNotice?: FamilyNotice;
+  /**
+   * "To send" only: the family's delivery address as label lines (decrypted for this admin view and
+   * audited), "missing" (the parent hasn't entered one yet) or "unreadable" (key changed/corrupted).
+   */
+  address?: string[] | "missing" | "unreadable";
 };
 /** Each list is the OLDEST `ADMIN_LIMIT` rows (work in order); `total` is the real count. */
 export type AdminList = { rows: AdminFulfilmentRow[]; total: number };
@@ -365,7 +373,11 @@ async function recipients(rows: { kidId: unknown; familyId: unknown }[]) {
   };
 }
 
-export async function adminFulfilment(now = new Date()): Promise<AdminFulfilment> {
+/**
+ * `adminId` = the admin looking: decrypting a family's address is recorded in the audit log
+ * ("family.address_view", one row per family shown, never the address itself).
+ */
+export async function adminFulfilment(adminId: string, now = new Date()): Promise<AdminFulfilment> {
   await connectDb();
   const fields = "itemId storeId kidId familyId status needsSubstitute fullyFundedAt shippedAt trackingNote receivedAt deliveredAt familyNotifiedAt familyNoticeSkippedAt";
   const filters = {
@@ -389,6 +401,7 @@ export async function adminFulfilment(now = new Date()): Promise<AdminFulfilment
     recipients([...toSend[0], ...delivered[0]]),
   ]);
   const storeBy = new Map(stores.map((x) => [String(x._id), x]));
+  const addresses = await deliveryAddresses(adminId, toSend[0].map((r) => String(r.familyId)));
   const retryUntil = (d: Date | null | undefined) => (d ? new Date(d).getTime() + FAMILY_NOTICE_RETRY_DAYS * DAY_MS : 0);
   const notice = (r: AdminRaw): FamilyNotice =>
     r.familyNotifiedAt ? "emailed" : r.familyNoticeSkippedAt ? "none" : retryUntil(r.deliveredAt) > now.getTime() ? "pending" : "failed";
@@ -408,6 +421,7 @@ export async function adminFulfilment(now = new Date()): Promise<AdminFulfilment
       receivedAt: r.receivedAt ?? null,
       deliveredAt: r.deliveredAt ?? null,
       ...(w ? { kidName: w.kidName ?? "", familyName: w.familyName ?? "", parentEmail: w.parent?.email ?? "", familyNotice: notice(r) } : {}),
+      ...(r.status === "shipped" && r.receivedAt ? { address: addresses.get(String(r.familyId)) ?? "missing" } : {}),
     };
   };
   const list = ([rows, total]: [AdminRaw[], number], who: boolean): AdminList => ({ rows: rows.map((r) => toRow(r, who)), total });
@@ -469,8 +483,66 @@ export async function markSentToFamily(adminId: string, rawId: string, now = new
   const id = normalizeObjectId(rawId);
   if (!id) return notFound;
   const r = await adminStep(adminId, id, { status: "shipped", receivedAt: trusted({ $ne: null }) }, { status: "delivered", deliveredAt: now, deliveredByUserId: adminId }, {}, "wish.deliver", {});
-  if (r.ok) await notifyFamilies([id]);
+  if (r.ok) {
+    await notifyFamilies([id]);
+    await deleteAddressIfDone(adminId, id);
+  }
   return r;
+}
+
+// ── Delivery addresses (slice 4b) ─────────────────────────────────────────────────────
+
+const ADDRESS_KEY = "ADDRESS_ENCRYPTION_KEY" as const;
+
+/** Decrypt the addresses of these families for an admin, auditing each one shown. */
+async function deliveryAddresses(adminId: string, familyIds: string[]): Promise<Map<string, string[] | "unreadable">> {
+  const ids = [...new Set(familyIds)];
+  if (ids.length === 0) return new Map();
+  const fams = await Family.find({ _id: trusted({ $in: ids }), deliveryAddressEnc: trusted({ $exists: true }) })
+    .select("+deliveryAddressEnc")
+    .lean<{ _id: unknown; deliveryAddressEnc: string }[]>();
+  const out = new Map<string, string[] | "unreadable">();
+  for (const f of fams) {
+    const a = unsealJson<DeliveryAddress>(f.deliveryAddressEnc, String(f._id), ADDRESS_KEY);
+    out.set(String(f._id), a ? addressLines(a) : "unreadable");
+  }
+  if (out.size > 0) {
+    await AuditLog.insertMany([...out.keys()].map((fid) => ({ actorUserId: adminId, action: "family.address_view", targetType: "family", targetId: fid, details: {} })));
+  }
+  return out;
+}
+
+/** After a gift goes out: no gift left on its way to that family → its address is deleted. */
+async function deleteAddressIfDone(adminId: string, wishId: string): Promise<void> {
+  try {
+    const w = await WishListItem.findById(wishId).select("familyId").lean<{ familyId: unknown }>();
+    if (!w) return;
+    const fid = String(w.familyId);
+    if (await WishListItem.exists({ familyId: fid, status: trusted({ $in: [...AWAITING_DELIVERY] }) })) return;
+    const res = await Family.updateOne({ _id: fid, deliveryAddressEnc: trusted({ $exists: true }) }, { $unset: { deliveryAddressEnc: 1, deliveryAddressUpdatedAt: 1 } });
+    if (res.modifiedCount === 1) {
+      await AuditLog.create({ actorUserId: adminId, action: "family.address_delete", targetType: "family", targetId: fid, details: { by: "delivered" } });
+    }
+  } catch (err) {
+    // The daily purge catches anything missed here.
+    console.error("[fulfilment] address cleanup failed (daily job retries):", err instanceof Error ? err.name : "unknown");
+  }
+}
+
+/**
+ * Daily safety net (money cron): delete every stored address whose family has no gift on its way
+ * (all delivered, removed, dropped at the close, or the kid deleted). Returns how many.
+ */
+export async function purgeUnneededAddresses(): Promise<number> {
+  await connectDb();
+  const fams = await Family.find({ deliveryAddressEnc: trusted({ $exists: true }) }).select("_id").limit(5000).lean<{ _id: unknown }[]>();
+  let purged = 0;
+  for (const f of fams) {
+    if (await WishListItem.exists({ familyId: String(f._id), status: trusted({ $in: [...AWAITING_DELIVERY] }) })) continue;
+    const res = await Family.updateOne({ _id: String(f._id) }, { $unset: { deliveryAddressEnc: 1, deliveryAddressUpdatedAt: 1 } });
+    purged += res.modifiedCount;
+  }
+  return purged;
 }
 
 type NoticeTotals = { sent: number; failed: number; none: number };

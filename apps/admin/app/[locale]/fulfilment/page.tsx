@@ -23,8 +23,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 async function Content() {
   await connection();
-  await requireRole(authOptions, "admin");
-  const [f, t, format] = await Promise.all([adminFulfilment(), getTranslations("Fulfilment"), getFormatter()]);
+  const admin = await requireRole(authOptions, "admin");
+  const [f, t, format] = await Promise.all([adminFulfilment(admin.id), getTranslations("Fulfilment"), getFormatter()]);
   const day = (d: Date | null) => (d ? format.dateTime(new Date(d), { month: "short", day: "numeric" }) : "");
   const head = (r: AdminFulfilmentRow) => (
     <p>
@@ -89,6 +89,13 @@ async function Content() {
                 <li key={r.id} className="flex flex-col gap-2 py-3" data-ref={r.ref}>
                   {head(r)}
                   {who(r)}
+                  {Array.isArray(r.address) ? (
+                    <address className="whitespace-pre-line rounded-lg bg-foreground/5 p-3 text-sm not-italic" data-testid="address">
+                      {r.address.join("\n")}
+                    </address>
+                  ) : (
+                    <p className="text-sm font-semibold" data-testid="address-missing">{t(r.address === "unreadable" ? "addressUnreadable" : "addressMissing")}</p>
+                  )}
                   <p className="text-sm text-foreground/70">{t("receivedOn", { date: day(r.receivedAt) })}</p>
                   <StepButton wishId={r.id} kind="sent" />
                 </li>

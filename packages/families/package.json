@@ -10,7 +10,8 @@
     "./votes": "./src/votes.ts",
     "./settings": "./src/settings.ts",
     "./bonus": "./src/bonus.ts",
-    "./payup": "./src/payup.ts"
+    "./payup": "./src/payup.ts",
+    "./address": "./src/address.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

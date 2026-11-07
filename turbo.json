@@ -43,6 +43,7 @@
         "STORE_APP_URL",
         "FAMILY_APP_URL",
         "MFA_ENCRYPTION_KEY",
+        "ADDRESS_ENCRYPTION_KEY",
         "FAMILY_PROMO_CODE",
         "DEED_QR_KEY"
       ],

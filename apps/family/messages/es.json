@@ -46,7 +46,7 @@
     "sections": {
       "collect": {
         "title": "Qué recopilamos",
-        "body": "De ti (padre, madre o tutor): tu nombre, correo electrónico, una contraseña (guardada solo en forma cifrada), un apellido familiar privado y, si quieres, tu código postal.\nSobre cada niño, ingresado por ti: un nombre, el año de nacimiento y un nombre para mostrar que tú eliges; las buenas acciones que registras; sus puntos y su lista de deseos."
+        "body": "De ti (padre, madre o tutor): tu nombre, correo electrónico, una contraseña (guardada solo en forma cifrada), un apellido familiar privado y, si quieres, tu código postal.\nSobre cada niño, ingresado por ti: un nombre, el año de nacimiento y un nombre para mostrar que tú eliges; las buenas acciones que registras; sus puntos y su lista de deseos.\nSolo cuando uno de los regalos de tus hijos está completo: una dirección de entrega para el regalo (guardada cifrada)."
       },
       "public": {
         "title": "Qué pueden ver otras personas",
@@ -66,7 +66,7 @@
       },
       "keep": {
         "title": "Cuánto tiempo la guardamos",
-        "body": "Los puntos se reinician cada 1 de enero. Guardamos la información de tu familia mientras tu cuenta esté abierta y borramos la información de un niño cuando nos lo pidas.\nVisitantes: los datos de los recibos de donación se guardan como registros de la organización benéfica; el número de celular para pagar más tarde y la hora en que aceptaste se guardan hasta 13 meses y luego se borran."
+        "body": "Los puntos se reinician cada 1 de enero. Guardamos la información de tu familia mientras tu cuenta esté abierta y borramos la información de un niño cuando nos lo pidas.\nVisitantes: los datos de los recibos de donación se guardan como registros de la organización benéfica; el número de celular para pagar más tarde y la hora en que aceptaste se guardan hasta 13 meses y luego se borran.\nLa dirección de entrega se borra automáticamente en cuanto se entregan todos los regalos completos; puedes borrarla tú cuando quieras."
       },
       "contact": {
         "title": "Contacto",
@@ -154,7 +154,9 @@
     "aliasRejected": "Nuestro equipo no aprobó este apodo. Elige otro (sin nombres reales).",
     "giveBonus": "Dar magia extra",
     "payUpAlert": "{count, plural, one {# regalo todavía no está completo.} other {# regalos todavía no están completos.}} Puedes completarlos antes de la fecha límite; si no, salen de la lista el {close}.",
-    "payUpLink": "Completar regalos"
+    "payUpLink": "Completar regalos",
+    "addressAlert": "¡Un regalo está completo! Dinos dónde entregarlo.",
+    "addressLink": "Agregar dirección de entrega"
   },
   "Register": {
     "title": "Registra a tus hijos",
@@ -407,6 +409,38 @@
       "locked": "Primero escribe el PIN de padres (área de padres) y vuelve a intentarlo.",
       "rateLimited": "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.",
       "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde."
+    }
+  },
+  "Address": {
+    "title": "Dirección de entrega",
+    "intro": "A dónde Spirit O Santa envía los regalos completos de tus hijos. La guardamos cifrada, solo nuestro equipo la ve y la borramos en cuanto se entregan todos los regalos.",
+    "back": "Área de padres",
+    "name": "Entregar a (nombre en el paquete)",
+    "line1": "Dirección",
+    "line2": "Apartamento, unidad, etc. (opcional)",
+    "city": "Ciudad",
+    "state": "Estado",
+    "zip": "Código postal",
+    "save": "Guardar dirección",
+    "saved": "Dirección guardada.",
+    "notNeeded": "Te pediremos una dirección cuando uno de los regalos de tus hijos esté completo. Hasta entonces no guardamos nada.",
+    "unreadable": "No pudimos leer la dirección guardada. Escríbela de nuevo.",
+    "deleteHelp": "Puedes borrar la dirección cuando quieras. Si un regalo todavía va en camino, la necesitaremos otra vez para poder enviarlo.",
+    "delete": "Borrar dirección",
+    "deleted": "Dirección borrada.",
+    "errors": {
+      "locked": "El área de padres se bloqueó (15 minutos). Escribe tu PIN otra vez.",
+      "notFound": "No se encontró tu cuenta familiar. Cierra sesión y vuelve a entrar.",
+      "notNeeded": "Ahora no hay ningún regalo esperando entrega, así que no necesitamos una dirección.",
+      "invalid": "Revisa la dirección.",
+      "field": {
+        "name": "Escribe el nombre para el paquete (de 2 a 80 caracteres).",
+        "line1": "Escribe la dirección.",
+        "line2": "Revisa la línea de apartamento o unidad.",
+        "city": "Escribe la ciudad.",
+        "state": "Elige el estado.",
+        "zip": "Escribe un código postal de 5 dígitos (o ZIP+4)."
+      }
     }
   },
   "Community": {

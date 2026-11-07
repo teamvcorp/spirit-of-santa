@@ -554,7 +554,15 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   to close is PARKED (closeNeedsAttentionAt, counted as needsAttention, skipped after) so one bad record can't fail
   the job daily; texts show the REAL close date ({close}); dashboard uses `payUpCount`; window checked before the
   rate limit (20/15 min); cron log names digest/notices/close failures.
-  Slice 4b NEXT: delivery address (user chose to COLLECT it: PIN, encrypted at rest, deleted after delivery).
+- **Slice 4b delivery address (2026-11-06).** User chose to COLLECT it. `@repo/auth/sealed` = the ONE AES-256-GCM helper
+  (seal/unseal/sealJson/unsealJson, per-purpose keys MFA_ENCRYPTION_KEY / ADDRESS_ENCRYPTION_KEY, AAD = owner id; MFA
+  now uses it, same "v1.iv.tag.ct" format). Shape + Zod in `@repo/lib/address` (US_STATES, deliveryAddressSchema,
+  addressLines). Family.deliveryAddressEnc (select: false) + deliveryAddressUpdatedAt. `@repo/families/address`
+  (addressState/saveAddress/deleteAddress): accepted ONLY while a gift is AWAITING_DELIVERY (rules.ts: fully_funded/
+  locked/shipped); audited without content. Parent `/parent/address` (PIN, safeNext) + dashboard prompt. Admin
+  Fulfilment "To send" shows label lines (`adminFulfilment(adminId)` audits "family.address_view" per family);
+  `markSentToFamily` deletes it when nothing else is on its way; `purgeUnneededAddresses` in the money cron.
+  Privacy page "collect"/"keep" mention it (lawyer review). E2E `browser-family-address.ts` (17).
 
 ## Open items / TODO
 

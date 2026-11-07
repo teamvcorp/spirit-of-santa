@@ -546,6 +546,8 @@
       "pending": "parent email pending (retried daily for 14 days)",
       "failed": "parent email NOT sent: please contact the parent",
       "none": "no email (child or family deleted)"
-    }
+    },
+    "addressMissing": "No delivery address yet: the parent is asked for it in their parent area. You can also email them.",
+    "addressUnreadable": "The saved address can't be read (encryption key changed?). Ask the parent to enter it again."
   }
 }

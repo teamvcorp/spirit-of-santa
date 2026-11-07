@@ -546,6 +546,8 @@
       "pending": "correo al padre/madre pendiente (se reintenta cada día durante 14 días)",
       "failed": "correo NO enviado: contacta al padre o la madre",
       "none": "sin correo (niño o familia eliminados)"
-    }
+    },
+    "addressMissing": "Todavía no hay dirección de entrega: se le pide al padre o la madre en su área de padres. También puedes escribirle por correo.",
+    "addressUnreadable": "La dirección guardada no se puede leer (¿cambió la clave de cifrado?). Pide al padre o la madre que la escriba de nuevo."
   }
 }

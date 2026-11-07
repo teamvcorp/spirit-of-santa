@@ -24,7 +24,8 @@
     "./form-actions": "./src/form-actions.ts",
     "./form-state": "./src/form-state.ts",
     "./token-slot": "./src/token-slot.tsx",
-    "./family-owner": "./src/family-owner.ts"
+    "./family-owner": "./src/family-owner.ts",
+    "./sealed": "./src/sealed.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

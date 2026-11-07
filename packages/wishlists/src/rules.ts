@@ -32,3 +32,9 @@ export function isRemovable(status: string, fullyFundedAt: Date | null | undefin
   const lock = lockAt(fullyFundedAt);
   return !lock || lock.getTime() > now.getTime();
 }
+
+/**
+ * Gifts still on their way to a family (funded, not yet delivered). While a family has any, it
+ * may keep a delivery address; once none are left the address is deleted (slice 4b).
+ */
+export const AWAITING_DELIVERY = ["fully_funded", "locked", "shipped"] as const;

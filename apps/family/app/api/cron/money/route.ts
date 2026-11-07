@@ -22,7 +22,7 @@ import { runSeasonReset } from "@repo/payments/season-end";
 import { runDonationSplit } from "@repo/payments/split";
 import { lockFundedItems, sweepAllocations } from "@repo/wishlists/engine";
 import { closeUnfunded } from "@repo/wishlists/payup";
-import { sendFamilyNotices, sendStoreDigests } from "@repo/wishlists/fulfilment";
+import { purgeUnneededAddresses, sendFamilyNotices, sendStoreDigests } from "@repo/wishlists/fulfilment";
 
 /**
  * Up to 5 minutes (Vercel Fluid compute; check the project's plan limit). The split credits kids in
@@ -58,6 +58,8 @@ export async function GET(request: Request): Promise<Response> {
   const storeOrders = await settle(() => sendStoreDigests());
   // "Your gift is on its way" emails that failed when the admin sent the gift (retry, 14 days).
   const familyNotices = await settle(() => sendFamilyNotices());
+  // Delivery addresses are kept only while a gift is on its way (data minimisation).
+  const addresses = await settle(() => purgeUnneededAddresses());
   const seasonEnd = await settle(() => runSeasonReset());
   const receipts = await settle(() => sendPendingReceipts({ limit: 50 }));
   const result = {
@@ -67,15 +69,16 @@ export async function GET(request: Request): Promise<Response> {
     wishLists: wishLists.status === "fulfilled" ? wishLists.value : "failed",
     storeOrders: storeOrders.status === "fulfilled" ? storeOrders.value : "failed",
     familyNotices: familyNotices.status === "fulfilled" ? familyNotices.value : "failed",
+    addressesPurged: addresses.status === "fulfilled" ? addresses.value : "failed",
     receipts: receipts.status === "fulfilled" ? receipts.value : "failed",
   };
   // A digest that ran but couldn't email some stores also counts as failed (it never throws per store).
   const digestFailed = storeOrders.status === "fulfilled" && storeOrders.value.failed > 0;
   const noticesFailed = familyNotices.status === "fulfilled" && familyNotices.value.failed > 0;
   const closeFailed = wishLists.status === "fulfilled" && wishLists.value.closed.failed > 0;
-  const failed = digestFailed || noticesFailed || closeFailed || [split, seasonEnd, payLater, wishLists, storeOrders, familyNotices, receipts].some((r) => r.status === "rejected");
+  const failed = digestFailed || noticesFailed || closeFailed || [split, seasonEnd, payLater, wishLists, storeOrders, familyNotices, addresses, receipts].some((r) => r.status === "rejected");
   if (failed) {
-    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, receipts: receipts.status, digestFailed, noticesFailed, closeFailed }));
+    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, addresses: addresses.status, receipts: receipts.status, digestFailed, noticesFailed, closeFailed }));
     return Response.json(result, { status: 500, headers: { "Cache-Control": "no-store" } });
   }
   console.info("[cron] donations", JSON.stringify(result)); // totals/counts only, no personal data

@@ -4,26 +4,26 @@ import { Suspense } from "react";
 import { getSessionUser } from "@repo/auth";
 import { authOptions } from "@/auth";
 import { Link } from "@/i18n/navigation";
+import { buttonClass } from "@repo/ui/button";
 
 /** Request-time call to action: dashboard if signed in, else sign up / sign in. */
 async function Cta() {
   await connection();
   const user = await getSessionUser(authOptions);
   const t = await getTranslations("HomePage");
-  const btn = "rounded-lg px-5 py-3 font-semibold";
   if (user) {
     return (
-      <Link href="/dashboard" className={`${btn} bg-brand-red text-white hover:bg-brand-red-dark`}>
+      <Link href="/dashboard" className={buttonClass("primary", "px-6 py-3")}>
         {t("dashboard")}
       </Link>
     );
   }
   return (
     <div className="flex flex-wrap justify-center gap-3">
-      <Link href="/register" className={`${btn} bg-brand-red text-white hover:bg-brand-red-dark`}>
+      <Link href="/register" className={buttonClass("primary", "px-6 py-3")}>
         {t("register")}
       </Link>
-      <Link href="/signin" className={`${btn} border border-foreground/30`}>
+      <Link href="/signin" className={buttonClass("secondary", "px-6 py-3")}>
         {t("signIn")}
       </Link>
     </div>

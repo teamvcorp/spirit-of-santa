@@ -16,6 +16,7 @@ import { browseGifts, GIFT_SORTS, parseGiftQuery, type GiftQuery } from "@repo/w
 import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
 import { requireParent } from "@/lib/parent";
+import { buttonClass } from "@repo/ui/button";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Gifts");
@@ -78,7 +79,7 @@ async function Content({ params, searchParams }: Pick<Props, "params" | "searchP
             ))}
           </select>
         </label>
-        <button type="submit" className="rounded-lg bg-brand-red px-4 py-2 font-semibold text-white hover:bg-brand-red-dark">
+        <button type="submit" className={buttonClass()}>
           {t("apply")}
         </button>
       </form>
@@ -94,7 +95,7 @@ async function Content({ params, searchParams }: Pick<Props, "params" | "searchP
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="gift-grid">
           {result.items.map((g) => (
             <li key={g.id}>
-              <Link href={`/kids/${kid.id}/gifts/${g.id}`} className="flex h-full flex-col overflow-hidden rounded-xl border border-foreground/10 bg-background hover:border-brand-red focus-visible:border-brand-red">
+              <Link href={`/kids/${kid.id}/gifts/${g.id}`} className="flex h-full flex-col overflow-hidden rounded-xl border border-foreground/10 bg-background hover:border-accent focus-visible:border-accent">
                 {g.photoUrl ? (
                   <Image src={g.photoUrl} alt={t("photoAlt", { name: g.name })} width={400} height={300} className="aspect-[4/3] w-full object-cover" />
                 ) : (

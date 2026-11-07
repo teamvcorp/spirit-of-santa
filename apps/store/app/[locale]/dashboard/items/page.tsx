@@ -11,6 +11,7 @@ import { loadMember } from "../member";
 import { NoAccess } from "../no-access";
 import { EngagementTiles, FundingMeter } from "./engagement-ui";
 import { InventoryForm } from "./item-ui";
+import { buttonClass } from "@repo/ui/button";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Items");
@@ -34,7 +35,7 @@ async function Content() {
           <p className="text-sm text-foreground/70">{t("count", { count: data.count, limit: data.limit })}</p>
         </div>
         {canAdd && (
-          <Link href="/dashboard/items/new" className="rounded-lg bg-brand-red px-4 py-2 font-semibold text-white hover:bg-brand-red-dark">
+          <Link href="/dashboard/items/new" className={buttonClass()}>
             {t("addButton")}
           </Link>
         )}

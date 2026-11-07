@@ -20,7 +20,7 @@ export async function DashboardNav({ isOwner, current }: { isOwner: boolean; cur
             key={i.key}
             href={i.href}
             aria-current={i.key === current ? "page" : undefined}
-            className={`rounded-full border px-3 py-1 text-sm ${i.key === current ? "border-brand-red bg-brand-red text-white" : "border-foreground/20"}`}
+            className={`rounded-full border px-3 py-1 text-sm ${i.key === current ? "border-primary bg-primary text-on-primary" : "border-foreground/20"}`}
           >
             {t(i.key)}
           </Link>

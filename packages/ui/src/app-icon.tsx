@@ -21,7 +21,7 @@ export type AppIconTheme = {
   foreground: string;
 };
 
-const GOLD = "#c9a227"; // --color-brand-gold in theme.css
+const GOLD = "#e0a526"; // --color-gold in theme.css (Winter Night)
 export const APP_ICON_THEMES = {
   family: { background: "#b3261e", foreground: GOLD },
   store: { background: "#1f6f43", foreground: GOLD },

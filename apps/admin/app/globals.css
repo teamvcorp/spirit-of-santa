@@ -1,5 +1,5 @@
 @import "tailwindcss";
-/* Shared brand tokens + focus styles: packages/ui/src/theme.css */
+/* All colours, fonts and base styles live in ONE place: packages/ui/src/theme.css (Winter Night). */
 @import "@repo/ui/theme.css";
 
 /* Tailwind only generates classes it finds in scanned files; shared packages live
@@ -7,27 +7,3 @@
 @source "../../../packages/ui/src";
 @source "../../../packages/auth/src";
 @source "../../../packages/i18n/src";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-}

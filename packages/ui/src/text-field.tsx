@@ -22,7 +22,7 @@ export function TextField({ label, hint, error, id, className, ...input }: TextF
 
   return (
     <div className={cn("flex flex-col gap-1", className)}>
-      <label htmlFor={inputId} className="text-sm font-medium">
+      <label htmlFor={inputId} className="text-sm font-semibold">
         {label}
       </label>
       <input
@@ -30,13 +30,13 @@ export function TextField({ label, hint, error, id, className, ...input }: TextF
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
         className={cn(
-          "min-h-11 rounded-lg border bg-background px-3 py-2 text-foreground",
+          "min-h-11 rounded-xl border bg-surface px-3 py-2 text-foreground",
           error ? "border-danger" : "border-input",
         )}
         {...input}
       />
       {hint && (
-        <p id={hintId} className="text-sm text-foreground/70">
+        <p id={hintId} className="text-sm text-muted">
           {hint}
         </p>
       )}

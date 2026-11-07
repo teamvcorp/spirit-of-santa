@@ -8,6 +8,7 @@ import { formatDiscount } from "@repo/lib/store";
 import { listStores, storeStatusCounts, STORES_PAGE_SIZE, type StoreStatus } from "@repo/stores/queries";
 import { authOptions } from "@/auth";
 import { Link } from "@/i18n/navigation";
+import { buttonClass } from "@repo/ui/button";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("StoreAdmin");
@@ -38,7 +39,7 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/[locale]/stor
             key={s}
             href={{ pathname: "/stores", query: { status: s } }}
             aria-current={s === status ? "page" : undefined}
-            className={`rounded-full border px-3 py-1 text-sm ${s === status ? "border-brand-red bg-brand-red text-white" : "border-foreground/20"}`}
+            className={`rounded-full border px-3 py-1 text-sm ${s === status ? "border-primary bg-primary text-on-primary" : "border-foreground/20"}`}
           >
             {statusT(s)} ({counts[s]})
           </Link>
@@ -108,7 +109,7 @@ export default async function StoresPage({ searchParams }: PageProps<"/[locale]/
     <main className="mx-auto w-full max-w-5xl flex-1 p-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">{t("queueTitle")}</h1>
-        <Link href="/stores/invite" className="rounded-lg bg-brand-red px-4 py-2 font-semibold text-white hover:bg-brand-red-dark">
+        <Link href="/stores/invite" className={buttonClass()}>
           {t("inviteButton")}
         </Link>
       </div>

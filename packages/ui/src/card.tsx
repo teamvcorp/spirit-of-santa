@@ -1,11 +1,11 @@
 import type { HTMLAttributes } from "react";
 import { cn } from "./cn.ts";
 
-/** Bordered panel used for forms and content blocks. */
+/** Panel for forms and content blocks (Winter Night: soft surface, rounder corners, gentle shadow). */
 export function Card({ className, ...rest }: HTMLAttributes<HTMLElement>) {
   return (
     <section
-      className={cn("rounded-2xl border border-foreground/15 bg-background p-6 shadow-sm", className)}
+      className={cn("rounded-3xl border border-foreground/10 bg-surface p-6 shadow-[0_8px_24px_rgba(27,42,74,0.07)]", className)}
       {...rest}
     />
   );

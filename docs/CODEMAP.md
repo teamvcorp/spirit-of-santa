@@ -621,6 +621,20 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   Unexplained once: the digest step failed inside the dev server on its first run after this change (not reproduced
   in 4 runs since): watch the dev log line "[cron] job failed".
 
+## Phase 8.5 (UI & visual design): "Winter Night" (approved mockup https://claude.ai/artifact/UKrawvum5xqo31C2A3DnvV)
+
+- **8.5.1 foundations (2026-11-06).** `packages/ui/src/theme.css` = the ONE place for colours/fonts/base styles
+  (apps' globals.css only import it). ROLE tokens that swap with light (snowy day) / dark (starry night):
+  background/foreground/surface/muted/primary(+hover,on-)/accent(on-,-text)/danger/input/meter/focus; fixed night,
+  night-deep, snow, gold, gold-light, berry. Contrast table in the file (all AA). Gold is a BACKGROUND only.
+  h1–h3 use font-display (Fraunces) via a base rule; body Nunito Sans. Fonts loaded ONCE in `@repo/ui/fonts`
+  (next/font, self-hosted at build; works from the shared package) → `fontVariables` on <html> in each layout.
+  `buttonClass(variant, extra)` in @repo/ui/button = the ONE button look (links too); variants primary/secondary/
+  ghost/festive(berry). `Logo`/`LogoMark` in @repo/ui/logo = PLACEHOLDER (swap the SVG there for the real logo).
+  SiteHeader = night bar in both modes; it RE-SCOPES --foreground/--muted/--focus so anything placed in it stays
+  readable. No more brand-red/green classes anywhere. Test fixes: browser-store-dashboard reads main:visible and
+  waits for the re-rendered invite list (it failed before 8.5 too: a race, not the app).
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.

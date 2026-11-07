@@ -74,7 +74,8 @@ const ready = (p: Page) =>
     const b = [...document.querySelectorAll('main button[type="submit"]')];
     return b.length > 0 && b.every((x) => !(x as HTMLButtonElement).disabled);
   });
-const mainText = (p: Page) => p.locator("main").innerText();
+// Next 16 keeps the previous page in the DOM, hidden: read only the VISIBLE <main> (CODEMAP gotcha).
+const mainText = (p: Page) => p.locator("main:visible").innerText();
 async function signInUI(p: Page, email: string, password: string) {
   await p.goto(`${base}/signin`);
   await ready(p);
@@ -189,7 +190,9 @@ try {
   await owner.fill('[name="email"]', repEmail);
   await owner.click('main form button[type="submit"]');
   await owner.locator("main").getByText("Invitation sent.").waitFor();
-  check("pending invitation listed", (await mainText(owner)).includes(repEmail));
+  // The list re-renders right after the success message: wait for it (up to 10 s) instead of racing it.
+  const listed = await owner.locator("main:visible").getByText(repEmail).first().waitFor({ timeout: 10_000 }).then(() => true, () => false);
+  check("pending invitation listed", listed);
   const repLink = await emailedLink(repEmail, "inviteRep", "/accept-rep-invite");
   check("rep invite email has an /accept-rep-invite link", !!repLink);
   // Review fix: another store inviting the same person must NOT cancel store A's link.

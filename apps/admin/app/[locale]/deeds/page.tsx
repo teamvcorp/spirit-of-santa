@@ -12,6 +12,7 @@ import { formatCents } from "@repo/lib/format";
 import { authOptions } from "@/auth";
 import { Link } from "@/i18n/navigation";
 import { DeedRowActions, SeedButton } from "./deed-ui";
+import { buttonClass } from "@repo/ui/button";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Deeds");
@@ -62,7 +63,7 @@ export default async function DeedsPage() {
           <h1 className="text-2xl font-bold">{t("title")}</h1>
           <p className="text-foreground/70">{t("intro")}</p>
         </div>
-        <Link href="/deeds/new" className="rounded-lg bg-brand-red px-4 py-2 font-semibold text-white hover:bg-brand-red-dark">
+        <Link href="/deeds/new" className={buttonClass()}>
           {t("addButton")}
         </Link>
       </div>

@@ -13,6 +13,7 @@ import { payUpCount } from "@repo/wishlists/payup";
 import { addressMissing } from "@repo/families/address";
 import { getFormatter } from "next-intl/server";
 import { Alert } from "@repo/ui/alert";
+import { buttonClass } from "@repo/ui/button";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Parent");
@@ -58,7 +59,7 @@ async function Content() {
       <Card>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">{t("kidsTitle")}</h2>
-          <Link href="/parent/kids/new" className="rounded-lg bg-brand-red px-4 py-2 font-semibold text-white hover:bg-brand-red-dark">
+          <Link href="/parent/kids/new" className={buttonClass()}>
             {t("addKid")}
           </Link>
         </div>
@@ -94,7 +95,7 @@ async function Content() {
         )}
         <p className="mt-4 text-sm text-foreground/70">{t("awaitingNote")}</p>
         {kids.some((k) => !k.registered) && (
-          <Link href="/parent/register" className="mt-3 inline-block rounded-lg bg-brand-red px-4 py-2 font-semibold text-white hover:bg-brand-red-dark">
+          <Link href="/parent/register" className={buttonClass("primary", "mt-3")}>
             {t("registerKids")}
           </Link>
         )}

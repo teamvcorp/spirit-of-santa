@@ -9,6 +9,7 @@ import { formatPoints } from "@repo/lib/format";
 import type { KidWishList } from "@repo/wishlists/catalog";
 import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
+import { buttonClass } from "@repo/ui/button";
 
 export async function WishListCard({ kidId, registered, cap, list }: { kidId: string; registered: boolean; cap: number; list: KidWishList }) {
   const [t, format] = await Promise.all([getTranslations("Gifts"), getFormatter()]);
@@ -21,7 +22,7 @@ export async function WishListCard({ kidId, registered, cap, list }: { kidId: st
           <p className="text-sm text-foreground/70" data-testid="wish-count">{t("listCount", { count: list.onList, cap })}</p>
         </div>
         {registered && list.seasonOpen && (
-          <Link href={`/kids/${kidId}/gifts`} className="rounded-lg bg-brand-red px-4 py-2 font-semibold text-white hover:bg-brand-red-dark">
+          <Link href={`/kids/${kidId}/gifts`} className={buttonClass()}>
             {t("browse")}
           </Link>
         )}
@@ -49,7 +50,7 @@ export async function WishListCard({ kidId, registered, cap, list }: { kidId: st
                 <p className="text-sm text-foreground/70">
                   {t("fromStore", { store: w.storeName })} · {t(`status.${w.status}` as never)}
                 </p>
-                <progress className="h-2 w-full accent-brand-red" max={w.costCentipoints} value={w.fundedCentipoints} aria-label={t("progressLabel", { name: w.name })} />
+                <progress className="h-2 w-full accent-meter" max={w.costCentipoints} value={w.fundedCentipoints} aria-label={t("progressLabel", { name: w.name })} />
                 <p className="text-sm">{t("progress", { funded: formatPoints(w.fundedCentipoints), cost: formatPoints(w.costCentipoints) })}</p>
                 {w.status === "fully_funded" && w.lockAt && <p className="text-sm text-foreground/70">{t("lockOn", { date: day(w.lockAt) })}</p>}
                 {w.needsSubstitute && <p className="text-sm">{t("needsSubstitute")}</p>}

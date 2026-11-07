@@ -10,6 +10,7 @@ import { listKids } from "@repo/families/kids";
 import { formatPoints } from "@repo/lib/format";
 import { authOptions } from "@/auth";
 import { Link } from "@/i18n/navigation";
+import { buttonClass } from "@repo/ui/button";
 
 async function Personal() {
   await connection();
@@ -18,7 +19,7 @@ async function Personal() {
   if (user?.role !== "parent") {
     return (
       <div className="flex flex-wrap justify-center gap-3">
-        <Link href="/register" className="rounded-lg bg-brand-red px-5 py-3 font-semibold text-white hover:bg-brand-red-dark">
+        <Link href="/register" className={buttonClass("festive", "px-6 py-3")}>
           {t("signUp")}
         </Link>
         <Link href="/signin" className="rounded-lg border border-current px-5 py-3 font-semibold">

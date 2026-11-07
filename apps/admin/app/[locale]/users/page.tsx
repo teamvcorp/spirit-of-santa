@@ -11,6 +11,7 @@ import { listUsers } from "@repo/auth/admin-users";
 import { ROLES, type Role } from "@repo/lib/roles";
 import { authOptions } from "@/auth";
 import { Link } from "@/i18n/navigation";
+import { buttonClass } from "@repo/ui/button";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Users");
@@ -61,7 +62,7 @@ async function Content({ searchParams }: { searchParams: PageProps<"/[locale]/us
             ))}
           </select>
         </label>
-        <button type="submit" className="min-h-11 rounded-lg bg-brand-red px-4 font-semibold text-white hover:bg-brand-red-dark">
+        <button type="submit" className={buttonClass()}>
           {t("search")}
         </button>
       </form>

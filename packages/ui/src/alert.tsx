@@ -18,10 +18,10 @@ export function Alert({
     <div
       role={tone === "error" ? "alert" : "status"}
       className={cn(
-        "rounded-lg border px-4 py-3 text-sm",
+        "rounded-2xl border px-4 py-3 text-sm",
         tone === "error"
           ? "border-danger/50 bg-danger/10 text-foreground"
-          : "border-foreground/20 bg-foreground/5",
+          : "border-accent/60 bg-accent/10 text-foreground",
         className,
       )}
     >

@@ -1,46 +1,110 @@
 /*
- * Shared design tokens (Tailwind v4). Each app's globals.css imports this file, so
- * `bg-brand-red`, `text-danger`, `border-input` etc. mean the same thing in every app.
+ * Shared design tokens: "WINTER NIGHT" (Phase 8.5, approved by the owner 2026-11-06).
+ * The ONE place for colours + fonts of all three apps: each app's globals.css only imports this.
+ * Light mode = "snowy day", dark mode = "starry night"; the device setting decides.
  *
- * Contrast, measured (WCAG AA: 4.5:1 for text, 3:1 for focus rings and field borders):
- *   white on brand-red 6.54:1 · white on brand-red-dark 9.11:1
- *   danger (text/borders): #b3261e on white 6.54:1 · #ff8a80 on dark bg 8.67:1
- *   focus ring: #8c1d18 on white 9.11:1 · #c9a227 on dark bg 8.18:1
- *   input border: #767676 on white 4.54:1 · #8a8a8a on dark bg 5.73:1
- *   meter fill (progress bars): #1f6f43 on white, #3aa96d on dark bg: both >= 3:1 and inside the
- *   readable lightness band (checked with the dataviz palette validator, 2026-11-05). The
- *   unfilled track is the same colour at 20% (`bg-meter/20`); the % is always printed as text.
- * Brand red on the dark background is only 3.03:1 and gold on white only ~2.4:1, which is
- * why error text, focus rings and borders use theme-aware tokens instead of brand colours.
+ * Use the ROLE names (they swap with the mode), never raw hexes:
+ *   bg-background / text-foreground     page ground and text
+ *   bg-surface                          cards, panels, inputs
+ *   text-muted                          secondary text
+ *   bg-primary text-on-primary          main buttons (night blue by day, gold by night)
+ *   bg-accent text-on-accent            gold highlights (points pills, badges)
+ *   text-accent-text                    gold-ish TEXT that stays readable on the ground
+ *   bg-berry text-white                 small festive accents (celebrations, counts)
+ *   text-danger / border-input / bg-meter / --focus  as before
+ *   bg-night / bg-night-deep / text-snow   fixed night colours (headers, the night hero)
+ * Fonts: font-sans = Nunito Sans (body), font-display = Fraunces (h1–h3 use it automatically).
+ *
+ * Contrast, measured (WCAG AA: 4.5:1 text, 3:1 borders/focus) — 2026-11-06:
+ *   light: text #1B2A4A on #F8FAFC 13.59 · muted #42537A on white 7.64 · on-primary 13.59 ·
+ *          accent-text #8A5A00 on white 5.93 · danger #C8102E on white 5.88 · white on berry 5.88 ·
+ *          input #6B7A99 on white 4.31 · focus #1B2A4A 14.22 · night on gold 6.49 · meter #1F6A4A 6.52
+ *   dark:  text #F8FAFC on #0F1A33 16.51 · muted #B8C4DB on surface #16244A 8.63 · night on gold 6.49 ·
+ *          accent-text #F5C451 on surface 9.31 · danger #FF8A80 7.57 · input #8FA3C7 on surface 5.94 ·
+ *          focus #F5C451 10.61 · meter #3AA96D on surface 5.11
+ * Gold (#E0A526) is a BACKGROUND colour only (night text on it); never gold text on white.
  */
 @theme {
-  --color-brand-red: #b3261e;
-  --color-brand-red-dark: #8c1d18;
-  --color-brand-green: #1f6f43;
-  --color-brand-gold: #c9a227;
+  --color-night: #1b2a4a;
+  --color-night-deep: #0f1a33;
+  --color-snow: #f8fafc;
+  --color-gold: #e0a526;
+  --color-gold-light: #f5c451;
+  --color-berry: #c8102e;
+
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-text: var(--accent-text);
   --color-danger: var(--danger);
   --color-input: var(--input-border);
   --color-meter: var(--meter);
 }
 
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-heading), Georgia, ui-serif, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
 :root {
-  --danger: #b3261e;
-  --focus: #8c1d18;
-  --input-border: #767676;
-  --meter: #1f6f43;
+  --background: #f8fafc;
+  --foreground: #1b2a4a;
+  --surface: #ffffff;
+  --muted: #42537a;
+  --primary: #1b2a4a;
+  --primary-hover: #0f1a33;
+  --on-primary: #f8fafc;
+  --accent: #e0a526;
+  --on-accent: #1b2a4a;
+  --accent-text: #8a5a00;
+  --danger: #c8102e;
+  --focus: #1b2a4a;
+  --input-border: #6b7a99;
+  --meter: #1f6a4a;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
+    --background: #0f1a33;
+    --foreground: #f8fafc;
+    --surface: #16244a;
+    --muted: #b8c4db;
+    --primary: #e0a526;
+    --primary-hover: #f5c451;
+    --on-primary: #1b2a4a;
+    --accent: #e0a526;
+    --on-accent: #1b2a4a;
+    --accent-text: #f5c451;
     --danger: #ff8a80;
-    --focus: #c9a227;
-    --input-border: #8a8a8a;
+    --focus: #f5c451;
+    --input-border: #8fa3c7;
     --meter: #3aa96d;
+    color-scheme: dark;
   }
 }
 
-/* Visible keyboard focus everywhere (never remove outlines without a replacement). */
 @layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+  /* Storybook serif headings everywhere (one rule, every app). */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: 0.005em;
+  }
+  /* Visible keyboard focus everywhere (never remove outlines without a replacement). */
   :focus-visible {
     outline: 3px solid var(--focus);
     outline-offset: 2px;

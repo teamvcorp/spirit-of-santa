@@ -21,6 +21,7 @@ import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
 import { requireParent } from "@/lib/parent";
+import { buttonClass } from "@repo/ui/button";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Kid");
@@ -48,7 +49,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
           {tallies && <p className="text-sm text-foreground/70" data-testid="kid-tally">{t("tally", { nice: tallies.nice, naughty: tallies.naughty, year: tallies.listYear })}</p>}
         </div>
         {kid.registered && (
-          <Link href={`/kids/${kid.id}/deed`} className="rounded-lg bg-brand-red px-4 py-2 font-semibold text-white hover:bg-brand-red-dark">
+          <Link href={`/kids/${kid.id}/deed`} className={buttonClass("festive")}>
             {t("record")}
           </Link>
         )}

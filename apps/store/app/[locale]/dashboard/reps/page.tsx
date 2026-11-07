@@ -25,7 +25,7 @@ async function Content() {
     <>
       <DashboardNav isOwner current="reps" />
       <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
-      <p className="mb-6 text-foreground/70">{t("intro")}</p>
+      <p className="mb-6 text-muted">{t("intro")}</p>
       {!editable && <Alert className="mb-4">{t("readOnly")}</Alert>}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -46,7 +46,7 @@ async function Content() {
         </Card>
         <Card>
           <h2 className="mb-3 text-lg font-semibold">{t("inviteTitle")}</h2>
-          <p className="mb-4 text-sm text-foreground/70">{t("inviteIntro")}</p>
+          <p className="mb-4 text-sm text-muted">{t("inviteIntro")}</p>
           {/* Only admin-approved stores may send invites (anti spam-relay; review 2026-11-05). */}
           <InviteRepForm canInvite={store.status === "approved"} />
         </Card>
@@ -59,7 +59,7 @@ export default async function RepsPage() {
   const t = await getTranslations("Dashboard");
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 p-6">
-      <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+      <Suspense fallback={<p className="text-muted">{t("loading")}</p>}>
         <Content />
       </Suspense>
     </main>

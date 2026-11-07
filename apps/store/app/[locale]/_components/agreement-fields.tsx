@@ -21,7 +21,7 @@ export function AgreementFields({ defaultChecked, error }: { defaultChecked?: bo
             <li key={p}>{t(p)}</li>
           ))}
         </ol>
-        <p className="mt-3 text-foreground/70">{t("version", { version: STORE_AGREEMENT_VERSION })}</p>
+        <p className="mt-3 text-muted">{t("version", { version: STORE_AGREEMENT_VERSION })}</p>
       </div>
       <label className="flex items-start gap-3">
         <input

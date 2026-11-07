@@ -33,9 +33,9 @@ async function Content() {
     <div className="flex flex-col gap-6">
       <Card>
         <h2 className="mb-1 text-lg font-semibold">{t("poolsTitle", { year: preview.seasonYear })}</h2>
-        <p className="mb-4 text-sm text-foreground/70">{t("poolsIntro", { fee: preview.feeBps === null ? "?" : pct(preview.feeBps) })}</p>
+        <p className="mb-4 text-sm text-muted">{t("poolsIntro", { fee: preview.feeBps === null ? "?" : pct(preview.feeBps) })}</p>
         {preview.pools.length === 0 ? (
-          <p className="text-foreground/70">{t("noPools")}</p>
+          <p className="text-muted">{t("noPools")}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm" data-testid="pools">
@@ -71,14 +71,14 @@ async function Content() {
 
       <Card>
         <h2 className="mb-1 text-lg font-semibold">{t("runTitle")}</h2>
-        {preview.reason ? <Alert className="mb-4">{t(`reason.${preview.reason}`)}</Alert> : <p className="mb-4 text-sm text-foreground/70">{t("runIntro")}</p>}
+        {preview.reason ? <Alert className="mb-4">{t(`reason.${preview.reason}`)}</Alert> : <p className="mb-4 text-sm text-muted">{t("runIntro")}</p>}
         <SplitForm enabled={preview.canRun && willShare} />
       </Card>
 
       <Card>
         <h2 className="mb-3 text-lg font-semibold">{t("historyTitle")}</h2>
         {runs.length === 0 ? (
-          <p className="text-foreground/70">{t("noRuns")}</p>
+          <p className="text-muted">{t("noRuns")}</p>
         ) : (
           <ul className="flex flex-col gap-2 text-sm" data-testid="runs">
             {runs.map((r) => (
@@ -98,9 +98,9 @@ async function Content() {
 
       <Card>
         <h2 className="mb-1 text-lg font-semibold">{t("seasonEndTitle")}</h2>
-        <p className="mb-3 text-sm text-foreground/70">{t("seasonEndIntro")}</p>
+        <p className="mb-3 text-sm text-muted">{t("seasonEndIntro")}</p>
         {resets.length === 0 ? (
-          <p className="text-foreground/70">{t("noResets")}</p>
+          <p className="text-muted">{t("noResets")}</p>
         ) : (
           <ul className="flex flex-col gap-2 text-sm" data-testid="resets">
             {resets.map((r) => (

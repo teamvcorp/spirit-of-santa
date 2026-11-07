@@ -34,7 +34,7 @@ async function Detail({ params }: { params: PageProps<"/[locale]/stores/[id]">["
   const date = (iso?: string) => (iso ? format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }) : "—");
   const row = (label: string, value: React.ReactNode) => (
     <div className="grid grid-cols-[10rem_1fr] gap-2 py-1">
-      <dt className="text-foreground/70">{label}</dt>
+      <dt className="text-muted">{label}</dt>
       <dd>{value || "—"}</dd>
     </div>
   );
@@ -73,7 +73,7 @@ async function Detail({ params }: { params: PageProps<"/[locale]/stores/[id]">["
           <Card>
             <h2 className="mb-3 text-lg font-semibold">{t("history")}</h2>
             {store.history.length === 0 ? (
-              <p className="text-sm text-foreground/70">{t("noHistory")}</p>
+              <p className="text-sm text-muted">{t("noHistory")}</p>
             ) : (
               <ol className="flex flex-col gap-2 text-sm">
                 {store.history.map((h, i) => (
@@ -98,7 +98,7 @@ export default async function StoreDetailPage({ params }: PageProps<"/[locale]/s
       <Link href="/stores" className="mb-4 inline-block text-sm underline underline-offset-4">
         ← {t("backToQueue")}
       </Link>
-      <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+      <Suspense fallback={<p className="text-muted">{t("loading")}</p>}>
         <Detail params={params} />
       </Suspense>
     </main>

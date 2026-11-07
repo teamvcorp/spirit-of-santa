@@ -35,8 +35,9 @@ async function Content({ searchParams }: Pick<Props, "searchParams">) {
   const today = isoDay(calendarDateIn(new Date()));
   // Just recorded (?paid=<id>): confirm it here (the store's owed row is gone by now).
   const justPaid = typeof sp.paid === "string" ? history.find((h) => h.id === sp.paid) : undefined;
-  const row = (label: string, cents: number, testId?: string, strong = false) => (
-    <div className={`flex justify-between gap-4 py-1 ${strong ? "border-t border-foreground/20 pt-2 font-semibold" : ""}`}>
+  // testId is unique per row, so it doubles as the React key (rows are built inside lists).
+  const row = (label: string, cents: number, testId: string, strong = false) => (
+    <div key={testId} className={`flex justify-between gap-4 py-1 ${strong ? "border-t border-foreground/20 pt-2 font-semibold" : ""}`}>
       <dt>{label}</dt>
       <dd data-testid={testId}>{formatCents(cents)}</dd>
     </div>
@@ -46,9 +47,9 @@ async function Content({ searchParams }: Pick<Props, "searchParams">) {
       {justPaid && <Alert>{t("recorded", { amount: formatCents(justPaid.amountCents), store: justPaid.storeName })}</Alert>}
       <Card data-testid="owed">
         <h2 className="mb-1 text-lg font-semibold">{t("owedTitle")}</h2>
-        <p className="mb-3 text-sm text-foreground/70">{t("owedIntro")}</p>
+        <p className="mb-3 text-sm text-muted">{t("owedIntro")}</p>
         {owed.length === 0 ? (
-          <p className="text-foreground/70">{t("nothingOwed")}</p>
+          <p className="text-muted">{t("nothingOwed")}</p>
         ) : (
           <ul className="flex flex-col divide-y divide-foreground/10">
             {owed.map((o) => (
@@ -93,13 +94,13 @@ async function Content({ searchParams }: Pick<Props, "searchParams">) {
           {row(t("breakage", { reset: formatPoints(money.breakage.resetCentipoints), forfeit: formatPoints(money.breakage.forfeitCentipoints) }), money.breakage.valueCents, "breakage")}
         </dl>
         {money.gifts.withoutAmount > 0 && <Alert tone="error" className="mt-3">{t("withoutAmount", { count: money.gifts.withoutAmount })}</Alert>}
-        <p className="mt-3 text-xs text-foreground/70">{t("moneyNote")}</p>
+        <p className="mt-3 text-xs text-muted">{t("moneyNote")}</p>
       </Card>
 
       <Card data-testid="history">
         <h2 className="mb-3 text-lg font-semibold">{t("historyTitle")}</h2>
         {history.length === 0 ? (
-          <p className="text-foreground/70">{t("noHistory")}</p>
+          <p className="text-muted">{t("noHistory")}</p>
         ) : (
           <ul className="flex flex-col divide-y divide-foreground/10 text-sm">
             {history.map((h) => (
@@ -121,7 +122,7 @@ export default async function PayoutsPage(props: Props) {
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
       <h1 className="mb-2 text-2xl font-bold">{t("title")}</h1>
-      <p className="mb-6 text-foreground/70">{t("intro")}</p>
+      <p className="mb-6 text-muted">{t("intro")}</p>
       <Suspense fallback={null}>
         <Content searchParams={props.searchParams} />
       </Suspense>

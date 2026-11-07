@@ -23,7 +23,7 @@ async function InviteSlot({ searchParams, signInHref }: { searchParams: PageProp
   if (!invite) return <Alert tone="error">{t("invalid")}</Alert>;
   return (
     <>
-      <p className="mb-6 mt-1 text-foreground/70">{t("intro", { storeName: invite.storeName })}</p>
+      <p className="mb-6 mt-1 text-muted">{t("intro", { storeName: invite.storeName })}</p>
       <RepInviteForm action={acceptRepInviteAction} token={token} email={invite.email} signInHref={signInHref} />
     </>
   );

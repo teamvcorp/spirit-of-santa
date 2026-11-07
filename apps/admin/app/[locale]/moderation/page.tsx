@@ -23,14 +23,14 @@ async function Content() {
   const when = (d: Date) => format.dateTime(new Date(d), { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
   const list = (items: typeof rows, kind: "deed" | "alias", testId: string) =>
     items.length === 0 ? (
-      <p className="text-foreground/70">{t("empty")}</p>
+      <p className="text-muted">{t("empty")}</p>
     ) : (
       <ul className="flex flex-col divide-y divide-foreground/10 rounded-2xl border border-foreground/15" data-testid={testId}>
         {items.map((r) => (
           <li key={r.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="whitespace-pre-line">{r.text}</p>
-              <p className="text-sm text-foreground/70">{when(r.createdAt)}</p>
+              <p className="text-sm text-muted">{when(r.createdAt)}</p>
             </div>
             <ReviewButtons id={r.id} kind={kind} />
           </li>
@@ -45,7 +45,7 @@ async function Content() {
       </section>
       <section>
         <h2 className="mb-1 text-lg font-semibold">{t("aliases")}</h2>
-        <p className="mb-3 text-sm text-foreground/70">{t("aliasesIntro")}</p>
+        <p className="mb-3 text-sm text-muted">{t("aliasesIntro")}</p>
         {list(aliases, "alias", "alias-list")}
       </section>
     </div>
@@ -57,8 +57,8 @@ export default async function ModerationPage() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 p-6">
       <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
-      <p className="mb-6 text-foreground/70">{t("intro")}</p>
-      <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+      <p className="mb-6 text-muted">{t("intro")}</p>
+      <Suspense fallback={<p className="text-muted">{t("loading")}</p>}>
         <Content />
       </Suspense>
     </main>

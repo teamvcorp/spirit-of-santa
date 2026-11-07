@@ -20,7 +20,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/[locale]/
     <main className="flex flex-1 items-center justify-center p-6">
       <Card className="w-full max-w-sm">
         <h1 className="text-2xl font-bold">{auth("title")}</h1>
-        <p className="mb-6 mt-1 text-foreground/70">{page("intro")}</p>
+        <p className="mb-6 mt-1 text-muted">{page("intro")}</p>
         {/* Prerendered form; ?callbackUrl / ?error stream in (see sign-in-slot.tsx). */}
         <SignInSlot searchParams={searchParams} />
         <div className="mt-6 flex flex-col gap-2 text-sm">

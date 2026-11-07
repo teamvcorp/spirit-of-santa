@@ -111,14 +111,14 @@ export function RepsList({ reps }: { reps: { id: string; name?: string; email: s
     <div className="flex flex-col gap-3">
       {region}
       {reps.length === 0 ? (
-        <p className="text-sm text-foreground/70">{t("none")}</p>
+        <p className="text-sm text-muted">{t("none")}</p>
       ) : (
         <ul className="flex flex-col divide-y divide-foreground/10">
           {reps.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
               <span>
                 <span className="font-medium">{r.name ?? r.email}</span>
-                {r.name && <span className="block text-sm text-foreground/70">{r.email}</span>}
+                {r.name && <span className="block text-sm text-muted">{r.email}</span>}
               </span>
               <RemoveRepButton repId={r.id} name={r.name ?? r.email} onDone={() => setNotice(t("removed"))} />
             </li>

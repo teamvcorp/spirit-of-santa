@@ -36,18 +36,18 @@ export async function EngagementTiles({ stats, className = "" }: { stats: ItemSt
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {tiles.map((tile) => (
           <div key={tile.key} className="rounded-lg border border-foreground/15 p-3">
-            <dt className="text-sm text-foreground/70">{tile.label}</dt>
+            <dt className="text-sm text-muted">{tile.label}</dt>
             <dd className="text-2xl font-semibold tabular-nums">{tile.value}</dd>
           </div>
         ))}
         <div className="col-span-2 rounded-lg border border-foreground/15 p-3 sm:col-span-1">
-          <dt className="text-sm text-foreground/70">{t("statFunding")}</dt>
+          <dt className="text-sm text-muted">{t("statFunding")}</dt>
           <dd className="mt-2">
             <FundingMeter percent={stats.fundingPercent} label={t("statFunding")} />
           </dd>
         </div>
       </dl>
-      <p className="mt-2 text-sm text-foreground/70">{t("engagementNote")}</p>
+      <p className="mt-2 text-sm text-muted">{t("engagementNote")}</p>
     </div>
   );
 }

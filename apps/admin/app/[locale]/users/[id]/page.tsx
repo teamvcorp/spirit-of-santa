@@ -49,21 +49,21 @@ async function Content({ params }: { params: PageProps<"/[locale]/users/[id]">["
         <Card>
           <h2 className="mb-3 text-lg font-semibold">{t("details")}</h2>
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-            <dt className="text-foreground/70">{t("colRole")}</dt>
+            <dt className="text-muted">{t("colRole")}</dt>
             <dd>{t(`roles.${u.role}`)}</dd>
             {u.name && (
               <>
-                <dt className="text-foreground/70">{t("name")}</dt>
+                <dt className="text-muted">{t("name")}</dt>
                 <dd>{u.name}</dd>
               </>
             )}
-            <dt className="text-foreground/70">{t("colCreated")}</dt>
+            <dt className="text-muted">{t("colCreated")}</dt>
             <dd>{when(u.createdAt)}</dd>
-            <dt className="text-foreground/70">{t("colLastLogin")}</dt>
+            <dt className="text-muted">{t("colLastLogin")}</dt>
             <dd>{when(u.lastLoginAt)}</dd>
             {u.store && (
               <>
-                <dt className="text-foreground/70">{t("store")}</dt>
+                <dt className="text-muted">{t("store")}</dt>
                 <dd>
                   <Link href={`/stores/${u.store.id}`} className="underline underline-offset-4">
                     {u.store.name}
@@ -73,7 +73,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/users/[id]">["
             )}
             {u.role === "admin" && (
               <>
-                <dt className="text-foreground/70">{t("mfa")}</dt>
+                <dt className="text-muted">{t("mfa")}</dt>
                 <dd>{u.mfa ? t("mfaSince", { when: when(u.mfa.since), left: u.mfa.recoveryCodesLeft }) : t("mfaNotSetUp")}</dd>
               </>
             )}
@@ -81,18 +81,18 @@ async function Content({ params }: { params: PageProps<"/[locale]/users/[id]">["
         </Card>
         <Card>
           <h2 className="mb-3 text-lg font-semibold">{t("actionsTitle")}</h2>
-          {Object.values(ops).some(Boolean) ? <UserActions userId={u.id} ops={ops} email={u.email} /> : <p className="text-sm text-foreground/70">{t("noActions")}</p>}
+          {Object.values(ops).some(Boolean) ? <UserActions userId={u.id} ops={ops} email={u.email} /> : <p className="text-sm text-muted">{t("noActions")}</p>}
         </Card>
       </div>
       <Card>
         <h2 className="mb-3 text-lg font-semibold">{t("history")}</h2>
         {u.history.length === 0 ? (
-          <p className="text-sm text-foreground/70">{t("noHistory")}</p>
+          <p className="text-sm text-muted">{t("noHistory")}</p>
         ) : (
           <ul className="flex flex-col gap-1 text-sm">
             {u.history.map((h, i) => (
               <li key={i}>
-                <span className="text-foreground/70">{when(h.at)}</span> · {label(h.action)}
+                <span className="text-muted">{when(h.at)}</span> · {label(h.action)}
                 {h.byThisUser ? ` (${t("byThisUser")})` : ""}
                 {typeof h.details?.reason === "string" ? ` · ${h.details.reason}` : ""}
               </li>
@@ -111,7 +111,7 @@ export default async function UserPage(props: PageProps<"/[locale]/users/[id]">)
       <Link href="/users" className="mb-4 inline-block text-sm underline underline-offset-4">
         ← {t("back")}
       </Link>
-      <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+      <Suspense fallback={<p className="text-muted">{t("loading")}</p>}>
         <Content params={props.params} />
       </Suspense>
     </main>

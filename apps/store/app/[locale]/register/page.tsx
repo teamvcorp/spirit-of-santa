@@ -16,7 +16,7 @@ export default async function RegisterPage() {
     <main className="flex flex-1 justify-center p-6">
       <Card className="w-full max-w-2xl">
         <h1 className="text-2xl font-bold">{t("title")}</h1>
-        <p className="mb-6 mt-1 text-foreground/70">{t("intro")}</p>
+        <p className="mb-6 mt-1 text-muted">{t("intro")}</p>
         <RegisterForm action={registerStoreAction} />
         <p className="mt-6 text-sm">
           {t("haveAccount")}{" "}

@@ -42,7 +42,7 @@ export default async function EditDeedPage(props: PageProps<"/[locale]/deeds/[id
       </Link>
       <Card>
         <h1 className="mb-4 text-2xl font-bold">{t("editTitle")}</h1>
-        <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+        <Suspense fallback={<p className="text-muted">{t("loading")}</p>}>
           <Content params={props.params} />
         </Suspense>
       </Card>

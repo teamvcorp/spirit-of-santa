@@ -51,8 +51,8 @@ export default async function MfaSetupPage() {
     <main className="mx-auto w-full max-w-xl flex-1 p-6">
       <Card>
         <h1 className="text-2xl font-bold">{t("title")}</h1>
-        <p className="mb-6 mt-1 text-foreground/70">{t("intro")}</p>
-        <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+        <p className="mb-6 mt-1 text-muted">{t("intro")}</p>
+        <Suspense fallback={<p className="text-muted">{t("loading")}</p>}>
           <Content />
         </Suspense>
       </Card>

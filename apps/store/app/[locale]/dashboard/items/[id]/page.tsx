@@ -67,7 +67,7 @@ async function Content({ params, searchParams }: { params: PageProps<"/[locale]/
           {data.isOwner && data.editable && data.window.open && (
             <Card>
               <h2 className="mb-2 text-lg font-semibold">{archived ? t("restoreTitle") : t("archiveTitle")}</h2>
-              <p className="mb-3 text-sm text-foreground/70">{archived ? t("restoreHelp") : t("archiveHelp")}</p>
+              <p className="mb-3 text-sm text-muted">{archived ? t("restoreHelp") : t("archiveHelp")}</p>
               <ArchiveButton itemId={item.id} archived={archived} name={item.name} />
             </Card>
           )}
@@ -84,7 +84,7 @@ export default async function EditItemPage(props: PageProps<"/[locale]/dashboard
       <Link href="/dashboard/items" className="mb-4 inline-block text-sm underline underline-offset-4">
         ← {t("backToItems")}
       </Link>
-      <Suspense fallback={<p className="text-foreground/70">{d("loading")}</p>}>
+      <Suspense fallback={<p className="text-muted">{d("loading")}</p>}>
         <Content params={props.params} searchParams={props.searchParams} />
       </Suspense>
     </main>

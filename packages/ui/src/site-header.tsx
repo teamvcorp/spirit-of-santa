@@ -27,11 +27,18 @@ export const NIGHT_SCOPE = {
   "--danger": "#ff8a80",
 } as CSSProperties;
 
-export function SiteHeader({ brand, actions }: { brand: ReactNode; actions?: ReactNode }) {
+/**
+ * `nav` (optional, Phase 8.5.3): a second row under the brand row for section links (admin). It
+ * scrolls sideways on narrow screens instead of wrapping into several lines.
+ */
+export function SiteHeader({ brand, actions, nav }: { brand: ReactNode; actions?: ReactNode; nav?: ReactNode }) {
   return (
-    <header style={NIGHT_SCOPE} className="flex flex-wrap items-center justify-between gap-4 bg-night px-4 py-3 text-foreground">
-      <div>{brand}</div>
-      {actions && <div className="flex flex-wrap items-center gap-4 text-sm">{actions}</div>}
+    <header style={NIGHT_SCOPE} className="bg-night text-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3">
+        <div>{brand}</div>
+        {actions && <div className="flex flex-wrap items-center gap-4 text-sm">{actions}</div>}
+      </div>
+      {nav && <div className="border-t border-foreground/15 px-2">{nav}</div>}
     </header>
   );
 }

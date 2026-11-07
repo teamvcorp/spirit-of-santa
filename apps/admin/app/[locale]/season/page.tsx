@@ -31,40 +31,40 @@ async function Content() {
       <Card>
         <h2 className="mb-3 text-lg font-semibold">{t("nowTitle", { year: state.year })}</h2>
         <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-[auto_1fr]">
-          <dt className="text-foreground/70">{t("phaseLabel")}</dt>
+          <dt className="text-muted">{t("phaseLabel")}</dt>
           <dd className="font-semibold" data-testid="season-phase">
-            {t(`phase.${state.phase}`)} <span className="font-normal text-foreground/70">({t(`source.${state.phaseSource}`)})</span>
+            {t(`phase.${state.phase}`)} <span className="font-normal text-muted">({t(`source.${state.phaseSource}`)})</span>
           </dd>
-          <dt className="text-foreground/70">{t("datesLabel")}</dt>
+          <dt className="text-muted">{t("datesLabel")}</dt>
           <dd>{t("datesLine", { open: day(state.dates.open), freeze: day(state.dates.freeze), close: day(state.dates.close) })}</dd>
-          <dt className="text-foreground/70">{t("windowLabel")}</dt>
+          <dt className="text-muted">{t("windowLabel")}</dt>
           <dd data-testid="season-window">
-            {state.storeWindowOpen ? t("windowOpen") : t("windowClosed")} <span className="text-foreground/70">({t(`window.${state.storeWindowMode}`)})</span>
+            {state.storeWindowOpen ? t("windowOpen") : t("windowClosed")} <span className="text-muted">({t(`window.${state.storeWindowMode}`)})</span>
           </dd>
         </dl>
       </Card>
 
       <Card>
         <h2 className="mb-1 text-lg font-semibold">{t("windowTitle")}</h2>
-        <p className="mb-4 text-sm text-foreground/70">{t("windowIntro")}</p>
+        <p className="mb-4 text-sm text-muted">{t("windowIntro")}</p>
         <StoreWindowForm mode={state.storeWindowMode} />
       </Card>
 
       <Card>
         <h2 className="mb-1 text-lg font-semibold">{t("freezeTitle")}</h2>
-        <p className="mb-4 text-sm text-foreground/70">{state.forceFrozen ? t("freezeOnIntro") : t("freezeIntro")}</p>
+        <p className="mb-4 text-sm text-muted">{state.forceFrozen ? t("freezeOnIntro") : t("freezeIntro")}</p>
         <ForceFreezeForm on={state.forceFrozen} canFreeze={state.phase === "open"} />
       </Card>
 
       <Card>
         <h2 className="mb-1 text-lg font-semibold">{t("datesTitle", { year: state.year })}</h2>
-        {state.datesLocked ? <Alert className="mb-4">{t("datesLocked")}</Alert> : <p className="mb-4 text-sm text-foreground/70">{t("datesIntro")}</p>}
+        {state.datesLocked ? <Alert className="mb-4">{t("datesLocked")}</Alert> : <p className="mb-4 text-sm text-muted">{t("datesIntro")}</p>}
         <DatesForm year={state.year} custom={view.current.custom} defaults={view.current.defaults} locked={state.datesLocked} />
       </Card>
 
       <Card>
         <h2 className="mb-1 text-lg font-semibold">{t("datesTitle", { year: view.next.year })}</h2>
-        <p className="mb-4 text-sm text-foreground/70">{t("datesIntro")}</p>
+        <p className="mb-4 text-sm text-muted">{t("datesIntro")}</p>
         <DatesForm year={view.next.year} custom={view.next.custom} defaults={view.next.defaults} locked={false} />
       </Card>
     </div>
@@ -76,8 +76,8 @@ export default async function SeasonPage() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 p-6">
       <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
-      <p className="mb-6 text-foreground/70">{t("intro")}</p>
-      <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+      <p className="mb-6 text-muted">{t("intro")}</p>
+      <Suspense fallback={<p className="text-muted">{t("loading")}</p>}>
         <Content />
       </Suspense>
     </main>

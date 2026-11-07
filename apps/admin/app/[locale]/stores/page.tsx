@@ -46,7 +46,7 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/[locale]/stor
         ))}
       </nav>
       {rows.length === 0 ? (
-        <p className="text-foreground/70">{t("empty")}</p>
+        <p className="text-muted">{t("empty")}</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -113,7 +113,7 @@ export default async function StoresPage({ searchParams }: PageProps<"/[locale]/
           {t("inviteButton")}
         </Link>
       </div>
-      <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+      <Suspense fallback={<p className="text-muted">{t("loading")}</p>}>
         <Queue searchParams={searchParams} />
       </Suspense>
     </main>

@@ -27,7 +27,7 @@ export function UserActions({ userId, ops, email }: { userId: string; ops: UserO
         <Button type="submit" variant={variant} pending={pending} disabled={!hydrated}>
           {t(`ops.${op}`)}
         </Button>
-        <p className="mt-1 text-sm text-foreground/70">{t(`ops.${op}Help`)}</p>
+        <p className="mt-1 text-sm text-muted">{t(`ops.${op}Help`)}</p>
       </form>
     );
   return (

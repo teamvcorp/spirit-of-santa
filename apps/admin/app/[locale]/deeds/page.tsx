@@ -28,7 +28,7 @@ async function Content() {
   if (rows.length === 0) {
     return (
       <div className="flex flex-col gap-4">
-        <p className="text-foreground/70">{t("empty")}</p>
+        <p className="text-muted">{t("empty")}</p>
         <SeedButton />
       </div>
     );
@@ -42,7 +42,7 @@ async function Content() {
               {d.title.en}
             </Link>
             {!d.active && <span className="ml-2 rounded-full border border-foreground/30 px-2 text-xs">{t("off")}</span>}
-            <p className="text-sm text-foreground/70" lang="es">
+            <p className="text-sm text-muted" lang="es">
               {d.title.es ?? t("noSpanish")}
             </p>
             <p className="text-sm">{t("tipLine", { range: tip(d.tipMinCents, d.tipMaxCents) })}</p>
@@ -61,13 +61,13 @@ export default async function DeedsPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t("title")}</h1>
-          <p className="text-foreground/70">{t("intro")}</p>
+          <p className="text-muted">{t("intro")}</p>
         </div>
         <Link href="/deeds/new" className={buttonClass()}>
           {t("addButton")}
         </Link>
       </div>
-      <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+      <Suspense fallback={<p className="text-muted">{t("loading")}</p>}>
         <Content />
       </Suspense>
     </main>

@@ -93,7 +93,8 @@
       "settings": "Ajustes",
       "donations": "Donaciones",
       "fulfilment": "Entregas",
-      "payouts": "Pagos"
+      "payouts": "Pagos",
+      "adminSections": "Secciones de administración"
     },
     "storeStatus": {
       "invited": "Invitada",

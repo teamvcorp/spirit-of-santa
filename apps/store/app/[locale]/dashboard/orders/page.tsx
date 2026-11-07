@@ -41,11 +41,11 @@ async function Content() {
     <>
       <DashboardNav isOwner={isOwner} current="orders" />
       <h1 className="mb-2 text-2xl font-bold">{t("title")}</h1>
-      <p className="mb-6 text-foreground/70">{t("intro")}</p>
+      <p className="mb-6 text-muted">{t("intro")}</p>
 
       <Card className="mb-6" data-testid="ready">
         <h2 className="mb-1 text-lg font-semibold">{t("readyTitle", { count: orders.ready.length })}</h2>
-        <p className="mb-3 text-sm text-foreground/70">{t("readyIntro")}</p>
+        <p className="mb-3 text-sm text-muted">{t("readyIntro")}</p>
         {orders.shippingAddress ? (
           <div className="mb-4 rounded-lg bg-foreground/5 p-3">
             <p className="text-sm font-semibold">{t("shipTo")}</p>
@@ -55,7 +55,7 @@ async function Content() {
           <Alert tone="error" className="mb-4">{t("noAddress")}</Alert>
         )}
         {orders.ready.length === 0 ? (
-          <p className="text-foreground/70">{t("none")}</p>
+          <p className="text-muted">{t("none")}</p>
         ) : (
           <ul className="flex flex-col divide-y divide-foreground/10">
             {orders.ready.map((r) => (
@@ -70,15 +70,15 @@ async function Content() {
 
       <Card className="mb-6" data-testid="set-aside">
         <h2 className="mb-1 text-lg font-semibold">{t("setAsideTitle", { count: orders.setAside.length })}</h2>
-        <p className="mb-3 text-sm text-foreground/70">{t("setAsideIntro")}</p>
+        <p className="mb-3 text-sm text-muted">{t("setAsideIntro")}</p>
         {orders.setAside.length === 0 ? (
-          <p className="text-foreground/70">{t("none")}</p>
+          <p className="text-muted">{t("none")}</p>
         ) : (
           <ul className="flex flex-col divide-y divide-foreground/10">
             {orders.setAside.map((r) => (
               <li key={r.id} className="py-3">
                 <p>{line(r)}</p>
-                <p className="text-sm text-foreground/70">{t("fundedOn", { date: day(r.fullyFundedAt) })}</p>
+                <p className="text-sm text-muted">{t("fundedOn", { date: day(r.fullyFundedAt) })}</p>
               </li>
             ))}
           </ul>
@@ -88,7 +88,7 @@ async function Content() {
       {orders.outOfStock.length > 0 && (
         <Card className="mb-6" data-testid="out-of-stock">
           <h2 className="mb-1 text-lg font-semibold">{t("outTitle", { count: orders.outOfStock.length })}</h2>
-          <p className="mb-3 text-sm text-foreground/70">{t("outIntro")}</p>
+          <p className="mb-3 text-sm text-muted">{t("outIntro")}</p>
           <ul className="flex flex-col divide-y divide-foreground/10">
             {orders.outOfStock.map((r) => (
               <li key={r.id} className="py-3">
@@ -104,9 +104,9 @@ async function Content() {
       <Card className="mb-6" data-testid="payments">
         <h2 className="mb-2 text-lg font-semibold">{t("paymentsTitle")}</h2>
         {pay.owedCount > 0 && <p className="mb-3" data-testid="owed-now">{t("owedNow", { amount: formatCents(pay.owedCents), count: pay.owedCount })}</p>}
-        {pay.pendingCount > 0 && <p className="mb-3 text-sm text-foreground/70">{t("owedPending", { count: pay.pendingCount })}</p>}
+        {pay.pendingCount > 0 && <p className="mb-3 text-sm text-muted">{t("owedPending", { count: pay.pendingCount })}</p>}
         {pay.payouts.length === 0 ? (
-          <p className="text-foreground/70">{t("noPayments")}</p>
+          <p className="text-muted">{t("noPayments")}</p>
         ) : (
           <ul className="flex flex-col divide-y divide-foreground/10 text-sm">
             {pay.payouts.map((p) => (
@@ -122,13 +122,13 @@ async function Content() {
       <Card data-testid="shipped">
         <h2 className="mb-3 text-lg font-semibold">{t("shippedTitle")}</h2>
         {orders.shipped.length === 0 ? (
-          <p className="text-foreground/70">{t("none")}</p>
+          <p className="text-muted">{t("none")}</p>
         ) : (
           <ul className="flex flex-col divide-y divide-foreground/10">
             {orders.shipped.map((r) => (
               <li key={r.id} className="py-3">
                 <p>{line(r)}</p>
-                <p className="text-sm text-foreground/70">
+                <p className="text-sm text-muted">
                   {t("shippedOn", { date: day(r.shippedAt) })}
                   {r.trackingNote ? ` · ${r.trackingNote}` : ""}
                 </p>
@@ -145,7 +145,7 @@ export default async function OrdersPage() {
   const t = await getTranslations("Dashboard");
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 p-6">
-      <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+      <Suspense fallback={<p className="text-muted">{t("loading")}</p>}>
         <Content />
       </Suspense>
     </main>

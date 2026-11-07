@@ -654,6 +654,11 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   only within the hero; getSessionUser decodes ONCE per request (React cache in @repo/auth guards); kid routes known
   only by `apps/family/lib/kid-path.ts`, ids via OBJECT_ID_PATTERN (@repo/lib/ids, also safeNext); gift browser
   explains when the child can't add (unregistered / season not open).
+- **8.5.3 store + admin, calmer (2026-11-06).** SiteHeader gained an optional `nav` row (scrolls sideways on
+  phones). Admin section links moved there (`apps/admin/components/admin-nav.tsx` client + `admin-nav-gate.tsx`:
+  signed-in admins only); the list is `apps/admin/lib/sections.ts` (a plain module: a value exported from a
+  "use client" file reaches server code only as a client reference, NOT data: caught by a screenshot check).
+  Store/admin text-foreground/70 → text-muted (128). No animation in either app. Payout summary rows keyed.
 
 ## Open items / TODO
 

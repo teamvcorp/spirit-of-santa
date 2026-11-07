@@ -28,7 +28,7 @@ export default async function NewDeedPage() {
       </Link>
       <Card>
         <h1 className="mb-4 text-2xl font-bold">{t("newTitle")}</h1>
-        <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+        <Suspense fallback={<p className="text-muted">{t("loading")}</p>}>
           <Guarded />
         </Suspense>
       </Card>

@@ -57,7 +57,7 @@ export default async function ProfilePage() {
   const t = await getTranslations("Dashboard");
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 p-6">
-      <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+      <Suspense fallback={<p className="text-muted">{t("loading")}</p>}>
         <Content />
       </Suspense>
     </main>

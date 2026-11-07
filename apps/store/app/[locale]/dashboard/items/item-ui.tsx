@@ -147,7 +147,7 @@ export function ItemForm({
             <p className="text-sm">
               <span className="font-medium">{t("price")}: </span>
               {priceCents != null ? formatCents(priceCents) : t("needsPrice")}
-              <span className="block text-foreground/70">{t("repPriceNote")}</span>
+              <span className="block text-muted">{t("repPriceNote")}</span>
             </p>
           )}
           <TextField label={t("inventory")} name="inventory" type="number" inputMode="numeric" min={0} max={9999} required defaultValue={v.inventory} error={err("inventory")} />
@@ -227,7 +227,7 @@ export function ItemPhoto({ itemId, photo, canEdit, alt }: { itemId: string; pho
       {photo ? (
         <Image src={photo.url} alt={alt} width={480} height={360} className="aspect-[4/3] w-full max-w-sm rounded-lg object-cover" />
       ) : (
-        <p className="text-sm text-foreground/70">{t("noPhoto")}</p>
+        <p className="text-sm text-muted">{t("noPhoto")}</p>
       )}
       {canEdit && (
         <>
@@ -237,7 +237,7 @@ export function ItemPhoto({ itemId, photo, canEdit, alt }: { itemId: string; pho
               {photo ? t("replacePhoto") : t("addPhoto")}
             </label>
             <input id="photo" name="photo" type="file" accept={IMAGE_ACCEPT_ATTR} required aria-describedby={error ? "item-photo-hint item-photo-error" : "item-photo-hint"} aria-invalid={error ? true : undefined} className="text-sm" />
-            <p id="item-photo-hint" className="text-sm text-foreground/70">
+            <p id="item-photo-hint" className="text-sm text-muted">
               {p("photoHint", { mb: MAX_IMAGE_BYTES / 1024 / 1024 })}
             </p>
             {error && (

@@ -35,7 +35,7 @@ export function StoreWindowForm({ mode }: { mode: "auto" | "open" | "closed" }) 
             <input type="radio" name="mode" value={m} defaultChecked={mode === m} className="mt-1 size-4" />
             <span>
               <span className="font-semibold">{t(`window.${m}`)}</span>
-              <span className="block text-sm text-foreground/70">{t(`window.${m}Help`)}</span>
+              <span className="block text-sm text-muted">{t(`window.${m}Help`)}</span>
             </span>
           </label>
         ))}
@@ -56,7 +56,7 @@ export function ForceFreezeForm({ on, canFreeze }: { on: boolean; canFreeze: boo
     <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-3">
       <Result state={state} />
       <input type="hidden" name="on" value={on ? "false" : "true"} />
-      {!on && !canFreeze && <p className="text-sm text-foreground/70">{t("freezeOnlyOpen")}</p>}
+      {!on && !canFreeze && <p className="text-sm text-muted">{t("freezeOnlyOpen")}</p>}
       {!on && canFreeze && (
         <label className="flex items-start gap-2">
           <input type="checkbox" name="confirm" value="yes" required className="mt-1 size-4" />
@@ -97,7 +97,7 @@ export function DatesForm({ year, custom, defaults, locked }: { year: number; cu
       {field("openDate", defaults.open)}
       {field("freezeDate", defaults.freeze)}
       {field("closeDate", defaults.close)}
-      <p className="text-sm text-foreground/70">{t("dates.blankHelp")}</p>
+      <p className="text-sm text-muted">{t("dates.blankHelp")}</p>
       {!locked && (
         <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">
           {t("dates.save", { year })}

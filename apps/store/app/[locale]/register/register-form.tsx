@@ -112,7 +112,7 @@ export function RegisterForm({ action }: { action: Action }) {
             aria-describedby={state.fieldErrors?.description ? "description-hint description-error" : "description-hint"}
             className={`rounded-lg border bg-background px-3 py-2 ${state.fieldErrors?.description ? "border-danger" : "border-input"}`}
           />
-          <p id="description-hint" className="text-sm text-foreground/70">
+          <p id="description-hint" className="text-sm text-muted">
             {t("descriptionHint")}
           </p>
           {state.fieldErrors?.description && (

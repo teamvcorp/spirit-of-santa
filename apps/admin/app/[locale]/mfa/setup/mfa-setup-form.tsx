@@ -36,7 +36,7 @@ export function MfaSetupForm({ qrDataUrl, manualKey, issuer, account }: { qrData
           <input type="checkbox" checked={saved} onChange={(e) => setSaved(e.target.checked)} className="size-5" />
           {t("savedCheckbox")}
         </label>
-        {saved ? <SignOutButton label={t("signInAgain")} callbackUrl="/signin" /> : <p className="text-sm text-foreground/70">{t("saveFirst")}</p>}
+        {saved ? <SignOutButton label={t("signInAgain")} callbackUrl="/signin" /> : <p className="text-sm text-muted">{t("saveFirst")}</p>}
       </div>
     );
   }
@@ -53,7 +53,7 @@ export function MfaSetupForm({ qrDataUrl, manualKey, issuer, account }: { qrData
           <code className="mt-1 block break-all rounded bg-foreground/5 p-2 text-sm" data-testid="mfa-manual-key">
             {manualKey}
           </code>
-          <p className="mt-1 text-sm text-foreground/70">{t("accountLine", { issuer, account })}</p>
+          <p className="mt-1 text-sm text-muted">{t("accountLine", { issuer, account })}</p>
         </li>
         <li>
           <p className="mb-2">{t("step3")}</p>

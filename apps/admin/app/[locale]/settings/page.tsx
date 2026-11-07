@@ -30,7 +30,7 @@ async function Content() {
       {!s.shippingAddress && <Alert tone="error">{t("shippingMissing")}</Alert>}
       <Card>
         <h2 className="mb-1 text-lg font-semibold">{t("donationsTitle")}</h2>
-        <p className="mb-4 text-sm text-foreground/70">{t("donationsIntro")}</p>
+        <p className="mb-4 text-sm text-muted">{t("donationsIntro")}</p>
         <SettingsForm
           saved={{
             fee: s.donationFeeBps === null ? "" : String(s.donationFeeBps / 100),
@@ -47,8 +47,8 @@ async function Content() {
       <Card>
         <h2 className="mb-2 text-lg font-semibold">{t("receiptsTitle")}</h2>
         <p data-testid="receipt-counts">{t("counts", { pending: counts.pending, sent: counts.sent, failed: counts.failed })}</p>
-        {counts.before > 0 && <p className="mt-2 text-sm text-foreground/70">{t("before", { count: counts.before, day: s.receiptsFromDay })}</p>}
-        {!s.receiptsReady && counts.pending > 0 && <p className="mt-2 text-sm text-foreground/70">{t("waiting")}</p>}
+        {counts.before > 0 && <p className="mt-2 text-sm text-muted">{t("before", { count: counts.before, day: s.receiptsFromDay })}</p>}
+        {!s.receiptsReady && counts.pending > 0 && <p className="mt-2 text-sm text-muted">{t("waiting")}</p>}
       </Card>
     </div>
   );

@@ -32,7 +32,7 @@ async function Content() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t("title")}</h1>
-          <p className="text-sm text-foreground/70">{t("count", { count: data.count, limit: data.limit })}</p>
+          <p className="text-sm text-muted">{t("count", { count: data.count, limit: data.limit })}</p>
         </div>
         {canAdd && (
           <Link href="/dashboard/items/new" className={buttonClass()}>
@@ -44,9 +44,9 @@ async function Content() {
       {!data.editable && <Alert className="mb-4">{t("readOnly")}</Alert>}
       <h2 className="mb-2 text-lg font-semibold">{t("engagementTitle")}</h2>
       <EngagementTiles stats={data.summary} className="mb-6" />
-      {isOwner && data.discountBps != null && <p className="mb-4 text-sm text-foreground/70">{t("discountNote", { discount: formatDiscount(data.discountBps) })}</p>}
+      {isOwner && data.discountBps != null && <p className="mb-4 text-sm text-muted">{t("discountNote", { discount: formatDiscount(data.discountBps) })}</p>}
       {active.length === 0 ? (
-        <p className="text-foreground/70">{t("empty")}</p>
+        <p className="text-muted">{t("empty")}</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -110,7 +110,7 @@ export default async function ItemsPage() {
   const t = await getTranslations("Dashboard");
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 p-6">
-      <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+      <Suspense fallback={<p className="text-muted">{t("loading")}</p>}>
         <Content />
       </Suspense>
     </main>

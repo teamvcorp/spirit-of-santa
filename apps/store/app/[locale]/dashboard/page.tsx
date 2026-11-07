@@ -41,7 +41,7 @@ async function Overview() {
         {isOwner && (
           <Card>
             <h2 className="text-lg font-semibold">{t("profileCardTitle")}</h2>
-            <p className="mb-3 mt-1 text-sm text-foreground/70">{t("profileCardBody")}</p>
+            <p className="mb-3 mt-1 text-sm text-muted">{t("profileCardBody")}</p>
             <Link href="/dashboard/profile" className="font-semibold underline underline-offset-4">
               {t("nav.profile")}
             </Link>
@@ -50,7 +50,7 @@ async function Overview() {
         {isOwner && (
           <Card>
             <h2 className="text-lg font-semibold">{t("repsCardTitle")}</h2>
-            <p className="mb-3 mt-1 text-sm text-foreground/70">{t("repsCardBody", { count: store.repUserIds?.length ?? 0 })}</p>
+            <p className="mb-3 mt-1 text-sm text-muted">{t("repsCardBody", { count: store.repUserIds?.length ?? 0 })}</p>
             <Link href="/dashboard/reps" className="font-semibold underline underline-offset-4">
               {t("nav.reps")}
             </Link>
@@ -58,13 +58,13 @@ async function Overview() {
         )}
         <Card>
           <h2 className="text-lg font-semibold">{t("itemsCardTitle")}</h2>
-          <p className="mb-3 mt-1 text-sm text-foreground/70">{t("itemsCardBody")}</p>
+          <p className="mb-3 mt-1 text-sm text-muted">{t("itemsCardBody")}</p>
           <Link href="/dashboard/items" className="font-semibold underline underline-offset-4">
             {t("nav.items")}
           </Link>
         </Card>
       </div>
-      <p className="mt-6 text-sm text-foreground/70">{t(isOwner ? "signedInOwner" : "signedInRep", { email: user.email })}</p>
+      <p className="mt-6 text-sm text-muted">{t(isOwner ? "signedInOwner" : "signedInRep", { email: user.email })}</p>
     </>
   );
 }
@@ -73,7 +73,7 @@ export default async function DashboardPage() {
   const t = await getTranslations("Dashboard");
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 p-6">
-      <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+      <Suspense fallback={<p className="text-muted">{t("loading")}</p>}>
         <Overview />
       </Suspense>
     </main>

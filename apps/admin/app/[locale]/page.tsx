@@ -22,7 +22,7 @@ async function Tiles({ title, tiles }: { title: string; tiles: Tile[] }) {
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {tiles.map((tile) => (
           <div key={tile.label} className="rounded-lg border border-foreground/15 p-3">
-            <dt className="text-sm text-foreground/70">{tile.label}</dt>
+            <dt className="text-sm text-muted">{tile.label}</dt>
             <dd className="text-2xl font-semibold tabular-nums">
               {tile.href ? (
                 <Link href={tile.href} className="underline underline-offset-4">
@@ -101,17 +101,17 @@ async function Dashboard() {
       <Card>
         <h2 className="mb-3 text-lg font-semibold">{t("recentTitle")}</h2>
         {s.activity.length === 0 ? (
-          <p className="text-sm text-foreground/70">{t("recentEmpty")}</p>
+          <p className="text-sm text-muted">{t("recentEmpty")}</p>
         ) : (
           <ul className="flex flex-col gap-1 text-sm" data-testid="recent-activity">
             {s.activity.map((a, i) => (
               <li key={i}>
-                <span className="text-foreground/70">{when(a.at)}</span> · {label(a.action)} · {a.by}
+                <span className="text-muted">{when(a.at)}</span> · {label(a.action)} · {a.by}
               </li>
             ))}
           </ul>
         )}
-        <p className="mt-3 text-sm text-foreground/70">{t("laterNote")}</p>
+        <p className="mt-3 text-sm text-muted">{t("laterNote")}</p>
       </Card>
     </div>
   );

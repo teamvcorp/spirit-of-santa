@@ -66,9 +66,9 @@ async function Content({ searchParams }: { searchParams: PageProps<"/[locale]/us
           {t("search")}
         </button>
       </form>
-      <p className="mb-2 text-sm text-foreground/70">{t("count", { total: data.total })}</p>
+      <p className="mb-2 text-sm text-muted">{t("count", { total: data.total })}</p>
       {data.rows.length === 0 ? (
-        <p className="text-foreground/70">{t("empty")}</p>
+        <p className="text-muted">{t("empty")}</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -91,7 +91,7 @@ async function Content({ searchParams }: { searchParams: PageProps<"/[locale]/us
                   </td>
                   <td className="py-2 pr-4">
                     {t(`roles.${u.role}`)}
-                    {u.role === "admin" && <span className="ml-1 text-foreground/70">({u.mfa ? t("mfaOn") : t("mfaOff")})</span>}
+                    {u.role === "admin" && <span className="ml-1 text-muted">({u.mfa ? t("mfaOn") : t("mfaOff")})</span>}
                   </td>
                   <td className="py-2 pr-4">{t(`statuses.${u.status}` as never)}</td>
                   <td className="py-2 pr-4">{day(u.createdAt)}</td>
@@ -118,8 +118,8 @@ export default async function UsersPage(props: PageProps<"/[locale]/users">) {
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 p-6">
       <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
-      <p className="mb-6 text-foreground/70">{t("intro")}</p>
-      <Suspense fallback={<p className="text-foreground/70">{t("loading")}</p>}>
+      <p className="mb-6 text-muted">{t("intro")}</p>
+      <Suspense fallback={<p className="text-muted">{t("loading")}</p>}>
         <Content searchParams={props.searchParams} />
       </Suspense>
     </main>

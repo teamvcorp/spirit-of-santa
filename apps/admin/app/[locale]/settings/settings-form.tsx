@@ -41,7 +41,7 @@ export function SettingsForm({ saved }: { saved: SettingsDefaults }) {
         <input type="checkbox" name="receipts" value="on" defaultChecked={d.receipts} className="mt-1 size-4" />
         <span>
           <span className="font-semibold">{t("receipts")}</span>
-          <span className="block text-sm text-foreground/70">{t("receiptsHelp")}</span>
+          <span className="block text-sm text-muted">{t("receiptsHelp")}</span>
         </span>
       </label>
       <TextField label={t("fromDay")} hint={t("fromDayHint")} name="fromDay" type="date" defaultValue={d.fromDay} />
@@ -49,7 +49,7 @@ export function SettingsForm({ saved }: { saved: SettingsDefaults }) {
       <label className="flex flex-col gap-1">
         <span className="font-medium">{t("shippingAddress")}</span>
         <textarea name="shippingAddress" rows={4} maxLength={300} defaultValue={d.shippingAddress} className="rounded-lg border border-foreground/20 bg-background px-3 py-2" aria-describedby="shipping-hint" />
-        <span id="shipping-hint" className="text-sm text-foreground/70">{t("shippingHint")}</span>
+        <span id="shipping-hint" className="text-sm text-muted">{t("shippingHint")}</span>
       </label>
       <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">
         {t("save")}

@@ -83,7 +83,7 @@ export function Photos({ photos, editable, max }: { photos: PhotoRow[]; editable
         {notice && <Alert>{notice}</Alert>}
       </div>
       {photos.length === 0 ? (
-        <p className="text-sm text-foreground/70">{t("noPhotos")}</p>
+        <p className="text-sm text-muted">{t("noPhotos")}</p>
       ) : (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {photos.map((p, i) => (
@@ -110,7 +110,7 @@ export function Photos({ photos, editable, max }: { photos: PhotoRow[]; editable
             aria-describedby={uploadError ? "photo-hint photo-error" : "photo-hint"}
             className="text-sm"
           />
-          <p id="photo-hint" className="text-sm text-foreground/70">
+          <p id="photo-hint" className="text-sm text-muted">
             {t("photoHint", { mb: MAX_IMAGE_BYTES / 1024 / 1024 })}
           </p>
           {uploadError && (

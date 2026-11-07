@@ -192,7 +192,23 @@ Where magic points become Christmas presents.
 - [x] Spirit O Santa admin confirms receipt and logs delivery to family
 - [x] Family notified when item is on its way
 
-## Phase 7 — PWA & Push Notifications
+## Phase 7 — Notifications (email)
+
+**Aug – Sep 2027** · ✅ built and reviewed 2026-11-06 (details in docs/CODEMAP.md)
+
+**Decision 2026-11-06:** EMAIL only, to PARENTS only (no web push: iPhones would need an installable app; no SMS).
+The original push plan is kept below for reference; push can be revisited later.
+
+- [x] Notification preferences in the parent area (opt out per type), all on by default
+- [x] One-click unsubscribe in every notification email (signed link + List-Unsubscribe headers)
+- [x] Daily summary per family: magic received (tips, community donation shares) + good deeds thanked
+- [x] Dec 1 cutoff reminder (3 days before the freeze) + pay-up deadline reminder
+- [x] "Gift on its way" email (built in Phase 6)
+- [ ] ~~Push-only service worker / FCM tokens / push permission prompts~~ (not doing: email only)
+- [ ] ~~"Full funding needed" (90%) and "item locked in" pushes~~ (not chosen)
+
+<details><summary>Original Phase 7 plan (push)</summary>
+
 
 **Aug – Sep 2027**
 
@@ -207,6 +223,9 @@ Where magic points become Christmas presents.
   - Full funding needed (sent when item is ≥90% funded)
 - [ ] Notification preference settings in parent dashboard (opt out per category)
 - [ ] Fallback: email notification for users who block push
+
+
+</details>
 
 ## Phase 8 — Localization, QA & Compliance
 

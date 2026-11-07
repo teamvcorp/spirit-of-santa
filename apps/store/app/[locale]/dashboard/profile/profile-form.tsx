@@ -10,6 +10,7 @@ import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { saveProfileAction } from "../actions";
 import { INITIAL_DASH_STATE } from "../form-state";
+import { CITY_STATE_ZIP_ROW } from "@repo/ui/layout";
 
 export type ProfileValues = {
   storeName: string;
@@ -76,7 +77,7 @@ export function ProfileForm({ initial, editable }: { initial: ProfileValues; edi
         <TextField label={reg("phone")} name="phone" type="tel" maxLength={30} defaultValue={v.phone} error={err("phone")} />
         <TextField label={reg("website")} name="website" type="url" placeholder="https://" maxLength={300} defaultValue={v.website} error={err("website")} />
         <TextField label={reg("line1")} name="line1" required maxLength={120} defaultValue={v.line1} error={err("line1")} />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[2fr_1fr_1fr]">
+        <div className={CITY_STATE_ZIP_ROW}>
           <TextField label={reg("city")} name="city" required maxLength={60} defaultValue={v.city} error={err("city")} />
           <TextField label={reg("state")} name="state" required maxLength={2} defaultValue={v.state} error={err("state")} />
           <TextField label={reg("zip")} name="zip" inputMode="numeric" required pattern="\d{5}" maxLength={5} defaultValue={v.zip} error={err("zip")} />

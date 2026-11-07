@@ -33,7 +33,7 @@ async function Detail({ params }: { params: PageProps<"/[locale]/stores/[id]">["
   ]);
   const date = (iso?: string) => (iso ? format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }) : "—");
   const row = (label: string, value: React.ReactNode) => (
-    <div className="grid grid-cols-[10rem_1fr] gap-2 py-1">
+    <div className="grid grid-cols-[10rem_minmax(0,1fr)] gap-2 py-1">
       <dt className="text-muted">{label}</dt>
       <dd>{value || "—"}</dd>
     </div>
@@ -44,7 +44,7 @@ async function Detail({ params }: { params: PageProps<"/[locale]/stores/[id]">["
         <h1 className="text-2xl font-bold">{store.name}</h1>
         <span className="rounded-full border border-foreground/20 px-3 py-1 text-sm">{statusT(store.status)}</span>
       </div>
-      <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <h2 className="mb-3 text-lg font-semibold">{t("details")}</h2>
           <dl className="text-sm">

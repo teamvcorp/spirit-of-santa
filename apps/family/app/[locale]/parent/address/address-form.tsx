@@ -14,6 +14,7 @@ import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { deleteAddressAction, saveAddressAction, type AddressFormState } from "./actions";
+import { CITY_STATE_ZIP_ROW } from "@repo/ui/layout";
 
 const IDLE: AddressFormState = { status: "idle" };
 const EMPTY = { name: "", line1: "", line2: "", city: "", state: "", zip: "" };
@@ -59,7 +60,7 @@ function SaveForm({ saved }: { saved: DeliveryAddress | null }) {
       <TextField label={t("name")} name="name" required maxLength={80} autoComplete="name" defaultValue={v.name} />
       <TextField label={t("line1")} name="line1" required maxLength={100} autoComplete="address-line1" defaultValue={v.line1} />
       <TextField label={t("line2")} name="line2" maxLength={100} autoComplete="address-line2" defaultValue={v.line2} />
-      <div className="grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
+      <div className={CITY_STATE_ZIP_ROW}>
         <TextField label={t("city")} name="city" required maxLength={60} autoComplete="address-level2" defaultValue={v.city} />
         <label className="flex flex-col gap-1">
           <span className="font-medium">{t("state")}</span>

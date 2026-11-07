@@ -30,7 +30,7 @@ async function Content() {
     <div className="flex flex-col gap-6">
       <Card>
         <h2 className="mb-3 text-lg font-semibold">{t("nowTitle", { year: state.year })}</h2>
-        <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-[auto_1fr]">
+        <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-[auto_minmax(0,1fr)]">
           <dt className="text-muted">{t("phaseLabel")}</dt>
           <dd className="font-semibold" data-testid="season-phase">
             {t(`phase.${state.phase}`)} <span className="font-normal text-muted">({t(`source.${state.phaseSource}`)})</span>

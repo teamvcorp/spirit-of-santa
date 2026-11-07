@@ -663,6 +663,17 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   + admin row; the nav draws its own row (no empty strip when signed out); inner padding keeps focus rings
   unclipped; current admin section scrolled into view on phones. Accepted trade-off: account menu and section row
   stream in as two Suspense islands (session decode is cached per request; a one-row pop-in for admins only).
+- **8.5.4 wording, email, audit (2026-11-06).** Copy says "Christmas Magic" / "Magia Navideña" for points in
+  every message file (code/data keep points/centipoints); PARENT_CONSENT/PRIVACY/TERMS versions bumped.
+  Emails: `packages/email/src/render.ts` `EMAIL_COLORS` (site palette as literals: mail apps ignore CSS vars;
+  light-only via color-scheme meta; Georgia/Segoe system fonts; contrast ratios in the comment are computed).
+  **`scripts/e2e/browser-page-audit.ts`** (131 checks): every main page of the 3 apps (incl. parent pages behind
+  the PIN, store owner, MFA admin) × light/dark → axe-core WCAG AA colour contrast + "form fields stay inside
+  their card"; negative control proves it can fail; `--shots <dir>` saves full-page screenshots for review.
+  axe-core pinned as a root devDependency. It found the store profile City/State/ZIP row overflowing its card:
+  custom grid tracks need `minmax(0,…)` (a bare `1fr` won't shrink below an input's ~20ch minimum) →
+  ONE `CITY_STATE_ZIP_ROW` in `@repo/ui/layout` used by store profile, store register and family address;
+  admin/gift-search custom grids got minmax(0,1fr) too.
 
 ## Open items / TODO
 

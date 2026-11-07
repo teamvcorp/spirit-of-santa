@@ -63,6 +63,29 @@ export type EmailTemplates = {
 
 /** Security alerts and "you already have an account": "ignore this email" would be wrong advice. */
 const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled", "donationReceipt", "storeOrders", "giftOnItsWay", "familyDigest", "cutoffReminder", "payUpReminder"]);
+
+/**
+ * Winter Night look for emails (Phase 8.5.4). Same values as the site palette in
+ * packages/ui/src/theme.css (light mode), copied as literals because email clients ignore CSS variables
+ * and <style> blocks are often stripped, so everything is an inline style.
+ * Contrast (WCAG AA needs 4.5:1 for text): text on card 14.2:1, muted on card 7.6:1,
+ * button text (night) on gold 6.5:1, gold-light on the night band 8.7:1.
+ * Emails stay light-only (color-scheme meta): dark-mode clients that force-invert can't wreck the contrast we checked.
+ */
+const EMAIL_COLORS = {
+  page: "#dde8f7", // sky-day
+  card: "#ffffff",
+  band: "#1b2a4a", // night
+  bandText: "#f5c451", // gold-light
+  text: "#1b2a4a", // night (light-mode foreground)
+  muted: "#42537a", // light-mode muted
+  button: "#e0a526", // gold (site primary button)
+  buttonText: "#1b2a4a",
+  rule: "#e2e8f0",
+} as const;
+// Web fonts (Fraunces / Nunito Sans) don't load in most mail apps: use the closest system fonts.
+const HEADING_FONT = "Georgia,'Times New Roman',serif";
+const BODY_FONT = "'Segoe UI',Helvetica,Arial,sans-serif";
 export type EmailTemplateName = keyof EmailTemplates;
 
 export type RenderedEmail = { subject: string; text: string; html: string };
@@ -136,21 +159,25 @@ export function renderEmail<T extends EmailTemplateName>(
 
   // Escape everything, including translated strings (they contain user values like names).
   const e = escapeHtml;
+  const c = EMAIL_COLORS;
   const html = `<!doctype html>
-<html lang="${safeLocale}"><body style="margin:0;padding:24px;background:#f6f6f6;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:8px">
-<tr><td style="padding:24px 28px;border-top:6px solid #b3261e;border-radius:8px 8px 0 0">
-<p style="margin:0 0 4px;font-weight:bold;color:#8c1d18">Spirit of Santa</p>
-<h1 style="margin:0 0 16px;font-size:22px">${e(heading)}</h1>
-<p style="margin:0 0 20px;line-height:1.5;white-space:pre-line">${e(body)}</p>
-<p style="margin:0 0 20px"><a href="${e(link)}" style="display:inline-block;background:#b3261e;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:6px;font-weight:bold">${e(button)}</a></p>
-${expiry ? `<p style="margin:0 0 12px;color:#555;font-size:14px">${e(expiry)}</p>` : ""}
-<p style="margin:0 0 4px;color:#555;font-size:13px">${e(tt("linkFallback"))}</p>
-<p style="margin:0 0 16px;font-size:13px;word-break:break-all"><a href="${e(link)}" style="color:#8c1d18">${e(link)}</a></p>
-${showIgnore ? `<p style="margin:0;color:#555;font-size:13px">${e(tt("ignore"))}</p>` : ""}
+<html lang="${safeLocale}"><head><meta charset="utf-8"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
+<body style="margin:0;padding:24px 12px;background:${c.page};font-family:${BODY_FONT};color:${c.text}">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:${c.card};border-radius:12px;overflow:hidden">
+<tr><td style="padding:18px 28px;background:${c.band}">
+<p style="margin:0;font-family:${HEADING_FONT};font-size:18px;font-weight:bold;color:${c.bandText}">&#10022; Spirit of Santa</p>
 </td></tr>
-<tr><td style="padding:16px 28px;color:#767676;font-size:12px;border-top:1px solid #eee">${e(tt("footer"))}${
-    optOut ? `<br><a href="${e(optOut.stop)}" style="color:#767676">${e(tt("optOut"))}</a> · <a href="${e(optOut.manage)}" style="color:#767676">${e(tt("manage"))}</a>` : ""
+<tr><td style="padding:24px 28px">
+<h1 style="margin:0 0 16px;font-family:${HEADING_FONT};font-size:24px;line-height:1.25;color:${c.text}">${e(heading)}</h1>
+<p style="margin:0 0 22px;line-height:1.55;white-space:pre-line">${e(body)}</p>
+<p style="margin:0 0 22px"><a href="${e(link)}" style="display:inline-block;background:${c.button};color:${c.buttonText};text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:bold">${e(button)}</a></p>
+${expiry ? `<p style="margin:0 0 12px;color:${c.muted};font-size:14px">${e(expiry)}</p>` : ""}
+<p style="margin:0 0 4px;color:${c.muted};font-size:13px">${e(tt("linkFallback"))}</p>
+<p style="margin:0 0 16px;font-size:13px;word-break:break-all"><a href="${e(link)}" style="color:${c.text}">${e(link)}</a></p>
+${showIgnore ? `<p style="margin:0;color:${c.muted};font-size:13px">${e(tt("ignore"))}</p>` : ""}
+</td></tr>
+<tr><td style="padding:16px 28px;color:${c.muted};font-size:12px;line-height:1.5;border-top:1px solid ${c.rule}">${e(tt("footer"))}${
+    optOut ? `<br><a href="${e(optOut.stop)}" style="color:${c.muted}">${e(tt("optOut"))}</a> · <a href="${e(optOut.manage)}" style="color:${c.muted}">${e(tt("manage"))}</a>` : ""
   }</td></tr>
 </table></body></html>`;
 

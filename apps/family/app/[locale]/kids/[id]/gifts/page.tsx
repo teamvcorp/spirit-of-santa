@@ -57,7 +57,7 @@ async function Content({ params, searchParams }: Pick<Props, "params" | "searchP
       <p className="mb-4 text-muted">{t("browseIntro")}</p>
 
       {/* GET form: the filters live in the URL (no Server Action needed for reading). */}
-      <form method="get" className="mb-6 grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end" role="search">
+      <form method="get" className="mb-6 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:items-end" role="search">
         <label className="flex flex-col gap-1 text-sm font-medium">
           {t("searchLabel")}
           <input name="q" type="search" defaultValue={query.q} maxLength={60} placeholder={t("searchPlaceholder")} className="rounded-lg border border-foreground/20 bg-background px-3 py-2" />

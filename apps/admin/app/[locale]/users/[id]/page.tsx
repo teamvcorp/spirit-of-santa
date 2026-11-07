@@ -48,7 +48,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/users/[id]">["
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <h2 className="mb-3 text-lg font-semibold">{t("details")}</h2>
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
             <dt className="text-muted">{t("colRole")}</dt>
             <dd>{t(`roles.${u.role}`)}</dd>
             {u.name && (

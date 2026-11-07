@@ -18,6 +18,7 @@ import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { AgreementFields } from "../_components/agreement-fields";
+import { CITY_STATE_ZIP_ROW } from "@repo/ui/layout";
 
 type Action = (prev: FormState, fd: FormData) => Promise<FormState>;
 
@@ -128,7 +129,7 @@ export function RegisterForm({ action }: { action: Action }) {
       <fieldset className="flex flex-col gap-4">
         <legend className="mb-2 text-lg font-semibold">{t("address")}</legend>
         <TextField label={t("line1")} name="line1" autoComplete="address-line1" required maxLength={120} defaultValue={v.line1} error={err("line1")} />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[2fr_1fr_1fr]">
+        <div className={CITY_STATE_ZIP_ROW}>
           <TextField label={t("city")} name="city" autoComplete="address-level2" required maxLength={60} defaultValue={v.city} error={err("city")} />
           <TextField label={t("state")} name="state" autoComplete="address-level1" required maxLength={2} defaultValue={v.state} error={err("state")} />
           <TextField label={t("zip")} name="zip" autoComplete="postal-code" inputMode="numeric" required pattern="\d{5}" maxLength={5} defaultValue={v.zip} error={err("zip")} />

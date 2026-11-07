@@ -165,32 +165,32 @@ The financial layer. Every dollar in and out flows through Stripe; every point h
 
 ## Phase 6 — Wish List & Fulfillment
 
-**Jun – Aug 2027**
+**Jun – Aug 2027** · ✅ built and reviewed 2026-11-06 (details in docs/CODEMAP.md)
 
 Where magic points become Christmas presents.
 
 **Browsing & adding**
 
-- [ ] National store + item browser (all stores, search + sort by category, store name, price)
-- [ ] Item detail page: photo, name, store, price in magic points, funding progress bar
-- [ ] Add to list: requires ≥1 unallocated point; system escrows as many of kid’s available points as the item costs
-- [ ] Parent-set item cap enforced at add time
-- [ ] Kids can share individual items via link/QR while browsing
+- [x] National store + item browser (all stores, search + sort by category, store name, price)
+- [x] Item detail page: photo, name, store, price in magic points, funding progress bar
+- [x] Add to list: requires ≥1 unallocated point; system escrows as many of kid’s available points as the item costs
+- [x] Parent-set item cap enforced at add time
+- [x] Kids can share individual items via link/QR while browsing
 
 **Funding & lock logic**
 
-- [ ] Funding progress tracked per item per child (escrowed points + incoming tips allocated to item)
-- [ ] Fully funded trigger: when item reaches 100% → start 30-day clock
-- [ ] 30-day lock: fully funded + 30 days on list → item status = LOCKED, cannot be removed
-- [ ] Pre-lock removal: returns all escrowed points to child’s balance
-- [ ] Dec 1 freeze: no list changes after Dec 1 regardless of lock status
+- [x] Funding progress tracked per item per child (escrowed points + incoming tips allocated to item)
+- [x] Fully funded trigger: when item reaches 100% → start 30-day clock
+- [x] 30-day lock: fully funded + 30 days on list → item status = LOCKED, cannot be removed
+- [x] Pre-lock removal: returns all escrowed points to child’s balance
+- [x] Dec 1 freeze: no list changes after Dec 1 regardless of lock status
 
 **Fulfillment**
 
-- [ ] Store notification on full funding: email + in-app alert to store owner and reps with item, quantity, and Spirit O Santa shipping address
-- [ ] Store rep marks item as shipped in store app
-- [ ] Spirit O Santa admin confirms receipt and logs delivery to family
-- [ ] Family notified when item is on its way
+- [x] Store notification on full funding: email + in-app alert to store owner and reps with item, quantity, and Spirit O Santa shipping address
+- [x] Store rep marks item as shipped in store app
+- [x] Spirit O Santa admin confirms receipt and logs delivery to family
+- [x] Family notified when item is on its way
 
 ## Phase 7 — PWA & Push Notifications
 

@@ -28,8 +28,8 @@ export const NIGHT_SCOPE = {
 } as CSSProperties;
 
 /**
- * `nav` (optional, Phase 8.5.3): a second row under the brand row for section links (admin). It
- * scrolls sideways on narrow screens instead of wrapping into several lines.
+ * `nav` (optional, Phase 8.5.3): a second row under the brand row for section links (admin). It draws
+ * its own row (border, sideways scrolling: SectionNav), so a nav that renders nothing leaves no empty strip.
  */
 export function SiteHeader({ brand, actions, nav }: { brand: ReactNode; actions?: ReactNode; nav?: ReactNode }) {
   return (
@@ -38,7 +38,8 @@ export function SiteHeader({ brand, actions, nav }: { brand: ReactNode; actions?
         <div>{brand}</div>
         {actions && <div className="flex flex-wrap items-center gap-4 text-sm">{actions}</div>}
       </div>
-      {nav && <div className="border-t border-foreground/15 px-2">{nav}</div>}
+      {/* The nav draws its own row (border etc.), so nothing shows when it renders nothing (signed out). */}
+      {nav}
     </header>
   );
 }

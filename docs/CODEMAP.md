@@ -659,6 +659,10 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   signed-in admins only); the list is `apps/admin/lib/sections.ts` (a plain module: a value exported from a
   "use client" file reaches server code only as a client reference, NOT data: caught by a screenshot check).
   Store/admin text-foreground/70 → text-muted (128). No animation in either app. Payout summary rows keyed.
+  Review fixes: ONE `SectionNav` (@repo/ui/section-nav; layouts wrap|scroll, pass the app Link) for store dashboard
+  + admin row; the nav draws its own row (no empty strip when signed out); inner padding keeps focus rings
+  unclipped; current admin section scrolled into view on phones. Accepted trade-off: account menu and section row
+  stream in as two Suspense islands (session decode is cached per request; a one-row pop-in for admins only).
 
 ## Open items / TODO
 

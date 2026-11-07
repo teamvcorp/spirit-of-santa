@@ -13,6 +13,20 @@
     "intro": "Solo para el equipo de Spirit of Santa."
   },
   "StoreAdmin": {
+    "itemModeration": {
+      "title": "Artículos de esta temporada",
+      "intro": "Oculta un solo artículo a las familias (buscador de regalos, páginas de regalos, nuevos agregados a listas) sin suspender la tienda. Los regalos que ya están en la lista de un niño no cambian. La tienda ve tu motivo.",
+      "none": "No hay artículos publicados esta temporada.",
+      "reason": "Motivo (la tienda lo ve)",
+      "hide": "Ocultar a las familias",
+      "show": "Mostrar de nuevo",
+      "reasonShown": "Oculto: {reason}",
+      "status": {
+        "draft": "Necesita precio",
+        "active": "Publicado",
+        "hidden": "Oculto por el equipo"
+      }
+    },
     "queueTitle": "Tiendas",
     "statusTabs": "Filtrar por estado",
     "inviteButton": "Invitar una tienda",
@@ -388,6 +402,8 @@
     "item_update": "Artículo actualizado",
     "item_price": "Precio de artículo cambiado",
     "item_archive": "Artículo archivado",
+    "item_hide": "Artículo oculto a las familias",
+    "item_unhide": "Artículo visible de nuevo",
     "item_restore": "Artículo restaurado",
     "user_mfa_enable": "Inicio en dos pasos activado",
     "user_mfa_reset": "Inicio en dos pasos restablecido",

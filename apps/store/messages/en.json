@@ -199,7 +199,8 @@
     "status": {
       "draft": "Needs a price",
       "active": "Listed",
-      "archived": "Archived"
+      "archived": "Archived",
+      "hidden": "Hidden by Spirit of Santa (families can't see it). Edit it, then ask us to show it again"
     },
     "newTitle": "Add an item",
     "editTitle": "Edit item",

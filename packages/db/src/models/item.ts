@@ -19,7 +19,8 @@ import {
  * active   = priced and listed (families see it once the store is approved).
  * archived = removed from the list; kept for history and doesn't count toward the 50.
  */
-export const ITEM_STATUSES = ["draft", "active", "archived"] as const;
+/** hidden = an ADMIN took it off the family site (owner 2026-11-07: "hide item"); only an admin can show it again. */
+export const ITEM_STATUSES = ["draft", "active", "archived", "hidden"] as const;
 
 const itemSchema = new Schema(
   {
@@ -54,6 +55,10 @@ const itemSchema = new Schema(
       },
     },
     inventory: { type: Number, default: 0, min: 0 },
+    /** Why an admin hid this item (shown to the store), when, and by whom (status "hidden"). */
+    hiddenReason: { type: String, trim: true, maxlength: 500 },
+    hiddenAt: { type: Date },
+    hiddenByAdminId: objectId("User", false),
     /** Set on the Jan 1 copy of last season's item (@repo/stores/catalog-rollover): the source item. Unique = idempotent copy. */
     copiedFromItemId: objectId("Item", false),
     status: {

@@ -46,6 +46,8 @@ export const AUDIT_ACTIONS = [
   "item.price",
   "item.archive",
   "item.restore",
+  "item.hide",
+  "item.unhide",
   "user.mfa_enable",
   "user.mfa_reset",
   "user.mfa_recovery_used",

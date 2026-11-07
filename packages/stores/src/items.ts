@@ -95,7 +95,9 @@ export type ItemRow = {
   /** Owner-only display value (undefined for reps or when no discount is agreed yet). */
   wholesaleCents?: number;
   inventory: number;
-  status: "draft" | "active" | "archived";
+  status: "draft" | "active" | "archived" | "hidden";
+  /** Why Spirit of Santa hid it (status "hidden"; the store may fix the item, only an admin can show it again). */
+  hiddenReason?: string;
   photo?: { url: string; pathname: string };
   /** Engagement (slice 5): views counter + wish-list totals. Totals only, never who. */
   stats: ItemStats;
@@ -120,6 +122,7 @@ function toRow(item: Record<string, unknown> & { _id: unknown }, isOwner: boolea
     wholesaleCents: isOwner && price != null && discountBps != null ? wholesaleCents(price, discountBps) : undefined,
     inventory: (item.inventory as number) ?? 0,
     status: item.status as ItemRow["status"],
+    hiddenReason: (item.hiddenReason as string) || undefined,
     photo: photo?.url ? { url: photo.url, pathname: photo.pathname } : undefined,
     stats: toStats(stats.views ?? 0, lists),
   };

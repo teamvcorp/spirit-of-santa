@@ -6,11 +6,13 @@ import { Suspense } from "react";
 import { requireRole } from "@repo/auth";
 import { formatDiscount } from "@repo/lib/store";
 import { getStoreDetail } from "@repo/stores/queries";
+import { listItemsForAdmin } from "@repo/stores/admin";
 import { objectIdSchema } from "@repo/stores/schemas";
 import { Card } from "@repo/ui/card";
 import { authOptions } from "@/auth";
 import { Link } from "@/i18n/navigation";
 import { StoreActions } from "./store-actions";
+import { ItemModeration } from "./item-moderation";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("StoreAdmin");
@@ -19,11 +21,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 async function Detail({ params }: { params: PageProps<"/[locale]/stores/[id]">["params"] }) {
   await connection();
-  await requireRole(authOptions, "admin");
+  const user = await requireRole(authOptions, "admin");
   const { id } = await params;
   if (!objectIdSchema.safeParse(id).success) notFound();
   const store = await getStoreDetail(id);
   if (!store) notFound();
+  const items = await listItemsForAdmin({ id: user.id, role: user.role }, id);
   const [t, statusT, cats, auditT, format] = await Promise.all([
     getTranslations("StoreAdmin"),
     getTranslations("Common.storeStatus"),
@@ -70,6 +73,11 @@ async function Detail({ params }: { params: PageProps<"/[locale]/stores/[id]">["
             discountPercent={store.discountBps != null ? String(store.discountBps / 100) : undefined}
             ownerVerified={store.ownerVerified}
           />
+          <Card data-testid="item-moderation">
+            <h2 className="mb-1 text-lg font-semibold">{t("itemModeration.title")}</h2>
+            <p className="mb-3 text-sm text-muted">{t("itemModeration.intro")}</p>
+            <ItemModeration items={items} />
+          </Card>
           <Card>
             <h2 className="mb-3 text-lg font-semibold">{t("history")}</h2>
             {store.history.length === 0 ? (

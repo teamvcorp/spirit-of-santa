@@ -14,7 +14,9 @@
  *              approved ⇄ suspended
  */
 import "server-only";
-import { ActionToken, AuditLog, connectDb, Store, STORE_STATUSES, trusted, User, withTransaction, type AuditAction, type DbSession } from "@repo/db";
+import { ActionToken, AuditLog, connectDb, Item, Store, STORE_STATUSES, trusted, User, withTransaction, type AuditAction, type DbSession } from "@repo/db";
+import { STORE_ITEM_LIMIT } from "@repo/lib/limits";
+import { getSeasonYear } from "@repo/lib/season";
 import { sendEmail } from "@repo/email";
 import { localizePath } from "@repo/i18n/paths";
 import { DEFAULT_LOCALE, isLocale } from "@repo/lib/locales";
@@ -89,6 +91,63 @@ async function transition(
     if (!before) return null;
     await audit(session, actor, action, before._id, { from: before.status, to: set.status ?? before.status, ...details });
     return before;
+  });
+}
+
+// ── Item moderation (owner 2026-11-07): hide ONE item from families instead of suspending the whole store ──
+
+export type AdminItemRow = { id: string; name: string; priceCents?: number; status: "draft" | "active" | "hidden"; hiddenReason?: string };
+export type ItemModerationResult = { ok: true } | { ok: false; error: "notFound" | "badStatus" };
+
+/** This season's listed items of one store (drafts, active and hidden; archived ones are already off the site). */
+export async function listItemsForAdmin(actor: AdminActor, storeId: string): Promise<AdminItemRow[]> {
+  assertAdmin(actor);
+  await connectDb();
+  const rows = await Item.find({ storeId, seasonYear: getSeasonYear(), status: trusted({ $in: ["draft", "active", "hidden"] }) })
+    .select("name priceCents status hiddenReason")
+    .sort({ status: 1, name: 1 })
+    .limit(STORE_ITEM_LIMIT + 10)
+    .lean<{ _id: unknown; name: string; priceCents?: number; status: AdminItemRow["status"]; hiddenReason?: string }[]>();
+  return rows.map((r) => ({ id: String(r._id), name: r.name, priceCents: r.priceCents, status: r.status, hiddenReason: r.hiddenReason || undefined }));
+}
+
+/**
+ * Hide an ACTIVE item from families (gift browser, gift page, adding to lists, the Jan 1 copy all require
+ * status "active"). Gifts already on a child's list keep funding and shipping: hiding only stops NEW listings.
+ * Compare-and-set on the status (two admins can't double-act); audited with the reason (shown to the store).
+ */
+export async function hideItem(actor: AdminActor, itemId: string, reason: string): Promise<ItemModerationResult> {
+  assertAdmin(actor);
+  await connectDb();
+  return withTransaction(async (session): Promise<ItemModerationResult> => {
+    const before = await Item.findOneAndUpdate(
+      { _id: itemId, status: "active" },
+      { $set: { status: "hidden", hiddenReason: reason, hiddenAt: new Date(), hiddenByAdminId: actor.id } },
+      { session, runValidators: true },
+    )
+      .select("storeId")
+      .lean<{ _id: unknown; storeId: unknown }>();
+    if (!before) return { ok: false, error: (await Item.exists({ _id: itemId }).session(session)) ? "badStatus" : "notFound" };
+    await AuditLog.create([{ actorUserId: actor.id, action: "item.hide", targetType: "item", targetId: itemId, details: { storeId: String(before.storeId), reason } }], { session });
+    return { ok: true };
+  });
+}
+
+/** Show a hidden item again (back to "active"). Only admins: a store can edit a hidden item but not unhide it. */
+export async function unhideItem(actor: AdminActor, itemId: string): Promise<ItemModerationResult> {
+  assertAdmin(actor);
+  await connectDb();
+  return withTransaction(async (session): Promise<ItemModerationResult> => {
+    const before = await Item.findOneAndUpdate(
+      { _id: itemId, status: "hidden" },
+      { $set: { status: "active" }, $unset: { hiddenReason: 1, hiddenAt: 1, hiddenByAdminId: 1 } },
+      { session },
+    )
+      .select("storeId")
+      .lean<{ _id: unknown; storeId: unknown }>();
+    if (!before) return { ok: false, error: (await Item.exists({ _id: itemId }).session(session)) ? "badStatus" : "notFound" };
+    await AuditLog.create([{ actorUserId: actor.id, action: "item.unhide", targetType: "item", targetId: itemId, details: { storeId: String(before.storeId) } }], { session });
+    return { ok: true };
   });
 }
 

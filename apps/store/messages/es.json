@@ -199,7 +199,8 @@
     "status": {
       "draft": "Falta el precio",
       "active": "Publicado",
-      "archived": "Archivado"
+      "archived": "Archivado",
+      "hidden": "Oculto por Spirit of Santa (las familias no lo ven). Edítalo y pídenos que lo mostremos de nuevo"
     },
     "newTitle": "Agregar un artículo",
     "editTitle": "Editar artículo",

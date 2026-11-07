@@ -71,6 +71,12 @@ async function Content() {
                       {i.name}
                     </Link>
                     {i.status === "draft" && <span className="ml-2 rounded-full border border-foreground/30 px-2 text-xs">{statusT("draft")}</span>}
+                    {/* Hidden by an admin (owner 2026-11-07): families can't see it; the reason tells the store what to fix. */}
+                    {i.status === "hidden" && (
+                      <span className="mt-1 block text-sm text-danger" data-testid="item-hidden">
+                        {statusT("hidden")}: {i.hiddenReason}
+                      </span>
+                    )}
                   </td>
                   <td className="py-2 pr-4">{i.priceCents != null ? formatCents(i.priceCents) : t("needsPrice")}</td>
                   {isOwner && <td className="py-2 pr-4">{i.wholesaleCents != null ? formatCents(i.wholesaleCents) : "—"}</td>}

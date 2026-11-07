@@ -846,6 +846,12 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   VERCEL_AUTOMATION_BYPASS_SECRET (never printed). docs/checklists/launch-checklist.md: owner settings, preview load
   test steps (Preview-only vars, no Resend/Twilio keys on Preview: NODE_ENV=production there would really send),
   phones/browsers, manual a11y, beta, and the Phase 9 season calendar (what is automatic vs the owner's job).
+- **Admin "hide item" (owner 2026-11-07).** Item status `hidden` (+ hiddenReason/hiddenAt/hiddenByAdminId). @repo/stores/admin:
+  `listItemsForAdmin`, `hideItem` (active → hidden, reason required, CAS + audit item.hide), `unhideItem` (admin only).
+  Every family path already requires status "active" (browser, gift page, addToList, Jan 1 copy), so hidden = gone for
+  NEW listings; gifts already on lists keep funding/shipping. Admin store page card "Items this season"; store Items page
+  shows "Hidden by Spirit of Santa: reason" (store may edit, can't unhide). E2E browser-admin-item-hide (11).
+  Owner 2026-11-07: Spanish pay-later SMS LATER (after Twilio verification, register as an extra sample).
   Copies SHARE the photo blob: items.ts `deleteUnusedPhoto` deletes a blob only if no item uses it (index on
   photo.pathname). Stock: forms send hidden `inventoryWas`; `setInventory`/`updateItem` compare-and-set on it
   ("stockChanged" → reload); the item form only touches stock when changed. PROD: run `npm run db:sync-indexes` after

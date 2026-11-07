@@ -13,6 +13,20 @@
     "intro": "Spirit of Santa team only."
   },
   "StoreAdmin": {
+    "itemModeration": {
+      "title": "Items this season",
+      "intro": "Hide a single item from families (gift browser, gift pages, new wish-list adds) without suspending the store. Gifts already on a child's list are not affected. The store sees your reason.",
+      "none": "No listed items this season.",
+      "reason": "Reason (the store sees this)",
+      "hide": "Hide from families",
+      "show": "Show again",
+      "reasonShown": "Hidden: {reason}",
+      "status": {
+        "draft": "Needs a price",
+        "active": "Listed",
+        "hidden": "Hidden by admin"
+      }
+    },
     "queueTitle": "Stores",
     "statusTabs": "Filter by status",
     "inviteButton": "Invite a store",
@@ -388,6 +402,8 @@
     "item_update": "Item updated",
     "item_price": "Item price changed",
     "item_archive": "Item archived",
+    "item_hide": "Item hidden from families",
+    "item_unhide": "Item shown again",
     "item_restore": "Item restored",
     "user_mfa_enable": "Two-step sign-in turned on",
     "user_mfa_reset": "Two-step sign-in reset",

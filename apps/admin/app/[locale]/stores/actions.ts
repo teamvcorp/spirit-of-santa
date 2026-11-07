@@ -11,7 +11,7 @@ import { randomUUID } from "node:crypto";
 import { refresh } from "next/cache";
 import { requireRole } from "@repo/auth";
 import { fieldErrors } from "@repo/auth/schemas";
-import { approveStore, cancelStoreInvite, inviteStore, reinstateStore, rejectStore, resendStoreInvite, setStoreDiscount, suspendStore, type AdminResult } from "@repo/stores/admin";
+import { approveStore, cancelStoreInvite, hideItem, inviteStore, reinstateStore, rejectStore, resendStoreInvite, setStoreDiscount, suspendStore, unhideItem, type AdminResult, type ItemModerationResult } from "@repo/stores/admin";
 import { discountPercentSchema, inviteStoreSchema, objectIdSchema, rejectReasonSchema, suspendReasonSchema } from "@repo/stores/schemas";
 import { isLocale } from "@repo/lib/locales";
 import { authOptions } from "@/auth";
@@ -33,6 +33,29 @@ function finish(r: AdminResult): AdminFormState {
   refresh();
   return { status: "done", storeId: r.storeId, emailFailed: r.emailFailed, nonce: randomUUID() };
 }
+function itemDone(r: ItemModerationResult): AdminFormState {
+  if (!r.ok) return { status: "error", error: r.error, nonce: randomUUID() };
+  refresh();
+  return { status: "done", nonce: randomUUID() };
+}
+
+/** Hide ONE item from families (reason required: the store sees it). */
+export async function hideItemAction(_prev: AdminFormState, fd: FormData): Promise<AdminFormState> {
+  const admin = await currentAdmin();
+  const id = objectIdSchema.safeParse(str(fd, "itemId"));
+  const reason = suspendReasonSchema.safeParse(str(fd, "reason"));
+  if (!id.success) return { status: "error", error: "notFound", nonce: randomUUID() };
+  if (!reason.success) return fail({ reason: reason.error.issues[0]?.message ?? "invalid" }, fd, ["reason"]);
+  return itemDone(await hideItem(admin, id.data, reason.data));
+}
+
+export async function unhideItemAction(_prev: AdminFormState, fd: FormData): Promise<AdminFormState> {
+  const admin = await currentAdmin();
+  const id = objectIdSchema.safeParse(str(fd, "itemId"));
+  if (!id.success) return { status: "error", error: "notFound", nonce: randomUUID() };
+  return itemDone(await unhideItem(admin, id.data));
+}
+
 function storeIdOf(fd: FormData): string | null {
   const id = objectIdSchema.safeParse(str(fd, "storeId"));
   return id.success ? id.data : null;

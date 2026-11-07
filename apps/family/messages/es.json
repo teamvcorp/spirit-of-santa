@@ -183,7 +183,8 @@
       "badPromo": "Ese código promocional no es válido.",
       "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde.",
       "locked": "El área de padres se bloqueó sola (15 minutos). Escribe tu PIN otra vez.",
-      "rateLimited": "Demasiados intentos. Espera 15 minutos e inténtalo de nuevo."
+      "rateLimited": "Demasiados intentos. Espera 15 minutos e inténtalo de nuevo.",
+      "seasonClosed": "La inscripción vuelve a abrir el 1 de enero."
     },
     "processing": "¡Gracias! Recibimos el pago. Tus hijos aparecerán como registrados en un minuto: actualiza el área de padres.",
     "review": "Recibimos el pago, pero algo no coincidió (por ejemplo, un niño ya estaba registrado). Nuestro equipo lo revisará y se comunicará contigo."
@@ -734,5 +735,18 @@
       "bonus": "Bono de Magia Navideña",
       "payup": "Pago para completar un regalo"
     }
+  },
+  "SeasonClosed": {
+    "closed": {
+      "title": "Cerrado por Navidad",
+      "body": "Los ayudantes de Santa descansan después de Navidad. Spirit of Santa vuelve a abrir el 1 de enero con una nueva temporada de Magia Navideña."
+    },
+    "resetting": {
+      "title": "Preparando la nueva temporada",
+      "body": "Estamos preparando una nueva temporada de Magia Navideña. Vuelve a intentarlo en un rato."
+    },
+    "rights": "Los padres pueden entrar al área de padres en cualquier momento para ver, descargar o borrar la información de su familia.",
+    "home": "Inicio",
+    "parentArea": "Área de padres"
   }
 }

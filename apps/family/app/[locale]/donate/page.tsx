@@ -17,6 +17,7 @@ import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { intlLocale as toIntlLocale } from "@repo/lib/locales";
 import { CommunityDonateForm } from "./donate-form";
+import { SeasonGate } from "@/components/season-gate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Community");
@@ -49,14 +50,16 @@ async function Content() {
 
 export default function CommunityDonatePage() {
   return (
-    <main className="mx-auto w-full max-w-xl flex-1 p-6">
-      <Card>
-        <Heading />
-        <Suspense fallback={null}>
-          <Content />
-        </Suspense>
-      </Card>
-    </main>
+    <SeasonGate>
+      <main className="mx-auto w-full max-w-xl flex-1 p-6">
+        <Card>
+          <Heading />
+          <Suspense fallback={null}>
+            <Content />
+          </Suspense>
+        </Card>
+      </main>
+    </SeasonGate>
   );
 }
 

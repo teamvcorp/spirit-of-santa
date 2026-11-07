@@ -767,7 +767,15 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   `seasonResetFlagged`) until an admin ticks "Mark as handled" on /donations Season-end card
   (`clearSeasonResetAttention`, SeasonReset.attentionClearedAt/ByUserId, audited season.reset_attention_cleared).
   Split E2E uses a real freezeDate=today; proves a forced freeze before the freeze date → notYet.
-  NEXT slices: 2 closed page · 3+4 TOGETHER lock-at-funding + per-gift ship window · 5 pay-up · 6 DtD deadline ·
+- **Year-round slice 2: closed page (2026-11-07).** `familySiteClosed()` (@repo/stores/season) → "closed" (Dec 26–31) |
+  "resetting" | null. apps/family/components/season-gate.tsx: `<SeasonGate>` wraps the page's `<main>` and shows the
+  "Closed for Christmas / Getting the new season ready" card INSTEAD (gated page code never runs) on kids/[id] (+deed,
+  gifts, gift, remove), /k, /d, /donate, parent/payup, parent/bonus, parent/register. Thanks/return pages NOT gated
+  (a Dec 25 payment still shows its result). `<SeasonNotice>` banner on home + /parent; parent area, our-data,
+  delete-account, sign-in, sign-up, legal stay open (COPPA rights never close). Server: startRegistration →
+  `seasonClosed`; tips/bonus/donate/deeds/wish lists/pay-up already refused via their own windows. Messages
+  `SeasonClosed.*`. E2E browser-family-closed.ts (26; simulates closure with closeDate=today, restores Season).
+  NEXT slices: 3+4 TOGETHER lock-at-funding + per-gift ship window · 5 pay-up · 6 DtD deadline ·
   7 store Q1 + stock CAS · 8 docs/legal.
 
 ## Open items / TODO

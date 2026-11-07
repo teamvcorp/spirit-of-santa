@@ -12,6 +12,7 @@ import { publicLimit } from "@repo/deeds/public";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { DonateForm } from "./donate-form";
+import { SeasonGate } from "@/components/season-gate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Donate");
@@ -38,12 +39,14 @@ async function Content({ params }: { params: PageProps<"/[locale]/k/[token]">["p
 
 export default async function DonatePage(props: PageProps<"/[locale]/k/[token]">) {
   return (
-    <main className="mx-auto w-full max-w-lg flex-1 p-6">
-      <Card>
-        <Suspense fallback={null}>
-          <Content params={props.params} />
-        </Suspense>
-      </Card>
-    </main>
+    <SeasonGate>
+      <main className="mx-auto w-full max-w-lg flex-1 p-6">
+        <Card>
+          <Suspense fallback={null}>
+            <Content params={props.params} />
+          </Suspense>
+        </Card>
+      </main>
+    </SeasonGate>
   );
 }

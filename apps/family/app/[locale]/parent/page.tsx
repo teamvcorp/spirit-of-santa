@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { SeasonNotice } from "@/components/season-gate";
 import { Card } from "@repo/ui/card";
 import { listKids } from "@repo/families/kids";
 import { Link } from "@/i18n/navigation";
@@ -124,6 +125,8 @@ async function Content() {
 export default async function ParentPage() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+      {/* Closed Dec 26–31: the parent area stays open (data, download, delete are rights that never close). */}
+      <SeasonNotice />
       <Suspense fallback={null}>
         <Content />
       </Suspense>

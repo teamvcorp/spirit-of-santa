@@ -15,6 +15,7 @@ import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
 import { requireUnlockedPage } from "@/lib/parent";
 import { PayUpForm } from "./payup-form";
+import { SeasonGate } from "@/components/season-gate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("PayUp");
@@ -52,18 +53,20 @@ async function Content() {
 export default async function PayUpPage() {
   const t = await getTranslations("PayUp");
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 p-6">
-      <Link href="/parent" className="mb-4 inline-block text-sm underline underline-offset-4">
-        ← {t("back")}
-      </Link>
-      <Card>
-        <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
-        {/* Rate from the server constant (never hard-coded). */}
-        <p className="mb-6 text-muted">{t("intro", { rate: formatCents(CENTS_PER_POINT) })}</p>
-        <Suspense fallback={null}>
-          <Content />
-        </Suspense>
-      </Card>
-    </main>
+    <SeasonGate>
+      <main className="mx-auto w-full max-w-2xl flex-1 p-6">
+        <Link href="/parent" className="mb-4 inline-block text-sm underline underline-offset-4">
+          ← {t("back")}
+        </Link>
+        <Card>
+          <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
+          {/* Rate from the server constant (never hard-coded). */}
+          <p className="mb-6 text-muted">{t("intro", { rate: formatCents(CENTS_PER_POINT) })}</p>
+          <Suspense fallback={null}>
+            <Content />
+          </Suspense>
+        </Card>
+      </main>
+    </SeasonGate>
   );
 }

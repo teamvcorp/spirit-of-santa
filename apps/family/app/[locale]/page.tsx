@@ -15,6 +15,7 @@ import { authOptions } from "@/auth";
 import { Link } from "@/i18n/navigation";
 import { ILLUSTRATIONS } from "@/lib/illustrations";
 import { Snowfall } from "../../components/snowfall";
+import { SeasonNotice } from "@/components/season-gate";
 
 async function Personal() {
   await connection();
@@ -82,6 +83,7 @@ export default async function Home() {
         </div>
       </section>
       <div className="flex flex-col items-center gap-6 px-6 pb-10 pt-2 text-center">
+        <SeasonNotice />
         <Suspense fallback={null}>
           <Personal />
         </Suspense>

@@ -183,6 +183,16 @@ export async function setSeasonDates(adminId: string, year: number, input: Seaso
 }
 
 /**
+ * Year-round calendar: the FAMILY site is closed Dec 26 – 31 ("closed") and on Jan 1 until last season's reset has
+ * run ("resetting"). null = open for families (open or frozen). Used by the family app's <SeasonGate>/<SeasonNotice>
+ * and by services that have no narrower window of their own (kid registration).
+ */
+export async function familySiteClosed(now = new Date()): Promise<"closed" | "resetting" | null> {
+  const { phase } = await getSeasonState(now);
+  return phase === "closed" || phase === "resetting" ? phase : null;
+}
+
+/**
  * Gifts (QR tips, donation links, parent bonuses) are accepted while the season is OPEN or FROZEN,
  * and a checkout must end by the first closed day (Dec 26, Central-Time midnight). Single source of truth:
  * a bonus/tip after Christmas would be wiped by the Jan 1 reset a few days later.

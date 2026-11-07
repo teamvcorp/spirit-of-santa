@@ -24,6 +24,7 @@ import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
 import { requireParent } from "@/lib/parent";
 import { buttonClass } from "@repo/ui/button";
+import { SeasonGate } from "@/components/season-gate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Kid");
@@ -105,13 +106,15 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
 export default async function KidPage(props: PageProps<"/[locale]/kids/[id]">) {
   const t = await getTranslations("Kid");
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
-      <Link href="/" className="mb-4 inline-block text-sm underline underline-offset-4">
-        ← {t("back")}
-      </Link>
-      <Suspense fallback={null}>
-        <Content params={props.params} />
-      </Suspense>
-    </main>
+    <SeasonGate>
+      <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+        <Link href="/" className="mb-4 inline-block text-sm underline underline-offset-4">
+          ← {t("back")}
+        </Link>
+        <Suspense fallback={null}>
+          <Content params={props.params} />
+        </Suspense>
+      </main>
+    </SeasonGate>
   );
 }

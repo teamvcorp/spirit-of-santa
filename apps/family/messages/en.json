@@ -183,7 +183,8 @@
       "badPromo": "That promo code isn't valid.",
       "stripe": "Payments aren't available right now. Please try again later.",
       "locked": "The parent area locked itself (15 minutes). Enter your PIN again.",
-      "rateLimited": "Too many tries. Wait 15 minutes, then try again."
+      "rateLimited": "Too many tries. Wait 15 minutes, then try again.",
+      "seasonClosed": "Registration opens again on January 1."
     },
     "processing": "Thank you! Payment received. Your children will show as registered within a minute: refresh the parent area.",
     "review": "Payment received, but something didn't match (for example a child was already registered). Our team will check it and contact you."
@@ -734,5 +735,18 @@
       "bonus": "Christmas Magic bonus",
       "payup": "Pay to finish a gift"
     }
+  },
+  "SeasonClosed": {
+    "closed": {
+      "title": "Closed for Christmas",
+      "body": "Santa's helpers are resting after Christmas. Spirit of Santa opens again on January 1 with a brand-new season of Christmas Magic."
+    },
+    "resetting": {
+      "title": "Getting the new season ready",
+      "body": "We're preparing a brand-new season of Christmas Magic. Please check back in a little while."
+    },
+    "rights": "Parents can still sign in to the parent area at any time to see, download or delete their family's information.",
+    "home": "Home",
+    "parentArea": "Parent area"
   }
 }

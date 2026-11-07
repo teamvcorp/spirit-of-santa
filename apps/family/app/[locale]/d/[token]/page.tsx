@@ -16,6 +16,7 @@ import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { PayLaterSection } from "./pay-later-section";
 import { QrActions } from "./qr-actions";
+import { SeasonGate } from "@/components/season-gate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Qr");
@@ -50,12 +51,14 @@ async function Content({ params }: { params: PageProps<"/[locale]/d/[token]">["p
 
 export default async function QrPage(props: PageProps<"/[locale]/d/[token]">) {
   return (
-    <main className="mx-auto w-full max-w-lg flex-1 p-6">
-      <Card>
-        <Suspense fallback={null}>
-          <Content params={props.params} />
-        </Suspense>
-      </Card>
-    </main>
+    <SeasonGate>
+      <main className="mx-auto w-full max-w-lg flex-1 p-6">
+        <Card>
+          <Suspense fallback={null}>
+            <Content params={props.params} />
+          </Suspense>
+        </Card>
+      </main>
+    </SeasonGate>
   );
 }

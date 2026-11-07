@@ -19,6 +19,7 @@ import { getSeasonState } from "@repo/stores/season";
 import { Link } from "@/i18n/navigation";
 import { requireParent } from "@/lib/parent";
 import { buttonClass } from "@repo/ui/button";
+import { SeasonGate } from "@/components/season-gate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Gifts");
@@ -132,10 +133,12 @@ async function Content({ params, searchParams }: Pick<Props, "params" | "searchP
 
 export default function GiftsPage(props: Props) {
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 p-6">
-      <Suspense fallback={null}>
-        <Content params={props.params} searchParams={props.searchParams} />
-      </Suspense>
-    </main>
+    <SeasonGate>
+      <main className="mx-auto w-full max-w-5xl flex-1 p-6">
+        <Suspense fallback={null}>
+          <Content params={props.params} searchParams={props.searchParams} />
+        </Suspense>
+      </main>
+    </SeasonGate>
   );
 }

@@ -17,6 +17,7 @@ import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_KIDS_PER_FAMILY, REGISTRATION_FEE_CENTS } from "@repo/lib/limits";
 import { buildPaymentMetadata, checkoutReturnStatus, getStripe } from "@repo/payments/checkout";
 import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
+import { familySiteClosed } from "@repo/stores/season";
 
 /** Case- and space-insensitive promo check. Blank/missing env = promo switched off. */
 export function promoMatches(input: string | undefined | null): boolean {
@@ -42,7 +43,7 @@ const familyHasPaid = (familyId: string) =>
 export type StartResult =
   | { kind: "pay"; clientSecret: string; amountCents: number }
   | { kind: "free"; registered: number }
-  | { kind: "error"; error: "notFound" | "noKids" | "badPromo" | "stripe" | "rateLimited" };
+  | { kind: "error"; error: "notFound" | "noKids" | "badPromo" | "stripe" | "rateLimited" | "seasonClosed" };
 
 /**
  * Start registering the selected kids. Returns an Embedded Checkout client secret, or registers
@@ -51,6 +52,8 @@ export type StartResult =
 export async function startRegistration(parent: Parent, kidIds: string[], promo: string, origin: string, localePath: (p: string) => string): Promise<StartResult> {
   const fid = await ownFamilyId(parent);
   if (!fid) return { kind: "error", error: "notFound" };
+  // Closed Dec 26 – 31 and while the Jan 1 reset runs (year-round calendar, slice 2).
+  if (await familySiteClosed()) return { kind: "error", error: "seasonClosed" };
   // 10 starts per 15 min: no promo-code guessing, no flood of Stripe sessions.
   if (!(await hitRateLimit(`register-start:${parent.id}`, 10, 900))) return { kind: "error", error: "rateLimited" };
   const kids = await awaitingKids(fid, kidIds);

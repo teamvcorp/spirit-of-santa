@@ -17,6 +17,7 @@ import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
 import { requireUnlockedPage } from "@/lib/parent";
 import { RemoveGiftForm } from "./remove-form";
+import { SeasonGate } from "@/components/season-gate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Gifts");
@@ -57,10 +58,12 @@ async function Content({ params }: Pick<Props, "params">) {
 
 export default function RemoveGiftPage(props: Props) {
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 p-6">
-      <Suspense fallback={null}>
-        <Content params={props.params} />
-      </Suspense>
-    </main>
+    <SeasonGate>
+      <main className="mx-auto w-full max-w-2xl flex-1 p-6">
+        <Suspense fallback={null}>
+          <Content params={props.params} />
+        </Suspense>
+      </main>
+    </SeasonGate>
   );
 }

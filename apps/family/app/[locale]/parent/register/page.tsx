@@ -11,6 +11,7 @@ import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
 import { requireUnlockedPage } from "@/lib/parent";
 import { RegisterKidsForm } from "./register-form";
+import { SeasonGate } from "@/components/season-gate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Register");
@@ -29,17 +30,19 @@ async function Content() {
 export default async function RegisterKidsPage() {
   const t = await getTranslations("Register");
   return (
-    <main className="mx-auto w-full max-w-xl flex-1 p-6">
-      <Link href="/parent" className="mb-4 inline-block text-sm underline underline-offset-4">
-        ← {t("back")}
-      </Link>
-      <Card>
-        <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
-        <p className="mb-6 text-muted">{t("intro")}</p>
-        <Suspense fallback={null}>
-          <Content />
-        </Suspense>
-      </Card>
-    </main>
+    <SeasonGate>
+      <main className="mx-auto w-full max-w-xl flex-1 p-6">
+        <Link href="/parent" className="mb-4 inline-block text-sm underline underline-offset-4">
+          ← {t("back")}
+        </Link>
+        <Card>
+          <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
+          <p className="mb-6 text-muted">{t("intro")}</p>
+          <Suspense fallback={null}>
+            <Content />
+          </Suspense>
+        </Card>
+      </main>
+    </SeasonGate>
   );
 }

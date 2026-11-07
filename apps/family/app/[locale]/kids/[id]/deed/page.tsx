@@ -13,6 +13,7 @@ import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
 import { requireUnlockedPage } from "@/lib/parent";
 import { RecordDeedForm } from "./deed-form";
+import { SeasonGate } from "@/components/season-gate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Kid");
@@ -39,15 +40,17 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]/deed
 export default async function RecordDeedPage(props: PageProps<"/[locale]/kids/[id]/deed">) {
   const t = await getTranslations("Kid");
   return (
-    <main className="mx-auto w-full max-w-xl flex-1 p-6">
-      <Link href="/" className="mb-4 inline-block text-sm underline underline-offset-4">
-        ← {t("back")}
-      </Link>
-      <Card>
-        <Suspense fallback={null}>
-          <Content params={props.params} />
-        </Suspense>
-      </Card>
-    </main>
+    <SeasonGate>
+      <main className="mx-auto w-full max-w-xl flex-1 p-6">
+        <Link href="/" className="mb-4 inline-block text-sm underline underline-offset-4">
+          ← {t("back")}
+        </Link>
+        <Card>
+          <Suspense fallback={null}>
+            <Content params={props.params} />
+          </Suspense>
+        </Card>
+      </main>
+    </SeasonGate>
   );
 }

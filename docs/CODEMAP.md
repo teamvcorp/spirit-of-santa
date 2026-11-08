@@ -889,7 +889,9 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   labelled "Donate" (submit_type) at the bottom of a long form, with "Pay later by text" right under it. Now: the page
   passes `PayLaterSection` into `QrActions` as the `payLater` slot, hidden (with "Say thank you") while the card form
   is open; `pay-hint` line names the Donate button; "Change amount" closes the form (closedSecret); the form scrolls
-  to its top on open. E2E browser-qr-page 24 (+2). Note: Stripe also shows Link "Bank" + "Crypto" (not in
+  to its top on open. Review fix: the thank/tip/pay-later block is HIDDEN (`hidden`, Tailwind makes it
+  display:none !important), never unmounted, so pay-later keeps "already texted" and typed values; focus returns to the
+  tip <h2 tabIndex=-1> after Change amount. E2E browser-qr-page 24 (+2). Note: Stripe also shows Link "Bank" + "Crypto" (not in
   DELAYED_PAYMENT_METHODS; owner to decide).
 
 ## Open items / TODO

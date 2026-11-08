@@ -127,13 +127,17 @@ try {
     ((await page.locator('[data-testid="stripe-checkout"] iframe').first().getAttribute("src")) ?? "").startsWith("https://js.stripe.com/") &&
       !(await Deed.findById(dApproved.id).lean())?.qrUsedAt);
   // Owner 2026-11-08 (phones): while Stripe's form is open, nothing else competes with it; the hint names its button.
-  const payLaterShown = () => page.locator("main").getByText("Pay later by text").count();
+  // Hidden, not removed (so pay-later keeps its state): check VISIBILITY, not presence.
+  const payLaterShown = () => page.locator("main").getByText("Pay later by text").isVisible();
   check("while paying: 'pay later' and 'say thank you' are hidden, the hint names the Donate button",
-    (await payLaterShown()) === 0 && (await page.locator("main button", { hasText: "Say thank you" }).count()) === 0 &&
+    !(await payLaterShown()) && !(await page.locator("main button", { hasText: "Say thank you" }).isVisible()) &&
       (await page.locator('main [data-testid="pay-hint"]').innerText()).includes("Donate"));
   await page.locator("main button", { hasText: "Change amount" }).click();
   await page.locator("main button", { hasText: "Continue to payment" }).waitFor({ timeout: 15_000 });
-  check("'Change amount' closes the card form and brings the choices back", (await payLaterShown()) === 1 && (await page.locator('[data-testid="stripe-checkout"]').count()) === 0);
+  check("'Change amount' closes the card form, brings the choices back (amount kept) and moves focus to the tip heading",
+    (await payLaterShown()) && (await page.locator('[data-testid="stripe-checkout"]').count()) === 0 &&
+      (await page.locator("main form", { has: page.locator("button", { hasText: "Continue to payment" }) }).locator('input[name="amount"][value="1000"]').isChecked()) &&
+      (await page.evaluate(() => document.activeElement?.tagName)) === "H2");
   const piId = `pi_e2eqr${randomBytes(6).toString("hex")}`;
   const evtId = `evt_e2eqr${randomBytes(6).toString("hex")}`;
   piIds.push(piId);

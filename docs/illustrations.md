@@ -6,9 +6,12 @@ also update the path in `apps/family/lib/illustrations.ts` (the ONE list of illu
 
 | File | Where it shows | Shape |
 | --- | --- | --- |
-| `house-night.svg` | Home page hero, dark mode ("starry night") | wide, about 13:10 (390×300) |
-| `house-day.svg` | Home page hero, light mode ("snowy day") | wide, about 13:10 (390×300) |
 | `gift-box.svg` | "Fully funded!" celebration | square |
+
+**The home page hero (cottage, moon, snow) is not a file** since the Winter Magic / Festive themes (2026-11-08). It's
+drawn in code, `apps/family/components/hero-scene.tsx`, so the theme switch can recolour it instantly through CSS
+variables (`apps/family/app/themes.css`). Swapping it for an artist's version means replacing that component, keeping
+it word-free, `aria-hidden`, and its animations off for reduced motion.
 
 Rules for replacements:
 

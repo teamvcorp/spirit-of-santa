@@ -50,12 +50,35 @@ try {
   await anon.goto(`${base}/`);
   await anon.locator("main h1").first().waitFor({ timeout: 60_000 });
   check("signed out: no tab bar", (await tabs(anon).count()) === 0);
-  const flakes = await anon.locator(".sos-flake").first().evaluate((el) => getComputedStyle(el).display);
-  check("home page has falling snow", (await anon.locator(".sos-flake").count()) > 10 && flakes !== "none");
+  const snow = await anon.locator(".sos-snow").first().evaluate((el) => getComputedStyle(el).display);
+  check("home page has falling snow (3 depth layers in the hero)", (await anon.locator("main section").first().locator(".sos-snow").count()) === 3 && snow !== "none");
   const calm = await (await browser.newContext({ reducedMotion: "reduce" })).newPage();
   await calm.goto(`${base}/`);
   await calm.locator("main h1").first().waitFor({ timeout: 60_000 });
-  check("reduced motion: snow hidden", (await calm.locator(".sos-flake").first().evaluate((el) => getComputedStyle(el).display)) === "none");
+  check("reduced motion: snow hidden", (await calm.locator(".sos-snow").first().evaluate((el) => getComputedStyle(el).display)) === "none");
+
+  // 1b. Winter Magic / Festive (owner 2026-11-08). A DARK device must not change the family site any more.
+  const themed = await (await browser.newContext({ colorScheme: "dark" })).newPage();
+  themed.on("pageerror", (e) => errors.push(e.message));
+  await themed.goto(`${base}/`);
+  await themed.locator('[data-testid="theme-switch"] button').first().waitFor({ timeout: 60_000 });
+  const look = () => themed.evaluate(() => ({ theme: document.documentElement.dataset.theme, header: getComputedStyle(document.querySelector("header")!).backgroundColor, ground: getComputedStyle(document.body).backgroundColor }));
+  const before = await look();
+  check("default look is Winter Magic, cream ground even on a dark-mode device", before.theme === "winter" && before.ground === "rgb(255, 248, 231)", JSON.stringify(before));
+  await themed.locator('[data-testid="theme-switch"] button', { hasText: "Festive" }).click();
+  await themed.waitForFunction(() => document.documentElement.dataset.theme === "festive");
+  const after = await look();
+  check("'Festive' recolours instantly (evergreen header) and is announced as pressed",
+    after.header === "rgb(14, 70, 48)" && (await themed.locator('[data-testid="theme-switch"] button[aria-pressed="true"]').innerText()).includes("Festive"), JSON.stringify(after));
+  await themed.reload();
+  await themed.locator("main h1").first().waitFor({ timeout: 60_000 });
+  check("the choice is remembered on this device (applied before paint, no reload flash)", (await themed.evaluate(() => document.documentElement.dataset.theme)) === "festive");
+  await themed.evaluate(() => localStorage.setItem("sos.theme", "<img src=x onerror=alert(1)>"));
+  await themed.reload();
+  await themed.locator("main h1").first().waitFor({ timeout: 60_000 });
+  check("a tampered stored value is ignored (falls back to Winter Magic)", (await themed.evaluate(() => document.documentElement.dataset.theme)) === "winter");
+  await themed.setViewportSize({ width: 390, height: 844 });
+  check("phones: the cottage scene is hidden (owner)", !(await themed.locator("main section").first().locator("svg[viewBox='0 0 1200 430']").isVisible()));
 
   // 2. Signed in: tab bar, Home active.
   const ctx = await browser.newContext();

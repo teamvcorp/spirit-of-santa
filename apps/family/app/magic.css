@@ -2,12 +2,8 @@
  * Family-app "magic" (Phase 8.5, owner: "lots of magic"; snow on the HOME page only). Store and admin
  * are calmer and don't load this. Every animation is switched OFF for people whose device asks for
  * reduced motion (accessibility), and none of it carries information (the numbers are always text).
+ * Winter Magic / Festive (2026-11-08): the hero scene's animations come from the approved mockup.
  */
-/* Falls from just above the hero to its bottom edge (top is relative to the hero, the snow layer). */
-@keyframes sos-fall {
-  from { top: -12px; transform: translateX(0); }
-  to { top: 100%; transform: translateX(18px); }
-}
 @keyframes sos-fill {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
@@ -26,18 +22,52 @@
   100% { transform: scale(1); }
 }
 
-/* Falling snow (Snowfall component). */
-.sos-flake {
-  position: absolute;
-  top: -12px;
-  border-radius: 9999px;
-  background: var(--color-snow);
-  pointer-events: none;
-  animation: sos-fall linear infinite;
+/*
+ * SNOW: three tiled layers of white dots (radial gradients), each moved with transform only (cheap for phones'
+ * graphics chips). A layer slides exactly ONE tile height, so the loop is seamless. Far = small, slow and faint;
+ * near = big, fast and bright, drawn IN FRONT of the cottage for depth.
+ */
+.sos-snow { position: absolute; left: 0; right: 0; pointer-events: none; background-repeat: repeat; will-change: transform; }
+.sos-snow-far {
+  top: -300px; height: calc(100% + 300px); background-size: 300px 300px; opacity: 0.55; animation: sos-fall-300 26s linear infinite;
+  background-image: radial-gradient(1.5px 1.5px at 30px 40px, #fff 60%, transparent 61%), radial-gradient(1.5px 1.5px at 140px 120px, #fff 60%, transparent 61%),
+    radial-gradient(1.5px 1.5px at 230px 60px, #fff 60%, transparent 61%), radial-gradient(1.5px 1.5px at 80px 220px, #fff 60%, transparent 61%),
+    radial-gradient(1.5px 1.5px at 260px 250px, #fff 60%, transparent 61%), radial-gradient(1.5px 1.5px at 190px 180px, #fff 60%, transparent 61%);
 }
-@media (prefers-color-scheme: light) {
-  .sos-flake { background: var(--color-flake-day); }
+.sos-snow-mid {
+  top: -400px; height: calc(100% + 400px); background-size: 400px 400px; opacity: 0.75; animation: sos-fall-400 18s linear infinite;
+  background-image: radial-gradient(2.5px 2.5px at 50px 80px, #fff 60%, transparent 61%), radial-gradient(2.5px 2.5px at 210px 30px, #fff 60%, transparent 61%),
+    radial-gradient(2.5px 2.5px at 330px 190px, #fff 60%, transparent 61%), radial-gradient(2.5px 2.5px at 120px 300px, #fff 60%, transparent 61%),
+    radial-gradient(2.5px 2.5px at 280px 350px, #fff 60%, transparent 61%);
 }
+.sos-snow-near {
+  top: -500px; height: calc(100% + 500px); background-size: 500px 500px; opacity: 0.9; animation: sos-fall-500 12s linear infinite;
+  background-image: radial-gradient(4px 4px at 90px 120px, #fff 55%, transparent 60%), radial-gradient(3.5px 3.5px at 380px 60px, #fff 55%, transparent 60%),
+    radial-gradient(4px 4px at 250px 330px, #fff 55%, transparent 60%), radial-gradient(3.5px 3.5px at 440px 430px, #fff 55%, transparent 60%);
+}
+@keyframes sos-fall-300 { to { transform: translateY(300px); } }
+@keyframes sos-fall-400 { to { transform: translate(20px, 400px); } }
+@keyframes sos-fall-500 { to { transform: translate(-30px, 500px); } }
+
+/* Hero sky + cottage details. */
+.sos-star {
+  position: absolute; width: 3px; height: 3px; border-radius: 9999px;
+  background: var(--t-star); box-shadow: 0 0 6px 1px var(--t-star-glow);
+  animation: sos-twinkle 3.2s ease-in-out infinite;
+}
+.sos-twinkle { animation: sos-twinkle 2.4s ease-in-out infinite; }
+@keyframes sos-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+.sos-smoke { animation: sos-smoke 6s ease-out infinite; transform-box: fill-box; transform-origin: center; opacity: 0; }
+@keyframes sos-smoke {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+  20% { opacity: 0.5; }
+  100% { opacity: 0; transform: translate(18px, -70px) scale(1.6); }
+}
+.sos-glow { animation: sos-glow 4s ease-in-out infinite; }
+@keyframes sos-glow { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
+/* Big rounded hero buttons lift a little on hover. */
+.sos-lift { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.sos-lift:hover { transform: translateY(-2px); }
 
 /* Progress bars fill up once, then a soft shine passes over them. */
 .sos-bar { transform-origin: left center; animation: sos-fill 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
@@ -53,7 +83,10 @@
 .sos-spark { position: absolute; left: 50%; top: 45%; width: 10px; height: 10px; border-radius: 2px; animation: sos-burst 1.2s ease-out forwards; }
 .sos-pop { animation: sos-pop 0.5s ease-out both; }
 
+/* Anyone who asks their device for less motion gets a STILL scene (snow hidden, lights steady, no smoke). */
 @media (prefers-reduced-motion: reduce) {
-  .sos-flake, .sos-shine, .sos-spark { display: none; }
-  .sos-bar, .sos-pop { animation: none; }
+  .sos-snow, .sos-shine, .sos-spark, .sos-smoke { display: none; }
+  .sos-star, .sos-twinkle, .sos-glow, .sos-bar, .sos-pop { animation: none; }
+  .sos-lift { transition: none; }
+  .sos-lift:hover { transform: none; }
 }

@@ -71,6 +71,17 @@ and prices can change only January 1 – March 31 (stock any time); last season'
 *Is the guarantee ("available at the listed price for the season, or an equal or better substitute") enforceable
 for stock held up to 11 months?*
 
+## 7. Things saved in the visitor's browser (no wording yet)
+
+The family site saves two small items in the browser's own storage (localStorage). They are never sent to us, and
+there are no tracking or advertising cookies.
+- `sos.theme`: the chosen look, "winter" or "festive" (added 2026-11-08).
+- `sos.celebrated`: which "Fully funded!" celebrations were already shown on this device.
+
+The sign-in session and the language choice use ordinary cookies. The privacy policy doesn't mention cookies or
+browser storage at all today.
+*Should /privacy add a short "cookies and browser storage" paragraph? If so, it needs a new PRIVACY_VERSION.*
+
 ## Where to read the exact wording
 
 - Family site: /privacy, /terms, /text-messages, the sign-up consent step, /parent/delete-account.

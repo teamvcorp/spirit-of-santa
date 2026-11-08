@@ -47,7 +47,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
   return (
     <>
       {/* Night band (Phase 8.5): the child's name, their Christmas Magic and Santa's list. */}
-      <div style={NIGHT_SCOPE} className="mb-6 flex flex-wrap items-end justify-between gap-4 rounded-3xl bg-night p-5 text-foreground shadow-card">
+      <div style={NIGHT_SCOPE} className="mb-6 flex flex-wrap items-end justify-between gap-4 rounded-3xl bg-[var(--t-band)] p-5 text-foreground shadow-card">
         <div className="flex flex-col gap-1">
           <h1 className="text-4xl font-bold">{kid.firstName}</h1>
           {tallies && <p className="text-sm text-muted" data-testid="kid-tally">{t("tally", { nice: tallies.nice, naughty: tallies.naughty, year: tallies.listYear })}</p>}

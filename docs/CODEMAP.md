@@ -894,6 +894,22 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   tip <h2 tabIndex=-1> after Change amount. E2E browser-qr-page 24 (+2). Note: Stripe also shows Link "Bank" + "Crypto" (not in
   DELAYED_PAYMENT_METHODS; owner to decide).
 
+- **Family themes: Winter Magic / Festive (owner 2026-11-08, branch feat/family-themes; plan docs/plans/family-themes.md).**
+  UI + copy only. `apps/family/app/themes.css`: html[data-theme] sets cream CONTENT tokens in both themes (beats
+  :root and dark :root, so the family site ignores device dark mode; Tailwind `dark:` redefined in globals.css to
+  never fire) + the --t-* band table (mockup themeTable; contrast measured in the header). <html data-theme="winter"
+  suppressHydrationWarning> + inline <head> THEME_SCRIPT (`apps/family/lib/theme.ts`, localStorage "sos.theme",
+  only known values accepted; docs/vendor/next-theme-script.md). `components/theme-switch.tsx` (aria-pressed pair,
+  useSyncExternalStore on the attribute, useLayoutEffect re-apply for dev Strict Mode). SiteHeader bg =
+  var(--header-bg, night) (store/admin unchanged); LocaleSwitcher variant "pill" (family only). Home rebuilt
+  (`app/[locale]/page.tsx`): hero (`components/hero-scene.tsx` HeroScene/Stars/Snow; themed via style fills; ground
+  runs x -2000…3200; HIDDEN on phones < sm, owner), kid selector for parents, How it works, countdown band
+  (`lib/countdown.ts` homeCountdown: getSeasonState, Chicago days, cached per request), For families / For Secret
+  Santas (charity line only when receiptsReady). Footer themed + tagline; candy-cane .sos-stripe (Festive only);
+  kid band bg var(--t-band). Snow = 3 tiled gradient layers (magic.css .sos-snow-*); old Snowfall + house-day/night
+  SVGs removed. Copy: HomePage.* new keys, SiteNav namespace (family), Footer.tagline; ES drafted (owner to review).
+  E2E browser-family-look 18 (+5 theme checks). Page audit 241.
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.

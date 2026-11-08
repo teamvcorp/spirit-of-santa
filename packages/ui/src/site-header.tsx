@@ -33,7 +33,8 @@ export const NIGHT_SCOPE = {
  */
 export function SiteHeader({ brand, actions, nav }: { brand: ReactNode; actions?: ReactNode; nav?: ReactNode }) {
   return (
-    <header style={NIGHT_SCOPE} className="bg-night text-foreground">
+    // --header-bg: the family themes colour the bar (Winter Magic / Festive); store + admin don't set it (night).
+    <header style={NIGHT_SCOPE} className="bg-[var(--header-bg,var(--color-night))] text-foreground">
       <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3">
         <div>{brand}</div>
         {actions && <div className="flex flex-wrap items-center gap-4 text-sm">{actions}</div>}

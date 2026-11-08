@@ -4,10 +4,32 @@
     "description": "Kids do good deeds, earn Christmas Magic, and the community helps make their wishes come true."
   },
   "HomePage": {
-    "title": "Welcome to Spirit of Santa",
-    "intro": "Good deeds earn Christmas Magic. Christmas Magic makes wishes come true.",
+    "nightsToChristmas": "{count, plural, =0 {It's Christmas!} one {# night until Christmas} other {# nights until Christmas}}",
+    "heroTitle": "Where good deeds turn into <gold>Christmas Magic</gold>",
+    "heroIntro": "Kids do kind things. The people they help can say thanks with a tip, and tips become Christmas Magic. Magic fills each child's wish list until real gifts are on their way for Christmas.",
+    "ctaSanta": "Become a Secret Santa",
+    "howEyebrow": "How the magic works",
+    "howTitle": "Three steps from kindness to Christmas morning",
+    "step1Title": "Do a good deed",
+    "step1Body": "Help a neighbor, share a toy, shovel a walk. Your child shows the person they helped a QR code from their page.",
+    "step2Title": "Earn Christmas Magic",
+    "step2Body": "That person can say thank you or leave a tip. Every {rate} in tips becomes 1 Christmas Magic, and it sparkles on your child's page.",
+    "step3Title": "Wishes come true",
+    "step3Body": "Christmas Magic fills the gifts on your child's wish list. A fully funded gift is secured right away, and the local store ships it in December.",
+    "bandShareLabel": "{count, plural, one {day until Secret Santa gifts are shared} other {days until Secret Santa gifts are shared}}",
+    "bandNightsLabel": "{count, plural, one {night until Christmas} other {nights until Christmas}}",
+    "bandSharedNote": "Secret Santa gifts have been shared. Thank you!",
+    "bandShipLabel": "Local stores ship gifts by this day",
+    "bandShipNote": "so they arrive in time for Christmas",
+    "familiesEyebrow": "For families",
+    "familiesTitle": "Start your child's Christmas Magic",
+    "familiesBody": "Parents and guardians create one account and add each child. Kids never need their own login. Each child is registered with a one-time {fee} card payment that confirms your consent.",
+    "familiesParentCta": "Go to the parent area",
+    "santaEyebrow": "For Secret Santas",
+    "santaTitle": "Turn kindness into a wish come true",
+    "santaBody": "Give to every child, or to children in one ZIP code. Gifts are pooled and shared equally on {day}.",
+    "santaBodyLater": "Secret Santa giving for this season has closed. It opens again on January 1.",
     "signUp": "Create a family account",
-    "signIn": "Sign in",
     "whoIsHere": "Who's doing good deeds today?",
     "noKidsYet": "No children added yet. A parent can add them in the parent area.",
     "points": "{points} Christmas Magic",
@@ -606,7 +628,8 @@
   "Footer": {
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
-    "texts": "Text messages"
+    "texts": "Text messages",
+    "tagline": "Made with kindness, one good deed at a time."
   },
   "Notify": {
     "title": "Email settings",
@@ -775,5 +798,11 @@
     "rights": "Parents can still sign in to the parent area at any time to see, download or delete their family's information.",
     "home": "Home",
     "parentArea": "Parent area"
+  },
+  "SiteNav": {
+    "howLink": "How it works",
+    "themeLabel": "Site look",
+    "themeWinter": "Winter Magic",
+    "themeFestive": "Festive"
   }
 }

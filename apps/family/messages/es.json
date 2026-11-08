@@ -4,10 +4,32 @@
     "description": "Los niños hacen buenas acciones, ganan Magia Navideña y la comunidad ayuda a hacer realidad sus deseos."
   },
   "HomePage": {
-    "title": "Bienvenidos a Spirit of Santa",
-    "intro": "Las buenas acciones dan Magia Navideña. La Magia Navideña hace realidad los deseos.",
+    "nightsToChristmas": "{count, plural, =0 {¡Es Navidad!} one {Falta # noche para Navidad} other {Faltan # noches para Navidad}}",
+    "heroTitle": "Donde las buenas acciones se convierten en <gold>Magia Navideña</gold>",
+    "heroIntro": "Los niños hacen cosas buenas. Las personas a las que ayudan pueden darles las gracias con una propina, y las propinas se convierten en Magia Navideña. La Magia llena la lista de deseos de cada niño hasta que sus regalos van en camino para Navidad.",
+    "ctaSanta": "Hazte Santa Secreto",
+    "howEyebrow": "Cómo funciona la magia",
+    "howTitle": "Tres pasos de la bondad a la mañana de Navidad",
+    "step1Title": "Haz una buena acción",
+    "step1Body": "Ayuda a un vecino, comparte un juguete, quita la nieve de una entrada. Tu hijo le muestra a la persona que ayudó un código QR de su página.",
+    "step2Title": "Gana Magia Navideña",
+    "step2Body": "Esa persona puede dar las gracias o dejar una propina. Cada {rate} en propinas se convierte en 1 de Magia Navideña, y brilla en la página de tu hijo.",
+    "step3Title": "Los deseos se cumplen",
+    "step3Body": "La Magia Navideña llena los regalos de la lista de deseos de tu hijo. Un regalo financiado por completo queda asegurado enseguida, y la tienda local lo envía en diciembre.",
+    "bandShareLabel": "{count, plural, one {día para repartir los regalos de los Santas Secretos} other {días para repartir los regalos de los Santas Secretos}}",
+    "bandNightsLabel": "{count, plural, one {noche para Navidad} other {noches para Navidad}}",
+    "bandSharedNote": "Los regalos de los Santas Secretos ya se repartieron. ¡Gracias!",
+    "bandShipLabel": "Las tiendas locales envían los regalos a más tardar este día",
+    "bandShipNote": "para que lleguen a tiempo para Navidad",
+    "familiesEyebrow": "Para familias",
+    "familiesTitle": "Empieza la Magia Navideña de tu hijo",
+    "familiesBody": "Los padres y tutores crean una cuenta y agregan a cada niño. Los niños nunca necesitan su propia cuenta. Cada niño se registra con un pago único con tarjeta de {fee} que confirma tu consentimiento.",
+    "familiesParentCta": "Ir al área de padres",
+    "santaEyebrow": "Para Santas Secretos",
+    "santaTitle": "Convierte la bondad en un deseo cumplido",
+    "santaBody": "Da a todos los niños o a los niños de un código postal. Los regalos se juntan y se reparten por igual el {day}.",
+    "santaBodyLater": "Las donaciones de Santa Secreto de esta temporada ya cerraron. Vuelven a abrir el 1 de enero.",
     "signUp": "Crear una cuenta familiar",
-    "signIn": "Iniciar sesión",
     "whoIsHere": "¿Quién hace buenas acciones hoy?",
     "noKidsYet": "Aún no hay niños. Un padre o madre puede agregarlos en el área de padres.",
     "points": "{points} de Magia Navideña",
@@ -606,7 +628,8 @@
   "Footer": {
     "privacy": "Política de privacidad",
     "terms": "Términos del servicio",
-    "texts": "Mensajes de texto"
+    "texts": "Mensajes de texto",
+    "tagline": "Hecho con cariño, una buena acción a la vez."
   },
   "Notify": {
     "title": "Correos que recibes",
@@ -775,5 +798,11 @@
     "rights": "Los padres pueden entrar al área de padres en cualquier momento para ver, descargar o borrar la información de su familia.",
     "home": "Inicio",
     "parentArea": "Área de padres"
+  },
+  "SiteNav": {
+    "howLink": "Cómo funciona",
+    "themeLabel": "Estilo del sitio",
+    "themeWinter": "Magia de invierno",
+    "themeFestive": "Festivo"
   }
 }

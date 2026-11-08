@@ -1,8 +1,14 @@
 @import "tailwindcss";
 /* All colours, fonts and base styles live in ONE place: packages/ui/src/theme.css (Winter Night). */
 @import "@repo/ui/theme.css";
+/* Family only: Winter Magic / Festive themes (cream content in both; bands themed). Must come AFTER theme.css. */
+@import "./themes.css";
 /* Family-only animations (snow, celebration, progress shine); store/admin stay calm. */
 @import "./magic.css";
+
+/* The family site ignores the DEVICE light/dark setting since the themes (2026-11-08): its cream content is
+   designed for both. Tailwind's `dark:` normally follows the device, so it's pointed at a class nothing ever sets. */
+@custom-variant dark (&:where(.sos-dark-unused, .sos-dark-unused *));
 
 /* Tailwind only generates classes it finds in scanned files; shared packages live
    outside this app, so list them explicitly. */

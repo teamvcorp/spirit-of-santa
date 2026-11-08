@@ -1,0 +1,112 @@
+/*
+ * FAMILY SITE THEMES: "Winter Magic" (default) and "Festive" (owner, 2026-11-08; plan: docs/plans/family-themes.md).
+ * Store and admin never set data-theme, so none of this touches them; they keep packages/ui/src/theme.css as is.
+ *
+ * How it switches: <html data-theme="winter|festive"> (server default "winter"; an inline <head> script applies the
+ * visitor's saved choice from localStorage before the first paint; see app/[locale]/layout.tsx + ThemeSwitch).
+ *
+ * 1. CONTENT is always the cream "snowy day" palette, in BOTH themes: html[data-theme] (specificity 0,1,1) beats
+ *    :root and the device dark-mode :root (0,1,0), so the family site no longer follows device light/dark
+ *    (owner: everyone gets the night/festive hero, nobody gets the sunny day).
+ * 2. BANDS (header, hero, countdown band, Secret Santa card, footer, kid band) read the --t-* table below. That's the
+ *    only difference between the two themes, copied from the approved mockup's themeTable().
+ *
+ * Contrast, measured 2026-11-08 (WCAG AA: 4.5:1 text, 3:1 large text/borders):
+ *   content: navy #1B2A4A on cream #FFF8E7 13.43 · muted #42537A on cream 7.21 · eyebrow #9A2A1F on cream 7.28 ·
+ *            accent-text #8A5A00 on cream 5.60 · danger #C8102E on cream 5.56 · input border #6B7A99 on cream 4.07
+ *   winter:  cream on #0B1530 17.04 · cream on hero top #22407A 9.52 · #D9E2F2 on #22407A 7.74 · gold #F6D27A on
+ *            #22407A 6.92 · gold on band #1B2A4A 9.76 · #B9C6DE on #1B2A4A 8.26
+ *   festive: cream on #9E0F28 7.77 · cream on hero top #C21A36 5.67 · #FBE3E6 on #C21A36 4.93 · gold on #9E0F28
+ *            5.65 · gold on #C21A36 4.13 (LARGE headline text only; the small pill sits on a darkened chip, about 5.5) ·
+ *            #5A0A16 on gold 9.68 · cream on evergreen #0E4630 10.24 · header muted #B8C4DB on #0E4630 6.17 ·
+ *            focus #F5C451 on #0E4630 6.66 · cream on #14513B 8.74 · #CFE3D8 on #14513B 6.89 · cream on #0B3A2A 12.00
+ * Never gold text on cream/white (#E0A526 on cream is 2.07). Red and green never carry meaning alone: words do.
+ */
+
+/* 1. Content palette, both themes (the light values of theme.css, with a warm cream ground). */
+html[data-theme] {
+  --background: #fff8e7;
+  --foreground: #1b2a4a;
+  --surface: #ffffff;
+  --muted: #42537a;
+  --primary: #1b2a4a;
+  --primary-hover: #0f1a33;
+  --on-primary: #f8fafc;
+  --accent: #e0a526;
+  --on-accent: #1b2a4a;
+  --accent-text: #8a5a00;
+  --danger: #c8102e;
+  --focus: #1b2a4a;
+  --input-border: #6b7a99;
+  --meter: #1f6a4a;
+  --card-shadow: 0 10px 30px rgb(27 42 74 / 0.08);
+  color-scheme: light;
+  /* Shared by both themes. */
+  --t-gold: #f6d27a;
+  --t-cream: #fff8e7;
+  --t-card-border: #f0e3c4;
+  --t-eyebrow: #9a2a1f;
+}
+
+/* 2. The two band palettes (mockup themeTable). --header-bg is read by @repo/ui SiteHeader (fallback: night). */
+html[data-theme="winter"] {
+  --t-hero: radial-gradient(120% 80% at 75% 0%, #22407a 0%, #142652 38%, #0b1530 75%);
+  --t-aurora: radial-gradient(60% 30% at 20% 12%, rgb(88 214 170 / 0.16), transparent 70%);
+  --t-star: #fff8e7;
+  --t-star-glow: rgb(255 248 231 / 0.7);
+  --header-bg: #0b1530;
+  --t-stripe-h: 0px;
+  --t-pill-bg: rgb(246 210 122 / 0.12);
+  --t-pill-border: rgb(246 210 122 / 0.4);
+  --t-hero-sub: #d9e2f2;
+  --t-cta-bg: #c8102e;
+  --t-cta-ink: #ffffff;
+  --t-cta-shadow: 0 8px 24px rgb(200 16 46 / 0.4);
+  --t-cta2: #f6d27a;
+  --t-hills: #17295a;
+  --t-far-trees: #123a3a;
+  --t-house: #22345f;
+  --t-roof: #142041;
+  --t-door: #c8102e;
+  --t-card-top: 1px solid #f0e3c4;
+  --t-band: #1b2a4a;
+  --t-band-sub: #b9c6de;
+  --t-santa-card: #1b2a4a;
+  --t-santa-sub: #d9e2f2;
+  --t-footer: #0b1530;
+  --t-footer-ink: #b9c6de;
+}
+
+html[data-theme="festive"] {
+  --t-hero: radial-gradient(120% 85% at 50% 0%, #c21a36 0%, #9e0f28 45%, #6e0a1c 100%);
+  --t-aurora: radial-gradient(50% 35% at 50% 10%, rgb(246 210 122 / 0.18), transparent 70%);
+  --t-star: #ffe7a8;
+  --t-star-glow: rgb(246 210 122 / 0.8);
+  --header-bg: #0e4630;
+  --t-stripe-h: 8px;
+  --t-pill-bg: rgb(0 0 0 / 0.18);
+  --t-pill-border: rgb(246 210 122 / 0.55);
+  --t-hero-sub: #fbe3e6;
+  --t-cta-bg: #f6d27a;
+  --t-cta-ink: #5a0a16;
+  --t-cta-shadow: 0 8px 24px rgb(0 0 0 / 0.3);
+  --t-cta2: #fff8e7;
+  --t-hills: #7e0b20;
+  --t-far-trees: #0e4630;
+  --t-house: #14513b;
+  --t-roof: #0b3a2a;
+  --t-door: #c8102e;
+  --t-card-top: 6px solid #c8102e;
+  --t-band: #14513b;
+  --t-band-sub: #cfe3d8;
+  --t-santa-card: #9e0f28;
+  --t-santa-sub: #fbe3e6;
+  --t-footer: #0b3a2a;
+  --t-footer-ink: #cfe3d8;
+}
+
+/* Candy-cane stripe (0px tall in Winter Magic, 8px in Festive): under the header and above the footer. */
+.sos-stripe {
+  height: var(--t-stripe-h, 0px);
+  background: repeating-linear-gradient(45deg, #c8102e 0 12px, #fff8e7 12px 24px);
+}

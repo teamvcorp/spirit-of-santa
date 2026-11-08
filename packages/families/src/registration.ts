@@ -15,7 +15,7 @@ import { hitRateLimit } from "@repo/auth/rate-limit";
 import { AuditLog, Kid, Payment, trusted, User, withTransaction } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_KIDS_PER_FAMILY, REGISTRATION_FEE_CENTS } from "@repo/lib/limits";
-import { buildPaymentMetadata, checkoutReturnStatus, getStripe, paymentMethodConfig } from "@repo/payments/checkout";
+import { buildPaymentMetadata, checkoutReturnStatus, getStripe, NOT_OFFERED_PAYMENT_METHODS, paymentMethodConfig } from "@repo/payments/checkout";
 import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 import { familySiteClosed } from "@repo/stores/season";
 
@@ -84,6 +84,8 @@ export async function startRegistration(parent: Parent, kidIds: string[], promo:
   try {
     const session = await getStripe().checkout.sessions.create({
       ...paymentMethodConfig(), // Spirit of Santa's own payment-method group (Link off)
+      // Owner: no crypto on ANY checkout (review of 5d248fe). Delayed methods stay allowed here, as before.
+      excluded_payment_method_types: [...NOT_OFFERED_PAYMENT_METHODS],
       ui_mode: "embedded_page",
       mode: "payment",
       line_items: [

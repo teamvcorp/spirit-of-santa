@@ -34,7 +34,7 @@ Node.js version: 24.x (Project → Settings → General).
 | `STRIPE_SECRET_KEY` | ✓ | – | – | Stripe live secret key |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | ✓ | – | – | Stripe live publishable key |
 | `STRIPE_WEBHOOK_SECRET` | ✓ | – | – | `whsec_` of the endpoint below |
-| `STRIPE_PAYMENT_METHOD_CONFIG` | ✓ | – | – | NOT secret. The `pmc_…` id of the Stripe payment-method group **"Spirit of Santa"** (Link off; owner 2026-11-08). Production = the LIVE group's id; Preview = the test one `pmc_1UZZX9FOfT7vP5JsYfCJt354`. Unset → the account Default (Link shows) |
+| `STRIPE_PAYMENT_METHOD_CONFIG` | ✓ | – | – | NOT secret. The `pmc_…` id of the Stripe payment-method group **"Spirit of Santa"** (Link off; owner 2026-11-08). Production = the LIVE group's id; Preview = the test one `pmc_1UZZX9FOfT7vP5JsYfCJt354`. Unset → the account Default (Link shows). **A wrong id (test id with live keys, or a deleted group) makes Stripe refuse every checkout**: test one payment after setting it |
 | `DEED_QR_KEY` | ✓ | – | – | NEW random value (same command as secrets). Key for kids' QR links; changing it voids unused QR codes |
 | `FAMILY_PROMO_CODE` | ✓ | – | – | Optional. Families who enter it pay the $5 child registration once (first child). Blank = promo off |
 | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` | ✓ | – | – | Twilio console. Number in E.164 (`+1…`). Pay-later texts; without them no texts are sent |

@@ -30,8 +30,12 @@ export const CHECKOUT_EXCLUDED_METHODS = [...DELAYED_PAYMENT_METHODS, ...NOT_OFF
  * shared with other products, so instead of changing the account's Default we point our checkouts at a group named
  * "Spirit of Santa": the Default's methods but LINK OFF (Link can't drop its crypto option on its own, and the
  * owner chose no crypto). Set STRIPE_PAYMENT_METHOD_CONFIG to that group's pmc_… id per environment (test id
- * locally + Preview, live id in Production). Not a secret. Unset or malformed → the account Default (today's
- * behaviour), never an error. Spread into every checkout.sessions.create: { ...paymentMethodConfig() }.
+ * locally + Preview, live id in Production). Not a secret. Unset or MALFORMED → the account Default (today's
+ * behaviour). CAREFUL: a well-formed but WRONG id (the test id with live keys, or a group deleted in the Dashboard)
+ * passes this check and Stripe then refuses EVERY checkout. Spread into every checkout.sessions.create.
+ *
+ * Which checkout excludes what: tips, donation links, bonus, pay-up → CHECKOUT_EXCLUDED_METHODS (delayed + crypto);
+ * registration and /donate → NOT_OFFERED_PAYMENT_METHODS (crypto only). Pay-later Payment Links → card-only allow-list.
  */
 export function paymentMethodConfig(): { payment_method_configuration?: string } {
   const id = process.env.STRIPE_PAYMENT_METHOD_CONFIG?.trim();

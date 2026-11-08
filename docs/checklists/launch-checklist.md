@@ -21,6 +21,8 @@ Written 2026-11-07. There are no real users yet, so nothing here needs a data mi
       Settings → Payment methods → create a new configuration named **Spirit of Santa** with the same methods as Default
       but **Link off** → copy its `pmc_…` id → Vercel **family** project → `STRIPE_PAYMENT_METHOD_CONFIG` (Production)
       → redeploy. Then open a tip checkout: no Link / Bank / Crypto. (TEST group already exists: pmc_1UZZX9…t354.)
+      Also set **Preview** to the TEST id `pmc_1UZZX9FOfT7vP5JsYfCJt354`. Never mix them up: a test id with live keys
+      (or a deleted group) makes Stripe refuse every checkout, so make one real payment after changing it.
 - [ ] **Logo** file (see `docs/illustrations.md` for the image slots you can replace).
 - [ ] **First admin** can sign in with the authenticator app; a second admin set up so you are never locked out.
 

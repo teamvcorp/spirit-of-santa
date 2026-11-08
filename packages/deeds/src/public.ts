@@ -13,7 +13,7 @@ import { clientIp, hitRateLimit, ipKey } from "@repo/auth/rate-limit";
 import { connectDb, Deed, DeedType, Family, Kid, trusted } from "@repo/db";
 import { parseDollarsToCents } from "@repo/lib/format";
 import { MAX_CHECKOUT_MS, MAX_TIP_CENTS, MIN_CHECKOUT_MS, MIN_TIP_CENTS, TIP_PRESETS_CENTS } from "@repo/lib/limits";
-import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, CHECKOUT_EXCLUDED_METHODS, getStripe } from "@repo/payments/checkout";
+import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, CHECKOUT_EXCLUDED_METHODS, getStripe, paymentMethodConfig } from "@repo/payments/checkout";
 import { closePayLaterForDeed } from "@repo/payments/pay-later-links";
 import { getSeasonState, giftWindow } from "@repo/stores/season";
 import { localized } from "./catalog.ts";
@@ -180,6 +180,7 @@ export async function startTip(token: unknown, amountCents: number | null, origi
   const metadata = buildPaymentMetadata({ sos_purpose: "tip", sos_kid_id: target.kidId, sos_family_id: target.familyId, sos_deed_id: target.deedId });
   try {
     const session = await getStripe().checkout.sessions.create({
+      ...paymentMethodConfig(), // Spirit of Santa's own payment-method group (Link off)
       ui_mode: "embedded_page",
       mode: "payment",
       submit_type: "donate",

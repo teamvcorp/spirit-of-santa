@@ -13,7 +13,7 @@ import "server-only";
 import { AuditLog, connectDb, Family, Kid, withTransaction } from "@repo/db";
 import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 import { normalizeObjectId } from "@repo/lib/ids";
-import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, CHECKOUT_EXCLUDED_METHODS, getStripe } from "@repo/payments/checkout";
+import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, CHECKOUT_EXCLUDED_METHODS, getStripe, paymentMethodConfig } from "@repo/payments/checkout";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { MAX_CHECKOUT_MS, MIN_CHECKOUT_MS } from "@repo/lib/limits";
 import { publicFamilyAlias, publicSeason } from "./public.ts";
@@ -100,6 +100,7 @@ export async function startDonation(token: unknown, amountCents: number | null, 
   const metadata = buildPaymentMetadata({ sos_purpose: "tip", sos_kid_id: String(kid._id), sos_family_id: String(kid.familyId) });
   try {
     const session = await getStripe().checkout.sessions.create({
+      ...paymentMethodConfig(), // Spirit of Santa's own payment-method group (Link off)
       ui_mode: "embedded_page",
       mode: "payment",
       submit_type: "donate",

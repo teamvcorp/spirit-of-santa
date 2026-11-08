@@ -16,7 +16,7 @@ import { parseDollarsToCents } from "@repo/lib/format";
 import { DONATION_PRESETS_CENTS, MAX_CHECKOUT_MS, MAX_DONATION_CENTS, MIN_CHECKOUT_MS, MIN_DONATION_CENTS } from "@repo/lib/limits";
 import { getSeasonYear, startOfDayInZone } from "@repo/lib/season";
 import { getSeasonState } from "@repo/stores/season";
-import { NOT_OFFERED_PAYMENT_METHODS } from "./checkout.ts";
+import { NOT_OFFERED_PAYMENT_METHODS, paymentMethodConfig } from "./checkout.ts";
 import { getStripe } from "./client.ts";
 import { buildPaymentMetadata } from "./metadata.ts";
 import { checkoutReturnStatus } from "./return-status.ts";
@@ -54,6 +54,7 @@ export async function startCommunityDonation(
   const metadata = buildPaymentMetadata({ sos_purpose: "donation", ...(zip ? { sos_zip: zip } : {}), sos_locale: input.locale });
   try {
     const session = await getStripe().checkout.sessions.create({
+      ...paymentMethodConfig(), // Spirit of Santa's own payment-method group (Link off)
       ui_mode: "embedded_page",
       mode: "payment",
       submit_type: "donate",

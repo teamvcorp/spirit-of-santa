@@ -910,6 +910,12 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   SVGs removed. Copy: HomePage.* new keys, SiteNav namespace (family), Footer.tagline; ES drafted (owner to review).
   E2E browser-family-look 18 (+5 theme checks). Page audit 241.
 
+- **Stripe payment methods (owner 2026-11-08: keep bank, no crypto → Link off, Spirit of Santa only).** `CHECKOUT_EXCLUDED_METHODS`
+  (delayed + `NOT_OFFERED_PAYMENT_METHODS` = crypto) on tips/donation links/bonus/pay-up; /donate excludes crypto; every
+  checkout spreads `paymentMethodConfig()` (env STRIPE_PAYMENT_METHOD_CONFIG = the "Spirit of Santa" pmc_ group, Link off;
+  unset → account Default). Crypto INSIDE Link can only go with Link. Test group pmc_1UZZX9…t354; live = owner (checklist).
+  Unit test packages/payments/test/payment-method-config.test.ts.
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.

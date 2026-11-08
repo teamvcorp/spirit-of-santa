@@ -24,6 +24,19 @@ export const DELAYED_PAYMENT_METHODS = ["us_bank_account", "acss_debit", "custom
 export const NOT_OFFERED_PAYMENT_METHODS = ["crypto"] as const;
 /** The full exclude list for every checkout that credits Christmas Magic: delayed methods + not offered. */
 export const CHECKOUT_EXCLUDED_METHODS = [...DELAYED_PAYMENT_METHODS, ...NOT_OFFERED_PAYMENT_METHODS] as const;
+
+/**
+ * Spirit of Santa's OWN Stripe "payment method configuration" (owner 2026-11-08). The Stripe account (VA Corp) is
+ * shared with other products, so instead of changing the account's Default we point our checkouts at a group named
+ * "Spirit of Santa": the Default's methods but LINK OFF (Link can't drop its crypto option on its own, and the
+ * owner chose no crypto). Set STRIPE_PAYMENT_METHOD_CONFIG to that group's pmc_… id per environment (test id
+ * locally + Preview, live id in Production). Not a secret. Unset or malformed → the account Default (today's
+ * behaviour), never an error. Spread into every checkout.sessions.create: { ...paymentMethodConfig() }.
+ */
+export function paymentMethodConfig(): { payment_method_configuration?: string } {
+  const id = process.env.STRIPE_PAYMENT_METHOD_CONFIG?.trim();
+  return id && /^pmc_[A-Za-z0-9]{8,64}$/.test(id) ? { payment_method_configuration: id } : {};
+}
 export { getStripe } from "./client.ts";
 export { buildPaymentMetadata } from "./metadata.ts";
 export { fulfilPaidPaymentIntent } from "./fulfil.ts";

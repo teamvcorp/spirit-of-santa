@@ -71,6 +71,11 @@ Test: `scripts/e2e/stripe-return-fulfil.ts` (real test PaymentIntent with `pm_ca
   on; set off via the Payment Method Configurations API → test checkouts offer card + amazon_pay only. LIVE: owner
   does it in the Dashboard (launch checklist). Note: the account has two "default" configs; Checkout used the one
   with parent=null ("Default").
+  CHANGED the same day: the account (VA Corp) is shared with other products, so the owner chose "Spirit of Santa
+  only": test Default restored to Link ON; a separate config "Spirit of Santa" (test pmc_1UZZX9FOfT7vP5JsYfCJt354,
+  Default's methods with Link off) is passed on every checkout via `paymentMethodConfig()` (@repo/payments/checkout,
+  env STRIPE_PAYMENT_METHOD_CONFIG). The Stripe connector can only READ payment_method_configurations, so the LIVE
+  config is made in the Dashboard (launch checklist). Verified in test: tip form shows card only, no Link/Bank/Crypto.
   Payment LINKS (pay-later texts) have no exclude option: they pass the allow-list `payment_method_types:
   INSTANT_PAYMENT_LINK_METHODS` (["card"], which includes Apple Pay / Google Pay).
 - `Stripe.webhooks.generateTestHeaderString({ payload, secret, timestamp? })` signs test events.

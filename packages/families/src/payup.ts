@@ -22,7 +22,7 @@ import { hitRateLimit } from "@repo/auth/rate-limit";
 import { Kid, User, WishListItem } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_CHECKOUT_MS, MIN_CHECKOUT_MS } from "@repo/lib/limits";
-import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, CHECKOUT_EXCLUDED_METHODS, getStripe } from "@repo/payments/checkout";
+import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, CHECKOUT_EXCLUDED_METHODS, getStripe, paymentMethodConfig } from "@repo/payments/checkout";
 import { payUpCents, payUpWindow } from "@repo/wishlists/payup";
 
 export type PayUpStart =
@@ -51,6 +51,7 @@ export async function startPayUp(parent: Parent, rawWishId: string, origin: stri
   const metadata = buildPaymentMetadata({ sos_purpose: "payup", sos_kid_id: String(w.kidId), sos_family_id: fid, sos_wish_list_item_id: wishId });
   try {
     const session = await getStripe().checkout.sessions.create({
+      ...paymentMethodConfig(), // Spirit of Santa's own payment-method group (Link off)
       ui_mode: "embedded_page",
       mode: "payment",
       excluded_payment_method_types: [...CHECKOUT_EXCLUDED_METHODS],

@@ -15,7 +15,7 @@ import { hitRateLimit } from "@repo/auth/rate-limit";
 import { AuditLog, Kid, Payment, trusted, User, withTransaction } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_KIDS_PER_FAMILY, REGISTRATION_FEE_CENTS } from "@repo/lib/limits";
-import { buildPaymentMetadata, checkoutReturnStatus, getStripe } from "@repo/payments/checkout";
+import { buildPaymentMetadata, checkoutReturnStatus, getStripe, paymentMethodConfig } from "@repo/payments/checkout";
 import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 import { familySiteClosed } from "@repo/stores/season";
 
@@ -83,6 +83,7 @@ export async function startRegistration(parent: Parent, kidIds: string[], promo:
   const metadata = buildPaymentMetadata({ sos_purpose: "registration", sos_family_id: fid, sos_kid_ids: ids.join(","), sos_promo: usePromo ? "1" : "0" });
   try {
     const session = await getStripe().checkout.sessions.create({
+      ...paymentMethodConfig(), // Spirit of Santa's own payment-method group (Link off)
       ui_mode: "embedded_page",
       mode: "payment",
       line_items: [

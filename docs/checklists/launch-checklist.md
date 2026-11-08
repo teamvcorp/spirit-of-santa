@@ -23,6 +23,10 @@ Written 2026-11-07. There are no real users yet, so nothing here needs a data mi
       → redeploy. Then open a tip checkout: no Link / Bank / Crypto. (TEST group already exists: pmc_1UZZX9…t354.)
       Also set **Preview** to the TEST id `pmc_1UZZX9FOfT7vP5JsYfCJt354`. Never mix them up: a test id with live keys
       (or a deleted group) makes Stripe refuse every checkout, so make one real payment after changing it.
+      DONE 2026-11-08: live group pmc_1UZdOY…XfB = card + Apple Pay + Google Pay; env set for Production.
+- [ ] **Stripe: register the site's domains for Apple Pay / Google Pay** (embedded checkout shows wallets ONLY on
+      registered domains). Dashboard (live) → Settings → Payment method domains → add `www.spiritofsanta.com` and
+      `spiritofsanta.com`. Then on an iPhone (Safari 17+) with a card in Wallet, open a tip: Apple Pay shows at the top.
 - [ ] **Logo** file (see `docs/illustrations.md` for the image slots you can replace).
 - [ ] **First admin** can sign in with the authenticator app; a second admin set up so you are never locked out.
 

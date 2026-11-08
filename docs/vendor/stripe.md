@@ -78,6 +78,13 @@ Test: `scripts/e2e/stripe-return-fulfil.ts` (real test PaymentIntent with `pm_ca
   config is made in the Dashboard (launch checklist). Verified in test: tip form shows card only, no Link/Bank/Crypto.
   Payment LINKS (pay-later texts) have no exclude option: they pass the allow-list `payment_method_types:
   INSTANT_PAYMENT_LINK_METHODS` (["card"], which includes Apple Pay / Google Pay).
+- Apple Pay / Google Pay in EMBEDDED Checkout (docs.stripe.com/testing/wallets?ui=embedded-page, read 2026-11-08):
+  shown only if (1) on in the payment-method group, (2) the page's domain is registered per environment (Settings →
+  Payment method domains; API payment_method_domains; register www AND apex), (3) the device has a wallet card;
+  Apple Pay needs Safari/iOS 17+ (cross-domain iframes). Wallet buttons render at the TOP of Stripe's form; the frame
+  resizes itself, so our layout needs nothing. Our Permissions-Policy leaves `payment` open on purpose. Hosted
+  Payment Links need no registration. Live group "Spirit of Santa" = pmc_1UZdOYFOfT7vP5JsXD2ToXfB (card, Apple Pay,
+  Google Pay). As of 2026-11-08 only *.stripe.com domains were registered: spiritofsanta.com still to add (owner).
 - `Stripe.webhooks.generateTestHeaderString({ payload, secret, timestamp? })` signs test events.
 - `Stripe.Event` is a union discriminated by `type`, so `event.data.object` is typed per case.
 - Field shapes: `charge.payment_intent` and `dispute.payment_intent` are `string | PaymentIntent | null`;

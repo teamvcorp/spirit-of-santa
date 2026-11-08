@@ -53,7 +53,9 @@ export function QrActions({ token, kidName, rate, canTip, giving, payLater }: { 
         (stripePromise ? (
           <div ref={checkoutTop} className="flex scroll-mt-4 flex-col gap-3">
             <p className="font-semibold">{t("tipTotal", { amount: formatCents(tip.amountCents) })}</p>
-            {/* Stripe's own button is labelled "Donate" (submit_type) and sits at the BOTTOM of a long form. */}
+            {/* Stripe's own button is labelled "Donate" (submit_type) and sits at the BOTTOM of a long form. Apple Pay /
+                Google Pay (owner 2026-11-08: on, for phones) show at the TOP, only on a device with a wallet card and
+                only on domains registered in Stripe (Settings → Payment method domains). The hint names both. */}
             <p className="text-sm text-muted" data-testid="pay-hint">{t("payHint")}</p>
             <button type="button" onClick={() => setClosedSecret(tip.clientSecret)} className="self-start text-sm font-semibold underline underline-offset-4">
               {t("changeAmount")}

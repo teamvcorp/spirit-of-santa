@@ -335,7 +335,7 @@
     }
   },
   "Qr": {
-    "payHint": "Ingresa tus datos de pago y luego toca el botón «Donar» (Donate) al final del formulario para pagar.",
+    "payHint": "¿Ves Apple Pay o Google Pay arriba? Tócalo para pagar en un solo paso. O ingresa los datos de tu tarjeta y luego toca el botón «Donar» (Donate) al final del formulario.",
     "changeAmount": "Cambiar la cantidad",
     "noteLegend": "Agrega una nota de agradecimiento (opcional)",
     "noNote": "Sin nota",

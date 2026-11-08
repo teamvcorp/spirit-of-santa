@@ -1,32 +1,38 @@
 # Logo and link previews
 
-The Spirit of Santa logo (owner's artwork, added 2026-11-07) appears in four places. All four come from **one
-designer file**:
+The Spirit of Santa artwork (owner's designer files, updated 2026-11-08) comes in three versions:
 
-| Where | Which version | Made by |
-| --- | --- | --- |
-| Header of all three apps (next to the "Spirit of Santa" name) | full badge, with "SPIRIT OF SANTA" round the ring | `packages/ui/src/logo.tsx` |
-| Browser tab icon (32px) | simple badge: gift and bow only, see-through corners | `packages/ui/src/app-icon.tsx` |
-| Phone home-screen icons (180, 192, 512px) | simple badge on a coloured tile: family navy, store dark navy, admin white | `packages/ui/src/app-icon.tsx` |
-| Link-preview picture (Facebook, iMessage, WhatsApp, X…) for the family and store sites | full badge + translated title and tagline | `packages/ui/src/share-image.tsx` via each app's `app/[locale]/share-image/route.ts` |
+| Version | Designer's rule | Used for | Made by |
+| --- | --- | --- | --- |
+| **Simple badge** (gift and bow, no lettering) | anything under 96 px | header of all three apps (48–56 px), browser tab (32 px), phone home-screen icons (180/192/512 px: badge on a coloured tile: family navy, store dark navy, admin white) | `packages/ui/src/logo.tsx`, `packages/ui/src/app-icon.tsx` |
+| **Full-colour seal** ("SPIRIT OF SANTA · NORTH POLE APPROVED · EST. 2012") | 96 px / 1 inch and larger | link-preview picture (Facebook, iMessage, WhatsApp, X…) for the family and store sites, with the translated title and tagline | `packages/ui/src/share-image.tsx` via each app's `app/[locale]/share-image/route.ts` |
+| **One-ink seal** | rubber stamps, foil, embossing | print only, never on the websites | `packages/ui/assets/print/seal-one-ink.svg` |
 
-The simple version exists because the ring lettering turns into noise below about 48px.
+## Files
+
+- `packages/ui/assets/source/`: the designer's files, unchanged: `badge-simple.svg`, `seal-full-color.svg`,
+  `seal-one-ink.svg`.
+- `packages/ui/assets/logo-icon.svg`: simple badge, shrunk (the apps use this).
+- `packages/ui/assets/logo.svg`: full-colour seal, lettering converted to shapes, shrunk (the share picture uses it).
+- `packages/ui/assets/print/`: both seals with the lettering as shapes. **Send these to a printer**, never the source
+  files: the source files need the Nunito Sans font installed. For a different ink colour in the one-ink seal,
+  replace `#C8102E` with the ink colour.
 
 ## Changing the logo
 
-1. Save the new designer SVG over `packages/ui/assets/logo-source.svg` (keep the name).
+1. Save the new designer file over the matching file in `packages/ui/assets/source/` (keep the name).
 2. Run `npm run brand:logo`. The script (`scripts/brand/build-logo.mjs`):
-   - removes hidden duplicate text (the designer file has the lettering twice: as gold outlines AND as plain black
-     text in a font most devices don't have),
-   - makes the canvas square and centred,
-   - builds the simple version (no lettering, no outer ring),
-   - shrinks both with svgo,
-   - writes `logo.svg`, `logo-icon.svg` and `packages/ui/src/brand-art.generated.ts`.
-3. Open `packages/ui/assets/logo.svg` and `logo-icon.svg` in a browser and check them.
+   - converts the seals' lettering to shapes, letter by letter along the same curves a browser uses. Phones without
+     the font, and the server that draws the preview picture, would otherwise show the wrong font or no words at all.
+   - shrinks the files with svgo,
+   - writes `logo.svg`, `logo-icon.svg`, `print/*.svg` and `packages/ui/src/brand-art.generated.ts`.
+3. Check the outputs in a browser next to the source files. The lettering should look the same.
 4. Commit all of those files.
 
-The script matches **this** artwork's structure (13 letter shapes, one outer ring, one red disc). A differently made
-file stops it with an error saying what it didn't find. Adjust the script's settings, don't hand-edit the outputs.
+The lettering font is Nunito Sans 800 (`scripts/brand/fonts/`, from Fontsource 5.2.7, SIL Open Font License: free to
+use and to keep in the repo). The script only understands this artwork's kind of lettering: words centred on a half
+circle, or a straight centred line, in Nunito Sans 800. Anything else stops it with an error saying what it didn't
+expect. Adjust the script, don't hand-edit the outputs.
 
 ## Link previews: technical notes
 

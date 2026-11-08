@@ -873,9 +873,11 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   ("stockChanged" → reload); the item form only touches stock when changed. PROD: run `npm run db:sync-indexes` after
   deploy (2 new Item indexes). E2E: store-catalog (new, service level).
 
-- **Logo + link previews (2026-11-07).** Owner's logo: designer file `packages/ui/assets/logo-source.svg` →
-  `npm run brand:logo` (scripts/brand/build-logo.mjs, svgo 4.1.0 pinned) → `logo.svg` (full badge, square, hidden
-  duplicate <text> removed), `logo-icon.svg` (gift only: lettering noise below ~48px) and
+- **Logo + link previews (2026-11-07; NEW seal + badge 2026-11-08).** Designer files in `packages/ui/assets/source/`
+  (badge-simple, seal-full-color, seal-one-ink) → `npm run brand:logo` (scripts/brand/build-logo.mjs; svgo 4.1.0 +
+  opentype.js 1.3.4 pinned; font scripts/brand/fonts/ Nunito Sans 800 woff, OFL) → `logo-icon.svg` (simple badge:
+  header + tab + phone icons, designer rule "under 96 px"), `logo.svg` (full-colour seal, lettering converted to
+  outlines along the arcs: share image), `assets/print/` (outlined seals for printers, not used by the apps) and
   `packages/ui/src/brand-art.generated.ts` (data: URLs, server-only, for next/og). Header: `LogoMark` = <img> of the
   STATIC IMPORT (hashed /_next/static/media URL, cached forever; `src/assets.d.ts` gives the ui package the svg types).
   Icons: badge (transparent ≤48px; on a tile above; admin tile now snow). Link previews (family + store layouts):

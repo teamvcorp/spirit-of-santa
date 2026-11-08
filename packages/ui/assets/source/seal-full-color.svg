@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="Spirit of Santa seal: North Pole Approved, established 2012">
+  <!-- Spirit of Santa seal, full colour. Use at 96 px / 1 inch and larger.
+       Text uses Nunito Sans 800: convert text to outlines before sending to a printer. -->
+  <defs>
+    <path id="sos-top" d="M18 80 A62 62 0 0 1 142 80"/>
+    <path id="sos-bottom" d="M9 80 A71 71 0 0 0 151 80"/>
+  </defs>
+  <circle cx="80" cy="80" r="76" fill="#1B2A4A" stroke="#E0A526" stroke-width="4"/>
+  <circle cx="80" cy="80" r="56" fill="none" stroke="#E0A526" stroke-width="2"/>
+  <circle cx="80" cy="80" r="50" fill="#C8102E"/>
+  <text font-family="Nunito Sans, sans-serif" font-weight="800" font-size="13" letter-spacing="2" fill="#E0A526" text-anchor="middle"><textPath href="#sos-top" startOffset="50%">SPIRIT OF SANTA</textPath></text>
+  <text font-family="Nunito Sans, sans-serif" font-weight="800" font-size="13" letter-spacing="2" fill="#E0A526" text-anchor="middle"><textPath href="#sos-bottom" startOffset="50%">NORTH POLE APPROVED</textPath></text>
+  <polygon points="13,75 14.23,78.3 17.76,78.45 15,80.65 15.94,84.05 13,82.1 10.06,84.05 11,80.65 8.24,78.45 11.77,78.3" fill="#E0A526"/>
+  <polygon points="147,75 148.23,78.3 151.76,78.45 149,80.65 149.94,84.05 147,82.1 144.06,84.05 145,80.65 142.24,78.45 145.77,78.3" fill="#E0A526"/>
+  <g transform="translate(35 30) scale(0.75)">
+    <rect x="36" y="58" width="48" height="28" rx="4" fill="#FFF8E7"/>
+    <rect x="33" y="49" width="54" height="11" rx="3" fill="#FFF8E7"/>
+    <rect x="56" y="49" width="8" height="37" fill="#E0A526"/>
+    <ellipse cx="51" cy="43" rx="9" ry="6" fill="#F5C451" transform="rotate(-20 51 43)"/>
+    <ellipse cx="69" cy="43" rx="9" ry="6" fill="#F5C451" transform="rotate(20 69 43)"/>
+    <circle cx="60" cy="46" r="4" fill="#F5C451"/>
+  </g>
+  <text x="80" y="113" text-anchor="middle" font-family="Nunito Sans, sans-serif" font-weight="800" font-size="10" letter-spacing="1" fill="#F5C451">EST. 2012</text>
+</svg>

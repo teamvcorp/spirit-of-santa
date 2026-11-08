@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="Spirit of Santa seal, one ink: North Pole Approved, established 2012">
+  <!-- One-ink version for rubber stamps, foil and embossing. Everything prints in one colour
+       (change #C8102E to the ink colour); the gift and bow are knocked out (transparent), so the paper shows through.
+       Before ordering a stamp or foil die: convert text to outlines. -->
+  <defs>
+    <path id="sos1-top" d="M18 80 A62 62 0 0 1 142 80"/>
+    <path id="sos1-bottom" d="M9 80 A71 71 0 0 0 151 80"/>
+    <mask id="sos1-knockout">
+      <rect width="160" height="160" fill="#fff"/>
+      <g transform="translate(35 30) scale(0.75)" fill="#000">
+        <rect x="36" y="58" width="48" height="28" rx="4"/>
+        <rect x="33" y="49" width="54" height="11" rx="3"/>
+        <ellipse cx="51" cy="43" rx="9" ry="6" transform="rotate(-20 51 43)"/>
+        <ellipse cx="69" cy="43" rx="9" ry="6" transform="rotate(20 69 43)"/>
+        <circle cx="60" cy="46" r="4"/>
+      </g>
+      <text x="80" y="113" text-anchor="middle" font-family="Nunito Sans, sans-serif" font-weight="800" font-size="10" letter-spacing="1" fill="#000">EST. 2012</text>
+    </mask>
+  </defs>
+  <g fill="#C8102E">
+    <circle cx="80" cy="80" r="76" fill="none" stroke="#C8102E" stroke-width="4"/>
+    <circle cx="80" cy="80" r="56" fill="none" stroke="#C8102E" stroke-width="2"/>
+    <circle cx="80" cy="80" r="50" mask="url(#sos1-knockout)"/>
+    <!-- ribbon sits on the knocked-out gift -->
+    <rect x="77" y="66.75" width="6" height="27.75"/>
+    <text font-family="Nunito Sans, sans-serif" font-weight="800" font-size="13" letter-spacing="2" text-anchor="middle"><textPath href="#sos1-top" startOffset="50%">SPIRIT OF SANTA</textPath></text>
+    <text font-family="Nunito Sans, sans-serif" font-weight="800" font-size="13" letter-spacing="2" text-anchor="middle"><textPath href="#sos1-bottom" startOffset="50%">NORTH POLE APPROVED</textPath></text>
+    <polygon points="13,75 14.23,78.3 17.76,78.45 15,80.65 15.94,84.05 13,82.1 10.06,84.05 11,80.65 8.24,78.45 11.77,78.3"/>
+    <polygon points="147,75 148.23,78.3 151.76,78.45 149,80.65 149.94,84.05 147,82.1 144.06,84.05 145,80.65 142.24,78.45 145.77,78.3"/>
+  </g>
+</svg>

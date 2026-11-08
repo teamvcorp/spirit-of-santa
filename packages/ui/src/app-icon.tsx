@@ -9,8 +9,8 @@
  *    that opens a normal browser tab. No service worker, no offline mode, nothing to update.
  *  - iPhone uses the apple-touch-icon (180px, square, no transparency; iOS rounds corners).
  *
- * Artwork (owner's logo, 2026-11-07): the SIMPLE badge (gift + bow, no lettering), because the ring lettering
- * turns into noise at tab size. Source + how to update: scripts/brand/build-logo.mjs.
+ * Artwork (owner's simple badge, 2026-11-08): gift + bow, no lettering. The designer's rule: simple badge for
+ * anything under 96 px; lettering turns into noise at tab size. Source + how to update: scripts/brand/build-logo.mjs.
  */
 import { ImageResponse } from "next/og";
 import type { MetadataRoute } from "next";

@@ -311,6 +311,8 @@
     }
   },
   "Qr": {
+    "payHint": "Ingresa tus datos de pago y luego toca el botón «Donar» (Donate) al final del formulario para pagar.",
+    "changeAmount": "Cambiar la cantidad",
     "noteLegend": "Agrega una nota de agradecimiento (opcional)",
     "noNote": "Sin nota",
     "noteHelp": "¿No puedes dar ahora? Una nota es un lindo agradecimiento. El papá o la mamá del niño la revisa antes de que el niño la vea.",

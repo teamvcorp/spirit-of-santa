@@ -885,6 +885,13 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   twitter summary_large_image. Card = `renderShareImage` (@repo/ui/share-image; layouts import ONLY `SHARE_IMAGE_SIZE` from @repo/ui/share-image-size so pages don't bundle next/og + the logo data), generic (never child data). Guide:
   docs/brand.md. Page audit 241 green.
 
+- **QR tip on phones (owner 2026-11-08: "pay now button missing, only pay later").** Stripe's button WAS there but is
+  labelled "Donate" (submit_type) at the bottom of a long form, with "Pay later by text" right under it. Now: the page
+  passes `PayLaterSection` into `QrActions` as the `payLater` slot, hidden (with "Say thank you") while the card form
+  is open; `pay-hint` line names the Donate button; "Change amount" closes the form (closedSecret); the form scrolls
+  to its top on open. E2E browser-qr-page 24 (+2). Note: Stripe also shows Link "Bank" + "Crypto" (not in
+  DELAYED_PAYMENT_METHODS; owner to decide).
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.

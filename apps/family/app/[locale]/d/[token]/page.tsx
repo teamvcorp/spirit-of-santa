@@ -46,11 +46,13 @@ async function Content({ params }: { params: PageProps<"/[locale]/d/[token]">["p
       </div>
       {/* Thanks stay possible Dec 1-25; money only until the freeze date (one small line either way). */}
       {view.seasonOpen ? (
-        <QrActions token={token} kidName={view.kidName} rate={formatCents(CENTS_PER_POINT)} canTip={view.givingOpen} giving={view.givingOpen ? <GivingNote lastDay={view.givingLastDay} /> : <GivingClosed paused={view.givingPaused} />} />
+        <QrActions token={token} kidName={view.kidName} rate={formatCents(CENTS_PER_POINT)} canTip={view.givingOpen}
+          giving={view.givingOpen ? <GivingNote lastDay={view.givingLastDay} /> : <GivingClosed paused={view.givingPaused} />}
+          payLater={view.givingOpen && <PayLaterSection token={token} sent={payLater ? { masked: payLater.masked, expiresAt: payLater.expiresAt.toISOString() } : null} />}
+        />
       ) : (
         <Alert>{t("errors.seasonClosed")}</Alert>
       )}
-      {view.givingOpen && <PayLaterSection token={token} sent={payLater ? { masked: payLater.masked, expiresAt: payLater.expiresAt.toISOString() } : null} />}
     </div>
   );
 }

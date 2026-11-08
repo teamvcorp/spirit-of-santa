@@ -3,7 +3,7 @@
  * "Say thank you" and "Leave a tip" on the public deed page. The tip amount is re-checked on the
  * server; Stripe's form opens IN the page (card details go straight to Stripe).
  */
-import { useActionState, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
@@ -21,19 +21,36 @@ const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 
 /** `rate`: the dollars-per-point text, from the server constant (never hard-coded). */
-/** canTip = giving is open (until the freeze date); `giving` = the server-rendered small line (note or "closed"). */
-export function QrActions({ token, kidName, rate, canTip, giving }: { token: string; kidName: string; rate: string; canTip: boolean; giving: ReactNode }) {
+/**
+ * canTip = giving is open (until the freeze date); `giving` = the server-rendered small line (note or "closed");
+ * `payLater` = the "Pay later by text" section (server-rendered, passed in so it can be HIDDEN while Stripe's form is
+ * open: on phones it sat right under the card form and people took it for the only way to pay, owner 2026-11-08).
+ */
+export function QrActions({ token, kidName, rate, canTip, giving, payLater }: { token: string; kidName: string; rate: string; canTip: boolean; giving: ReactNode; payLater?: ReactNode }) {
   const t = useTranslations("Qr");
   const [thank, thankFormAction, thanking] = useActionState(thankAction, { status: "idle" } as ThankState);
   const [tip, tipFormAction, tipping] = useActionState(tipAction, { status: "idle" } as TipState);
   const hydrated = useHydrated();
+  // "Change amount" closes the card form: remember WHICH checkout was closed (a new tip gets a new secret).
+  const [closedSecret, setClosedSecret] = useState<string | null>(null);
+  const paying = "ok" in tip && tip.ok && tip.clientSecret !== closedSecret;
+  const checkoutTop = useRef<HTMLDivElement>(null);
+  // On a phone the page stays scrolled where the tip button was, i.e. halfway down Stripe's form. Start at its top.
+  useEffect(() => {
+    if (paying) checkoutTop.current?.scrollIntoView({ block: "start" });
+  }, [paying]);
 
   if (thank.status === "done") return <Alert>{t("thanked", { name: kidName })}</Alert>;
-  if ("ok" in tip && tip.ok) {
+  if (paying) {
     if (!stripePromise) return <Alert tone="error">{t("errors.stripe")}</Alert>;
     return (
-      <div className="flex flex-col gap-3">
+      <div ref={checkoutTop} className="flex scroll-mt-4 flex-col gap-3">
         <p className="font-semibold">{t("tipTotal", { amount: formatCents(tip.amountCents) })}</p>
+        {/* Stripe's own button is labelled "Donate" (submit_type) and sits at the BOTTOM of a long form. */}
+        <p className="text-sm text-muted" data-testid="pay-hint">{t("payHint")}</p>
+        <button type="button" onClick={() => setClosedSecret(tip.clientSecret)} className="self-start text-sm font-semibold underline underline-offset-4">
+          {t("changeAmount")}
+        </button>
         <div data-testid="stripe-checkout">
           <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret: tip.clientSecret }}>
             <EmbeddedCheckout />
@@ -86,6 +103,7 @@ export function QrActions({ token, kidName, rate, canTip, giving }: { token: str
         <p className="text-xs text-muted">{t("final")}</p>
         {giving}
       </form>}
+      {payLater}
     </div>
   );
 }

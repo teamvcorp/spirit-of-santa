@@ -311,6 +311,8 @@
     }
   },
   "Qr": {
+    "payHint": "Enter your payment details, then tap the “Donate” button at the bottom of the form to pay.",
+    "changeAmount": "Change amount",
     "noteLegend": "Add a thank-you note (optional)",
     "noNote": "No note",
     "noteHelp": "Can't give right now? A note is a lovely thank-you. The child's parent checks it before the child sees it.",

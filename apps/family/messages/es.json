@@ -34,7 +34,9 @@
     "noKidsYet": "Aún no hay niños. Un padre o madre puede agregarlos en el área de padres.",
     "points": "{points} de Magia Navideña",
     "awaiting": "Registro pendiente",
-    "parentArea": "Área de padres (PIN)"
+    "parentArea": "Área de padres (PIN)",
+    "bandPausedNote": "Las donaciones de Santa Secreto están en pausa por un momento.",
+    "santaBodyPaused": "Las donaciones de Santa Secreto están en pausa por un momento. Vuelve a consultar pronto."
   },
   "SignInPage": {
     "intro": "Para padres. Los niños no necesitan una cuenta.",

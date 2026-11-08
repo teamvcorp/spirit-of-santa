@@ -34,7 +34,9 @@
     "noKidsYet": "No children added yet. A parent can add them in the parent area.",
     "points": "{points} Christmas Magic",
     "awaiting": "Awaiting registration",
-    "parentArea": "Parent area (PIN)"
+    "parentArea": "Parent area (PIN)",
+    "bandPausedNote": "Secret Santa giving is paused for a moment.",
+    "santaBodyPaused": "Secret Santa giving is paused for a moment. Please check back soon."
   },
   "SignInPage": {
     "intro": "For parents. Kids don’t need an account.",

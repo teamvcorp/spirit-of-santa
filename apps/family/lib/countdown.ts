@@ -20,19 +20,28 @@ export function daysUntil(day: string, now = new Date()): number {
 export type HomeCountdown =
   /** Before the freeze: Secret Santa gifts are shared on `freeze`. */
   | { phase: "open"; nights: number; shareDays: number; freeze: Date; shipBy: Date }
-  /** Freeze → Christmas: gifts shared, stores shipping. */
-  | { phase: "frozen"; nights: number; shipBy: Date }
+  /**
+   * The admin FORCE-FROZE an open season (before the freeze date): giving is paused, but nothing has been shared
+   * (the split only runs on the freeze DATE), and it may reopen. Review of 5165c1d.
+   */
+  | { phase: "paused"; nights: number; shipBy: Date }
+  /** Freeze DATE reached → Christmas: Secret Santa gifts shared, stores shipping. */
+  | { phase: "shared"; nights: number; shipBy: Date }
   /** Closed (Dec 26–31) or the Jan 1 reset: no countdown (the season notice explains). */
   | { phase: "off" };
 
-function build(s: SeasonState, now: Date): HomeCountdown {
+/** Pure: the countdown for a season state at `now` (exported for checks). */
+export function buildHomeCountdown(s: SeasonState, now: Date): HomeCountdown {
   const christmas = `${s.year}-12-25`;
   const nights = daysUntil(christmas, now);
   if ((s.phase !== "open" && s.phase !== "frozen") || nights < 0) return { phase: "off" };
   const shipBy = startOfDayInZone(s.shipBy);
-  if (s.phase === "frozen") return { phase: "frozen", nights, shipBy };
+  // "Shared" is decided by the freeze DATE (datesLocked = today >= freeze), never by the phase alone: a
+  // force-freeze also reports phase "frozen" but shares nothing.
+  if (s.datesLocked) return { phase: "shared", nights, shipBy };
+  if (s.phase === "frozen") return { phase: "paused", nights, shipBy };
   return { phase: "open", nights, shareDays: daysUntil(s.dates.freeze, now), freeze: startOfDayInZone(s.dates.freeze), shipBy };
 }
 
 /** One season read per request, shared by the hero pill, the band and the Secret Santa card. */
-export const homeCountdown = cache(async (): Promise<HomeCountdown> => build(await getSeasonState(), new Date()));
+export const homeCountdown = cache(async (): Promise<HomeCountdown> => buildHomeCountdown(await getSeasonState(), new Date()));

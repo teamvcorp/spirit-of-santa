@@ -150,7 +150,8 @@ function Tile({ value, label, note, gold }: { value: string; label: string; note
 async function CountdownBand() {
   await connection();
   const [c, t, locale] = await Promise.all([homeCountdown(), getTranslations("HomePage"), getLocale()]);
-  if (c.phase === "off") return null;
+  // Hidden when closed, and on Christmas Day itself (the hero pill already says "It's Christmas!").
+  if (c.phase === "off" || c.nights === 0) return null;
   const day = (d: Date) => formatLongDate(d, locale);
   return (
     <section className="relative overflow-hidden px-6 py-20" style={band("var(--t-band)")} data-testid="countdown-band">
@@ -159,7 +160,7 @@ async function CountdownBand() {
         {c.phase === "open" ? (
           <Tile gold value={String(c.shareDays)} label={t("bandShareLabel", { count: c.shareDays })} note={day(c.freeze)} />
         ) : (
-          <Tile gold value={String(c.nights)} label={t("bandNightsLabel", { count: c.nights })} note={t("bandSharedNote")} />
+          <Tile gold value={String(c.nights)} label={t("bandNightsLabel", { count: c.nights })} note={c.phase === "shared" ? t("bandSharedNote") : t("bandPausedNote")} />
         )}
         <Tile value={day(c.shipBy)} label={t("bandShipLabel")} note={t("bandShipNote")} />
       </div>
@@ -192,7 +193,11 @@ async function SantaDetails() {
   return (
     <>
       <p className="m-0 leading-relaxed" style={{ color: "var(--t-santa-sub)" }}>
-        {c.phase === "open" ? t("santaBody", { day: formatLongDate(c.freeze, locale) }) : t("santaBodyLater")}
+        {c.phase === "open"
+          ? t("santaBody", { day: formatLongDate(c.freeze, locale) })
+          : c.phase === "paused"
+            ? t("santaBodyPaused")
+            : t("santaBodyLater")}
       </p>
       <Link href="/donate" className="sos-lift mt-2 inline-flex min-h-[50px] items-center self-start rounded-full px-6 font-extrabold no-underline" style={{ background: "var(--t-gold)", color: "#1b2a4a" }}>
         {t("ctaSanta")}
@@ -216,7 +221,7 @@ function StepCard({ n, icon, iconBg, iconInk, title, body }: { n: number; icon: 
         <span aria-hidden="true" className="flex size-14 items-center justify-center rounded-2xl" style={{ background: iconBg, color: iconInk }}>
           {icon}
         </span>
-        <span aria-hidden="true" className="font-display text-[2.4rem] font-bold text-[#e9d6a6]">
+        <span aria-hidden="true" className="font-display text-[2.4rem] font-bold text-accent-text">
           {n}
         </span>
       </div>

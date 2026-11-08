@@ -16,6 +16,7 @@ import { parseDollarsToCents } from "@repo/lib/format";
 import { DONATION_PRESETS_CENTS, MAX_CHECKOUT_MS, MAX_DONATION_CENTS, MIN_CHECKOUT_MS, MIN_DONATION_CENTS } from "@repo/lib/limits";
 import { getSeasonYear, startOfDayInZone } from "@repo/lib/season";
 import { getSeasonState } from "@repo/stores/season";
+import { NOT_OFFERED_PAYMENT_METHODS } from "./checkout.ts";
 import { getStripe } from "./client.ts";
 import { buildPaymentMetadata } from "./metadata.ts";
 import { checkoutReturnStatus } from "./return-status.ts";
@@ -56,6 +57,7 @@ export async function startCommunityDonation(
       ui_mode: "embedded_page",
       mode: "payment",
       submit_type: "donate",
+      excluded_payment_method_types: [...NOT_OFFERED_PAYMENT_METHODS], // owner: no crypto (2026-11-08)
       expires_at: Math.floor(endsAt / 1000),
       line_items: [
         {

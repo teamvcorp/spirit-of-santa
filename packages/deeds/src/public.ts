@@ -13,7 +13,7 @@ import { clientIp, hitRateLimit, ipKey } from "@repo/auth/rate-limit";
 import { connectDb, Deed, DeedType, Family, Kid, trusted } from "@repo/db";
 import { parseDollarsToCents } from "@repo/lib/format";
 import { MAX_CHECKOUT_MS, MAX_TIP_CENTS, MIN_CHECKOUT_MS, MIN_TIP_CENTS, TIP_PRESETS_CENTS } from "@repo/lib/limits";
-import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, DELAYED_PAYMENT_METHODS, getStripe } from "@repo/payments/checkout";
+import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, CHECKOUT_EXCLUDED_METHODS, getStripe } from "@repo/payments/checkout";
 import { closePayLaterForDeed } from "@repo/payments/pay-later-links";
 import { getSeasonState, giftWindow } from "@repo/stores/season";
 import { localized } from "./catalog.ts";
@@ -183,7 +183,7 @@ export async function startTip(token: unknown, amountCents: number | null, origi
       ui_mode: "embedded_page",
       mode: "payment",
       submit_type: "donate",
-      excluded_payment_method_types: [...DELAYED_PAYMENT_METHODS], // money must arrive while the magic is spendable
+      excluded_payment_method_types: [...CHECKOUT_EXCLUDED_METHODS], // money must arrive while the magic is spendable
       expires_at: Math.floor(endsAt / 1000),
       line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: amountCents, product_data: { name: `Thank-you tip for ${target.kidName}` } } }],
       metadata,

@@ -22,7 +22,7 @@ import { hitRateLimit } from "@repo/auth/rate-limit";
 import { Kid, User, WishListItem } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { MAX_CHECKOUT_MS, MIN_CHECKOUT_MS } from "@repo/lib/limits";
-import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, DELAYED_PAYMENT_METHODS, getStripe } from "@repo/payments/checkout";
+import { buildPaymentMetadata, checkoutReturnStatus, creditReturnState, CHECKOUT_EXCLUDED_METHODS, getStripe } from "@repo/payments/checkout";
 import { payUpCents, payUpWindow } from "@repo/wishlists/payup";
 
 export type PayUpStart =
@@ -53,7 +53,7 @@ export async function startPayUp(parent: Parent, rawWishId: string, origin: stri
     const session = await getStripe().checkout.sessions.create({
       ui_mode: "embedded_page",
       mode: "payment",
-      excluded_payment_method_types: [...DELAYED_PAYMENT_METHODS],
+      excluded_payment_method_types: [...CHECKOUT_EXCLUDED_METHODS],
       expires_at: Math.floor(endsAt / 1000),
       line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: amountCents, product_data: { name: "Spirit of Santa gift pay-up" } } }],
       // Metadata on BOTH the session and the PaymentIntent (the webhook reads the PaymentIntent).

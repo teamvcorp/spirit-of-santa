@@ -60,7 +60,13 @@ Test: `scripts/e2e/stripe-return-fulfil.ts` (real test PaymentIntent with `pm_ca
   version: use dynamic payment methods (`automatic_payment_methods`).
 - To keep DELAYED methods (bank debits, vouchers) off a Checkout Session, use
   `excluded_payment_method_types`. EVERY checkout that credits Christmas Magic (tips, donation links, bonus,
-  pay-up) does this via `DELAYED_PAYMENT_METHODS` (@repo/payments/checkout): money must arrive before the Dec 25 close.
+  pay-up) does this via `CHECKOUT_EXCLUDED_METHODS` = `DELAYED_PAYMENT_METHODS` + `NOT_OFFERED_PAYMENT_METHODS`
+  (@repo/payments/checkout): money must arrive before the Dec 25 close. Owner 2026-11-08: no `crypto` anywhere (also
+  excluded on /donate); Link's instant "Bank" stays.
+  BUT "Crypto" ALSO appears INSIDE Link ("Crypto, powered by Link"), and the API exclude list doesn't reach it:
+  Stripe support: "If you wish to disable stablecoin payments on Link, you must disable Link as a payment method in your
+  Dashboard"; Link FAQ: methods inside Link (Instant Bank Payments, stablecoins…) "cannot be individually disabled"
+  (only Klarna can). So Link = Bank AND Crypto, or neither (Dashboard → Settings → Payment methods → Link). Checked 2026-11-08.
   Payment LINKS (pay-later texts) have no exclude option: they pass the allow-list `payment_method_types:
   INSTANT_PAYMENT_LINK_METHODS` (["card"], which includes Apple Pay / Google Pay).
 - `Stripe.webhooks.generateTestHeaderString({ payload, secret, timestamp? })` signs test events.

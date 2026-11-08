@@ -17,6 +17,13 @@ import "server-only";
  */
 export const INSTANT_PAYMENT_LINK_METHODS = ["card"] as const;
 export const DELAYED_PAYMENT_METHODS = ["us_bank_account", "acss_debit", "customer_balance", "sepa_debit", "bacs_debit", "au_becs_debit", "nz_bank_account", "payto", "boleto", "oxxo", "konbini", "multibanco"] as const;
+/**
+ * Methods the OWNER chose not to offer on any checkout (2026-11-08: "keep bank, no crypto"). Link's instant "Bank"
+ * stays. Payment links (pay-later) are card-only anyway (INSTANT_PAYMENT_LINK_METHODS).
+ */
+export const NOT_OFFERED_PAYMENT_METHODS = ["crypto"] as const;
+/** The full exclude list for every checkout that credits Christmas Magic: delayed methods + not offered. */
+export const CHECKOUT_EXCLUDED_METHODS = [...DELAYED_PAYMENT_METHODS, ...NOT_OFFERED_PAYMENT_METHODS] as const;
 export { getStripe } from "./client.ts";
 export { buildPaymentMetadata } from "./metadata.ts";
 export { fulfilPaidPaymentIntent } from "./fulfil.ts";

@@ -67,6 +67,10 @@ Test: `scripts/e2e/stripe-return-fulfil.ts` (real test PaymentIntent with `pm_ca
   Stripe support: "If you wish to disable stablecoin payments on Link, you must disable Link as a payment method in your
   Dashboard"; Link FAQ: methods inside Link (Instant Bank Payments, stablecoins…) "cannot be individually disabled"
   (only Klarna can). So Link = Bank AND Crypto, or neither (Dashboard → Settings → Payment methods → Link). Checked 2026-11-08.
+  DONE in TEST mode 2026-11-08 (owner: "turn link off"): the account's own Default config pmc_…YUUz/…mki had Link
+  on; set off via the Payment Method Configurations API → test checkouts offer card + amazon_pay only. LIVE: owner
+  does it in the Dashboard (launch checklist). Note: the account has two "default" configs; Checkout used the one
+  with parent=null ("Default").
   Payment LINKS (pay-later texts) have no exclude option: they pass the allow-list `payment_method_types:
   INSTANT_PAYMENT_LINK_METHODS` (["card"], which includes Apple Pay / Google Pay).
 - `Stripe.webhooks.generateTestHeaderString({ payload, secret, timestamp? })` signs test events.

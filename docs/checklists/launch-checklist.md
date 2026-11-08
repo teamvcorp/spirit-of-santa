@@ -16,6 +16,9 @@ Written 2026-11-07. There are no real users yet, so nothing here needs a data mi
       only; a Spanish version would also need registering (ask the developer if you want one).
 - [ ] **Stripe:** live keys in the family project and the live webhook endpoint with the 10 events listed in
       `docs/vendor/stripe.md`; one small real payment to yourself to confirm, then check it in admin.
+- [ ] **Stripe: turn Link OFF on the live account** (owner 2026-11-08: no crypto; Link can't drop crypto alone).
+      Dashboard (live mode) → Settings → Payment methods → Link → Turn off, in the **Default** configuration. Then
+      open any tip checkout: only card (Apple Pay / Google Pay) and Amazon Pay should show. Already done in TEST mode.
 - [ ] **Logo** file (see `docs/illustrations.md` for the image slots you can replace).
 - [ ] **First admin** can sign in with the authenticator app; a second admin set up so you are never locked out.
 

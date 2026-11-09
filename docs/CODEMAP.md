@@ -917,6 +917,21 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   checkout spreads `paymentMethodConfig()` (env STRIPE_PAYMENT_METHOD_CONFIG = the "Spirit of Santa" pmc_ group, Link off;
   unset → account Default). Crypto INSIDE Link can only go with Link. Test group pmc_1UZZX9…t354; live = owner (checklist).
   Unit test packages/payments/test/payment-method-config.test.ts.
+- **Surprise gifts (owner 2026-11-08; plan docs/plans/surprise-gifts.md).** `WishListItem.surprise` (default false).
+  Engine: `addToList` and `addSurprise` share ONE `addItem` (@repo/wishlists/engine). A surprise skips the ≥1-Magic
+  rule, counts toward the cap, and is refused if the item is listed in any form; a KID's duplicate check ignores
+  surprise rows (no give-away). Reads: `kidWishList(parent, kid, now, { reveal })`, default MASKED on the server via
+  pure `maskSurprise` (@repo/wishlists/rules: no name/photo/store/itemId) — only PIN pages pass reveal (remove page,
+  surprise pages). Pages (PIN, `safeNext` allows them): `/kids/[id]/surprise` (list + "Fund it now" + search via
+  shared `GiftGrid` @/components/gift-grid), `/kids/[id]/surprise/[itemId]` (Add as a surprise),
+  `/kids/[id]/surprise/return` (parent only, `payUpStatus`). Fund now = `startPayUp` (@repo/families/payup): open
+  in the December pay-up window as before, OR while giving is open (`giftWindow`) FOR SURPRISES ONLY; optional
+  `returnPath` (string or kidId → path, kid id from the DB). Same metadata/webhook ("payup" fills that gift first =
+  guaranteed). `PayUpForm` takes an optional action + button text. Child view: wrapped gift (`ILLUSTRATIONS.giftBox`),
+  "A surprise!", celebration says "Your surprise gift". Email `surpriseOnItsWay` (subject never names the gift);
+  admin fulfilment badge "Surprise"; data export flag. Terms 2026-11-08: quiet "what the rate covers" sentence.
+  E2E `browser-family-surprise.ts` (27: incl. the child's page HTML never contains the gift name); page audit lists
+  the surprise pages.
 
 ## Open items / TODO
 

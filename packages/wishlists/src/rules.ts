@@ -26,3 +26,16 @@ export const isRemovable = (status: string): boolean => status === "active";
  * may keep a delivery address; once none are left the address is deleted (slice 4b).
  */
 export const AWAITING_DELIVERY = ["fully_funded", "locked", "shipped"] as const;
+
+/** The parts of a wish-list row that would give a surprise away. */
+type Revealing = { surprise: boolean; itemId: string; name: string; storeName: string; photoUrl?: string; viewable: boolean };
+
+/**
+ * Hide a SURPRISE gift's identity (owner 2026-11-08: the child sees only a wrapped gift). Applied on the SERVER before
+ * a row reaches any page the child can open, so the item's name, photo, store and id are never in the HTML or the
+ * React payload. Not a surprise → returned unchanged. Only parent-PIN pages ask for the real row (reveal).
+ */
+export function maskSurprise<T extends Revealing>(row: T): T {
+  if (!row.surprise) return row;
+  return { ...row, itemId: "", name: "", storeName: "", photoUrl: undefined, viewable: false };
+}

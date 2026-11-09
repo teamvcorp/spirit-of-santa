@@ -75,7 +75,7 @@ const PAGES: { app: string; base: string; login?: () => Promise<string | undefin
   { app: "family", base: family, paths: ["/", "/donate", "/signin", "/register", "/forgot-password", "/privacy", "/terms", "/text-messages", "/account-deleted", "/account-deleted/closing", "/es", "/no-such-page"] },
   {
     app: "family (parent)", base: family, login: async () => (await signIn(family, parent.email, PW))?.cookie, afterFirst: unlockPin,
-    paths: ["/parent/pin", "/", "/parent", "/parent/notifications", "/parent/address", "/parent/payup", "/parent/bonus", "/parent/kids/new", "/parent/delete-account", "/parent/our-data", `/parent/kids/${kid._id}`, k, `${k}/gifts`, `${k}/gifts/${itemId}`, `${k}/deed`],
+    paths: ["/parent/pin", "/", "/parent", "/parent/notifications", "/parent/address", "/parent/payup", "/parent/bonus", "/parent/kids/new", "/parent/delete-account", "/parent/our-data", `/parent/kids/${kid._id}`, k, `${k}/gifts`, `${k}/gifts/${itemId}`, `${k}/deed`, `${k}/surprise`, `${k}/surprise/${itemId}`],
   },
   { app: "store", base: store, paths: ["/signin", "/register"] },
   {

@@ -29,6 +29,12 @@ async function Content() {
   const head = (r: AdminFulfilmentRow) => (
     <p>
       <span className="font-semibold">{r.itemName}</span> · <span className="font-mono">{r.ref}</span> · {t("from", { store: r.storeName })}
+      {/* Parent's surprise (2026-11-08): send it wrapped, nothing on the outside that names the gift. */}
+      {r.surprise && (
+        <span className="ml-2 rounded bg-accent px-2 py-0.5 text-xs font-semibold text-on-accent" data-testid="surprise-badge">
+          {t("surprise")}
+        </span>
+      )}
     </p>
   );
   const who = (r: AdminFulfilmentRow) => <p className="text-sm">{t("forWhom", { kid: r.kidName ?? "", family: r.familyName ?? "", email: r.parentEmail ?? "" })}</p>;

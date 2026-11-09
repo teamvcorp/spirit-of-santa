@@ -332,7 +332,11 @@
       "seasonNotOpen": "La lista de deseos se puede cambiar mientras la temporada está abierta (del 1 de enero al 30 de noviembre).",
       "notFound": "Ese regalo ya no está en la lista.",
       "pinLocked": "El área de padres se bloqueó (15 minutos). Escribe tu PIN otra vez."
-    }
+    },
+    "surpriseTitle": "¡Una sorpresa!",
+    "surpriseName": "Tu regalo sorpresa",
+    "surpriseNote": "Envuelto hasta Navidad",
+    "surpriseAdd": "Agregar un regalo sorpresa (padres)"
   },
   "Qr": {
     "payHint": "¿Ves Apple Pay o Google Pay arriba? Tócalo para pagar en un solo paso. O ingresa los datos de tu tarjeta y luego toca el botón «Donar» (Donate) al final del formulario.",
@@ -456,6 +460,28 @@
       "rateLimited": "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.",
       "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde."
     }
+  },
+  "Surprise": {
+    "title": "Regalos sorpresa",
+    "intro": "Elige un regalo para {name} que quede en secreto. En la lista de {name} solo aparece como un regalo envuelto: sin foto, nombre ni tienda. Págalo ahora o deja que la Magia Navideña lo llene como cualquier otro regalo.",
+    "none": "Aún no hay regalos sorpresa. Busca uno abajo.",
+    "fund": "Pagarlo ahora: {amount}",
+    "fundFor": "Pagar {item} ahora",
+    "rateNote": "Cada Magia Navideña cuesta {rate}. Eso ayuda a cubrir la administración, buenas tarifas de envío y la envoltura: gastos que las familias pagan de todos modos, solo que no de una vez.",
+    "findTitle": "Buscar una sorpresa",
+    "findIntro": "Regalos de tiendas locales. Solo tú ves lo que eliges; {name} ve un regalo envuelto.",
+    "narrow": "Se muestran {shown} de {total} regalos. Busca para encontrarlo más rápido.",
+    "how": "Agrégalo como sorpresa para {name} y luego págalo ahora ({amount} de una vez) o deja que la Magia Navideña lo llene. Pagado completo, queda asegurado.",
+    "add": "Agregar como sorpresa",
+    "added": "¡Agregado! En la lista aparece como un regalo envuelto.",
+    "seeSurprises": "Ver regalos sorpresa",
+    "locked": "Ingresa de nuevo el PIN de padres e inténtalo otra vez.",
+    "paid": "¡Gracias! El regalo sorpresa está pagado y asegurado.",
+    "processing": "¡Gracias! Tu pago se está confirmando; el regalo sorpresa se completará en breve.",
+    "review": "Recibimos tu pago. Nuestro equipo lo revisará antes de agregar la Magia Navideña.",
+    "notPaid": "El pago no se completó. No se te ha cobrado.",
+    "unknown": "No encontramos ese pago.",
+    "back": "Volver a los regalos sorpresa"
   },
   "Address": {
     "title": "Dirección de entrega",
@@ -595,11 +621,11 @@
       },
       "points": {
         "title": "Magia Navideña",
-        "body": "Spirit of Santa calcula la Magia Navideña a partir del dinero realmente recibido (actualmente {rate} = 1 de Magia Navideña). La Magia Navideña no tiene valor en efectivo, no se cambia por dinero y vuelve a cero cada 1 de enero."
+        "body": "Spirit of Santa calcula la Magia Navideña a partir del dinero realmente recibido (actualmente {rate} = 1 de Magia Navideña). Esa tarifa también ayuda a cubrir la administración, buenas tarifas de envío y la envoltura de regalos, gastos que las familias pagarían de todos modos, repartidos durante el año. La Magia Navideña no tiene valor en efectivo, no se cambia por dinero y vuelve a cero cada 1 de enero."
       },
       "payments": {
         "title": "Pagos",
-        "body": "Las propinas, la magia extra, las cuotas de registro y las donaciones los procesa Stripe. Todos los pagos son definitivos: no ofrecemos reembolsos, salvo cuando la ley o tu red de tarjetas lo exija (por ejemplo, un cargo en disputa)."
+        "body": "Las propinas, la magia extra, las cuotas de registro, los pagos de regalos (incluido pagar un regalo sorpresa) y las donaciones los procesa Stripe. Todos los pagos son definitivos: no ofrecemos reembolsos, salvo cuando la ley o tu red de tarjetas lo exija (por ejemplo, un cargo en disputa)."
       },
       "donations": {
         "title": "Donaciones de la comunidad",

@@ -20,7 +20,7 @@ import { connectDb, Item, Kid, toObjectId, WishListItem } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { itemPriceCentsToCentipoints } from "@repo/lib/points";
 import { getSeasonState } from "@repo/stores/season";
-import { countsTowardCap, isRemovable } from "./rules.ts";
+import { countsTowardCap, isRemovable, maskSurprise } from "./rules.ts";
 
 export const GIFT_SORTS = ["price_asc", "price_desc", "name", "store"] as const;
 export type GiftSort = (typeof GIFT_SORTS)[number];
@@ -174,6 +174,8 @@ export type WishRow = {
   removable: boolean;
   /** The gift page still opens (item active, store approved): otherwise show the name without a link. */
   viewable: boolean;
+  /** Added by a parent as a surprise (owner 2026-11-08). Unless revealed, name/photo/store/itemId are blank. */
+  surprise: boolean;
 };
 
 export type KidWishList = { rows: WishRow[]; seasonOpen: boolean; onList: number };
@@ -181,8 +183,17 @@ export type KidWishList = { rows: WishRow[]; seasonOpen: boolean; onList: number
 /**
  * A kid's list for THIS season, in funding order (oldest first = the order new points fill it).
  * Scoped to the parent's own family; another family's kid id returns null.
+ *
+ * SURPRISE gifts are MASKED by default (maskSurprise: no name, photo, store or item id), because the kid pages
+ * have no PIN. Only parent-PIN pages pass `{ reveal: true }`. Masking here, on the server, means a surprise never
+ * reaches the child's browser, not even hidden in the page data.
  */
-export async function kidWishList(parent: Parent, rawKidId: string, now = new Date()): Promise<KidWishList | null> {
+export async function kidWishList(
+  parent: Parent,
+  rawKidId: string,
+  now = new Date(),
+  { reveal = false }: { reveal?: boolean } = {},
+): Promise<KidWishList | null> {
   const kidId = normalizeObjectId(rawKidId);
   const fid = await ownFamilyId(parent);
   if (!kidId || !fid) return null;
@@ -197,6 +208,7 @@ export async function kidWishList(parent: Parent, rawKidId: string, now = new Da
     fundedCentipoints: number;
     status: string;
     needsSubstitute?: boolean;
+    surprise?: boolean;
     item?: { name: string; status?: string; photo?: { url?: string } | null };
     store?: { name: string; status?: string };
   }>([
@@ -220,7 +232,8 @@ export async function kidWishList(parent: Parent, rawKidId: string, now = new Da
       needsSubstitute: Boolean(w.needsSubstitute),
       removable: seasonOpen && isRemovable(w.status),
       viewable: w.item?.status === "active" && w.store?.status === "approved",
+      surprise: Boolean(w.surprise),
     }),
-  );
+  ).map((r) => (reveal ? r : maskSurprise(r)));
   return { rows: list, seasonOpen, onList: list.filter((r) => countsTowardCap(r.status)).length };
 }

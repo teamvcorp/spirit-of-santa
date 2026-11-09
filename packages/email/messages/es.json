@@ -86,6 +86,12 @@
       "body": "¡Buenas noticias! El regalo de {kidName}, {itemName}, va en camino desde Spirit of Santa.\n\nGracias por ayudar a {kidName} a ganarlo con buenas acciones.",
       "button": "Ver la lista de deseos"
     },
+    "surpriseOnItsWay": {
+      "subject": "¡Un regalo sorpresa va en camino!",
+      "heading": "Una sorpresa va en camino",
+      "body": "¡Buenas noticias! El regalo sorpresa que elegiste para {kidName}, {itemName}, va en camino desde Spirit of Santa.\n\nShh, sigue siendo una sorpresa: {kidName} solo ve un regalo envuelto en la lista.",
+      "button": "Abrir Spirit of Santa"
+    },
     "optOut": "Dejar de recibir correos como este",
     "manage": "Elegir qué correos recibes",
     "familyDigest": {

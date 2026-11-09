@@ -600,7 +600,8 @@
     "addressUnreadable": "La dirección guardada no se puede leer (¿cambió la clave de cifrado?). Pide al padre o la madre que la escriba de nuevo.",
     "familyDeleted": "Esta familia eliminó su cuenta. No hay a quién enviarlo: Spirit of Santa se queda con el regalo.",
     "markKept": "Guardar para Spirit of Santa",
-    "closingBy": "Cuenta en cierre: envíalo a más tardar el {date} o Spirit of Santa se lo queda."
+    "closingBy": "Cuenta en cierre: envíalo a más tardar el {date} o Spirit of Santa se lo queda.",
+    "surprise": "Sorpresa: mantenerlo envuelto"
   },
   "Payouts": {
     "title": "Pagos a tiendas",

@@ -29,7 +29,7 @@ export async function goTo(href: string): Promise<never> {
  * never send anyone to another site (no open redirect): /parent, /parent/kids/new,
  * /parent/kids/<id>, /parent/register, /parent/bonus[?kid=<id>], /parent/payup, /parent/address, /parent/notifications, /parent/delete-account, /parent/our-data,
  * /kids/<id>, /kids/<id>/deed,
- * /kids/<id>/wishlist/<wishId>/remove.
+ * /kids/<id>/wishlist/<wishId>/remove, /kids/<id>/surprise[/<itemId>] (surprise gifts, 2026-11-08).
  */
 export function safeNext(raw: unknown): string | null {
   if (typeof raw !== "string" || raw.length > 120) return null;
@@ -37,7 +37,7 @@ export function safeNext(raw: unknown): string | null {
 }
 const ID = OBJECT_ID_PATTERN;
 const SAFE_NEXT = new RegExp(
-  `^/(?:parent(?:/(?:kids/new|kids/${ID}|register|payup|address|notifications|delete-account|our-data|bonus(?:\\?kid=${ID})?))?|kids/${ID}(?:/deed|/wishlist/${ID}/remove)?)$`,
+  `^/(?:parent(?:/(?:kids/new|kids/${ID}|register|payup|address|notifications|delete-account|our-data|bonus(?:\\?kid=${ID})?))?|kids/${ID}(?:/deed|/wishlist/${ID}/remove|/surprise(?:/${ID})?)?)$`,
 );
 
 /**

@@ -30,7 +30,7 @@ export const PARENT_CONSENT_VERSION = "2026-11-07c";
 export const PRIVACY_VERSION = "2026-11-07c";
 
 /** Terms of Service version shown on /terms (bump with any change). */
-export const TERMS_VERSION = "2026-11-07b"; // 2026-11-06b: "Christmas Magic" · 2026-11-07: season section · 2026-11-07b: DRAFT label removed, Spanish fixes
+export const TERMS_VERSION = "2026-11-08"; // 2026-11-06b: "Christmas Magic" · 2026-11-07: season section · 2026-11-07b: DRAFT label removed, Spanish fixes · 2026-11-08: what the rate covers + surprise gift payments
 
 /**
  * Pay-later text consent (registered with the carriers, docs/vendor/twilio.md). Stored with each

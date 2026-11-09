@@ -55,6 +55,11 @@ const wishListItemSchema = new Schema(
       default: "active",
       required: true,
     },
+    /**
+     * Added by a PARENT as a surprise (owner 2026-11-08): the child sees only a wrapped gift; the item's name, photo
+     * and store are masked on the SERVER (@repo/wishlists/catalog kidWishList). Old rows: missing = not a surprise.
+     */
+    surprise: { type: Boolean, default: false },
     fullyFundedAt: Date, // secured from here (can't be removed); the next daily job locks it
     /** One unit of store stock was reserved when it became fully funded (returned if removed). */
     inventoryReserved: { type: Boolean },

@@ -174,11 +174,28 @@ export type AddResult =
     };
 
 /** A kid adds a store item to their list (family device, no PIN). */
-export async function addToList(
+export function addToList(parent: Parent, rawKidId: string, rawItemId: string, now = new Date()): Promise<AddResult> {
+  return addItem(parent, rawKidId, rawItemId, now, { surprise: false });
+}
+
+/**
+ * A PARENT adds a store item as a SURPRISE (owner 2026-11-08; the caller checks the parent PIN). The child sees it
+ * only as a wrapped gift (kidWishList masks it on the server). Same rules as a kid's add EXCEPT:
+ *  - no "≥ 1 available Magic" rule: the parent may fund it by card (pay-up) instead of with the child's Magic;
+ *  - duplicates: refused if the item is on the list in ANY form (the parent sees everything).
+ * It still counts toward the child's gift cap and fills with Magic in the normal oldest-first order.
+ */
+export function addSurprise(parent: Parent, rawKidId: string, rawItemId: string, now = new Date()): Promise<AddResult> {
+  return addItem(parent, rawKidId, rawItemId, now, { surprise: true });
+}
+
+/** The ONE add path (kid add + parent surprise). */
+async function addItem(
   parent: Parent,
   rawKidId: string,
   rawItemId: string,
-  now = new Date(),
+  now: Date,
+  { surprise }: { surprise: boolean },
 ): Promise<AddResult> {
   const kidId = normalizeObjectId(rawKidId);
   const itemId = normalizeObjectId(rawItemId);
@@ -222,22 +239,26 @@ export async function addToList(
       )
         return { ok: false, error: "itemUnavailable" };
       if ((item.inventory ?? 0) <= 0) return { ok: false, error: "soldOut" };
+      // Duplicates: a KID's check ignores surprise rows, or "already on your list" would give the surprise away
+      // (the kid may then list the same item themselves). A parent's surprise is refused if the item is there at all.
       if (
         await WishListItem.exists({
           kidId,
           itemId,
           seasonYear: season.year,
           status: trusted({ $in: [...CAP_STATUSES] }),
+          ...(surprise ? {} : { surprise: trusted({ $ne: true }) }),
         }).session(session)
       )
         return { ok: false, error: "alreadyListed" };
+      // The cap counts EVERY gift, surprises included (owner): the child sees a wrapped gift in that slot.
       const onList = await WishListItem.countDocuments({
         kidId,
         seasonYear: season.year,
         status: trusted({ $in: [...CAP_STATUSES] }),
       }).session(session);
       if (onList >= (kid.itemCap ?? 5)) return { ok: false, error: "cap" };
-      if (kid.availableCentipoints < MIN_CENTIPOINTS_TO_ADD_ITEM)
+      if (!surprise && kid.availableCentipoints < MIN_CENTIPOINTS_TO_ADD_ITEM)
         return { ok: false, error: "noPoints" };
 
       const cost = itemPriceCentsToCentipoints(item.priceCents);
@@ -250,6 +271,7 @@ export async function addToList(
             storeId: String(item.storeId),
             seasonYear: season.year,
             costCentipoints: cost,
+            surprise,
           },
         ],
         { session },

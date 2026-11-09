@@ -45,9 +45,15 @@ following year). *Is that retention acceptable, and is the privacy wording clear
 - **All payments are final** (no refunds except where the law or card networks require). A chargeback does not
   take magic back.
 
+- **Surprise gifts (new 2026-11-08):** a parent can add a gift the child sees only as a wrapped present, and pay it
+  off at once by card at the same rate ($1.50 per Christmas Magic for a $1 gift). The Terms ("Christmas Magic")
+  now say, quietly, that the rate also helps cover administration, good shipping rates and gift wrapping: costs
+  families would pay anyway, spread over the year. A paid-off surprise is secured like any fully funded gift.
+
 *Questions: are these disclosures (terms "The season and gifts", "Christmas Magic", "Payments") sufficient for
 money collected months before delivery? Any gift-card / stored-value or consumer-protection rules that apply to
-Christmas Magic or to forfeiting it on Jan 1 / at the drop-off?*
+Christmas Magic or to forfeiting it on Jan 1 / at the drop-off? Is the "what the rate covers" sentence enough, and
+should the surprise checkout show the store price next to what the parent pays?*
 
 ## 4. Donations and tax receipts
 

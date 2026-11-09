@@ -6,7 +6,7 @@ also update the path in `apps/family/lib/illustrations.ts` (the ONE list of illu
 
 | File | Where it shows | Shape |
 | --- | --- | --- |
-| `gift-box.svg` | "Fully funded!" celebration | square |
+| `gift-box.svg` | "Fully funded!" celebration; the wrapped-gift picture of a SURPRISE gift on the child's wish list (2026-11-08) | square |
 
 **The home page hero (cottage, moon, snow) is not a file** since the Winter Magic / Festive themes (2026-11-08). It's
 drawn in code, `apps/family/components/hero-scene.tsx`, so the theme switch can recolour it instantly through CSS

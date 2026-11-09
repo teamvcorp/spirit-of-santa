@@ -43,6 +43,7 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
   const donate = link ? { url: link, image: await qrImage(link) } : null;
   const day = (d?: Date) => (d ? format.dateTime(new Date(d), { month: "short", day: "numeric" }) : "");
   const notes = await getTranslations("Qr.notes");
+  const gifts = await getTranslations("Gifts");
   const title = (d: (typeof deeds)[number]) => d.custom || localized(d.title, locale) || t("aDeed");
   return (
     <>
@@ -59,7 +60,8 @@ async function Content({ params }: { params: PageProps<"/[locale]/kids/[id]">["p
           </Link>
         )}
       </div>
-      <Celebration funded={wishes.rows.filter((w) => ["fully_funded", "locked", "shipped", "delivered"].includes(w.status)).map((w) => ({ id: w.id, name: w.name }))} />
+      {/* A surprise is never named here (its row is masked): "Your surprise gift is all yours". */}
+      <Celebration funded={wishes.rows.filter((w) => ["fully_funded", "locked", "shipped", "delivered"].includes(w.status)).map((w) => ({ id: w.id, name: w.surprise ? gifts("surpriseName") : w.name }))} />
       {!kid.registered && <Alert className="mb-6">{t("notRegistered")}</Alert>}
       <WishListCard kidId={kid.id} registered={kid.registered} cap={kid.itemCap} list={wishes} />
       {donate && (

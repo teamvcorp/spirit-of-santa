@@ -600,7 +600,8 @@
     "addressUnreadable": "The saved address can't be read (encryption key changed?). Ask the parent to enter it again.",
     "familyDeleted": "This family deleted its account. There's no one to send it to: Spirit of Santa keeps the gift.",
     "markKept": "Keep for Spirit of Santa",
-    "closingBy": "Account closing: send it by {date}, or Spirit of Santa keeps it."
+    "closingBy": "Account closing: send it by {date}, or Spirit of Santa keeps it.",
+    "surprise": "Surprise: keep it wrapped"
   },
   "Payouts": {
     "title": "Store payouts",

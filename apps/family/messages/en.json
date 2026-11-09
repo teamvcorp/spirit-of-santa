@@ -332,7 +332,11 @@
       "seasonNotOpen": "Wish lists can be changed while the season is open (January 1 to November 30).",
       "notFound": "That gift isn't on the list any more.",
       "pinLocked": "The parent area locked itself (15 minutes). Enter your PIN again."
-    }
+    },
+    "surpriseTitle": "A surprise!",
+    "surpriseName": "Your surprise gift",
+    "surpriseNote": "Wrapped until Christmas",
+    "surpriseAdd": "Add a surprise gift (parents)"
   },
   "Qr": {
     "payHint": "See Apple Pay or Google Pay at the top? Tap it to pay in one step. Or enter your card details, then tap the “Donate” button at the bottom of the form.",
@@ -456,6 +460,28 @@
       "rateLimited": "Too many tries. Please wait a few minutes and try again.",
       "stripe": "Payments aren't available right now. Please try again later."
     }
+  },
+  "Surprise": {
+    "title": "Surprise gifts",
+    "intro": "Pick a gift for {name} that stays a secret. On {name}'s list it shows only as a wrapped gift: no picture, name or store. Fund it now, or let Christmas Magic fill it like any other gift.",
+    "none": "No surprise gifts yet. Find one below.",
+    "fund": "Fund it now: {amount}",
+    "fundFor": "Fund {item} now",
+    "rateNote": "Christmas Magic is {rate} each. That helps cover administration, good shipping rates and gift wrapping: costs families pay anyway, just not all at once.",
+    "findTitle": "Find a surprise",
+    "findIntro": "Gifts from local stores. Only you see what you pick; {name} sees a wrapped gift.",
+    "narrow": "Showing {shown} of {total} gifts. Search to narrow it down.",
+    "how": "Add it as a surprise for {name}, then fund it now ({amount} in one go) or let Christmas Magic fill it. Paid in full, it's guaranteed.",
+    "add": "Add as a surprise",
+    "added": "Added! It shows on the list as a wrapped gift.",
+    "seeSurprises": "See surprise gifts",
+    "locked": "Enter the parent PIN again, then try once more.",
+    "paid": "Thank you! The surprise gift is paid for and secured.",
+    "processing": "Thank you! Your payment is being confirmed; the surprise gift will be funded shortly.",
+    "review": "We got your payment. Our team will check it before the Christmas Magic is added.",
+    "notPaid": "The payment wasn't completed. You haven't been charged.",
+    "unknown": "We couldn't find that payment.",
+    "back": "Back to surprise gifts"
   },
   "Address": {
     "title": "Delivery address",
@@ -595,11 +621,11 @@
       },
       "points": {
         "title": "Christmas Magic",
-        "body": "Christmas Magic is calculated by Spirit of Santa from money actually received (currently {rate} = 1 Christmas Magic). Christmas Magic has no cash value, can't be exchanged for money and resets to zero every January 1."
+        "body": "Christmas Magic is calculated by Spirit of Santa from money actually received (currently {rate} = 1 Christmas Magic). The rate also helps cover administration, good shipping rates and gift wrapping, costs families would pay anyway, spread over the year. Christmas Magic has no cash value, can't be exchanged for money and resets to zero every January 1."
       },
       "payments": {
         "title": "Payments",
-        "body": "Tips, bonuses, registrations and donations are processed by Stripe. All payments are final: we don't offer refunds, except where the law or your card network requires it (for example a disputed charge)."
+        "body": "Tips, bonuses, registrations, gift payments (including paying off a surprise gift) and donations are processed by Stripe. All payments are final: we don't offer refunds, except where the law or your card network requires it (for example a disputed charge)."
       },
       "donations": {
         "title": "Community donations",

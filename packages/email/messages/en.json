@@ -86,6 +86,12 @@
       "body": "Good news! {kidName}'s gift, {itemName}, is on its way from Spirit of Santa.\n\nThank you for helping {kidName} earn it with good deeds.",
       "button": "See the wish list"
     },
+    "surpriseOnItsWay": {
+      "subject": "A surprise gift is on its way!",
+      "heading": "A surprise is on its way",
+      "body": "Good news! The surprise gift you picked for {kidName}, {itemName}, is on its way from Spirit of Santa.\n\nShh, it is still a surprise: {kidName} only sees a wrapped gift on the list.",
+      "button": "Open Spirit of Santa"
+    },
     "optOut": "Stop emails like this",
     "manage": "Choose which emails you get",
     "familyDigest": {

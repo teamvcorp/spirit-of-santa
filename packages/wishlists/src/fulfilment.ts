@@ -363,6 +363,8 @@ export type AdminFulfilmentRow = {
   id: string;
   ref: string;
   itemName: string;
+  /** A parent's surprise (2026-11-08): the team keeps it wrapped / unlabelled for the child. */
+  surprise: boolean;
   storeName: string;
   storeEmail: string;
   status: string;
@@ -409,6 +411,7 @@ type AdminRaw = RawWish & {
   familyNotifiedAt?: Date | null;
   familyNoticeSkippedAt?: Date | null;
   familyDeletedAt?: Date | null;
+  surprise?: boolean;
 };
 export const ADMIN_LIMIT = 300;
 
@@ -442,7 +445,7 @@ async function recipients(rows: { kidId: unknown; familyId: unknown }[]) {
  */
 export async function adminFulfilment(adminId: string, now = new Date()): Promise<AdminFulfilment> {
   await connectDb();
-  const fields = "itemId storeId kidId familyId status needsSubstitute fullyFundedAt shippedAt trackingNote receivedAt deliveredAt familyNotifiedAt familyNoticeSkippedAt familyDeletedAt";
+  const fields = "itemId storeId kidId familyId status needsSubstitute fullyFundedAt shippedAt trackingNote receivedAt deliveredAt familyNotifiedAt familyNoticeSkippedAt familyDeletedAt surprise";
   const filters = {
     substitutes: { needsSubstitute: true, status: trusted({ $in: ["fully_funded", "locked"] }) },
     inTransit: { status: "shipped", receivedAt: null },
@@ -475,6 +478,7 @@ export async function adminFulfilment(adminId: string, now = new Date()): Promis
       id: String(r._id),
       ref: orderRef(String(r._id)),
       itemName: names.get(String(r.itemId)) ?? "",
+      surprise: Boolean(r.surprise),
       storeName: st?.name ?? "",
       storeEmail: st?.contact?.email ?? "",
       status: r.status,
@@ -628,8 +632,8 @@ async function notifyFamilies(ids: string[], budgetMs = Infinity): Promise<Notic
   const started = Date.now();
   const totals: NoticeTotals = { sent: 0, failed: 0, none: 0 };
   const rows = await WishListItem.find({ _id: trusted({ $in: ids }), status: "delivered", familyNotifiedAt: null, familyNoticeSkippedAt: null })
-    .select("kidId familyId itemId")
-    .lean<{ _id: unknown; kidId: unknown; familyId: unknown; itemId: unknown }[]>();
+    .select("kidId familyId itemId surprise")
+    .lean<{ _id: unknown; kidId: unknown; familyId: unknown; itemId: unknown; surprise?: boolean }[]>();
   if (rows.length === 0) return totals;
   const [names, whoFor] = await Promise.all([itemNames(rows.map((r) => r.itemId)), recipients(rows)]);
   for (const [i, r] of rows.entries()) {
@@ -674,7 +678,8 @@ async function notifyFamilies(ids: string[], budgetMs = Infinity): Promise<Notic
       await sendEmail({
         to: w.parent.email,
         locale,
-        template: "giftOnItsWay",
+        // A surprise (2026-11-08) gets its own wording: the subject (seen in any inbox list) never names the gift.
+        template: r.surprise ? "surpriseOnItsWay" : "giftOnItsWay",
         values: { link: `${familyAppOrigin()}${localizePath(`/kids/${String(r.kidId)}`, locale)}`, kidName: w.kidName, itemName: names.get(String(r.itemId)) ?? "" },
         idempotencyKey: `gift-on-its-way/${wishId}`,
       });

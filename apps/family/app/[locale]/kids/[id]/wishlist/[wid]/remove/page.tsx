@@ -33,7 +33,7 @@ async function Content({ params }: Pick<Props, "params">) {
   const wishId = normalizeObjectId(wid);
   if (!kidId || !wishId) notFound();
   const parent = await requireUnlockedPage(`/kids/${kidId}/wishlist/${wishId}/remove`);
-  const [kid, list, t] = await Promise.all([getKid(parent, kidId), kidWishList(parent, kidId), getTranslations("Gifts")]);
+  const [kid, list, t] = await Promise.all([getKid(parent, kidId), kidWishList(parent, kidId, undefined, { reveal: true }), getTranslations("Gifts")]); // PIN page: the parent sees what a surprise really is
   const row = list?.rows.find((r) => r.id === wishId);
   if (!kid || !row) notFound();
   return (

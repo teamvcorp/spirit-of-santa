@@ -60,6 +60,8 @@ export type EmailTemplates = {
    * the child's first name as the parent typed it; itemName typed by the store. Link = the kid's page.
    */
   giftOnItsWay: { link: string; kidName: string; itemName: string };
+  /** Same moment, for a SURPRISE gift a parent picked (2026-11-08): the subject never names the gift. */
+  surpriseOnItsWay: { link: string; kidName: string; itemName: string };
   /**
    * Phase 7 daily summary to a PARENT: one line per child, built by digestLines() (child names typed
    * by the parent; escaped like every value).
@@ -71,7 +73,7 @@ export type EmailTemplates = {
 };
 
 /** Security alerts and "you already have an account": "ignore this email" would be wrong advice. */
-const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled", "passwordChanged", "accountDeleted", "accountDeletionStarted", "giftOnItsWayClosing", "donationReceipt", "storeOrders", "giftOnItsWay", "familyDigest", "cutoffReminder", "payUpReminder"]);
+const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled", "passwordChanged", "accountDeleted", "accountDeletionStarted", "giftOnItsWayClosing", "donationReceipt", "storeOrders", "giftOnItsWay", "surpriseOnItsWay", "familyDigest", "cutoffReminder", "payUpReminder"]);
 
 /**
  * Winter Night look for emails (Phase 8.5.4). Same values as the site palette in

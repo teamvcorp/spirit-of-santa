@@ -2,6 +2,8 @@
 /**
  * One "Finish this gift for $X" button. On success the same spot shows Stripe's embedded form
  * (like the bonus page). The amount shown comes from the server; the server recomputes it anyway.
+ * Reused by the surprise page ("Fund it now", owner 2026-11-08): it passes its own server action (own return page)
+ * and button text; both actions end in the same startPayUp.
  */
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
@@ -18,9 +20,21 @@ import { payUpAction, type PayUpState } from "./actions";
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 
-export function PayUpForm({ wishId, cents, label }: { wishId: string; cents: number; label: string }) {
+export function PayUpForm({
+  wishId,
+  cents,
+  label,
+  action: serverAction = payUpAction,
+  buttonText,
+}: {
+  wishId: string;
+  cents: number;
+  label: string;
+  action?: (prev: PayUpState, fd: FormData) => Promise<PayUpState>;
+  buttonText?: string;
+}) {
   const t = useTranslations("PayUp");
-  const [state, action, pending] = useActionState(payUpAction, { status: "idle" } as PayUpState);
+  const [state, action, pending] = useActionState(serverAction, { status: "idle" } as PayUpState);
   const hydrated = useHydrated();
   if ("ok" in state && state.ok) {
     if (!stripePromise) return <Alert tone="error">{t("errors.stripe")}</Alert>;
@@ -42,7 +56,7 @@ export function PayUpForm({ wishId, cents, label }: { wishId: string; cents: num
       <LocaleField />
       <input type="hidden" name="wishId" value={wishId} />
       <Button type="submit" pending={pending} disabled={!hydrated} className="self-start" aria-label={label}>
-        {t("button", { amount: formatCents(cents) })}
+        {buttonText ?? t("button", { amount: formatCents(cents) })}
       </Button>
     </form>
   );

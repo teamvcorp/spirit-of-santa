@@ -87,7 +87,7 @@ export async function familyDataExport(parent: Parent, locale = "en"): Promise<F
   const kidIds = kids.map((k) => k._id);
   const [gifts, deeds, votes, ledger, payments] = await Promise.all([
     WishListItem.find({ kidId: trusted({ $in: kidIds }) })
-      .select("kidId itemId status costCentipoints fundedCentipoints createdAt fullyFundedAt lockedAt shippedAt trackingNote receivedAt deliveredAt substituteNote forfeitedAt forfeitedCentipoints")
+      .select("kidId itemId status costCentipoints fundedCentipoints createdAt fullyFundedAt lockedAt shippedAt trackingNote receivedAt deliveredAt substituteNote forfeitedAt forfeitedCentipoints surprise")
       .sort({ createdAt: 1 })
       .lean(),
     Deed.find({ kidId: trusted({ $in: kidIds }) }).select("kidId deedTypeId customDescription customReview status outcome tipCents thankNote thankNoteReview createdAt confirmedAt expiresAt").sort({ createdAt: 1 }).lean(),
@@ -147,6 +147,7 @@ export async function familyDataExport(parent: Parent, locale = "en"): Promise<F
       christmasMagic: { availableCentipoints: k.availableCentipoints ?? 0, heldForGiftsCentipoints: k.escrowedCentipoints ?? 0 },
       wishList: of(gifts, k._id).map((g) => ({
         gift: itemName.get(String(g.itemId)) ?? "",
+        surprise: g.surprise === true, // picked by the parent; the child sees a wrapped gift (2026-11-08)
         status: g.status,
         costCentipoints: g.costCentipoints,
         fundedCentipoints: g.fundedCentipoints,

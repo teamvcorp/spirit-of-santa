@@ -30,7 +30,8 @@ import { GiftGrid } from "@/components/gift-grid";
 import { MagicBar } from "@/components/magic-bar";
 import { SeasonGate } from "@/components/season-gate";
 import { PayUpForm } from "../../../parent/payup/payup-form";
-import { fundSurpriseAction } from "./actions";
+import { LocaleField } from "@repo/auth/forms";
+import { fundSurpriseAction, lockAndLeaveAction } from "./actions";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Surprise");
@@ -54,9 +55,14 @@ async function Content({ params, searchParams }: Pick<Props, "params" | "searchP
   const progress = (funded: number, cost: number) => g("progress", { funded: formatPoints(funded), cost: formatPoints(cost) });
   return (
     <>
-      <Link href={`/kids/${kid.id}`} className="mb-4 inline-block text-sm underline underline-offset-4">
-        ← {g("backToKid", { name: kid.firstName })}
-      </Link>
+      {/* The ONLY way out to the child's page LOCKS the PIN first, so the child can't come back in (review). */}
+      <form action={lockAndLeaveAction} className="mb-4">
+        <LocaleField />
+        <input type="hidden" name="kidId" value={kid.id} />
+        <button type="submit" className={buttonClass("secondary")} data-testid="surprise-done">
+          {t("done", { name: kid.firstName })}
+        </button>
+      </form>
       <Card className="mb-6">
         <h1 className="mb-1 text-2xl font-bold">{t("title")}</h1>
         <p className="mb-4 text-muted">{t("intro", { name: kid.firstName })}</p>

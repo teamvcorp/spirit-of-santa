@@ -34,6 +34,8 @@ const kidSchema = new Schema(
     },
     /** Parent-set max number of items on this kid's wish list. */
     itemCap: { type: Number, default: 5, min: 0, max: 50 },
+    /** Last wish-list add: written by EVERY add so concurrent adds conflict (cap/duplicate race, 2026-11-08). */
+    wishListChangedAt: Date,
 
     /**
      * Shareable donation link (Phase 4 slice 6): token = HMAC(DEED_QR_KEY, "donate|kidId|version");

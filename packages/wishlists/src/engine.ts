@@ -217,6 +217,10 @@ async function addItem(
         .session(session)
         .lean<{ availableCentipoints: number; itemCap?: number | null }>();
       if (!kid) return { ok: false, error: "notFound" };
+      // ALWAYS write the kid document first (review of 38e9eab): two adds for one kid at the same moment then
+      // conflict and one retries, so the cap and duplicate checks below can't both pass. A kid's add used to get
+      // this for free (its points moved), but a surprise may be added with 0 Magic, when nothing else is written.
+      await Kid.updateOne({ _id: kidId }, { $set: { wishListChangedAt: now } }, { session });
       const item = await Item.findOne({
         _id: itemId,
         status: "active",

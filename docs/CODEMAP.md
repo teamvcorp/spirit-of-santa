@@ -930,8 +930,12 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   guaranteed). `PayUpForm` takes an optional action + button text. Child view: wrapped gift (`ILLUSTRATIONS.giftBox`),
   "A surprise!", celebration says "Your surprise gift". Email `surpriseOnItsWay` (subject never names the gift);
   admin fulfilment badge "Surprise"; data export flag. Terms 2026-11-08: quiet "what the rate covers" sentence.
-  E2E `browser-family-surprise.ts` (27: incl. the child's page HTML never contains the gift name); page audit lists
-  the surprise pages.
+  E2E `browser-family-surprise.ts` (29: incl. the child's page HTML never contains the gift name); page audit lists
+  the surprise pages. Review fixes: EVERY add writes `Kid.wishListChangedAt` first (concurrent adds conflict → cap +
+  duplicate checks hold; a 0-Magic surprise moved no points, so nothing else was written); the surprise page's only
+  exit is "Done" = `lockAndLeaveAction` (locks the PIN, the page is linked from the child's page); PIN `next` never
+  carries the item id; webhook flags a surprise paid after giving closed (outside pay-up) for an admin.
+  Known/owner: the child still sees the Christmas Magic total (= price), see project memory.
 
 ## Open items / TODO
 

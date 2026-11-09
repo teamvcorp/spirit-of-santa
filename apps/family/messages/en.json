@@ -481,7 +481,8 @@
     "review": "We got your payment. Our team will check it before the Christmas Magic is added.",
     "notPaid": "The payment wasn't completed. You haven't been charged.",
     "unknown": "We couldn't find that payment.",
-    "back": "Back to surprise gifts"
+    "back": "Back to surprise gifts",
+    "done": "Done: lock and go back to {name}"
   },
   "Address": {
     "title": "Delivery address",

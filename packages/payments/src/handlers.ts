@@ -25,6 +25,7 @@ import { getSeasonState, giftWindow } from "@repo/stores/season";
 import { getStripe } from "./client.ts";
 import { parsePaymentMetadata, type PaymentMetadata } from "./metadata.ts";
 import { allocateForKid } from "@repo/wishlists/engine";
+import { payUpWindow } from "@repo/wishlists/payup";
 import { closePayLaterForDeed } from "./pay-later-links.ts";
 import { ensureDonationReceipt, sendPendingReceipts } from "./receipts.ts";
 
@@ -214,10 +215,16 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
     }
     if (meta.sos_purpose === "payup") {
       const w = await WishListItem.findOne({ _id: meta.sos_wish_list_item_id, kidId: meta.sos_kid_id, familyId: meta.sos_family_id })
-        .select({ status: 1, seasonYear: 1 })
+        .select({ status: 1, seasonYear: 1, surprise: 1 })
         .session(session)
-        .lean<{ status: string; seasonYear: number }>();
+        .lean<{ status: string; seasonYear: number; surprise?: boolean }>();
       if (!w) return review("payup_item_mismatch");
+      // A SURPRISE may be paid off while giving is open (2026-11-08). Paid after giving closed and outside the
+      // December pay-up window (a checkout opened before a force-freeze / earlier freeze date): still credited and
+      // filling that gift, but flagged like a late tip so an admin sees it (review of 38e9eab).
+      const paidAt = new Date(pi.created * 1000);
+      if (w.surprise && !(await giftWindow(paidAt)).open && !(await payUpWindow(paidAt)).open)
+        payUpLate = "Surprise paid off after giving closed (freeze date moved or emergency freeze): credited to that gift";
       // Gift no longer waiting for money (finished by tips, paid twice, dropped at the close, or a past
       // season): the money still becomes the kid's points, but an admin follows up (review 2026-11-06).
       if (w.status !== "active" || w.seasonYear !== seasonYear) payUpLate = `Pay-up for a gift that was already ${w.status}: credited as the kid's points`;

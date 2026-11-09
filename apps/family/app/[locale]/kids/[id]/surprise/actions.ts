@@ -6,13 +6,15 @@
  * the price of "Fund it now" is computed from the database by startPayUp.
  */
 import { refresh } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
+import { lockParentDashboard } from "@repo/auth/parent-pin";
 import { startPayUp } from "@repo/families/payup";
 import { localizePath } from "@repo/i18n/paths";
 import { OBJECT_ID_RE } from "@repo/lib/ids";
 import { DEFAULT_LOCALE, LOCALES } from "@repo/lib/locales";
 import { addSurprise, type AddResult } from "@repo/wishlists/engine";
-import { unlockedParentOrNull } from "@/lib/parent";
+import { requireParent, unlockedParentOrNull } from "@/lib/parent";
 import type { PayUpState } from "../../../parent/payup/actions";
 
 const addSchema = z.object({ kidId: z.string().regex(OBJECT_ID_RE), itemId: z.string().regex(OBJECT_ID_RE) });
@@ -28,6 +30,19 @@ export async function addSurpriseAction(_prev: AddSurpriseState, fd: FormData): 
   if (!r.ok) return { status: "error", error: r.error };
   refresh();
   return { status: "done" };
+}
+
+/**
+ * "Done" on the surprise page (review of 38e9eab): LOCK the parent PIN, then go back to the child's page. The
+ * surprise page is linked from the child's own page, so leaving it unlocked would let the child open it (and see
+ * the gift) for the rest of the 15-minute unlock.
+ */
+export async function lockAndLeaveAction(fd: FormData): Promise<void> {
+  await requireParent();
+  await lockParentDashboard();
+  const kid = z.string().regex(OBJECT_ID_RE).safeParse(fd.get("kidId"));
+  const locale = z.enum(LOCALES).catch(DEFAULT_LOCALE).parse(fd.get("locale"));
+  redirect(localizePath(kid.success ? `/kids/${kid.data}` : "/", locale));
 }
 
 const fundSchema = z.object({ wishId: z.string().regex(OBJECT_ID_RE), locale: z.enum(LOCALES).catch(DEFAULT_LOCALE) });

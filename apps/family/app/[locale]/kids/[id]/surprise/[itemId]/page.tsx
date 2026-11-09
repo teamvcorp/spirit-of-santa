@@ -35,7 +35,8 @@ async function Content({ params }: Pick<Props, "params">) {
   const kidId = normalizeObjectId(id);
   const giftId = normalizeObjectId(itemId);
   if (!kidId || !giftId) notFound();
-  const parent = await requireUnlockedPage(`/kids/${kidId}/surprise/${giftId}`);
+  // After the PIN, back to the surprise LIST: no gift id in ?next= (it would sit in the browser history, review).
+  const parent = await requireUnlockedPage(`/kids/${kidId}/surprise`);
   const [kid, gift, list, t, g] = await Promise.all([getKid(parent, kidId), giftDetail(giftId), kidWishList(parent, kidId, undefined, { reveal: true }), getTranslations("Surprise"), getTranslations("Gifts")]);
   if (!kid || !list || !gift) notFound();
 

@@ -56,6 +56,8 @@ const DRONE = `Drone${tag}`;
 const KITE = `Kite${tag}`;
 const drone = await mkItem("Drone", 2000);
 const kite = await mkItem("Kite", 500);
+const drone2 = await mkItem("Robot", 700);
+const kid2 = await Kid.create({ familyId: fam._id, firstName: `Bo${tag}`, birthYear: 2018, displayName: "B.", itemCap: 1, registration: { status: "registered", registeredAt: new Date(), method: "card" } });
 const piIds: string[] = [];
 const evtIds: string[] = [];
 
@@ -94,6 +96,9 @@ try {
     check("the child's own copy can be removed again", rm.ok);
   }
   check("ledger consistent after adds/removes", (await ledgerOk()).length === 0, (await ledgerOk()).join("; "));
+  // Race (review of 38e9eab): three surprises at the SAME moment for a child with 0 Magic and a limit of 1.
+  const race = await Promise.all([drone, kite, drone2].map((it) => addSurprise(parent, String(kid2._id), it)));
+  check("3 surprises at once with a limit of 1: exactly one is added", race.filter((r) => r.ok).length === 1 && (await WishListItem.countDocuments({ kidId: kid2._id })) === 1, JSON.stringify(race.map((r) => (r.ok ? "ok" : r.error))));
 
   // 2. Fund it now: allowed for a surprise while the season is open, not for a child's own wish.
   // (The removed copy's Christmas Magic flowed back into the surprise, oldest first: give the child 1 more to add.)
@@ -156,6 +161,14 @@ try {
   await page.locator("main:visible [role=status]").filter({ hasText: "Added!" }).waitFor({ timeout: 60_000 });
   const kiteRow = await WishListItem.findOne({ kidId: kid._id, itemId: kite, status: "active" }).lean();
   check("'Add as a surprise' (UI) adds a surprise", kiteRow?.surprise === true);
+  // "Done" locks the PIN on the way out, so the child can't reopen the surprise page (review of 38e9eab).
+  await page.goto(`${base}/kids/${kid._id}/surprise`);
+  await hydrated(page);
+  await page.locator('main:visible [data-testid="surprise-done"]').click();
+  await page.waitForURL((u) => u.pathname.endsWith(`/kids/${kid._id}`), { timeout: 60_000 });
+  await page.goto(`${base}/kids/${kid._id}/surprise`);
+  await page.waitForURL((u) => u.pathname.endsWith("/parent/pin"), { timeout: 60_000 });
+  check("'Done' locks the PIN: the surprise page asks for it again", true);
 
   // 5. Paid (signed webhook): the surprise is fully funded = secured, ledger still exact.
   const piId = `pi_e2esur${randomBytes(6).toString("hex")}`;
@@ -188,13 +201,13 @@ try {
 } finally {
   await browser.close();
   await Promise.all([
-    WishListItem.collection.deleteMany({ kidId: kid._id }),
-    Transaction.collection.deleteMany({ kidId: kid._id }),
+    WishListItem.collection.deleteMany({ kidId: { $in: [kid._id, kid2._id] } }),
+    Transaction.collection.deleteMany({ kidId: { $in: [kid._id, kid2._id] } }),
     Payment.collection.deleteMany({ stripePaymentIntentId: { $in: piIds } }),
     StripeEvent.collection.deleteMany({ eventId: { $in: evtIds } }),
-    Item.collection.deleteMany({ _id: { $in: [new mongoose.Types.ObjectId(drone), new mongoose.Types.ObjectId(kite)] } }),
+    Item.collection.deleteMany({ _id: { $in: [drone, kite, drone2].map((i) => new mongoose.Types.ObjectId(i)) } }),
     Store.collection.deleteOne({ _id: storeId }),
-    Kid.deleteMany({ _id: trusted({ $in: [kid._id] }) }),
+    Kid.deleteMany({ _id: trusted({ $in: [kid._id, kid2._id] }) }),
     Family.deleteOne({ _id: fam._id }),
     User.deleteMany({ _id: trusted({ $in: [user._id] }) }),
     RateLimit.collection.deleteMany({ key: { $in: [`payup-start:${user._id}`] } }),

@@ -481,7 +481,8 @@
     "review": "Recibimos tu pago. Nuestro equipo lo revisará antes de agregar la Magia Navideña.",
     "notPaid": "El pago no se completó. No se te ha cobrado.",
     "unknown": "No encontramos ese pago.",
-    "back": "Volver a los regalos sorpresa"
+    "back": "Volver a los regalos sorpresa",
+    "done": "Listo: bloquear y volver con {name}"
   },
   "Address": {
     "title": "Dirección de entrega",

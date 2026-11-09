@@ -13,8 +13,10 @@
  *    possibly after the close when the gift has already dropped off (review 2026-11-06). Stripe SDK
  *    v23 has no payment_method_types on Checkout, so we EXCLUDE them (docs/vendor/stripe.md). A late
  *    payment is still credited and flagged for an admin by the webhook (second safety net).
- *  - 20 checkout starts per 15 min per parent. The (global) window is checked BEFORE the counter,
- *    so clicking around outside the window never locks a parent out; lookups come after it.
+ *  - 20 checkout starts per 15 min per parent. The (global) windows are checked BEFORE the counter. Since
+ *    surprises (below), giving is open most of the year, so outside December the counter and the gift lookup run
+ *    before a NON-surprise is refused; the interface never offers that button, so only a hand-made request pays
+ *    that cost (and it's rate-limited).
  *  - SURPRISE gifts (owner 2026-11-08: "fund it now"): a parent may also pay one off WHILE THE SEASON IS OPEN
  *    (giftWindow, until the freeze date), same $1.50 per point and same webhook. Only surprises: a child's own
  *    wishes are still paid up only in the December window. The webhook fills THAT gift first, so paying it

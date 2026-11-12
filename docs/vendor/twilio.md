@@ -132,3 +132,21 @@ in Spanish with this consent text:"
 > Envíenme un enlace para pagar esta propina más tarde. Spirit of Santa enviará 1 mensaje de texto con un enlace de pago seguro que vence en 7 días. Sin publicidad. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para cancelar, HELP para ayuda.
 
 Both sentences are pinned by SMS_CONSENT_SHA256 (@repo/lib/family); the i18n test fails if either changes.
+
+## Toll-free verification rejected + edited via API (2026-11-12)
+
+- Request `HHa0afad665a36bb643e3be72096fd51f3`. Rejected 2026-11-12 with **30474 "End Business Details Must Be
+  Accurate and Complete"**: texts say "Spirit of Santa" but the form named only The Von Der Becke Academy Corp +
+  thevacorp.com, no DBA. Edit window: `edit_allowed: true` until `edit_expiration` (2026-11-26; ~2 weeks here).
+- Edited 2026-11-12 (owner approved) with `POST https://messaging.twilio.com/v1/Tollfree/Verifications/{HH sid}`:
+  `DoingBusinessAs=Spirit of Santa`, `BusinessWebsite=https://www.spiritofsanta.com`, `MessageVolume=1,000`,
+  new `UseCaseSummary`, `ProductionMessageSample` = the exact registered SMS above, `AdditionalInformation`
+  (operator + EIN, Spanish opt-in page). Status went PENDING_REVIEW → IN_REVIEW.
+- **API gotchas learned:**
+  - `EditReason` is required and was refused ("Invalid edit reason") when long/with a semicolon; a short plain
+    sentence worked: "Added DBA and brand website, corrected use case and sample message".
+  - Once the customer profile is approved, these fields CAN'T be sent (400): business street address/2, city,
+    state, postal code, country, contact first/last name, contact email, contact phone. Leave them out; they stay.
+  - Other omitted fields: we re-sent the current values to be safe (docs don't say they're kept).
+- Check status any time (read-only): GET the same URL with Basic auth (Account SID + Auth Token from
+  apps/family/.env.local); look at `status`, `rejection_reasons`, `edit_allowed`, `edit_expiration`.

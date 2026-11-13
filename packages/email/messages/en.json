@@ -137,6 +137,13 @@
       "heading": "A gift is on its way to you",
       "body": "{itemName} has been sent to your delivery address. When every gift has arrived, we delete the last of your family's information, as you asked.",
       "button": "Visit Spirit of Santa"
+    },
+    "newsConfirm": {
+      "subject": "Confirm: news from Spirit of Santa",
+      "heading": "Confirm you want our news",
+      "body": "Someone, hopefully you, asked to get news from Spirit of Santa at this email address: a few emails a year about the season, new stores and how children are doing good deeds. Tap the button to confirm. Every news email has a link to unsubscribe.",
+      "button": "Yes, send me news",
+      "expiry": "This link works once and expires in 7 days."
     }
   }
 }

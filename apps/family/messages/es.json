@@ -102,6 +102,10 @@
       "texts": {
         "title": "Mensajes de texto",
         "body": "Si eliges \"Pagar más tarde por mensaje de texto\", usamos el número de celular que escribes para enviarte un mensaje de texto con un enlace de pago para la propina que elegiste. Solo enviamos ese mensaje para esa solicitud, nunca publicidad. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para cancelar, HELP para ayuda. Los mensajes los entrega nuestro proveedor de mensajería (Twilio) solo para enviar tu mensaje. No compartimos tu número ni tu consentimiento con terceros o afiliados con fines de publicidad o promoción. Guardamos el número y la hora en que aceptaste hasta 13 meses como registro de tu consentimiento, y luego los borramos."
+      },
+      "news": {
+        "title": "Correos de noticias",
+        "body": "Si pides nuestras noticias (en la página principal, al crear una cuenta familiar o al dar una propina o donación) y confirmas tu correo, agregamos ese correo a nuestra lista de noticias. La lista la guarda nuestro proveedor de correo (Resend), que envía las noticias por nosotros. Enviamos algunos correos al año sobre Spirit of Santa. Cada correo de noticias tiene un enlace para cancelar la suscripción, y los padres también pueden desactivar las noticias en su configuración de correos. Guardamos un registro de cuándo y dónde aceptaste, y una nota si cancelas, como prueba de que dejamos de enviarlos. Las noticias son solo para adultos: nunca agregamos a niños. No vendemos ni compartimos la lista. Al eliminar una cuenta familiar, su correo se quita de la lista por completo."
       }
     }
   },
@@ -833,5 +837,26 @@
     "themeLabel": "Estilo del sitio",
     "themeWinter": "Magia de invierno",
     "themeFestive": "Festivo"
+  },
+  "News": {
+    "title": "Recibe noticias de Spirit of Santa",
+    "body": "Algunos correos al año: cuándo abre la temporada, nuevas tiendas e historias de niños haciendo el bien. Cancela cuando quieras.",
+    "email": "Tu correo electrónico",
+    "optIn": "Tengo 18 años o más y quiero recibir correos con noticias de Spirit of Santa.",
+    "note": "Te enviaremos un enlace para confirmar. No quedas suscrito hasta que lo abras.",
+    "submit": "Envíenme noticias",
+    "sent": "¡Gracias! Revisa tu bandeja de entrada para confirmar con el enlace. Si ya estás en nuestra lista, no tienes que hacer nada más.",
+    "errors": {
+      "invalid": "Escribe un correo electrónico válido.",
+      "adult": "Marca la casilla para confirmar que tienes 18 años o más y quieres nuestras noticias.",
+      "rateLimited": "Demasiados intentos. Espera un rato y vuelve a intentarlo."
+    },
+    "confirm": {
+      "title": "Confirma nuestras noticias",
+      "intro": "Presiona el botón para empezar a recibir correos con noticias de Spirit of Santa. Cada correo tiene un enlace para cancelar la suscripción.",
+      "submit": "Sí, envíenme noticias",
+      "done": "Ya estás en la lista. ¡Gracias! Cada correo de noticias tiene un enlace para cancelar la suscripción.",
+      "invalidLink": "Este enlace ya se usó o venció. Puedes pedirlo de nuevo en la página principal de Spirit of Santa."
+    }
   }
 }

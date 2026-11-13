@@ -39,6 +39,8 @@
         "RESEND_API_KEY",
         "RESEND_FROM",
         "RESEND_REPLY_TO",
+        "RESEND_SEGMENT_ID",
+        "RESEND_CONTACTS_API_KEY",
         "CRON_SECRET",
         "STORE_APP_URL",
         "FAMILY_APP_URL",

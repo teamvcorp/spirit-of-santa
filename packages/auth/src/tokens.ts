@@ -17,6 +17,7 @@ export const TOKEN_TTL_MS: Record<ActionTokenPurpose, number> = {
   reset_password: 60 * 60 * 1000,
   invite_owner: 7 * 24 * 60 * 60 * 1000,
   invite_rep: 7 * 24 * 60 * 60 * 1000,
+  news_confirm: 7 * 24 * 60 * 60 * 1000,
 };
 
 /** 32 random bytes, base64url: 43 URL-safe characters, 256 bits of entropy. */
@@ -26,7 +27,15 @@ export const hashToken = (raw: string) => createHash("sha256").update(raw, "utf8
 
 /** Ids may be ObjectIds or strings; stored as ObjectIds (Mongoose casts the string form). */
 type Id = { toString(): string } | null | undefined;
-type TokenTarget = { email: string; userId?: Id; storeId?: Id; createdByUserId?: Id };
+type TokenTarget = {
+  email: string;
+  userId?: Id;
+  storeId?: Id;
+  createdByUserId?: Id;
+  /** news_confirm only (see the ActionToken model). */
+  newsSource?: "public" | "donor" | "tip";
+  locale?: "en" | "es";
+};
 const idString = (v: Id) => (v == null ? undefined : String(v));
 
 /**
@@ -50,6 +59,8 @@ export async function createActionToken(
     userId: idString(target.userId),
     storeId: idString(target.storeId),
     createdByUserId: idString(target.createdByUserId),
+    ...(target.newsSource ? { newsSource: target.newsSource } : {}),
+    ...(target.locale ? { locale: target.locale } : {}),
     expiresAt: new Date(now.getTime() + TOKEN_TTL_MS[purpose]),
   });
   return { raw, id: String(doc._id) };

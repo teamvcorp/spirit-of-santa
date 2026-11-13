@@ -27,7 +27,8 @@ export const PARENT_CONSENT_VERSION = "2026-11-07c";
 // c (2026-11-07): "deliver, then delete" retention when an account is deleted with a paid gift on its way.
 // d (2026-11-07b): year-round season (delivery data kept until Jan 31 after that Christmas).
 // e (2026-11-07c): DRAFT label removed (owner); Spanish audit fixes; thank-you notes (public section).
-export const PRIVACY_VERSION = "2026-11-07c";
+// f (2026-11-12): "News emails" section (opt-in news list kept by Resend; adults only).
+export const PRIVACY_VERSION = "2026-11-12";
 
 /** Terms of Service version shown on /terms (bump with any change). */
 export const TERMS_VERSION = "2026-11-08"; // 2026-11-06b: "Christmas Magic" · 2026-11-07: season section · 2026-11-07b: DRAFT label removed, Spanish fixes · 2026-11-08: what the rate covers + surprise gift payments

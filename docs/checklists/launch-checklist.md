@@ -27,6 +27,11 @@ Written 2026-11-07. There are no real users yet, so nothing here needs a data mi
 - [ ] **Stripe: register the site's domains for Apple Pay / Google Pay** (embedded checkout shows wallets ONLY on
       registered domains). Dashboard (live) → Settings → Payment method domains → add `www.spiritofsanta.com` and
       `spiritofsanta.com`. Then on an iPhone (Safari 17+) with a card in Wallet, open a tip: Apple Pay shows at the top.
+- [ ] **News emails (Resend, 2026-11-12):** Vercel **family** project → add `RESEND_SEGMENT_ID` (the "santa"
+      segment's id, Production). The family `RESEND_API_KEY` must stay **Full access** (it adds people to the list).
+      Before your first broadcast: in the Resend broadcast editor put the **unsubscribe link** and Spirit of Santa's
+      **postal address** in the footer (US CAN-SPAM law requires both). Send only to the segment, never to imported
+      lists: everyone in it confirmed by email.
 - [ ] **Logo** file (see `docs/illustrations.md` for the image slots you can replace).
 - [ ] **First admin** can sign in with the authenticator app; a second admin set up so you are never locked out.
 

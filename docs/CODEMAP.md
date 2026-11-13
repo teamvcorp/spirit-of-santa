@@ -936,6 +936,22 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   exit is "Done" = `lockAndLeaveAction` (locks the PIN, the page is linked from the child's page); PIN `next` never
   carries the item id; webhook flags a surprise paid after giving closed (outside pay-up) for an admin.
   Known/owner: the child still sees the Christmas Magic total (= price), see project memory.
+- **News subscribers (owner 2026-11-12; Resend segment `RESEND_SEGMENT_ID`).** Adults who opt in get news broadcasts
+  sent from the Resend dashboard. Sources: public form (home page `#news`), parents, donors/tippers. Children never.
+  - `NewsSubscription` (@repo/db): one row per email = OUR consent proof (source, `consentVersion` =
+    `NEWS_CONSENT_VERSION` @repo/lib/news, consentAt, confirmedAt, unsubscribedAt, `syncedAt` null = Resend still to
+    be told). `ActionToken` purpose `news_confirm` (7 days, carries `newsSource` + `locale`).
+  - `@repo/email/contacts`: `subscribeContact` / `unsubscribeContact` / `removeContact` (Resend contacts + segment;
+    dev PRINTS `[contacts:dev]` unless `EMAIL_DEV_SEND=true`). Key: `RESEND_CONTACTS_API_KEY` or `RESEND_API_KEY`
+    (must be FULL access). Notes: docs/vendor/resend.md "Contacts + segments".
+  - `@repo/auth/news`: `requestNews` (public: per-IP 10/h + global 500/h visible; per-email 3/day SILENT; honeypot),
+    `sendNewsConfirm(email, source, locale, origin)` (no request IP, e.g. after a paid donation), `confirmNews(token)`
+    (record first, then Resend; failure → `syncedAt` null), `syncPendingNews(n)` (daily money cron, 400 ms apart).
+    Already subscribed → same "check your inbox", no email (no enumeration).
+  - Pages: `components/news-signup.tsx` (email + UNTICKED "I'm 18 or older and want news" box), `/news/confirm`
+    (link only opens; the button POSTs). Email template `newsConfirm` (no user text). Privacy section `news`,
+    `PRIVACY_VERSION` 2026-11-12. E2E `browser-family-news.ts` (15 checks, dev server).
+  - Slice 2 (parents) + slice 3 (donors, admin count): see docs/plans/news-subscribers.md.
 
 ## Open items / TODO
 

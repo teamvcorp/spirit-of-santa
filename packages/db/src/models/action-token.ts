@@ -21,6 +21,8 @@ export const ACTION_TOKEN_PURPOSES = [
   "reset_password",
   "invite_owner",
   "invite_rep",
+  /** "Yes, send me news" confirm link (public form + donors, owner 2026-11-12): double opt-in, 7 days. */
+  "news_confirm",
 ] as const;
 export type ActionTokenPurpose = (typeof ACTION_TOKEN_PURPOSES)[number];
 
@@ -33,6 +35,9 @@ const actionTokenSchema = new Schema(
     email: { type: String, required: true, lowercase: true, trim: true, maxlength: 254 },
     storeId: objectId("Store", false),
     createdByUserId: objectId("User", false), // the admin/owner who sent an invite
+    /** news_confirm only: where they asked (NewsSubscription source) and the language to answer in. */
+    newsSource: { type: String, enum: ["public", "donor", "tip"] },
+    locale: { type: String, enum: ["en", "es"] },
     expiresAt: { type: Date, required: true },
     usedAt: Date,
   },

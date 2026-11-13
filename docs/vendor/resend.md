@@ -41,3 +41,28 @@
   framework-free core). `next-intl`'s own export pulls in `next/headers` under the
   react-server condition and fails in plain Node tests.
 - Never log recipients or bodies (one-time links). Log template name + error only.
+
+## Contacts + segments (news subscribers, 2026-11-12)
+
+Saved from resend.com/docs (contacts/create-contact, add-contact-to-segment, broadcasts, managing-unsubscribe-list,
+api-keys) and the installed types (resend 6.34.1). Code: `packages/email/src/contacts.ts` (Resend calls) and
+`packages/auth/src/news.ts` (who may be subscribed, consent record). Plan + rules: CODEMAP "News subscribers".
+
+- **Key permission:** contacts need a **full_access** key; `sending_access` "can only send emails". There is no
+  contacts-only scope. Code uses `RESEND_CONTACTS_API_KEY` if set, else `RESEND_API_KEY`. The owner's family key
+  was full access on 2026-11-12 (checked by reading the segment). Hardening TODO: give the store + admin apps their
+  own **sending-only** keys (they never need contacts).
+- **Segments replaced "audiences"** (`audienceId` is deprecated). `RESEND_SEGMENT_ID` = the "santa" segment.
+- `contacts.create({ email, unsubscribed, segments: [{ id }] })` fails for an address that already exists, so we
+  `contacts.update({ email, unsubscribed: false })` first (`not_found` → create), then
+  `contacts.segments.add({ email, segmentId })` (POST /contacts/{email}/segments/{segmentId}).
+- `contacts.update({ email, unsubscribed: true })` = global unsubscribe (no broadcasts at all; transactional emails
+  still go). `contacts.remove({ email })` deletes it (account deletion). `not_found` on both = already done.
+- **Broadcasts** (dashboard) go to a segment; include Resend's unsubscribe link placeholder in the editor and Resend
+  marks the contact unsubscribed itself. CAN-SPAM: every broadcast also needs the postal address in its footer.
+- **Rate limit 10 requests/s**: one subscribe = up to 3 calls; a fast burst in the live check got 429. The daily
+  retry (`syncPendingNews`) waits 400 ms between contacts.
+- The SDK prints `[Resend API Error]` with the request path (which holds the EMAIL) to the console, but **only when
+  NODE_ENV !== "production"** (index.mjs `logError`), so production logs stay clean.
+- Live check 2026-11-12 (owner approved): create → in segment, unsubscribe → `unsubscribed: true`, re-subscribe an
+  existing contact → subscribed + in segment, remove → gone. Test contact deleted; segment left empty.

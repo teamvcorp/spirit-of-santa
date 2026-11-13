@@ -70,6 +70,8 @@ export type EmailTemplates = {
   /** Phase 7 season reminders (date already formatted in the parent's language). */
   cutoffReminder: { link: string; date: string };
   payUpReminder: { link: string; date: string };
+  /** News double opt-in (2026-11-12): goes to an address nobody has proven yet, so NO user-typed text. */
+  newsConfirm: { link: string };
 };
 
 /** Security alerts and "you already have an account": "ignore this email" would be wrong advice. */

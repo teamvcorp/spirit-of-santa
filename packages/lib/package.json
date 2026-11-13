@@ -22,7 +22,8 @@
     "./address": "./src/address.ts",
     "./notify": "./src/notify.ts",
     "./security-headers": "./src/security-headers.ts",
-    "./site": "./src/site.ts"
+    "./site": "./src/site.ts",
+    "./news": "./src/news.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

@@ -47,6 +47,13 @@ export {
   type ActionTokenDoc,
   type ActionTokenPurpose,
 } from "./models/action-token.ts";
+export {
+  NewsSubscription,
+  NEWS_SOURCES,
+  NEWS_STATUSES,
+  type NewsSource,
+  type NewsSubscriptionDoc,
+} from "./models/news-subscription.ts";
 export { RateLimit, type RateLimitDoc } from "./models/rate-limit.ts";
 export { PlatformSettings, type PlatformSettingsDoc } from "./models/platform-settings.ts";
 export { DonationReceipt, DONATION_RECEIPT_STATUSES, type DonationReceiptDoc } from "./models/donation-receipt.ts";

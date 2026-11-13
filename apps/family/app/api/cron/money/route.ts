@@ -15,6 +15,7 @@
  *  3. Season end (Jan 1, while the new season waits in "resetting"; run EARLY, right after the split):
  *     unshared donation money retained, every kid's unspent points reset to 0 with a ledger row.
  *  4. Email tax receipts still waiting (receipts switched on, gift on/after the start day).
+ *  5. News subscribers (2026-11-12): retry contacts Resend didn't accept yet (25 a day, spaced; never fails the job).
  * Called by Vercel Cron (apps/family/vercel.json) with `Authorization: Bearer <CRON_SECRET>`;
  * anyone else gets 401. (Vercel Hobby allows 2 cron jobs: this + the store's purge-signups.)
  */
@@ -28,6 +29,7 @@ import { copyLastSeasonCatalog } from "@repo/stores/catalog-rollover";
 import { lockFundedItems, sweepAllocations } from "@repo/wishlists/engine";
 import { closeUnfunded } from "@repo/wishlists/payup";
 import { sendFamilyDigests, sendSeasonReminders } from "@repo/families/digest";
+import { syncPendingNews } from "@repo/auth/news";
 import { purgeUnneededAddresses, sendFamilyNotices, sendStoreDigests } from "@repo/wishlists/fulfilment";
 
 /**
@@ -82,6 +84,8 @@ export async function GET(request: Request): Promise<Response> {
   const digests = await settle(() => sendFamilyDigests());
   const reminders = await settle(() => sendSeasonReminders());
   const receipts = await settle(() => sendPendingReceipts({ limit: 50 }));
+  // News list: rows Resend refused earlier (it was down / rate-limited). A row that fails again just waits for tomorrow.
+  const news = await settle(() => syncPendingNews(25));
   // LAST (review 2026-11-07: never crowd out the money steps): Jan 1 – Mar 31, copy last season's active store
   // items into the new season, store by store within a time budget (idempotent; a no-op the rest of the year).
   const catalog = await settle(() => copyLastSeasonCatalog());
@@ -100,6 +104,7 @@ export async function GET(request: Request): Promise<Response> {
     digests: digests.status === "fulfilled" ? digests.value : "failed",
     reminders: reminders.status === "fulfilled" ? reminders.value : "failed",
     receipts: receipts.status === "fulfilled" ? receipts.value : "failed",
+    news: news.status === "fulfilled" ? news.value : "failed",
   };
   // A digest that ran but couldn't email some stores also counts as failed (it never throws per store).
   const digestFailed = storeOrders.status === "fulfilled" && storeOrders.value.failed > 0;
@@ -120,9 +125,9 @@ export async function GET(request: Request): Promise<Response> {
   const parked = wishLists.status === "fulfilled" && (wishLists.value.locked.needsAttention > 0 || wishLists.value.closed.needsAttention > 0);
   const parentEmailsFailed = (digests.status === "fulfilled" && digests.value.failed > 0) ||
     (reminders.status === "fulfilled" && [reminders.value.cutoff, reminders.value.payUp].some((r) => r !== "notTime" && r.failed > 0));
-  const failed = digestFailed || noticesFailed || closeFailed || lockFailed || parked || closingFailed || resetStuck || parentEmailsFailed || [split, seasonEnd, catalog, payLater, wishLists, storeOrders, familyNotices, closing, addresses, digests, reminders, receipts].some((r) => r.status === "rejected");
+  const failed = digestFailed || noticesFailed || closeFailed || lockFailed || parked || closingFailed || resetStuck || parentEmailsFailed || [split, seasonEnd, catalog, payLater, wishLists, storeOrders, familyNotices, closing, addresses, digests, reminders, receipts, news].some((r) => r.status === "rejected");
   if (failed) {
-    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, catalog: catalog.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, closing: closing.status, addresses: addresses.status, digests: digests.status, reminders: reminders.status, receipts: receipts.status, digestFailed, noticesFailed, closeFailed, lockFailed, parked, closingFailed, resetStuck, parentEmailsFailed }));
+    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, catalog: catalog.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, closing: closing.status, addresses: addresses.status, digests: digests.status, reminders: reminders.status, receipts: receipts.status, news: news.status, digestFailed, noticesFailed, closeFailed, lockFailed, parked, closingFailed, resetStuck, parentEmailsFailed }));
     return Response.json(result, { status: 500, headers: { "Cache-Control": "no-store" } });
   }
   console.info("[cron] donations", JSON.stringify(result)); // totals/counts only, no personal data

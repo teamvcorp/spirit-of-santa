@@ -102,6 +102,10 @@
       "texts": {
         "title": "Text messages",
         "body": "If you choose \"Pay later by text\", we use the mobile number you type to send you one text message with a payment link for the tip you chose. We send only that message for that request, never marketing. Message and data rates may apply. Reply STOP to opt out, HELP for help. Texts are delivered by our messaging provider (Twilio) only to send your message. Your mobile number and consent are not shared with third parties or affiliates for marketing or promotional purposes. We keep the number and the time you agreed for up to 13 months as a record of your consent, then delete it."
+      },
+      "news": {
+        "title": "News emails",
+        "body": "If you ask for our news (on the home page, when you create a family account, or when you give a tip or donation) and confirm your email address, we add that address to our news list. The list is kept by our email provider (Resend), which sends the news for us. We send a few emails a year about Spirit of Santa. Every news email has a link to unsubscribe, and parents can also turn news off in their email settings. We keep a record of when and where you agreed, and a note if you unsubscribe, as proof that we stopped. News is only for adults: we never add children. We don't sell or share the list. Deleting a family account removes its address from the list completely."
       }
     }
   },
@@ -833,5 +837,26 @@
     "themeLabel": "Site look",
     "themeWinter": "Winter Magic",
     "themeFestive": "Festive"
+  },
+  "News": {
+    "title": "Get Spirit of Santa news",
+    "body": "A few emails a year: when the season opens, new stores, and stories of kids doing good. Unsubscribe any time.",
+    "email": "Your email",
+    "optIn": "I am 18 or older and want to get news emails from Spirit of Santa.",
+    "note": "We will email you a link to confirm. Nothing is signed up until you click it.",
+    "submit": "Send me news",
+    "sent": "Thanks! Check your inbox for a link to confirm. If you are already on our list, there is nothing else to do.",
+    "errors": {
+      "invalid": "Please enter a valid email address.",
+      "adult": "Please tick the box to confirm you are 18 or older and want our news.",
+      "rateLimited": "Too many tries. Please wait a while and try again."
+    },
+    "confirm": {
+      "title": "Confirm our news",
+      "intro": "Press the button to start getting news emails from Spirit of Santa. Every email has a link to unsubscribe.",
+      "submit": "Yes, send me news",
+      "done": "You are on the list. Thank you! Every news email has a link to unsubscribe.",
+      "invalidLink": "This link has already been used or has expired. You can ask again on the Spirit of Santa home page."
+    }
   }
 }

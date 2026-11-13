@@ -69,6 +69,15 @@ One text per request with a payment link, after explicit opt-in (never pre-ticke
 and consent time kept up to 13 months. Toll-free verification is in progress with Twilio.
 *Any TCPA concerns with the consent wording on /text-messages?*
 
+## 5b. News emails (new 2026-11-12)
+
+Adults can ask for a few news emails a year: a box on the home page ("I am 18 or older and want to get news emails
+from Spirit of Santa"), and later at parent sign-up and on the donate/tip pages. The box is never pre-ticked, and
+nobody is added until they click a confirm link sent to that address (parents: their confirmed account email).
+The list is kept by our email provider (Resend); every news email has an unsubscribe link and must show our postal
+address. We keep when/where they agreed and the wording version. Privacy Policy section "News emails" (version
+2026-11-12). *Is the 18+ self-declaration enough to keep children off the list, and is the privacy wording right?*
+
 ## 6. Store agreement
 
 Stores accept the agreement at sign-up. New in this version: held items are kept for the child and shipped to

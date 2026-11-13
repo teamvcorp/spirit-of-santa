@@ -12,7 +12,7 @@ import { LegalSections } from "../../../components/legal-sections";
 
 // "visitors" + "texts" (2026-11-06): people who tip/donate, and pay-later text messages (carrier
 // requirement: mobile numbers are not shared for marketing).
-const SECTIONS = ["collect", "public", "share", "visitors", "texts", "consent", "rights", "keep", "contact"] as const;
+const SECTIONS = ["collect", "public", "share", "visitors", "texts", "news", "consent", "rights", "keep", "contact"] as const;
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Privacy");

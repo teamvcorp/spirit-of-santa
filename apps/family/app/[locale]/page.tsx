@@ -27,6 +27,7 @@ import { Link } from "@/i18n/navigation";
 import { homeCountdown } from "@/lib/countdown";
 import { HeroScene, Snow, Stars } from "../../components/hero-scene";
 import { SeasonNotice } from "@/components/season-gate";
+import { NewsSignup } from "@/components/news-signup";
 
 /* ---------- small building blocks ---------- */
 
@@ -232,7 +233,7 @@ function StepCard({ n, icon, iconBg, iconInk, title, body }: { n: number; icon: 
 }
 
 export default async function Home() {
-  const [t, locale] = await Promise.all([getTranslations("HomePage"), getLocale()]);
+  const [t, news, locale] = await Promise.all([getTranslations("HomePage"), getTranslations("News"), getLocale()]);
   const rate = formatCents(CENTS_PER_POINT, intlLocale(locale));
   const fee = formatCents(REGISTRATION_FEE_CENTS, intlLocale(locale));
   return (
@@ -339,6 +340,17 @@ export default async function Home() {
               <SantaDetails />
             </Suspense>
           </article>
+        </div>
+      </section>
+
+      {/* NEWS SIGN-UP (owner 2026-11-12): adults only, double opt-in (components/news-signup.tsx). */}
+      <section id="news" className="px-6 pb-[88px]" aria-labelledby="news-title">
+        <div className="mx-auto flex max-w-[640px] flex-col gap-3 rounded-[26px] border border-(--t-card-border) bg-surface px-9 py-10 shadow-card">
+          <h2 id="news-title" className="m-0 text-[1.6rem] font-bold leading-tight">
+            {news("title")}
+          </h2>
+          <p className="m-0 leading-relaxed text-muted">{news("body")}</p>
+          <NewsSignup />
         </div>
       </section>
     </main>

@@ -17,12 +17,13 @@ const signupSchema = z.object({
   email: emailSchema,
   // The unticked "I'm 18 or older and want news" box: required (children are never subscribers).
   adult: z.literal("on"),
-  company_url: z.string().max(200).optional(), // honeypot: real people never see or fill it
+  // Honeypot: real people never see or fill it. Never "invalid" (that would tell a bot it was caught).
+  company_url: z.string().max(200).optional().catch("caught"),
   locale: z.enum(LOCALES).catch(DEFAULT_LOCALE),
 });
 
 /** Same minimum response time on every path (no timing hint about the address). */
-async function atLeast<T>(work: Promise<T>, ms = 1200): Promise<T> {
+async function atLeast<T>(work: Promise<T>, ms = 1500): Promise<T> {
   const [r] = await Promise.all([work, new Promise((res) => setTimeout(res, ms))]);
   return r;
 }

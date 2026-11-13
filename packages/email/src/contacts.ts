@@ -3,7 +3,7 @@
  *
  * Resend keeps the list ("contacts") and the group we send news broadcasts to (a "segment", RESEND_SEGMENT_ID).
  * The Resend dashboard sends the broadcasts and handles their unsubscribe link itself. This module only:
- *   subscribeContact(email, locale)  → contact exists, is subscribed, and is in our segment
+ *   subscribeContact(email)          → contact exists, is subscribed, and is in our segment
  *   unsubscribeContact(email)         → contact stays but gets no broadcasts (unsubscribed = global in Resend)
  *   removeContact(email)              → contact deleted (account deletion: nothing kept)
  * Callers decide WHO may be subscribed (proven, opted-in adults only): @repo/auth/news.

@@ -36,6 +36,11 @@ const userSchema = new Schema(
     familyId: objectId("Family", false), // set for parents
     storeId: objectId("Store", false), // set for store owners/reps
     locale: { type: String, enum: LOCALES, default: "en" },
+    /**
+     * Parent ticked "send me news" at sign-up (2026-11-12). Only a PENDING wish: the news list (NewsSubscription +
+     * Resend) is updated when the email is confirmed (verifyEmail), never before. Cleared once applied.
+     */
+    newsOptInAt: Date,
 
     // Brute-force protection (packages/auth increments these on failed logins).
     failedLoginCount: { type: Number, default: 0, min: 0, select: false },

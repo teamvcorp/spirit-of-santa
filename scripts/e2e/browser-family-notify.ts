@@ -57,7 +57,7 @@ try {
   await main().getByRole("link", { name: "Email settings" }).click();
   await page.waitForURL((u) => u.pathname.endsWith("/parent/notifications"), { timeout: 60_000 });
   await main().locator('input[name="magic"]').waitFor({ timeout: 60_000 });
-  const boxes = await main().locator("input[type=checkbox]").evaluateAll((els) => els.map((e) => (e as HTMLInputElement).checked));
+  const boxes = await main().locator("input[type=checkbox]:not([name=news])").evaluateAll((els) => els.map((e) => (e as HTMLInputElement).checked));
   check("email settings: three kinds, all ON by default", boxes.length === 3 && boxes.every(Boolean));
   await hydrated(page);
   await main().locator('input[name="magic"]').uncheck();

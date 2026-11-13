@@ -114,12 +114,15 @@ try {
   await c2.locator("main [role=alert]").first().waitFor({ timeout: 20_000 });
   check("a used link is refused", true);
 
-  // 8. Already subscribed → same answer, no new link.
+  // 8. Already subscribed → same answer AND a fresh link (review 2026-11-12: someone who unsubscribed with Resend's
+  //    own link still looks "subscribed" to us, and must be able to come back).
   await RateLimit.deleteMany({ key: trusted({ $regex: "^news:" }) }); // fresh limits for the rest
   const before = await tokens(email);
   const again = await newPage();
   await signup(again, email);
-  check("already subscribed: same answer, no new link", (await sentShown(again)) && (await tokens(email)) === before);
+  check("already subscribed: same answer, a fresh confirm link is still sent", (await sentShown(again)) && (await tokens(email)) === before + 1);
+  const t2 = await ActionToken.findOne({ email, purpose: "news_confirm", usedAt: trusted({ $eq: null }) }).lean();
+  check("the link carries the wording version they saw", t2?.newsConsentVersion === NEWS_CONSENT_VERSION);
 
   // 9. Retry job: an unsynced row gets synced.
   await NewsSubscription.updateOne({ email }, { $set: { syncedAt: null } });

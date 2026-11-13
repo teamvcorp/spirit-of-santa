@@ -60,7 +60,8 @@
     "sentTitle": "Revisa tu correo",
     "sentBody": "Te enviamos un enlace para confirmar tu correo. Funciona una vez y vence en 24 horas.",
     "haveAccount": "¿Ya tienes una cuenta?",
-    "signIn": "Inicia sesión"
+    "signIn": "Inicia sesión",
+    "newsOptIn": "Envíenme noticias de Spirit of Santa (algunos correos al año). Es opcional; puedes desactivarlo cuando quieras en tu configuración de correos."
   },
   "Privacy": {
     "title": "Política de privacidad y Aviso de privacidad infantil",
@@ -697,6 +698,10 @@
     "manageLink": "Correos que recibes",
     "scopes": {
       "digest": "Resumen diario (magia + buenas acciones)"
+    },
+    "news": {
+      "label": "Noticias de Spirit of Santa",
+      "help": "Algunos correos al año: cuándo abre la temporada, nuevas tiendas e historias de niños haciendo el bien. Desactivado a menos que lo actives."
     }
   },
   "Tabs": {
@@ -812,7 +817,10 @@
       "registration": "Registro",
       "bonus": "Bono de Magia Navideña",
       "payup": "Pago para completar un regalo"
-    }
+    },
+    "news": "Correos de noticias",
+    "newsOn": "Activado (texto {version}, aceptado el {date})",
+    "newsOff": "Desactivado desde el {stopped} (texto {version}, aceptado el {date})"
   },
   "Giving": {
     "note": "Las donaciones cierran después del {date} para que cada regalo llegue para Navidad.",

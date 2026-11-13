@@ -951,7 +951,20 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   - Pages: `components/news-signup.tsx` (email + UNTICKED "I'm 18 or older and want news" box), `/news/confirm`
     (link only opens; the button POSTs). Email template `newsConfirm` (no user text). Privacy section `news`,
     `PRIVACY_VERSION` 2026-11-12. E2E `browser-family-news.ts` (15 checks, dev server).
-  - Slice 2 (parents) + slice 3 (donors, admin count): see docs/plans/news-subscribers.md.
+  - Parents (slice 2): `/register` optional unticked `newsOptIn` → `User.newsOptInAt` (pending wish) →
+    `verifyEmail` calls `applySignupNewsOptIn` (clears the wish first = applied once; consentAt = tick time).
+    `/parent/notifications` "News" switch (missing = OFF) → `setParentNews` / `parentNewsOn` (active parents,
+    proven account email). Deletion: `markNewsForDeletion(email, session)` INSIDE the erase transaction (forgetAt),
+    then `forgetNews` deletes the Resend contact + row (daily job finishes it if Resend is down). Data export +
+    /parent/our-data show the news record. E2E `browser-family-news-parent.ts` (14).
+  - Review fixes (slice 1): confirm email is sent EVEN IF we think they're subscribed (Resend's own unsubscribe link
+    makes our row stale; also equal work = no timing hint); `rev` on every status change, `syncOne` stamps only an
+    unchanged rev and re-syncs otherwise (a slow subscribe can't win over a later unsubscribe); retry queue sorted by
+    `syncAttemptAt`, stops after `NEWS_MAX_SYNC_ATTEMPTS` (10) and the cron reports `newsStuck`; a DB failure after
+    the token was used gives the link back; the link stores `newsConsentVersion` (wording seen).
+    Known gap: a Resend-side unsubscribe isn't mirrored to our row (no Resend webhook yet), so the parent switch /
+    admin count can read "on" for someone Resend already stopped (they still get nothing).
+  - Slice 3 (donors + admin count): see docs/plans/news-subscribers.md.
 
 ## Open items / TODO
 

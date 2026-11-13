@@ -38,6 +38,8 @@ const actionTokenSchema = new Schema(
     /** news_confirm only: where they asked (NewsSubscription source) and the language to answer in. */
     newsSource: { type: String, enum: ["public", "donor", "tip"] },
     locale: { type: String, enum: ["en", "es"] },
+    /** news_confirm: version of the opt-in wording shown when they ticked the box (proof, even if it changes later). */
+    newsConsentVersion: { type: String, maxlength: 40 },
     expiresAt: { type: Date, required: true },
     usedAt: Date,
   },

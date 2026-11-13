@@ -53,6 +53,15 @@ async function Content() {
           <Row label={t("name")} value={data.parent.name ?? t("none")} />
           <Row label={t("language")} value={data.parent.language === "es" ? "Español" : "English"} />
           <Row label={t("created")} value={day(data.parent.accountCreated)} />
+          {/* News list (2026-11-12): our consent record for this email. */}
+          <Row
+            label={t("news")}
+            value={
+              data.news
+                ? t(data.news.status === "subscribed" ? "newsOn" : "newsOff", { version: data.news.wordingVersion, date: day(data.news.agreedAt), stopped: day(data.news.unsubscribedAt) })
+                : t("none")
+            }
+          />
         </dl>
       </Card>
       <Card>

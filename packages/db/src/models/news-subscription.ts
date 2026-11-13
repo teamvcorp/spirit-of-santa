@@ -8,7 +8,8 @@
  *    after clicking the "confirm" link (double opt-in, ActionToken purpose "news_confirm"). So nobody can sign up
  *    someone else's address.
  *  - Children are never subscribers (no source for them; the forms say "18 or older").
- *  - Unsubscribing keeps the row (status "unsubscribed" + time): proof that we stopped. Account deletion removes it.
+ *  - Unsubscribing keeps the row (status "unsubscribed" + time): proof that we stopped. Account deletion removes it
+ *    (and the Resend contact); if Resend is down the row waits with forgetAt set until the daily job finishes it.
  *  - syncedAt = the last time Resend accepted the current status. null = Resend was down; the daily job retries.
  */
 // Default import: mongoose is CommonJS, so named runtime imports fail under plain Node ESM.
@@ -36,14 +37,27 @@ const newsSubscriptionSchema = new Schema(
     /** When the email was proven (confirm click, or the parent's verified account email). */
     confirmedAt: { type: Date, required: true },
     unsubscribedAt: Date,
+    /**
+     * The account was deleted: the Resend contact must be DELETED, then this row too. Set when Resend couldn't be
+     * reached at deletion time; the daily job retries (so a deleted family never stays on the list).
+     */
+    forgetAt: Date,
     /** Resend has the current status (null = still to send; retried by the daily job). */
     syncedAt: Date,
+    /**
+     * +1 on EVERY status change. A sync only stamps syncedAt if rev is unchanged, and re-syncs otherwise, so a slow
+     * "subscribe" call can never be the last word after an unsubscribe (review 2026-11-12).
+     */
+    rev: { type: Number, default: 0, min: 0 },
+    /** Failed Resend tries since the last success; after NEWS_MAX_SYNC_ATTEMPTS the daily job stops + reports it. */
+    syncAttempts: { type: Number, default: 0, min: 0 },
+    syncAttemptAt: Date,
   },
   { timestamps: true, versionKey: false },
 );
 
 newsSubscriptionSchema.index({ userId: 1 }, { sparse: true });
-newsSubscriptionSchema.index({ syncedAt: 1 }); // retry queue (syncedAt null)
+newsSubscriptionSchema.index({ syncedAt: 1, syncAttemptAt: 1 }); // retry queue (syncedAt null), least recently tried first
 newsSubscriptionSchema.index({ status: 1, source: 1 }); // admin count
 
 export type NewsSubscriptionDoc = InferSchemaType<typeof newsSubscriptionSchema>;

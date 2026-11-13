@@ -88,6 +88,12 @@ export function ParentRegisterForm({ action }: { action: Action }) {
         )}
       </div>
 
+      {/* Optional news (2026-11-12): never pre-ticked; applied only after the email is confirmed (@repo/auth/news). */}
+      <label className="flex items-start gap-3">
+        <input type="checkbox" name="newsOptIn" defaultChecked={v.newsOptIn === "on"} className="mt-1 size-5 shrink-0" data-testid="news-opt-in" />
+        <span className="text-sm">{t("newsOptIn")}</span>
+      </label>
+
       <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
         <label>
           Company URL

@@ -4,7 +4,9 @@
  *   requestNews(email, "public", ctx)     public form: rate-limited, sends a "confirm" email (double opt-in)
  *   sendNewsConfirm(email, "donor", ...)  after a paid donation/tip whose payer ticked the box (no request IP)
  *   confirmNews(rawToken)                 the confirm link's button: records consent, adds them in Resend
- *   (parents: setNewsForParent, slice 2)
+ *   applySignupNewsOptIn(userId)          parent ticked "news" at sign-up: applied once the email is confirmed
+ *   setParentNews(userId, on) / parentNewsOn(userId)   the parent's email settings switch (PIN page)
+ *   markNewsForDeletion + forgetNews      account deletion: our row AND the Resend contact go
  *
  * Security / privacy rules:
  *  - DOUBLE OPT-IN: nothing reaches Resend until the address owner clicks the link, so nobody can sign up
@@ -16,9 +18,9 @@
  *    syncPendingNews() retries it (daily job), so a confirmed "yes" is never lost.
  */
 import "server-only";
-import { connectDb, NewsSubscription, type NewsSource } from "@repo/db";
+import { ActionToken, connectDb, NewsSubscription, trusted, User, type DbSession, type NewsSource } from "@repo/db";
 import { sendEmail } from "@repo/email";
-import { subscribeContact, unsubscribeContact } from "@repo/email/contacts";
+import { removeContact, subscribeContact, unsubscribeContact } from "@repo/email/contacts";
 import { localizePath } from "@repo/i18n/paths";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@repo/lib/locales";
 import { NEWS_CONSENT_VERSION } from "@repo/lib/news";
@@ -32,15 +34,15 @@ export type ConfirmSource = Exclude<NewsSource, "parent">;
 export type NewsRequestResult = { ok: true } | { ok: false; error: "rateLimited" };
 
 /**
- * Send the confirm email, unless this address is already subscribed (then nothing: same answer to the caller)
- * or has asked too often (silent per-email limit: a stranger can't flood someone's inbox with confirm emails).
+ * Send the confirm email, unless this address asked too often (silent per-email limit: a stranger can't flood
+ * someone's inbox). It is sent EVEN IF we think they're subscribed (review 2026-11-12): Resend's own unsubscribe
+ * link changes only Resend, so our row may be stale, and skipping would lock that person out forever. Doing the
+ * same work either way also means the response time says nothing about the address.
  */
 export async function sendNewsConfirm(email: string, source: ConfirmSource, locale: Locale, appOrigin: string): Promise<void> {
   await connectDb();
   if (!(await hitRateLimit(`news:email:${emailKey(email)}`, 3, 24 * HOUR))) return;
-  const existing = await NewsSubscription.findOne({ email, status: "subscribed" }).select("_id").lean();
-  if (existing) return;
-  const { raw } = await createActionToken("news_confirm", { email, newsSource: source, locale });
+  const { raw } = await createActionToken("news_confirm", { email, newsSource: source, locale, newsConsentVersion: NEWS_CONSENT_VERSION });
   const url = new URL(localizePath("/news/confirm", locale), appOrigin);
   url.searchParams.set("token", raw);
   try {
@@ -76,48 +78,80 @@ export async function confirmNews(raw: unknown): Promise<boolean> {
   if (!token?.newsSource) return false;
   const now = new Date();
   const locale = isLocale(token.locale) ? token.locale : DEFAULT_LOCALE;
-  await NewsSubscription.updateOne(
-    { email: token.email },
-    {
-      $set: {
-        status: "subscribed",
-        locale,
-        consentVersion: NEWS_CONSENT_VERSION,
-        consentAt: token.createdAt ?? now, // when they asked (the link was made at that moment)
-        confirmedAt: now,
-        syncedAt: null,
+  try {
+    await NewsSubscription.updateOne(
+      { email: token.email },
+      {
+        $set: {
+          status: "subscribed",
+          locale,
+          // The wording shown when they TICKED the box (stored on the link), not whatever is current at the click.
+          consentVersion: token.newsConsentVersion ?? NEWS_CONSENT_VERSION,
+          consentAt: token.createdAt ?? now, // when they asked (the link was made at that moment)
+          confirmedAt: now,
+          syncedAt: null,
+          syncAttempts: 0,
+        },
+        $unset: { unsubscribedAt: "", forgetAt: "", syncAttemptAt: "" },
+        $inc: { rev: 1 },
+        $setOnInsert: { source: token.newsSource }, // where they FIRST said yes stays the source
       },
-      $unset: { unsubscribedAt: "" },
-      $setOnInsert: { source: token.newsSource }, // where they FIRST said yes stays the source
-    },
-    { upsert: true, runValidators: true },
-  );
+      { upsert: true, runValidators: true },
+    );
+  } catch (err) {
+    // Saving failed (DB blip): give the link back so their "yes" isn't lost to a spent link, then report the error.
+    await ActionToken.updateOne({ _id: token._id }, { $set: { usedAt: null } }).catch(() => {});
+    throw err;
+  }
   await syncOne(token.email);
   return true;
 }
 
+/** After this many failed Resend tries the daily job stops retrying a row and reports it (a human looks). */
+export const NEWS_MAX_SYNC_ATTEMPTS = 10;
+
 /**
- * Push one row's CURRENT status to Resend and stamp syncedAt. Best-effort: on failure the row stays unsynced
- * for syncPendingNews. The stamp only applies if the row didn't change meanwhile (status in the filter).
+ * Push one row's CURRENT status to Resend and stamp syncedAt. Best-effort: on failure the row stays unsynced (with
+ * a try count) for syncPendingNews. Ordering (review 2026-11-12): the stamp only lands if `rev` is unchanged; if the
+ * status changed during the call, we sync AGAIN with the new status, so the newest choice is always the last call.
  */
 async function syncOne(email: string): Promise<boolean> {
-  const row = await NewsSubscription.findOne({ email }).select("status").lean();
-  if (!row) return true;
-  try {
-    if (row.status === "subscribed") await subscribeContact(email);
-    else await unsubscribeContact(email);
-    await NewsSubscription.updateOne({ email, status: row.status }, { $set: { syncedAt: new Date() } });
-    return true;
-  } catch (err) {
-    console.error("[news] Resend sync failed:", err instanceof Error ? err.message : "unknown");
-    return false;
+  for (let pass = 0; pass < 3; pass++) {
+    const row = await NewsSubscription.findOne({ email }).select("status forgetAt rev").lean();
+    if (!row) return true;
+    try {
+      if (row.forgetAt) await removeContact(email);
+      else if (row.status === "subscribed") await subscribeContact(email);
+      else await unsubscribeContact(email);
+    } catch (err) {
+      console.error("[news] Resend sync failed:", err instanceof Error ? err.message : "unknown");
+      await NewsSubscription.updateOne({ email }, { $set: { syncAttemptAt: new Date() }, $inc: { syncAttempts: 1 } });
+      return false;
+    }
+    if (row.forgetAt) {
+      // Account deleted: the contact is gone, now our row (nothing kept about a deleted family).
+      if ((await NewsSubscription.deleteOne({ email, rev: row.rev })).deletedCount === 1) return true;
+      continue; // changed meanwhile (they signed up again?): sync the new state
+    }
+    const stamped = await NewsSubscription.updateOne(
+      { email, rev: row.rev },
+      { $set: { syncedAt: new Date(), syncAttempts: 0 }, $unset: { syncAttemptAt: "" } },
+    );
+    if (stamped.matchedCount === 1) return true;
+    // rev changed while Resend was busy: loop and push the newer status.
   }
+  return false; // still changing: left unsynced, the daily job finishes it
 }
 
-/** Daily job: retry rows Resend hasn't accepted yet (oldest first, a few at a time: Resend allows 10 req/s). */
-export async function syncPendingNews(limit = 50): Promise<{ synced: number; failed: number }> {
+/**
+ * Daily job: retry rows Resend hasn't accepted yet, least recently tried first (so a few bad rows can't block the
+ * queue), a few at a time (Resend allows 10 req/s). Rows that failed NEWS_MAX_SYNC_ATTEMPTS times are skipped and
+ * counted as `stuck`: the cron reports them every day until someone looks.
+ */
+export async function syncPendingNews(limit = 50): Promise<{ synced: number; failed: number; stuck: number }> {
   await connectDb();
-  const rows = await NewsSubscription.find({ syncedAt: null }).sort({ updatedAt: 1 }).limit(limit).select("email").lean();
+  const retryable = { syncedAt: null, syncAttempts: trusted({ $lt: NEWS_MAX_SYNC_ATTEMPTS }) };
+  const rows = await NewsSubscription.find(retryable).sort({ syncAttemptAt: 1 }).limit(limit).select("email").lean();
   let synced = 0;
   let failed = 0;
   for (const r of rows) {
@@ -126,6 +160,95 @@ export async function syncPendingNews(limit = 50): Promise<{ synced: number; fai
     // One sync = up to 3 Resend calls; Resend allows 10 per second (a burst got 429 in the live check 2026-11-12).
     await new Promise((res) => setTimeout(res, 400));
   }
-  return { synced, failed };
+  const stuck = await NewsSubscription.countDocuments({ syncedAt: null, syncAttempts: trusted({ $gte: NEWS_MAX_SYNC_ATTEMPTS }) });
+  return { synced, failed, stuck };
 }
 
+
+// ── Parents (slice 2) ────────────────────────────────────────────────────────────────
+/** An ACTIVE parent's proven email + language (null for anyone else). */
+async function activeParent(userId: unknown) {
+  const u = await User.findOne({ _id: userId, role: "parent", status: "active" }).select("email locale newsOptInAt").lean();
+  return u ? { id: u._id, email: u.email, locale: isLocale(u.locale) ? u.locale : DEFAULT_LOCALE, newsOptInAt: u.newsOptInAt } : null;
+}
+
+/**
+ * Subscribe/unsubscribe a parent by their (already proven) account email. No confirm email needed: confirming the
+ * account proved the address. Saying "yes" again while already subscribed keeps the ORIGINAL consent record.
+ * Concurrent first "yes" clicks: the unique email index makes one upsert fail (E11000) → retried as an update.
+ */
+async function writeParentNews(p: { id: unknown; email: string; locale: Locale }, on: boolean, consentAt: Date): Promise<void> {
+  const now = new Date();
+  if (!on) {
+    await NewsSubscription.updateOne(
+      { email: p.email, status: "subscribed" },
+      { $set: { status: "unsubscribed", unsubscribedAt: now, syncedAt: null, userId: p.id }, $inc: { rev: 1 } },
+    );
+  } else {
+    const existing = await NewsSubscription.findOne({ email: p.email }).select("status").lean();
+    if (existing?.status === "subscribed") {
+      await NewsSubscription.updateOne({ email: p.email }, { $set: { userId: p.id } });
+      return; // already on the list (maybe from the public form): nothing to tell Resend
+    }
+    const update = {
+      $set: { status: "subscribed", userId: p.id, locale: p.locale, consentVersion: NEWS_CONSENT_VERSION, consentAt, confirmedAt: now, syncedAt: null, syncAttempts: 0 },
+      $unset: { unsubscribedAt: "", forgetAt: "", syncAttemptAt: "" },
+      $inc: { rev: 1 },
+      $setOnInsert: { source: "parent" },
+    };
+    try {
+      await NewsSubscription.updateOne({ email: p.email }, update, { upsert: true, runValidators: true });
+    } catch (err) {
+      if ((err as { code?: number }).code !== 11000) throw err;
+      await NewsSubscription.updateOne({ email: p.email }, update, { runValidators: true }); // lost the insert race
+    }
+  }
+  await syncOne(p.email);
+}
+
+/** After the account email is confirmed: apply a sign-up "send me news" tick, once. */
+export async function applySignupNewsOptIn(userId: unknown): Promise<void> {
+  const p = await activeParent(userId);
+  if (!p?.newsOptInAt) return;
+  // Clear the pending wish FIRST and only continue if THIS call cleared it (no double apply).
+  const res = await User.updateOne({ _id: p.id, newsOptInAt: p.newsOptInAt }, { $unset: { newsOptInAt: "" } });
+  if (res.modifiedCount !== 1) return;
+  await writeParentNews(p, true, p.newsOptInAt);
+}
+
+/** The settings switch. false = this user isn't an active parent. */
+export async function setParentNews(userId: unknown, on: boolean): Promise<boolean> {
+  await connectDb();
+  const p = await activeParent(userId);
+  if (!p) return false;
+  await writeParentNews(p, on, new Date());
+  return true;
+}
+
+/** Is this parent's email on the news list right now (as far as we know)? */
+export async function parentNewsOn(userId: unknown): Promise<boolean> {
+  await connectDb();
+  const p = await activeParent(userId);
+  if (!p) return false;
+  return !!(await NewsSubscription.exists({ email: p.email, status: "subscribed" }));
+}
+
+/**
+ * Account deletion, step 1, INSIDE the deletion transaction: mark the row forgetAt (+ unsubscribed), so the
+ * "remove from the list" job is recorded atomically with the account going. Step 2 (forgetNews) does it now;
+ * if Resend can't be reached the daily job finishes it. Nothing about a deleted family stays on the list.
+ */
+export async function markNewsForDeletion(email: string, session: DbSession): Promise<void> {
+  await NewsSubscription.updateOne(
+    { email },
+    { $set: { status: "unsubscribed", forgetAt: new Date(), syncedAt: null, syncAttempts: 0 }, $unset: { userId: "", syncAttemptAt: "" }, $inc: { rev: 1 } },
+    { session },
+  );
+}
+
+/** Account deletion, step 2, AFTER the transaction: delete the Resend contact and our row (best-effort). */
+export async function forgetNews(email: string): Promise<void> {
+  await connectDb();
+  if (!(await NewsSubscription.exists({ email, forgetAt: trusted({ $ne: null }) }))) return; // never on our list
+  await syncOne(email);
+}

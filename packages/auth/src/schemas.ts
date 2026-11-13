@@ -108,6 +108,8 @@ export const parentRegistrationSchema = z.object({
   familyName: z.string().trim().min(1, "required").max(80, "tooLong"),
   zip: z.string().trim().regex(/^(\d{5})?$/, "invalid").optional(),
   consent: z.literal("on", "mustAgree"),
+  /** Optional, never pre-ticked: "send me Spirit of Santa news" (2026-11-12). Applied only after email confirmation. */
+  newsOptIn: z.literal("on").optional(),
   /** Honeypot (see storeRegistrationSchema). */
   company_url: z.string().max(500).optional(),
 });

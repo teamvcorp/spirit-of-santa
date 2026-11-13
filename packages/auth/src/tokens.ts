@@ -35,6 +35,7 @@ type TokenTarget = {
   /** news_confirm only (see the ActionToken model). */
   newsSource?: "public" | "donor" | "tip";
   locale?: "en" | "es";
+  newsConsentVersion?: string;
 };
 const idString = (v: Id) => (v == null ? undefined : String(v));
 
@@ -61,6 +62,7 @@ export async function createActionToken(
     createdByUserId: idString(target.createdByUserId),
     ...(target.newsSource ? { newsSource: target.newsSource } : {}),
     ...(target.locale ? { locale: target.locale } : {}),
+    ...(target.newsConsentVersion ? { newsConsentVersion: target.newsConsentVersion } : {}),
     expiresAt: new Date(now.getTime() + TOKEN_TTL_MS[purpose]),
   });
   return { raw, id: String(doc._id) };

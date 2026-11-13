@@ -27,6 +27,7 @@ import { PARENT_CONSENT_VERSION } from "@repo/lib/family";
 import { STORE_AGREEMENT_VERSION } from "@repo/lib/store";
 import { burnVerifyTime, hashSecret } from "./password.ts";
 import { LOCKOUT_MINUTES } from "./options.ts";
+import { applySignupNewsOptIn } from "./news.ts";
 import { clientIp, emailKey, hitRateLimit, ipKey } from "./rate-limit.ts";
 import type { AcceptInviteInput, AcceptRepInviteInput, ParentRegistrationInput, StoreRegistrationInput } from "./schemas.ts";
 import { slugify } from "./slug.ts";
@@ -221,7 +222,17 @@ export async function registerParent(input: ParentRegistrationInput, ctx: FlowCo
       try {
         return await withTransaction(async (session) => {
           const [user] = await User.create(
-            [{ email: input.email, passwordHash, role: "parent", name: input.parentName, status: "pending", locale: ctx.locale }],
+            [
+              {
+                email: input.email,
+                passwordHash,
+                role: "parent",
+                name: input.parentName,
+                status: "pending",
+                locale: ctx.locale,
+                ...(input.newsOptIn ? { newsOptInAt: new Date() } : {}),
+              },
+            ],
             { session },
           );
           const [family] = await Family.create(
@@ -260,6 +271,9 @@ export async function verifyEmail(raw: unknown): Promise<FlowResult> {
       await Family.updateOne({ ownerUserId: token.userId, "consent.emailVerifiedAt": null }, { $set: { "consent.emailVerifiedAt": new Date() } }, { session });
     }
   });
+  // The email is now PROVEN, so a "send me news" tick from sign-up can be applied (news.ts). Best-effort: the
+  // account is already active; a failure only means no news (logged without the address).
+  await applySignupNewsOptIn(token.userId).catch((err) => console.error("[news] sign-up opt-in failed:", err instanceof Error ? err.message : "unknown"));
   return { ok: true };
 }
 

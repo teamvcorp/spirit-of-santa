@@ -60,7 +60,8 @@
     "sentTitle": "Check your email",
     "sentBody": "We sent a link to confirm your email address. It works once and expires in 24 hours.",
     "haveAccount": "Already have an account?",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "newsOptIn": "Send me Spirit of Santa news (a few emails a year). Optional; you can turn it off any time in your email settings."
   },
   "Privacy": {
     "title": "Privacy Policy and Children's Privacy Notice",
@@ -697,6 +698,10 @@
     "manageLink": "Email settings",
     "scopes": {
       "digest": "Daily summary (magic + good deeds)"
+    },
+    "news": {
+      "label": "News from Spirit of Santa",
+      "help": "A few emails a year: when the season opens, new stores and stories of kids doing good. Off unless you turn it on."
     }
   },
   "Tabs": {
@@ -812,7 +817,10 @@
       "registration": "Registration",
       "bonus": "Christmas Magic bonus",
       "payup": "Pay to finish a gift"
-    }
+    },
+    "news": "News emails",
+    "newsOn": "On (wording {version}, agreed {date})",
+    "newsOff": "Off since {stopped} (wording {version}, agreed {date})"
   },
   "Giving": {
     "note": "Giving closes after {date} so every gift arrives by Christmas.",

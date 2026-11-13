@@ -86,6 +86,8 @@ export async function GET(request: Request): Promise<Response> {
   const receipts = await settle(() => sendPendingReceipts({ limit: 50 }));
   // News list: rows Resend refused earlier (it was down / rate-limited). A row that fails again just waits for tomorrow.
   const news = await settle(() => syncPendingNews(25));
+  // Rows Resend refused 10 times (e.g. an address it rejects) need a human: loud every day, like parked gifts.
+  const newsStuck = news.status === "fulfilled" && news.value.stuck > 0;
   // LAST (review 2026-11-07: never crowd out the money steps): Jan 1 – Mar 31, copy last season's active store
   // items into the new season, store by store within a time budget (idempotent; a no-op the rest of the year).
   const catalog = await settle(() => copyLastSeasonCatalog());
@@ -125,9 +127,9 @@ export async function GET(request: Request): Promise<Response> {
   const parked = wishLists.status === "fulfilled" && (wishLists.value.locked.needsAttention > 0 || wishLists.value.closed.needsAttention > 0);
   const parentEmailsFailed = (digests.status === "fulfilled" && digests.value.failed > 0) ||
     (reminders.status === "fulfilled" && [reminders.value.cutoff, reminders.value.payUp].some((r) => r !== "notTime" && r.failed > 0));
-  const failed = digestFailed || noticesFailed || closeFailed || lockFailed || parked || closingFailed || resetStuck || parentEmailsFailed || [split, seasonEnd, catalog, payLater, wishLists, storeOrders, familyNotices, closing, addresses, digests, reminders, receipts, news].some((r) => r.status === "rejected");
+  const failed = newsStuck || digestFailed || noticesFailed || closeFailed || lockFailed || parked || closingFailed || resetStuck || parentEmailsFailed || [split, seasonEnd, catalog, payLater, wishLists, storeOrders, familyNotices, closing, addresses, digests, reminders, receipts, news].some((r) => r.status === "rejected");
   if (failed) {
-    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, catalog: catalog.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, closing: closing.status, addresses: addresses.status, digests: digests.status, reminders: reminders.status, receipts: receipts.status, news: news.status, digestFailed, noticesFailed, closeFailed, lockFailed, parked, closingFailed, resetStuck, parentEmailsFailed }));
+    console.error("[cron] money job partly failed", JSON.stringify({ split: split.status, seasonEnd: seasonEnd.status, catalog: catalog.status, payLater: payLater.status, wishLists: wishLists.status, storeOrders: storeOrders.status, familyNotices: familyNotices.status, closing: closing.status, addresses: addresses.status, digests: digests.status, reminders: reminders.status, receipts: receipts.status, news: news.status, newsStuck, digestFailed, noticesFailed, closeFailed, lockFailed, parked, closingFailed, resetStuck, parentEmailsFailed }));
     return Response.json(result, { status: 500, headers: { "Cache-Control": "no-store" } });
   }
   console.info("[cron] donations", JSON.stringify(result)); // totals/counts only, no personal data

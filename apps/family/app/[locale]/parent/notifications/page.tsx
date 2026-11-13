@@ -1,11 +1,13 @@
 /**
  * /parent/notifications (Phase 7): which emails the parent gets. PIN required. Account emails
- * (sign-in, receipts, "gift on its way") are always sent; these three kinds can be switched off.
+ * (sign-in, receipts, "gift on its way") are always sent; these three kinds can be switched off. Plus the
+ * OPT-IN news list (2026-11-12, @repo/auth/news): off unless the parent turns it on.
  */
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { parentNewsOn } from "@repo/auth/news";
 import { getNotifyPrefs } from "@repo/families/notifications";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
@@ -21,9 +23,9 @@ export async function generateMetadata(): Promise<Metadata> {
 async function Content() {
   await connection();
   const parent = await requireUnlockedPage("/parent/notifications");
-  const [prefs, t] = await Promise.all([getNotifyPrefs(parent), getTranslations("Notify")]);
+  const [prefs, news, t] = await Promise.all([getNotifyPrefs(parent), parentNewsOn(parent.id), getTranslations("Notify")]);
   if (!prefs) return <Alert tone="error">{t("errors.notFound")}</Alert>;
-  return <NotifyForm prefs={prefs} />;
+  return <NotifyForm prefs={prefs} news={news} />;
 }
 
 export default async function NotificationsPage() {

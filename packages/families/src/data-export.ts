@@ -12,7 +12,7 @@
 import "server-only";
 import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
 import { unsealJson } from "@repo/auth/sealed";
-import { Deed, DeedType, Family, Item, Kid, KidVote, Payment, Transaction, trusted, User, WishListItem } from "@repo/db";
+import { Deed, DeedType, Family, Item, Kid, KidVote, NewsSubscription, Payment, Transaction, trusted, User, WishListItem } from "@repo/db";
 import type { DeliveryAddress } from "@repo/lib/address";
 import { NOTIFY_KINDS } from "@repo/lib/notify";
 import { ADDRESS_KEY } from "@repo/wishlists/delivery";
@@ -51,6 +51,8 @@ export type KidExport = {
 export type FamilyExport = {
   exportedAt: Date;
   parent: { email: string; name: string | null; language: string; accountCreated: Date | null; lastSignIn: Date | null; status: string };
+  /** The news list (2026-11-12): our consent record for this email, or null if never on it. */
+  news: { status: string; source: string; agreedAt: Date; confirmedAt: Date; wordingVersion: string; unsubscribedAt: Date | null } | null;
   /** What the PARENT paid (registration, bonus, pay-up). Never processor ids. */
   payments: { purpose: string; status: string; amountCents: number; currency: string; paidAt: Date | null; refundedCents: number; children: string[] }[];
   family: {
@@ -84,6 +86,7 @@ export async function familyDataExport(parent: Parent, locale = "en"): Promise<F
     Kid.find({ familyId: fid }).sort({ createdAt: 1 }).lean(),
   ]);
   if (!user || !fam) return null;
+  const news = await NewsSubscription.findOne({ email: user.email }).select("status source consentAt confirmedAt consentVersion unsubscribedAt").lean();
   const kidIds = kids.map((k) => k._id);
   const [gifts, deeds, votes, ledger, payments] = await Promise.all([
     WishListItem.find({ kidId: trusted({ $in: kidIds }) })
@@ -113,6 +116,9 @@ export async function familyDataExport(parent: Parent, locale = "en"): Promise<F
   return {
     exportedAt: new Date(),
     parent: { email: user.email, name: user.name ?? null, language: user.locale ?? "en", accountCreated: user.createdAt ?? null, lastSignIn: user.lastLoginAt ?? null, status: user.status },
+    news: news
+      ? { status: news.status, source: news.source, agreedAt: news.consentAt, confirmedAt: news.confirmedAt, wordingVersion: news.consentVersion, unsubscribedAt: news.unsubscribedAt ?? null }
+      : null,
     payments: payments.map((pm) => ({
       purpose: pm.purpose,
       status: pm.status,

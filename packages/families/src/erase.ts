@@ -26,6 +26,7 @@ import { getSeasonYear, startOfDayInZone } from "@repo/lib/season";
 import { sendEmail } from "@repo/email";
 import { closePayLaterForDeed } from "@repo/payments/pay-later-links";
 import { sealJson, unsealJson } from "@repo/auth/sealed";
+import { forgetNews, markNewsForDeletion } from "@repo/auth/news";
 import { formatLongDate } from "@repo/lib/format";
 import { DAY_MS } from "@repo/lib/time";
 import { ADDRESS_KEY, deletionContactAad, familyAwaitingDelivery, type DeletionContact } from "@repo/wishlists/delivery";
@@ -227,6 +228,7 @@ export async function eraseFamily(parent: Parent, opts: { mode?: EraseMode } = {
       // The sign-in goes NOW: every session is refused at its next check, old reset links die, and the email is
       // free to sign up again. The contact above is all that's kept.
       await ActionToken.deleteMany({ email: user.email }, { session });
+      await markNewsForDeletion(user.email, session); // off the news list too (finished below / by the daily job)
       await User.deleteOne({ _id: parent.id }, { session });
       await AuditLog.create([{ actorUserId: parent.id, action: "family.delete_requested", targetType: "family", targetId: fid, details: { children: kids.length, mode: "deliverFirst", deadline } }], { session });
     });
@@ -237,6 +239,7 @@ export async function eraseFamily(parent: Parent, opts: { mode?: EraseMode } = {
       values: { link: `${familyAppOrigin()}/`, date: formatLongDate(deadline, locale) },
       idempotencyKey: `deletion-started/${fid}`,
     }).catch((e: unknown) => console.error("[families] deletion-started email failed:", e instanceof Error ? e.message : "unknown"));
+    await forgetNewsLater(user.email);
     return { ok: true, pending: true, deadline };
   }
 
@@ -251,13 +254,20 @@ export async function eraseFamily(parent: Parent, opts: { mode?: EraseMode } = {
     );
     await Family.deleteOne({ _id: fid, ownerUserId: parent.id }, { session });
     await ActionToken.deleteMany({ email: user.email }, { session });
+    await markNewsForDeletion(user.email, session);
     await User.deleteOne({ _id: parent.id }, { session });
     await AuditLog.create([{ actorUserId: parent.id, action: "family.delete", targetType: "family", targetId: fid, details: { children: kids.length, mode: opts.mode ?? "deliverFirst" } }], { session });
   });
   await sendEmail({ to: user.email, locale, template: "accountDeleted", values: { link: `${familyAppOrigin()}/` }, idempotencyKey: `account-deleted/${fid}` }).catch((e: unknown) =>
     console.error("[families] account-deleted email failed:", e instanceof Error ? e.message : "unknown"),
   );
+  await forgetNewsLater(user.email);
   return { ok: true, pending: false };
+}
+
+/** Remove the deleted parent from the news list (Resend) now; a failure is retried by the daily job (forgetAt). */
+async function forgetNewsLater(email: string) {
+  await forgetNews(email).catch((e: unknown) => console.error("[families] news list removal failed (retried daily):", e instanceof Error ? e.message : "unknown"));
 }
 
 export type FinalizeResult = { finalized: number; byCap: number; waiting: number; failed: number };

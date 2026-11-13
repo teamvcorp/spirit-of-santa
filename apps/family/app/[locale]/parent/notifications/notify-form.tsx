@@ -7,7 +7,7 @@ import { useHydrated } from "@repo/ui/use-hydrated";
 import { NOTIFY_KINDS as KINDS, type NotifyPrefs } from "@repo/lib/notify";
 import { saveNotifyAction, type NotifyFormState } from "./actions";
 
-export function NotifyForm({ prefs }: { prefs: NotifyPrefs }) {
+export function NotifyForm({ prefs, news }: { prefs: NotifyPrefs; news: boolean }) {
   const t = useTranslations("Notify");
   const [state, action, pending] = useActionState(saveNotifyAction, { status: "idle" } as NotifyFormState);
   const hydrated = useHydrated();
@@ -25,6 +25,14 @@ export function NotifyForm({ prefs }: { prefs: NotifyPrefs }) {
           </span>
         </label>
       ))}
+      {/* News (2026-11-12): a separate OPT-IN list (Resend), off unless chosen. Adults only: this is the parent. */}
+      <label className="flex items-start gap-3 border-t border-foreground/10 pt-4">
+        <input type="checkbox" name="news" value="on" defaultChecked={state.news ?? news} className="mt-1 size-5" data-testid="news-switch" />
+        <span>
+          <span className="font-semibold">{t("news.label")}</span>
+          <span className="block text-sm text-muted">{t("news.help")}</span>
+        </span>
+      </label>
       <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">
         {t("save")}
       </Button>

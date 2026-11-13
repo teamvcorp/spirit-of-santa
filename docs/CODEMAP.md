@@ -964,7 +964,18 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
     the token was used gives the link back; the link stores `newsConsentVersion` (wording seen).
     Known gap: a Resend-side unsubscribe isn't mirrored to our row (no Resend webhook yet), so the parent switch /
     admin count can read "on" for someone Resend already stopped (they still get nothing).
-  - Slice 3 (donors + admin count): see docs/plans/news-subscribers.md.
+  - Donors (slice 3): unticked `NewsOptInBox` (@/components/news-opt-in-box) on /donate, /d/<code> tips and
+    /k/<code> donation links → `news` in the form (amountFormSchema) → checkout metadata `sos_news: "1"` (+ tips now
+    carry `sos_locale`). Webhook `onPaymentIntentSucceeded`: ONLY on the first "processed" outcome →
+    `afterNewsOptIn` reads the Stripe session `customer_details.email` → `sendNewsConfirm(email, "donor"|"tip")`
+    (confirm link; best-effort, never fails the payment). Pay-later texted tips have no box. `@repo/payments` now
+    depends on `@repo/auth`. Admin dashboard "News subscribers" tiles (by source + "Waiting for Resend").
+    E2E `browser-family-news-donor.ts` (8; a real paid Checkout isn't scriptable, so the email lookup itself is
+    covered by code review only).
+  - Slice 2 review fixes: `verifyEmail` applies the sign-up tick only when IT activated the account; a password
+    reset that activates a pending parent applies it too; any settings save clears a pending tick (newest wins);
+    "on" never revives a `forgetAt` row (filter + post-write account check); a failed/exhausted sync forces
+    `syncedAt: null`; the retry query matches rows without `syncAttempts`. E2E parent test now 16.
 
 ## Open items / TODO
 

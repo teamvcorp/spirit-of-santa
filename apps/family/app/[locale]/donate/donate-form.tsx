@@ -16,6 +16,7 @@ import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { AmountPicker } from "../../../components/amount-picker";
+import { NewsOptInBox } from "../../../components/news-opt-in-box";
 import { communityDonateAction, type CommunityState } from "./actions";
 
 // Module scope: one Stripe.js load per page (Stripe's guidance).
@@ -81,6 +82,7 @@ export function CommunityDonateForm() {
         otherLabel={t("other")}
         otherAmountLabel={t("otherAmount")}
       />
+      <NewsOptInBox />
       <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">
         {t("button")}
       </Button>

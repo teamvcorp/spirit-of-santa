@@ -15,6 +15,6 @@ export async function donateAction(_prev: DonateState, fd: FormData): Promise<Do
   if (!parsed.success) return { ok: false, error: "invalid", ...echo };
   const origin = process.env.NEXTAUTH_URL;
   if (!origin) throw new Error("NEXTAUTH_URL is not set");
-  const { token, amount, other, locale } = parsed.data;
-  return { ...(await startDonation(token, tipAmountCents(amount, other), origin, (p) => localizePath(p, locale))), ...echo };
+  const { token, amount, other, locale, news } = parsed.data;
+  return { ...(await startDonation(token, tipAmountCents(amount, other), origin, (p) => localizePath(p, locale), { news: news === "on", locale })), ...echo };
 }

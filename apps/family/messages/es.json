@@ -865,6 +865,7 @@
       "submit": "Sí, envíenme noticias",
       "done": "Ya estás en la lista. ¡Gracias! Cada correo de noticias tiene un enlace para cancelar la suscripción.",
       "invalidLink": "Este enlace ya se usó o venció. Puedes pedirlo de nuevo en la página principal de Spirit of Santa."
-    }
+    },
+    "afterPayment": "Mantenerme informado: tengo 18 años o más y quiero noticias de Spirit of Santa. Después de pagar, te enviaremos un enlace para confirmar al correo que escribas en el formulario de pago."
   }
 }

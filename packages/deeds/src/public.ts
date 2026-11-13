@@ -170,14 +170,28 @@ export async function tipTarget(token: unknown): Promise<TipTarget> {
   };
 }
 
-export async function startTip(token: unknown, amountCents: number | null, origin: string, localePath: (p: string) => string): Promise<TipStart> {
+export async function startTip(
+  token: unknown,
+  amountCents: number | null,
+  origin: string,
+  localePath: (p: string) => string,
+  /** news = the payer ticked "send me news" (a confirm link goes to their Stripe email after paying). */
+  opts: { news?: boolean; locale?: "en" | "es" } = {},
+): Promise<TipStart> {
   if (amountCents == null) return { ok: false, error: "amount" };
   const target = await tipTarget(token);
   if (!target.ok) return target;
   // Stripe: expires_at must be 30 min .. STRICTLY under 24 h from creation (exactly 24 h is refused).
   const endsAt = Math.min(target.payableUntil, Date.now() + MAX_CHECKOUT_MS);
   if (endsAt - Date.now() < MIN_CHECKOUT_MS) return { ok: false, error: "expired" };
-  const metadata = buildPaymentMetadata({ sos_purpose: "tip", sos_kid_id: target.kidId, sos_family_id: target.familyId, sos_deed_id: target.deedId });
+  const metadata = buildPaymentMetadata({
+    sos_purpose: "tip",
+    sos_kid_id: target.kidId,
+    sos_family_id: target.familyId,
+    sos_deed_id: target.deedId,
+    ...(opts.news ? { sos_news: "1" as const } : {}),
+    ...(opts.locale ? { sos_locale: opts.locale } : {}),
+  });
   try {
     const session = await getStripe().checkout.sessions.create({
       ...paymentMethodConfig(), // Spirit of Santa's own payment-method group (Link off)

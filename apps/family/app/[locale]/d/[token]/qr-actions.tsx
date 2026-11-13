@@ -15,6 +15,7 @@ import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { AmountPicker } from "../../../../components/amount-picker";
+import { NewsOptInBox } from "../../../../components/news-opt-in-box";
 import { thankAction, tipAction, type ThankState, type TipState } from "./actions";
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -107,6 +108,7 @@ export function QrActions({ token, kidName, rate, canTip, giving, payLater }: { 
           <LocaleField />
           <input type="hidden" name="token" value={token} />
           <AmountPicker values={tip.values} initial={TIP_PRESETS_CENTS[0]} legend={t("tipTitle")} otherLabel={t("other")} otherAmountLabel={t("otherAmount")} />
+          <NewsOptInBox />
           <Button type="submit" variant="secondary" pending={tipping} disabled={!hydrated} className="self-start">
             {t("tipButton")}
           </Button>

@@ -40,7 +40,8 @@ export async function donationWindow(): Promise<{ open: boolean; freezeAt: Date 
 export type CommunityStart = { ok: true; clientSecret: string; amountCents: number } | { ok: false; error: "amount" | "zip" | "closed" | "stripe" };
 
 export async function startCommunityDonation(
-  input: { zip: string | null; amountCents: number | null; locale: "en" | "es" },
+  /** news = the donor ticked "send me news" (a confirm link goes to their Stripe email after paying). */
+  input: { zip: string | null; amountCents: number | null; locale: "en" | "es"; news?: boolean },
   origin: string,
   localePath: (p: string) => string,
 ): Promise<CommunityStart> {
@@ -51,7 +52,7 @@ export async function startCommunityDonation(
   const endsAt = Math.min(win.freezeAt.getTime(), Date.now() + MAX_CHECKOUT_MS);
   if (!win.open || endsAt - Date.now() < MIN_CHECKOUT_MS) return { ok: false, error: "closed" };
 
-  const metadata = buildPaymentMetadata({ sos_purpose: "donation", ...(zip ? { sos_zip: zip } : {}), sos_locale: input.locale });
+  const metadata = buildPaymentMetadata({ sos_purpose: "donation", ...(zip ? { sos_zip: zip } : {}), sos_locale: input.locale, ...(input.news ? { sos_news: "1" as const } : {}) });
   try {
     const session = await getStripe().checkout.sessions.create({
       ...paymentMethodConfig(), // Spirit of Santa's own payment-method group (Link off)

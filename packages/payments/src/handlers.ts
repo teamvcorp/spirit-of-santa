@@ -28,6 +28,8 @@ import { allocateForKid } from "@repo/wishlists/engine";
 import { payUpWindow } from "@repo/wishlists/payup";
 import { closePayLaterForDeed } from "./pay-later-links.ts";
 import { ensureDonationReceipt, sendPendingReceipts } from "./receipts.ts";
+import { sendNewsConfirm } from "@repo/auth/news";
+import { emailSchema } from "@repo/auth/schemas";
 
 export type Outcome = { status: "processed" | "ignored"; note: string };
 const processed = (note: string): Outcome => ({ status: "processed", note });
@@ -93,6 +95,12 @@ export async function onPaymentIntentSucceeded(pi: Stripe.PaymentIntent): Promis
   }
   const meta = parsePaymentMetadata(pi.metadata);
   if (outcome.status === "processed" && meta?.sos_purpose === "donation") await afterDonationRecorded(pi.id);
+  // "Send me news" ticked on the donate/tip form: a CONFIRM link to the email they typed in Stripe (double
+  // opt-in; nothing is added to the list until they click). Only on the FIRST processing ("processed"), so
+  // webhook retries and the return page never send it twice.
+  if (outcome.status === "processed" && (meta?.sos_purpose === "donation" || meta?.sos_purpose === "tip") && meta.sos_news === "1") {
+    await afterNewsOptIn(pi.id, meta.sos_purpose === "donation" ? "donor" : "tip", meta.sos_locale);
+  }
   // A deed tipped (pay now OR its texted link): close any OTHER live pay-later link for it, so the
   // same deed can't be paid twice by mistake. Best-effort, after the money transaction.
   if (outcome.status === "processed" && meta?.sos_purpose === "tip" && meta.sos_deed_id) {
@@ -113,6 +121,22 @@ async function afterDonationRecorded(piId: string): Promise<void> {
     await sendPendingReceipts({ onlyPiId: piId });
   } catch (err) {
     console.error("[receipts] after donation failed:", err instanceof Error ? err.name : "unknown");
+  }
+}
+
+/**
+ * Payer asked for news: read the email they typed in Stripe Checkout (we never ask for it ourselves) and send the
+ * confirm link. Best-effort, after the money transaction: a failure never affects the payment (logged, no address).
+ */
+async function afterNewsOptIn(piId: string, source: "donor" | "tip", locale: "en" | "es" | undefined): Promise<void> {
+  try {
+    const cs = (await getStripe().checkout.sessions.list({ payment_intent: piId, limit: 1 })).data[0];
+    const parsed = emailSchema.safeParse(cs?.customer_details?.email ?? "");
+    const origin = process.env.NEXTAUTH_URL;
+    if (!parsed.success || !origin) return;
+    await sendNewsConfirm(parsed.data, source, locale ?? "en", origin);
+  } catch (err) {
+    console.error("[news] after payment failed:", err instanceof Error ? err.name : "unknown");
   }
 }
 

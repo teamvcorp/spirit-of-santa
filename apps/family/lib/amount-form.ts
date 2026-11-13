@@ -21,6 +21,8 @@ export const amountFormSchema = z.object({
   amount: z.string().max(10),
   other: z.string().max(10).optional().default(""),
   locale: z.enum(LOCALES).catch(DEFAULT_LOCALE),
+  /** "Keep me posted" box (components/news-opt-in-box.tsx): "on" when ticked; anything else = not ticked. */
+  news: z.literal("on").optional().catch(undefined),
 });
 
 /** FormData → plain object of string fields (drops files and React's internal "$ACTION_…" keys). */

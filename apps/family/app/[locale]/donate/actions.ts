@@ -24,6 +24,7 @@ const schema = z.object({
   amount: z.string().max(10),
   other: z.string().max(10).optional().default(""),
   locale: z.enum(LOCALES).catch(DEFAULT_LOCALE),
+  news: z.literal("on").optional().catch(undefined), // "keep me posted" box
 });
 
 export async function communityDonateAction(_prev: CommunityState, fd: FormData): Promise<CommunityState> {
@@ -32,13 +33,13 @@ export async function communityDonateAction(_prev: CommunityState, fd: FormData)
   if (!(await publicLimit(await headers(), "community", 10))) return { ok: false, error: "rateLimited", ...echo };
   const parsed = schema.safeParse(formFields(fd));
   if (!parsed.success) return { ok: false, error: "invalid", ...echo };
-  const { scope, zip, amount, other, locale } = parsed.data;
+  const { scope, zip, amount, other, locale, news } = parsed.data;
   // The fee must be stated on the page before anyone gives (user decision): no fee set → closed.
   if ((await getPlatformSettings()).donationFeeBps === null) return { ok: false, error: "closed", ...echo };
   const origin = process.env.NEXTAUTH_URL;
   if (!origin) throw new Error("NEXTAUTH_URL is not set");
   const r = await startCommunityDonation(
-    { zip: scope === "zip" ? zip.trim() : null, amountCents: donationAmountCents(amount, other), locale },
+    { zip: scope === "zip" ? zip.trim() : null, amountCents: donationAmountCents(amount, other), locale, news: news === "on" },
     origin,
     (p) => localizePath(p, locale),
   );

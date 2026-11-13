@@ -4,7 +4,7 @@
  * Phases 4–5 create that data (no fake zeros before then).
  */
 import "server-only";
-import { AuditLog, connectDb, DeedType, Item, trusted, User, WishListItem } from "@repo/db";
+import { AuditLog, connectDb, DeedType, Item, NewsSubscription, trusted, User, WishListItem } from "@repo/db";
 import { getSeasonYear } from "@repo/lib/season";
 import { countPendingTexts } from "@repo/deeds/moderation";
 import { getSeasonState } from "@repo/stores/season";
@@ -16,7 +16,7 @@ const countBy = async <K extends string>(rows: Promise<{ _id: K; n: number }[]>)
 export async function dashboardStats() {
   await connectDb();
   const year = getSeasonYear(); // no DB trip needed for the year: season state runs in parallel
-  const [season, stores, items, roles, statuses, deeds, views, onLists, activity, pendingTexts] = await Promise.all([
+  const [season, stores, items, roles, statuses, deeds, views, onLists, activity, pendingTexts, news, newsUnsynced] = await Promise.all([
     getSeasonState(),
     storeStatusCounts(),
     countBy(Item.aggregate<{ _id: string; n: number }>([{ $match: { seasonYear: year } }, { $group: { _id: "$status", n: { $sum: 1 } } }])),
@@ -27,6 +27,9 @@ export async function dashboardStats() {
     WishListItem.countDocuments({ seasonYear: year, status: trusted({ $ne: "removed" }) }),
     AuditLog.find().sort({ createdAt: -1 }).limit(15).select("action actorUserId createdAt").lean(),
     countPendingTexts(),
+    // News list (2026-11-12): confirmed + not unsubscribed, by where they said yes. Counts only, no addresses.
+    countBy(NewsSubscription.aggregate<{ _id: string; n: number }>([{ $match: { status: "subscribed" } }, { $group: { _id: "$source", n: { $sum: 1 } } }])),
+    NewsSubscription.countDocuments({ syncedAt: null }),
   ]);
   // Who did each recent action (emails of at most 15 accounts).
   // System rows (daily jobs, the spend correction) have NO actor: skip them here (shown as "—"). String(undefined)
@@ -50,6 +53,7 @@ export async function dashboardStats() {
     pendingTexts,
     views: views[0]?.n ?? 0,
     onLists,
+    news: { parent: news.parent ?? 0, public: news.public ?? 0, donor: (news.donor ?? 0) + (news.tip ?? 0), waiting: newsUnsynced },
     activity: activity.map((a) => ({ action: a.action, at: a.createdAt, by: emailOf.get(String(a.actorUserId)) ?? "—" })),
   };
 }

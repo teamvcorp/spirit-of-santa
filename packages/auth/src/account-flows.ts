@@ -265,16 +265,22 @@ export async function verifyEmail(raw: unknown): Promise<FlowResult> {
   // Only pending → active (never re-activates a suspended account). For parents the confirmed
   // email is part of the COPPA consent record: both writes in ONE transaction, so an account is
   // never active without its consent stamp (review 2026-11-05).
-  await withTransaction(async (session) => {
+  const activated = await withTransaction(async (session) => {
     const res = await User.updateOne({ _id: token.userId, status: "pending" }, { $set: { status: "active" } }, { session });
     if (res.modifiedCount === 1) {
       await Family.updateOne({ ownerUserId: token.userId, "consent.emailVerifiedAt": null }, { $set: { "consent.emailVerifiedAt": new Date() } }, { session });
     }
+    return res.modifiedCount === 1;
   });
-  // The email is now PROVEN, so a "send me news" tick from sign-up can be applied (news.ts). Best-effort: the
-  // account is already active; a failure only means no news (logged without the address).
-  await applySignupNewsOptIn(token.userId).catch((err) => console.error("[news] sign-up opt-in failed:", err instanceof Error ? err.message : "unknown"));
+  // The email is now PROVEN, so a "send me news" tick from sign-up can be applied (news.ts). Only when THIS call
+  // activated the account (an old link clicked later must not override a newer choice). Best-effort.
+  if (activated) await applyNewsWish(token.userId);
   return { ok: true };
+}
+
+/** Sign-up "send me news" tick → news list, once the email is proven. Best-effort (no address in logs). */
+async function applyNewsWish(userId: unknown) {
+  await applySignupNewsOptIn(userId).catch((err: unknown) => console.error("[news] sign-up opt-in failed:", err instanceof Error ? err.message : "unknown"));
 }
 
 /** Resend the confirm link, for accounts of this app's roles only (store owners / parents). */
@@ -338,6 +344,8 @@ export async function resetPassword(raw: unknown, newPassword: string, ctx: Flow
       await Family.updateOne({ ownerUserId: token.userId, "consent.emailVerifiedAt": null }, { $set: { "consent.emailVerifiedAt": new Date() } }, { session });
     }
   });
+  // A reset that activates a pending parent proves the email too: apply the sign-up news tick now (review 2026-11-12).
+  if (activating && user.role === "parent") await applyNewsWish(token.userId);
   // Tell the OWNER (in their language): if it wasn't them, this is how they find out. Sent after the response.
   const link = appLink(ctx, "/signin");
   await sendLater(() => sendEmail({ to: user.email, locale: user.locale ?? ctx.locale, template: "passwordChanged", values: { link } }), "passwordChanged");

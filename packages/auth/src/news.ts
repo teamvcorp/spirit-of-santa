@@ -125,7 +125,9 @@ async function syncOne(email: string): Promise<boolean> {
       else await unsubscribeContact(email);
     } catch (err) {
       console.error("[news] Resend sync failed:", err instanceof Error ? err.message : "unknown");
-      await NewsSubscription.updateOne({ email }, { $set: { syncAttemptAt: new Date() }, $inc: { syncAttempts: 1 } });
+      // syncedAt null WITHOUT a rev check: a timed-out call may still land at Resend after a newer one, so the
+      // row must be re-pushed with its current status (review 2026-11-12).
+      await NewsSubscription.updateOne({ email }, { $set: { syncedAt: null, syncAttemptAt: new Date() }, $inc: { syncAttempts: 1 } });
       return false;
     }
     if (row.forgetAt) {
@@ -140,7 +142,9 @@ async function syncOne(email: string): Promise<boolean> {
     if (stamped.matchedCount === 1) return true;
     // rev changed while Resend was busy: loop and push the newer status.
   }
-  return false; // still changing: left unsynced, the daily job finishes it
+  // Still changing: our last call may have landed after a newer one, so force a re-push by the daily job.
+  await NewsSubscription.updateOne({ email }, { $set: { syncedAt: null } });
+  return false;
 }
 
 /**
@@ -150,7 +154,8 @@ async function syncOne(email: string): Promise<boolean> {
  */
 export async function syncPendingNews(limit = 50): Promise<{ synced: number; failed: number; stuck: number }> {
   await connectDb();
-  const retryable = { syncedAt: null, syncAttempts: trusted({ $lt: NEWS_MAX_SYNC_ATTEMPTS }) };
+  // $not $gte (not $lt): also matches rows that have no syncAttempts field yet.
+  const retryable = { syncedAt: null, syncAttempts: trusted({ $not: { $gte: NEWS_MAX_SYNC_ATTEMPTS } }) };
   const rows = await NewsSubscription.find(retryable).sort({ syncAttemptAt: 1 }).limit(limit).select("email").lean();
   let synced = 0;
   let failed = 0;
@@ -185,7 +190,8 @@ async function writeParentNews(p: { id: unknown; email: string; locale: Locale }
       { $set: { status: "unsubscribed", unsubscribedAt: now, syncedAt: null, userId: p.id }, $inc: { rev: 1 } },
     );
   } else {
-    const existing = await NewsSubscription.findOne({ email: p.email }).select("status").lean();
+    const existing = await NewsSubscription.findOne({ email: p.email }).select("status forgetAt").lean();
+    if (existing?.forgetAt) return; // the account is being deleted: never put it back on the list
     if (existing?.status === "subscribed") {
       await NewsSubscription.updateOne({ email: p.email }, { $set: { userId: p.id } });
       return; // already on the list (maybe from the public form): nothing to tell Resend
@@ -196,11 +202,21 @@ async function writeParentNews(p: { id: unknown; email: string; locale: Locale }
       $inc: { rev: 1 },
       $setOnInsert: { source: "parent" },
     };
+    // forgetAt: null in the filter: a deletion landing meanwhile makes the upsert collide (E11000) and the retry
+    // match nothing, so a racing "on" can't put a deleted family back on the list (review 2026-11-12).
+    const filter = { email: p.email, forgetAt: null };
     try {
-      await NewsSubscription.updateOne({ email: p.email }, update, { upsert: true, runValidators: true });
+      await NewsSubscription.updateOne(filter, update, { upsert: true, runValidators: true });
     } catch (err) {
       if ((err as { code?: number }).code !== 11000) throw err;
-      await NewsSubscription.updateOne({ email: p.email }, update, { runValidators: true }); // lost the insert race
+      await NewsSubscription.updateOne(filter, update, { runValidators: true }); // lost the insert race
+    }
+    // Deleted between our check and the write? Then take it straight back off the list.
+    if (!(await User.exists({ _id: p.id, role: "parent", status: "active" }))) {
+      await NewsSubscription.updateOne(
+        { email: p.email },
+        { $set: { status: "unsubscribed", forgetAt: new Date(), syncedAt: null }, $unset: { userId: "" }, $inc: { rev: 1 } },
+      );
     }
   }
   await syncOne(p.email);
@@ -213,7 +229,13 @@ export async function applySignupNewsOptIn(userId: unknown): Promise<void> {
   // Clear the pending wish FIRST and only continue if THIS call cleared it (no double apply).
   const res = await User.updateOne({ _id: p.id, newsOptInAt: p.newsOptInAt }, { $unset: { newsOptInAt: "" } });
   if (res.modifiedCount !== 1) return;
-  await writeParentNews(p, true, p.newsOptInAt);
+  try {
+    await writeParentNews(p, true, p.newsOptInAt);
+  } catch (err) {
+    // Put the wish back (only if nothing newer replaced it), so a DB blip doesn't silently drop it.
+    await User.updateOne({ _id: p.id, newsOptInAt: null }, { $set: { newsOptInAt: p.newsOptInAt } }).catch(() => {});
+    throw err;
+  }
 }
 
 /** The settings switch. false = this user isn't an active parent. */
@@ -221,6 +243,9 @@ export async function setParentNews(userId: unknown, on: boolean): Promise<boole
   await connectDb();
   const p = await activeParent(userId);
   if (!p) return false;
+  // An explicit choice replaces any sign-up wish still pending (e.g. the account was activated by a password reset
+  // and the old confirm link is clicked later): the NEWEST choice wins (review 2026-11-12).
+  if (p.newsOptInAt) await User.updateOne({ _id: p.id }, { $unset: { newsOptInAt: "" } });
   await writeParentNews(p, on, new Date());
   return true;
 }

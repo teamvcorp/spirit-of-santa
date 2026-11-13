@@ -11,6 +11,7 @@ import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { AmountPicker } from "../../../../components/amount-picker";
+import { NewsOptInBox } from "../../../../components/news-opt-in-box";
 import { donateAction, type DonateState } from "./actions";
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -44,6 +45,7 @@ export function DonateForm({ token }: { token: string }) {
       <LocaleField />
       <input type="hidden" name="token" value={token} />
       <AmountPicker values={state.values} initial={TIP_PRESETS_CENTS[1]} legend={t("amount")} otherLabel={t("other")} otherAmountLabel={t("otherAmount")} />
+      <NewsOptInBox />
       <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">
         {t("button")}
       </Button>

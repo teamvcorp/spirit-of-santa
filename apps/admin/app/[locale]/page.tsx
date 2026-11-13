@@ -99,6 +99,17 @@ async function Dashboard() {
           { label: t("onLists"), value: s.onLists },
         ]}
       />
+      {/* News subscribers (2026-11-12): broadcasts are sent from the Resend dashboard ("santa" segment). */}
+      <Tiles
+        title={t("newsTitle")}
+        tiles={[
+          { label: t("news.total"), value: s.news.parent + s.news.public + s.news.donor },
+          { label: t("news.parent"), value: s.news.parent },
+          { label: t("news.public"), value: s.news.public },
+          { label: t("news.donor"), value: s.news.donor },
+          { label: t("news.waiting"), value: s.news.waiting },
+        ]}
+      />
       <Card>
         <h2 className="mb-3 text-lg font-semibold">{t("recentTitle")}</h2>
         {s.activity.length === 0 ? (

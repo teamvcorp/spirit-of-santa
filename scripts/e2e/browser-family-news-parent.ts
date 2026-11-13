@@ -12,7 +12,7 @@ import { chromium, type Page } from "playwright-core";
 import { ActionToken, connectDb, Family, NewsSubscription, trusted, User } from "@repo/db";
 import { hashSecret } from "@repo/auth/password";
 import { createActionToken } from "@repo/auth/tokens";
-import { syncPendingNews } from "@repo/auth/news";
+import { setParentNews, syncPendingNews } from "@repo/auth/news";
 import { eraseFamily } from "@repo/families/erase";
 import { makeChecks } from "./lib.ts";
 
@@ -25,6 +25,7 @@ const PIN = "8156";
 const mailYes = `news-parent-${tag}@spiritofsanta.test`;
 const mailNo = `news-noopt-${tag}@spiritofsanta.test`;
 const mailGone = `news-gone-${tag}@spiritofsanta.test`;
+const mailReset = `news-reset-${tag}@spiritofsanta.test`;
 
 const mongoose = await connectDb();
 if (!mongoose.connection.name.endsWith("_dev")) throw new Error("refusing: not a *_dev database");
@@ -81,6 +82,26 @@ try {
   await p2.locator("main [role=status]").first().waitFor({ timeout: 60_000 });
   check("no tick at sign-up → not on the list after confirming", !(await NewsSubscription.exists({ email: mailNo })));
   await p2.close();
+
+  // 3b. Ticked at sign-up, but the account is activated by a PASSWORD RESET (review 2026-11-12): the tick applies
+  //     then; a later explicit "off" wins even if the old confirm link is clicked afterwards.
+  const reset = await pendingParent(mailReset, new Date());
+  const oldVerify = await createActionToken("verify_email", { email: mailReset, userId: reset.u._id });
+  const { raw: rr } = await createActionToken("reset_password", { email: mailReset, userId: reset.u._id });
+  const p3 = await (await browser.newContext()).newPage();
+  await p3.goto(`${base}/reset-password?token=${rr}`);
+  await p3.waitForFunction(() => !(document.querySelector("main button[type=submit]") as HTMLButtonElement | null)?.disabled, undefined, { timeout: 60_000 });
+  await p3.fill('[name="password"]', `${PW} new`);
+  await p3.locator("main button[type=submit]").click();
+  await p3.locator("main [role=status]").first().waitFor({ timeout: 60_000 });
+  check("activated by a password reset → the sign-up tick is applied", (await NewsSubscription.findOne({ email: mailReset }).lean())?.status === "subscribed");
+  await setParentNews(String(reset.u._id), false);
+  await p3.goto(`${base}/verify?token=${oldVerify.raw}`);
+  await p3.waitForFunction(() => !(document.querySelector("main button[type=submit]") as HTMLButtonElement | null)?.disabled, undefined, { timeout: 60_000 });
+  await p3.locator("main button[type=submit]").click();
+  await p3.locator("main [role]").first().waitFor({ timeout: 60_000 });
+  check("old confirm link clicked after an explicit 'off' → stays off (newest choice wins)", (await NewsSubscription.findOne({ email: mailReset }).lean())?.status === "unsubscribed");
+  await p3.close();
 
   // 4. Email settings (PIN): the news switch shows ON; switching it off unsubscribes; on again re-subscribes.
   await page.goto(`${base}/signin`);
@@ -140,7 +161,7 @@ try {
   throw err;
 } finally {
   await browser.close();
-  const mails = [mailYes, mailNo, mailGone];
+  const mails = [mailYes, mailNo, mailGone, mailReset];
   const users = await User.find({ email: trusted({ $in: mails }) }).select("_id").lean();
   await Family.deleteMany({ ownerUserId: trusted({ $in: users.map((u) => u._id) }) });
   await User.deleteMany({ email: trusted({ $in: mails }) });

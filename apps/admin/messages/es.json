@@ -382,7 +382,15 @@
     "recentTitle": "Actividad reciente de administración y tiendas",
     "recentEmpty": "Aún no hay nada registrado.",
     "laterNote": "La Magia Navideña, el dinero y las acciones completadas aparecerán aquí cuando las familias puedan ganar y recibir propinas (fases 4–5).",
-    "pendingTexts": "{count, plural, =0 {Nada pendiente de revisión} one {# elemento pendiente de revisión} other {# elementos pendientes de revisión}}"
+    "pendingTexts": "{count, plural, =0 {Nada pendiente de revisión} one {# elemento pendiente de revisión} other {# elementos pendientes de revisión}}",
+    "newsTitle": "Suscriptores de noticias",
+    "news": {
+      "total": "Suscritos",
+      "parent": "Padres",
+      "public": "Formulario de la página principal",
+      "donor": "Donantes y propinas",
+      "waiting": "Esperando a Resend"
+    }
   },
   "AuditActions": {
     "store_approve": "Tienda aprobada",

@@ -33,8 +33,8 @@ export async function tipAction(_prev: TipState, fd: FormData): Promise<TipState
   if (!parsed.success) return { ok: false, error: "invalid", ...echo };
   const origin = process.env.NEXTAUTH_URL;
   if (!origin) throw new Error("NEXTAUTH_URL is not set");
-  const { locale } = parsed.data;
-  return { ...(await startTip(parsed.data.token, tipAmountCents(parsed.data.amount, parsed.data.other), origin, (p) => localizePath(p, locale))), ...echo };
+  const { locale, news } = parsed.data;
+  return { ...(await startTip(parsed.data.token, tipAmountCents(parsed.data.amount, parsed.data.other), origin, (p) => localizePath(p, locale), { news: news === "on", locale })), ...echo };
 }
 
 /** Pay later by text (Phase 5 slice 4b; registered flow, see @repo/deeds/pay-later). */

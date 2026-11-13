@@ -1,6 +1,6 @@
 # News subscribers → Resend segment (owner 2026-11-12)
 
-> Status: slice 1 (public form + confirm) DONE, slice 2 (parents) DONE (+ slice 1 review fixes). Slice 3 (donors + admin count) next.
+> Status: ALL 3 SLICES DONE 2026-11-12 (public form, parents, donors + admin count), each reviewed.
 > Correction 2026-11-12: no second key needed — the owner's family RESEND_API_KEY is already full access.
 
 ## Context

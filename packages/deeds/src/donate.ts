@@ -90,14 +90,27 @@ export async function getDonationPage(token: unknown): Promise<DonationPage> {
 
 export type DonationStart = { ok: true; clientSecret: string; amountCents: number } | { ok: false; error: "invalid" | "seasonClosed" | "amount" | "stripe" };
 
-export async function startDonation(token: unknown, amountCents: number | null, origin: string, localePath: (p: string) => string): Promise<DonationStart> {
+export async function startDonation(
+  token: unknown,
+  amountCents: number | null,
+  origin: string,
+  localePath: (p: string) => string,
+  /** news = the payer ticked "send me news" (see startTip). */
+  opts: { news?: boolean; locale?: "en" | "es" } = {},
+): Promise<DonationStart> {
   if (amountCents == null) return { ok: false, error: "amount" };
   const { page, kid } = await view(token);
   if (page.state !== "open" || !kid) return { ok: false, error: "invalid" };
   if (!page.givingOpen) return { ok: false, error: "seasonClosed" };
   const endsAt = Math.min(page.givingEndsAt.getTime(), Date.now() + MAX_CHECKOUT_MS);
   if (endsAt - Date.now() < MIN_CHECKOUT_MS) return { ok: false, error: "seasonClosed" };
-  const metadata = buildPaymentMetadata({ sos_purpose: "tip", sos_kid_id: String(kid._id), sos_family_id: String(kid.familyId) });
+  const metadata = buildPaymentMetadata({
+    sos_purpose: "tip",
+    sos_kid_id: String(kid._id),
+    sos_family_id: String(kid.familyId),
+    ...(opts.news ? { sos_news: "1" as const } : {}),
+    ...(opts.locale ? { sos_locale: opts.locale } : {}),
+  });
   try {
     const session = await getStripe().checkout.sessions.create({
       ...paymentMethodConfig(), // Spirit of Santa's own payment-method group (Link off)

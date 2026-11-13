@@ -32,6 +32,9 @@ export const paymentMetadataSchema = z.discriminatedUnion("sos_purpose", [
     sos_kid_id: objectId,
     sos_family_id: objectId,
     sos_deed_id: objectId.optional(),
+    /** Payer ticked "send me news" (2026-11-12): after payment we email a CONFIRM link to the Stripe email. */
+    sos_news: z.literal("1").optional(),
+    sos_locale: z.enum(["en", "es"]).optional(),
   }),
   // Parent "bonus magic" for one of their kids.
   z.object({
@@ -47,6 +50,8 @@ export const paymentMetadataSchema = z.discriminatedUnion("sos_purpose", [
     sos_zip: z.string().regex(/^\d{5}$/).optional(),
     /** Donor's page language: the tax receipt email is sent in it. */
     sos_locale: z.enum(["en", "es"]).optional(),
+    /** Donor ticked "send me news" (2026-11-12), see the tip schema. */
+    sos_news: z.literal("1").optional(),
   }),
   // $5 child registration (parental-consent card check). Up to 10 kids, comma-separated ids.
   // sos_promo "1" = family promo code: one $5 covers every listed kid.

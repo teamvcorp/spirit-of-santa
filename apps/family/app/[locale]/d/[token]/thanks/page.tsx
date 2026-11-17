@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import { publicLimit, tipStatus } from "@repo/deeds/public";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
+import { HiddenElf } from "@/components/hidden-elf";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Qr");
@@ -26,7 +27,8 @@ async function Status(props: PageProps<"/[locale]/d/[token]/thanks">) {
 
 export default async function TipThanksPage(props: PageProps<"/[locale]/d/[token]/thanks">) {
   return (
-    <main className="mx-auto w-full max-w-lg flex-1 p-6">
+    <main className="relative mx-auto w-full max-w-lg flex-1 p-6">
+      <HiddenElf page="tipThanks" />
       <Card>
         <Suspense fallback={null}>
           <Status {...props} />

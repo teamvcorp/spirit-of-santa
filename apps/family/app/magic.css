@@ -90,3 +90,28 @@
   .sos-lift { transition: none; }
   .sos-lift:hover { transform: none; }
 }
+
+/*
+ * FIND THE ELF (owner 2026-11-16, components/hidden-elf.tsx): he leans in from the page edge, only his head and a
+ * hand showing (the rest is clipped by .sos-elf-layer). Hover/focus: he leans out a bit more. Found: a little hop,
+ * then he slips away for the day. Reduced motion: he simply appears / disappears.
+ */
+.sos-elf-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 5; }
+.sos-elf {
+  position: absolute; width: 40px; height: 92px; padding: 0; border: 0; background: transparent; cursor: pointer;
+  pointer-events: auto; border-radius: 12px;
+}
+.sos-elf img { position: absolute; bottom: 0; width: 64px; height: 92px; transform-origin: 50% 100%; transition: transform 0.35s ease-out; }
+.sos-elf-left { left: 0; }
+.sos-elf-left img { left: -48px; transform: rotate(58deg); }
+.sos-elf-left:hover img, .sos-elf-left:focus-visible img { transform: rotate(48deg) translateY(-6px); }
+.sos-elf-right { right: 0; }
+.sos-elf-right img { right: -48px; transform: rotate(-58deg); }
+.sos-elf-right:hover img, .sos-elf-right:focus-visible img { transform: rotate(-48deg) translateY(-6px); }
+.sos-elf:focus-visible { outline: 3px solid var(--color-accent, #d4a017); outline-offset: 2px; }
+@keyframes sos-elf-bye { 0% { transform: translateY(0) scale(1); opacity: 1; } 35% { transform: translateY(-14px) scale(1.08); } 100% { transform: translateY(10px) scale(0.6); opacity: 0; } }
+.sos-elf-found { animation: sos-elf-bye 0.9s ease-in forwards; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) {
+  .sos-elf img { transition: none; }
+  .sos-elf-found { animation: none; opacity: 0; }
+}

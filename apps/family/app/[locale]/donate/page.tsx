@@ -18,6 +18,7 @@ import { Card } from "@repo/ui/card";
 import { intlLocale as toIntlLocale } from "@repo/lib/locales";
 import { CommunityDonateForm } from "./donate-form";
 import { SeasonGate } from "@/components/season-gate";
+import { HiddenElf } from "@/components/hidden-elf";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Community");
@@ -50,7 +51,8 @@ async function Content() {
 
 export default function CommunityDonatePage() {
   return (
-    <main className="mx-auto w-full max-w-xl flex-1 p-6">
+    <main className="relative mx-auto w-full max-w-xl flex-1 p-6">
+      <HiddenElf page="donate" />
       <SeasonGate>
         <Card>
           <Heading />

@@ -18,6 +18,7 @@ import { PayLaterSection } from "./pay-later-section";
 import { QrActions } from "./qr-actions";
 import { GivingClosed, GivingNote } from "../../../../components/giving-note";
 import { SeasonGate } from "@/components/season-gate";
+import { HiddenElf } from "@/components/hidden-elf";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Qr");
@@ -59,7 +60,8 @@ async function Content({ params }: { params: PageProps<"/[locale]/d/[token]">["p
 
 export default async function QrPage(props: PageProps<"/[locale]/d/[token]">) {
   return (
-    <main className="mx-auto w-full max-w-lg flex-1 p-6">
+    <main className="relative mx-auto w-full max-w-lg flex-1 p-6">
+      <HiddenElf page="tip" />
       <SeasonGate>
         <Card>
           <Suspense fallback={null}>

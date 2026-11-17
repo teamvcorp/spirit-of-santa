@@ -867,5 +867,10 @@
       "invalidLink": "This link has already been used or has expired. You can ask again on the Spirit of Santa home page."
     },
     "afterPayment": "Keep me posted: I am 18 or older and want Spirit of Santa news. After paying, we email a link to confirm to the address you type in the payment form."
+  },
+  "Elf": {
+    "label": "A hidden elf! Tap to find him",
+    "found": "You found {count} of {total} elves today! Keep looking.",
+    "all": "You found all {total} elves today! Merry Christmas!"
   }
 }

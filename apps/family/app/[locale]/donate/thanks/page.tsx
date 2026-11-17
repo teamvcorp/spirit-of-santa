@@ -13,6 +13,7 @@ import { communityDonationStatus } from "@repo/payments/community";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
+import { HiddenElf } from "@/components/hidden-elf";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Community");
@@ -39,7 +40,8 @@ async function Status({ searchParams }: { searchParams: PageProps<"/[locale]/don
 export default async function CommunityThanksPage(props: PageProps<"/[locale]/donate/thanks">) {
   const t = await getTranslations("Community");
   return (
-    <main className="mx-auto w-full max-w-xl flex-1 p-6">
+    <main className="relative mx-auto w-full max-w-xl flex-1 p-6">
+      <HiddenElf page="donateThanks" />
       <Card>
         <h1 className="mb-4 text-2xl font-bold">{t("title")}</h1>
         <Suspense fallback={null}>

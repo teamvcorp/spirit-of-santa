@@ -8,6 +8,7 @@ import { donationStatus } from "@repo/deeds/donate";
 import { publicLimit } from "@repo/deeds/public";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
+import { HiddenElf } from "@/components/hidden-elf";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Donate");
@@ -25,7 +26,8 @@ async function Status(props: PageProps<"/[locale]/k/[token]/thanks">) {
 
 export default async function DonateThanksPage(props: PageProps<"/[locale]/k/[token]/thanks">) {
   return (
-    <main className="mx-auto w-full max-w-lg flex-1 p-6">
+    <main className="relative mx-auto w-full max-w-lg flex-1 p-6">
+      <HiddenElf page="kidLinkThanks" />
       <Card>
         <Suspense fallback={null}>
           <Status {...props} />

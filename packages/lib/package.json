@@ -23,7 +23,8 @@
     "./notify": "./src/notify.ts",
     "./security-headers": "./src/security-headers.ts",
     "./site": "./src/site.ts",
-    "./news": "./src/news.ts"
+    "./news": "./src/news.ts",
+    "./elf": "./src/elf.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

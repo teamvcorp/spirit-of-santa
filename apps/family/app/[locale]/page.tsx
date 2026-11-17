@@ -28,6 +28,7 @@ import { homeCountdown } from "@/lib/countdown";
 import { HeroScene, Snow, Stars } from "../../components/hero-scene";
 import { SeasonNotice } from "@/components/season-gate";
 import { NewsSignup } from "@/components/news-signup";
+import { HiddenElf } from "@/components/hidden-elf";
 
 /* ---------- small building blocks ---------- */
 
@@ -237,7 +238,8 @@ export default async function Home() {
   const rate = formatCents(CENTS_PER_POINT, intlLocale(locale));
   const fee = formatCents(REGISTRATION_FEE_CENTS, intlLocale(locale));
   return (
-    <main className="flex flex-1 flex-col">
+    <main className="relative flex flex-1 flex-col">
+      <HiddenElf page="home" />
       {/* HERO: night sky (Winter Magic) or Christmas red (Festive). */}
       <section className="relative overflow-hidden" style={band("var(--t-hero)")}>
         <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: "var(--t-aurora)" }} />

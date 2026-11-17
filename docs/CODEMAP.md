@@ -982,6 +982,15 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
     "Resend refused (check)" = rows past `NEWS_MAX_SYNC_ATTEMPTS` (now in @repo/lib/news). E2E donor test 9.
   - DEPLOY: production has autoIndex OFF → run `npm run db:sync-indexes` against prod after this deploy (the
     UNIQUE email index on newssubscriptions is what makes concurrent first sign-ups safe).
+- **Find the elf (owner 2026-11-16).** A small elf (`ILLUSTRATIONS.elf` = /illustrations/elf.webp) peeks in from
+  the left/right edge of 10 kid + public pages (`ELF_PAGES` @repo/lib/elf: home, donate(+thanks), /d tip(+thanks),
+  /k link(+thanks), kid page, gift browser, gift detail; NOT parent/PIN or legal pages). Spot per day + page =
+  `elfSpot(page, elfDay())` (FNV hash of the Central-Time date; same for everyone, moves at midnight). Tap → "You found
+  N of 10 elves today!" (role=status note, 5 s); that page's elf stays away for the day. Progress ONLY in the
+  browser (localStorage `sos-elves`, `readElfProgress` tolerates junk / other days); no server data about children.
+  Component `HiddenElf` (@/components/hidden-elf): renders after hydration only (date-dependent; shell is
+  prerendered); page's `<main>` gets `relative`; styles `.sos-elf*` in app/magic.css (reduced motion: no
+  animation). Unit tests packages/lib/test/elf.test.ts; E2E `browser-family-elf.ts` (10).
 
 ## Open items / TODO
 

@@ -24,6 +24,7 @@ import { Link } from "@/i18n/navigation";
 import { requireParent } from "@/lib/parent";
 import { AddGiftForm } from "./add-form";
 import { SeasonGate } from "@/components/season-gate";
+import { HiddenElf } from "@/components/hidden-elf";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Gifts");
@@ -90,7 +91,8 @@ async function Content({ params }: Pick<Props, "params">) {
 
 export default function GiftPage(props: Props) {
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <main className="relative mx-auto w-full max-w-4xl flex-1 p-6">
+      <HiddenElf page="gift" />
       <SeasonGate>
         <Suspense fallback={null}>
           <Content params={props.params} />

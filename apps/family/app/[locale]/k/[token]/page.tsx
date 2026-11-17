@@ -14,6 +14,7 @@ import { Card } from "@repo/ui/card";
 import { DonateForm } from "./donate-form";
 import { GivingClosed, GivingNote } from "../../../../components/giving-note";
 import { SeasonGate } from "@/components/season-gate";
+import { HiddenElf } from "@/components/hidden-elf";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Donate");
@@ -47,7 +48,8 @@ async function Content({ params }: { params: PageProps<"/[locale]/k/[token]">["p
 
 export default async function DonatePage(props: PageProps<"/[locale]/k/[token]">) {
   return (
-    <main className="mx-auto w-full max-w-lg flex-1 p-6">
+    <main className="relative mx-auto w-full max-w-lg flex-1 p-6">
+      <HiddenElf page="kidLink" />
       <SeasonGate>
         <Card>
           <Suspense fallback={null}>

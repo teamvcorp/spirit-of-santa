@@ -7,6 +7,7 @@ also update the path in `apps/family/lib/illustrations.ts` (the ONE list of illu
 | File | Where it shows | Shape |
 | --- | --- | --- |
 | `gift-box.svg` | "Fully funded!" celebration; the wrapped-gift picture of a SURPRISE gift on the child's wish list (2026-11-08) | square |
+| `elf.webp` | "Find the elf" game (2026-11-16): peeks in from the edge of 10 kid/public pages (`components/hidden-elf.tsx`). Owner-supplied picture (original kept by the owner, not in git), trimmed to 250×360 WebP with `sharp`; to replace it, keep a TRANSPARENT background and a tall shape. | tall, transparent |
 
 **The home page hero (cottage, moon, snow) is not a file** since the Winter Magic / Festive themes (2026-11-08). It's
 drawn in code, `apps/family/components/hero-scene.tsx`, so the theme switch can recolour it instantly through CSS

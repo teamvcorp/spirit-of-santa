@@ -5,4 +5,6 @@
  */
 export const ILLUSTRATIONS = {
   giftBox: "/illustrations/gift-box.svg",
+  /** "Find the elf" game (2026-11-16, components/hidden-elf.tsx): owner-supplied picture, trimmed to 250x360 WebP. */
+  elf: "/illustrations/elf.webp",
 } as const;

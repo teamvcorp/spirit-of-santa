@@ -239,7 +239,6 @@ export default async function Home() {
   const fee = formatCents(REGISTRATION_FEE_CENTS, intlLocale(locale));
   return (
     <main className="relative flex flex-1 flex-col">
-      <HiddenElf page="home" />
       {/* HERO: night sky (Winter Magic) or Christmas red (Festive). */}
       <section className="relative overflow-hidden" style={band("var(--t-hero)")}>
         <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: "var(--t-aurora)" }} />
@@ -355,6 +354,7 @@ export default async function Home() {
           <NewsSignup />
         </div>
       </section>
+      <HiddenElf page="home" />
     </main>
   );
 }

@@ -117,7 +117,6 @@ export default async function KidPage(props: PageProps<"/[locale]/kids/[id]">) {
   const t = await getTranslations("Kid");
   return (
     <main className="relative mx-auto w-full max-w-3xl flex-1 p-6">
-      <HiddenElf page="kid" />
       <Link href="/" className="mb-4 inline-block text-sm underline underline-offset-4">
         ← {t("back")}
       </Link>
@@ -126,6 +125,7 @@ export default async function KidPage(props: PageProps<"/[locale]/kids/[id]">) {
           <Content params={props.params} />
         </Suspense>
       </SeasonGate>
+      <HiddenElf page="kid" />
     </main>
   );
 }

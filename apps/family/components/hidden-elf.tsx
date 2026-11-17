@@ -12,7 +12,7 @@
  * drawing him on the server could show yesterday's spot or mismatch on hydration.
  */
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { useTranslations } from "next-intl";
 import { ELF_PAGES, elfDay, elfSpot, findElf, readElfProgress, type ElfPage, type ElfSpot } from "@repo/lib/elf";
@@ -56,13 +56,23 @@ function Elf({ page }: { page: ElfPage }) {
   }, [message]);
 
   const total = ELF_PAGES.length;
+  const noteRef = useRef<HTMLParagraphElement>(null);
+
+  /** He leaves for the day. If he had keyboard focus, hand it to the note (focus never drops to the page top). */
+  function leave() {
+    if (document.activeElement?.getAttribute("data-testid") === "hidden-elf") noteRef.current?.focus();
+    setState("gone");
+  }
 
   function onFind() {
+    if (state !== "hiding") return; // aria-disabled (not `disabled`): keeps focus while he hops away
     const progress = findElf(load(elfDay()), page);
     save(progress);
     const n = progress.found.length;
     setMessage(n >= total ? t("all", { total }) : t("found", { count: n, total }));
-    setState("found");
+    // Reduced motion = no hop animation, so no animationend: leave right away (review 2026-11-16).
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) leave();
+    else setState("found");
   }
 
   return (
@@ -72,24 +82,35 @@ function Elf({ page }: { page: ElfPage }) {
           <button
             type="button"
             onClick={onFind}
-            onAnimationEnd={() => setState("gone")}
+            onAnimationEnd={leave}
             className={`sos-elf sos-elf-${spot.side} ${state === "found" ? "sos-elf-found" : ""}`}
             style={{ top: `${spot.topPct}%` }}
             aria-label={t("label")}
+            aria-disabled={state === "found"}
             data-testid="hidden-elf"
-            disabled={state === "found"}
           >
             {/* Decorative: the button's label says what it is. */}
             <Image src={ILLUSTRATIONS.elf} alt="" width={64} height={92} draggable={false} />
           </button>
         </div>
       )}
-      {/* Polite announcement + a small note at the bottom of the screen; fades by itself. */}
-      {message && (
-        <p role="status" data-testid="elf-message" className="sos-pop fixed inset-x-4 bottom-4 z-50 mx-auto max-w-sm rounded-2xl bg-surface px-4 py-3 text-center font-semibold shadow-card">
-          {message}
-        </p>
-      )}
+      {/*
+        The live region is ALWAYS in the page (only its text changes): screen readers often miss a status element
+        that appears together with its text. Shown as a note ABOVE the bottom tab bar, and it never takes taps.
+      */}
+      <p
+        ref={noteRef}
+        tabIndex={-1}
+        role="status"
+        data-testid="elf-message"
+        className={
+          message
+            ? "sos-pop pointer-events-none fixed inset-x-4 bottom-[calc(6.5rem+env(safe-area-inset-bottom))] z-50 mx-auto max-w-sm rounded-2xl bg-surface px-4 py-3 text-center font-semibold shadow-card outline-none"
+            : "sr-only"
+        }
+      >
+        {message}
+      </p>
     </>
   );
 }

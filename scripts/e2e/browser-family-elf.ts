@@ -19,6 +19,8 @@ const total = ELF_PAGES.length;
 const browser = await chromium.launch({ channel: "msedge", headless: true });
 const errors: string[] = [];
 const elf = (p: Page) => p.locator('[data-testid="hidden-elf"]');
+/** The note (the live region is always in the page; wait for its TEXT). */
+const note = (p: Page) => p.locator('[data-testid="elf-message"]').filter({ hasText: /found|Encontraste/ });
 
 try {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
@@ -30,13 +32,20 @@ try {
   await elf(page).waitFor({ timeout: 60_000 });
   const box = await elf(page).boundingBox();
   check("home: the elf is on the page, at the left or right edge", !!box && (box.x <= 1 || box.x + box.width >= 389));
-  check("he has a spoken label", (await elf(page).getAttribute("aria-label")) === "A hidden elf! Tap to find him");
+  check("he has a spoken label", (await elf(page).getAttribute("aria-label")) === "A hidden elf! Find him");
+  // Only the narrow button takes taps (review 2026-11-16): a point 40px in from his edge is NOT the elf.
+  const blocks = await page.evaluate(() => {
+    const b = document.querySelector('[data-testid="hidden-elf"]')!.getBoundingClientRect();
+    const x = b.left < 10 ? b.left + 40 : b.right - 40;
+    return !!document.elementFromPoint(x, b.top + b.height / 2)?.closest('[data-testid="hidden-elf"]');
+  });
+  check("his picture never catches taps beyond the 24px button", !blocks && (box?.width ?? 99) <= 24);
 
   // 2. Tap → "1 of N", stored only in the browser.
   await elf(page).scrollIntoViewIfNeeded();
   await elf(page).click();
-  await page.locator('[data-testid="elf-message"]').waitFor({ timeout: 10_000 });
-  check("tap → 'You found 1 of N elves today!'", (await page.locator('[data-testid="elf-message"]').innerText()).includes(`You found 1 of ${total}`));
+  await note(page).waitFor({ timeout: 10_000 });
+  check("tap → 'You found 1 of N elves today!'", (await note(page).innerText()).includes(`You found 1 of ${total}`));
   const stored = await page.evaluate(() => localStorage.getItem("sos-elves"));
   check("progress saved in the browser only (today + home)", !!stored && JSON.parse(stored).found.join() === "home");
 
@@ -51,8 +60,8 @@ try {
   await elf(page).waitFor({ timeout: 60_000 });
   await elf(page).scrollIntoViewIfNeeded();
   await elf(page).click();
-  await page.locator('[data-testid="elf-message"]').waitFor({ timeout: 10_000 });
-  check("second page → '2 of N'", (await page.locator('[data-testid="elf-message"]').innerText()).includes(`You found 2 of ${total}`));
+  await note(page).waitFor({ timeout: 10_000 });
+  check("second page → '2 of N'", (await note(page).innerText()).includes(`You found 2 of ${total}`));
 
   // 5. Parent area / legal pages: no elf.
   await page.goto(`${base}/privacy`);
@@ -67,8 +76,26 @@ try {
   await elf(es).waitFor({ timeout: 60_000 });
   await elf(es).scrollIntoViewIfNeeded();
   await elf(es).click();
-  await es.locator('[data-testid="elf-message"]').waitFor({ timeout: 10_000 });
-  check("Spanish + reduced motion: playable, Spanish message", (await es.locator('[data-testid="elf-message"]').innerText()).includes(`Encontraste 1 de ${total}`));
+  await note(es).waitFor({ timeout: 10_000 });
+  check("Spanish + reduced motion: playable, Spanish message", (await note(es).innerText()).includes(`Encontraste 1 de ${total}`));
+  check("reduced motion: he is GONE right away (not a hidden, still-announced button)", (await elf(es).count()) === 0);
+
+  // 6b. Keyboard: Tab to him, Enter → focus moves to the note (never dropped to the page top).
+  const kb = await (await browser.newContext({ reducedMotion: "reduce" })).newPage();
+  kb.on("pageerror", (e) => errors.push(e.message));
+  await kb.goto(`${base}/donate/thanks`);
+  await elf(kb).waitFor({ timeout: 60_000 });
+  await elf(kb).focus();
+  await kb.keyboard.press("Enter");
+  await note(kb).waitFor({ timeout: 10_000 });
+  check("keyboard: Enter finds him and focus moves to the note", await kb.evaluate(() => document.activeElement?.getAttribute("data-testid") === "elf-message"));
+
+  // 6c. A Stripe payment form on the page → he steps aside (never over the card fields).
+  const pay = await (await browser.newContext()).newPage();
+  await pay.goto(`${base}/donate`);
+  await elf(pay).waitFor({ timeout: 60_000 });
+  await pay.evaluate(() => { const d = document.createElement("div"); d.dataset.testid = "stripe-checkout"; document.querySelector("main")!.prepend(d); });
+  check("payment form open → the elf is hidden", !(await elf(pay).isVisible()));
 
   // 7. Broken stored value doesn't break the page.
   await page.evaluate(() => localStorage.setItem("sos-elves", "{broken"));

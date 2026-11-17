@@ -990,7 +990,11 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   browser (localStorage `sos-elves`, `readElfProgress` tolerates junk / other days); no server data about children.
   Component `HiddenElf` (@/components/hidden-elf): renders after hydration only (date-dependent; shell is
   prerendered); page's `<main>` gets `relative`; styles `.sos-elf*` in app/magic.css (reduced motion: no
-  animation). Unit tests packages/lib/test/elf.test.ts; E2E `browser-family-elf.ts` (10).
+  animation). Unit tests packages/lib/test/elf.test.ts; E2E `browser-family-elf.ts` (14).
+  Review fixes: only the 24px button takes taps (the rotated picture has pointer-events:none); hidden while a Stripe
+  form is on the page (`main:has([data-testid=stripe-checkout])`); `<HiddenElf>` is the LAST child of `<main>`; the
+  live region is always rendered (only its text changes), shown above the tab bar, never takes taps; reduced motion
+  leaves at once; aria-disabled + focus handed to the note; `elfDay` built from `calendarDateIn` (formatToParts).
 
 ## Open items / TODO
 

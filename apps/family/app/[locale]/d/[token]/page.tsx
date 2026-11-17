@@ -61,7 +61,6 @@ async function Content({ params }: { params: PageProps<"/[locale]/d/[token]">["p
 export default async function QrPage(props: PageProps<"/[locale]/d/[token]">) {
   return (
     <main className="relative mx-auto w-full max-w-lg flex-1 p-6">
-      <HiddenElf page="tip" />
       <SeasonGate>
         <Card>
           <Suspense fallback={null}>
@@ -69,6 +68,7 @@ export default async function QrPage(props: PageProps<"/[locale]/d/[token]">) {
           </Suspense>
         </Card>
       </SeasonGate>
+      <HiddenElf page="tip" />
     </main>
   );
 }

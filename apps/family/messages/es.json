@@ -869,7 +869,7 @@
     "afterPayment": "Mantenerme informado: tengo 18 años o más y quiero noticias de Spirit of Santa. Después de pagar, te enviaremos un enlace para confirmar al correo que escribas en el formulario de pago."
   },
   "Elf": {
-    "label": "¡Un duende escondido! Tócalo para encontrarlo",
+    "label": "¡Un duende escondido! Encuéntralo",
     "found": "¡Encontraste {count} de {total} duendes hoy! Sigue buscando.",
     "all": "¡Encontraste los {total} duendes de hoy! ¡Feliz Navidad!"
   }

@@ -52,7 +52,6 @@ async function Content() {
 export default function CommunityDonatePage() {
   return (
     <main className="relative mx-auto w-full max-w-xl flex-1 p-6">
-      <HiddenElf page="donate" />
       <SeasonGate>
         <Card>
           <Heading />
@@ -61,6 +60,7 @@ export default function CommunityDonatePage() {
           </Suspense>
         </Card>
       </SeasonGate>
+      <HiddenElf page="donate" />
     </main>
   );
 }

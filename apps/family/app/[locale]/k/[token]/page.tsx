@@ -49,7 +49,6 @@ async function Content({ params }: { params: PageProps<"/[locale]/k/[token]">["p
 export default async function DonatePage(props: PageProps<"/[locale]/k/[token]">) {
   return (
     <main className="relative mx-auto w-full max-w-lg flex-1 p-6">
-      <HiddenElf page="kidLink" />
       <SeasonGate>
         <Card>
           <Suspense fallback={null}>
@@ -57,6 +56,7 @@ export default async function DonatePage(props: PageProps<"/[locale]/k/[token]">
           </Suspense>
         </Card>
       </SeasonGate>
+      <HiddenElf page="kidLink" />
     </main>
   );
 }

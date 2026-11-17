@@ -6,7 +6,7 @@
  * overnight). Tapping him counts him: "You found 3 of 10 elves today!". Progress lives ONLY in the visitor's
  * browser (localStorage, apps/family/components/hidden-elf.tsx): nothing about a child is stored on a server.
  */
-import { SEASON_TIME_ZONE } from "./season.ts";
+import { calendarDateIn } from "./season.ts";
 
 /** Every page with an elf. Adding a page here raises the "of N" total automatically. */
 export const ELF_PAGES = [
@@ -36,7 +36,9 @@ export const ELF_SPOTS: readonly ElfSpot[] = [
 
 /** Today's date in the season's time zone ("2026-11-16"), so the spot changes at local midnight. */
 export function elfDay(now: Date = new Date()): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: SEASON_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+  // Built from formatToParts (calendarDateIn), not a locale's date format, so every browser gives the same string.
+  const { year, month, day } = calendarDateIn(now);
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 /** Small stable hash (FNV-1a, 32-bit): same day + page → same spot for everyone. Not security-related. */

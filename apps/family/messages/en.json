@@ -869,7 +869,7 @@
     "afterPayment": "Keep me posted: I am 18 or older and want Spirit of Santa news. After paying, we email a link to confirm to the address you type in the payment form."
   },
   "Elf": {
-    "label": "A hidden elf! Tap to find him",
+    "label": "A hidden elf! Find him",
     "found": "You found {count} of {total} elves today! Keep looking.",
     "all": "You found all {total} elves today! Merry Christmas!"
   }

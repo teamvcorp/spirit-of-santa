@@ -41,13 +41,13 @@ export default async function CommunityThanksPage(props: PageProps<"/[locale]/do
   const t = await getTranslations("Community");
   return (
     <main className="relative mx-auto w-full max-w-xl flex-1 p-6">
-      <HiddenElf page="donateThanks" />
       <Card>
         <h1 className="mb-4 text-2xl font-bold">{t("title")}</h1>
         <Suspense fallback={null}>
           <Status searchParams={props.searchParams} />
         </Suspense>
       </Card>
+      <HiddenElf page="donateThanks" />
     </main>
   );
 }

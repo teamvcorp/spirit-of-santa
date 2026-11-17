@@ -96,10 +96,12 @@ export async function onPaymentIntentSucceeded(pi: Stripe.PaymentIntent): Promis
   const meta = parsePaymentMetadata(pi.metadata);
   if (outcome.status === "processed" && meta?.sos_purpose === "donation") await afterDonationRecorded(pi.id);
   // "Send me news" ticked on the donate/tip form: a CONFIRM link to the email they typed in Stripe (double
-  // opt-in; nothing is added to the list until they click). Only on the FIRST processing ("processed"), so
-  // webhook retries and the return page never send it twice.
+  // opt-in; nothing is added to the list until they click). "processed" is ALSO returned for an already-recorded
+  // payment (webhook retry, the return page racing the webhook), so the send is CLAIMED once on the Payment row
+  // (compare-and-set newsAskedAt): exactly one email between all of them (review 2026-11-12).
   if (outcome.status === "processed" && (meta?.sos_purpose === "donation" || meta?.sos_purpose === "tip") && meta.sos_news === "1") {
-    await afterNewsOptIn(pi.id, meta.sos_purpose === "donation" ? "donor" : "tip", meta.sos_locale);
+    const claim = await Payment.updateOne({ stripePaymentIntentId: pi.id, newsAskedAt: null }, { $set: { newsAskedAt: new Date() } });
+    if (claim.modifiedCount === 1) await afterNewsOptIn(pi.id, meta.sos_purpose === "donation" ? "donor" : "tip", meta.sos_locale);
   }
   // A deed tipped (pay now OR its texted link): close any OTHER live pay-later link for it, so the
   // same deed can't be paid twice by mistake. Best-effort, after the money transaction.

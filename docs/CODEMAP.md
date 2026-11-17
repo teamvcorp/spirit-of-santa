@@ -976,6 +976,12 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
     reset that activates a pending parent applies it too; any settings save clears a pending tick (newest wins);
     "on" never revives a `forgetAt` row (filter + post-write account check); a failed/exhausted sync forces
     `syncedAt: null`; the retry query matches rows without `syncAttempts`. E2E parent test now 16.
+  - Slice 3 review fixes: the donor confirm email is CLAIMED once per payment (`Payment.newsAskedAt`
+    compare-and-set; "processed" also comes back for already-recorded payments); a suspension never wipes a news
+    row (existence check only); a re-used email finishes the earlier account's pending removal first; admin tile
+    "Resend refused (check)" = rows past `NEWS_MAX_SYNC_ATTEMPTS` (now in @repo/lib/news). E2E donor test 9.
+  - DEPLOY: production has autoIndex OFF → run `npm run db:sync-indexes` against prod after this deploy (the
+    UNIQUE email index on newssubscriptions is what makes concurrent first sign-ups safe).
 
 ## Open items / TODO
 

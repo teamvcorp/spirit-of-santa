@@ -108,6 +108,7 @@ async function Dashboard() {
           { label: t("news.public"), value: s.news.public },
           { label: t("news.donor"), value: s.news.donor },
           { label: t("news.waiting"), value: s.news.waiting },
+          { label: t("news.stuck"), value: s.news.stuck },
         ]}
       />
       <Card>

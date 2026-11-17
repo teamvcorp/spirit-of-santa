@@ -31,7 +31,8 @@ Written 2026-11-07. There are no real users yet, so nothing here needs a data mi
       segment's id, Production). The family `RESEND_API_KEY` must stay **Full access** (it adds people to the list).
       Before your first broadcast: in the Resend broadcast editor put the **unsubscribe link** and Spirit of Santa's
       **postal address** in the footer (US CAN-SPAM law requires both). Send only to the segment, never to imported
-      lists: everyone in it confirmed by email.
+      lists: everyone in it confirmed by email. After the news deploy, run `npm run db:sync-indexes` against the
+      production database once (as after earlier deploys): it creates the news list's indexes.
 - [ ] **Logo** file (see `docs/illustrations.md` for the image slots you can replace).
 - [ ] **First admin** can sign in with the authenticator app; a second admin set up so you are never locked out.
 

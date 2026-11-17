@@ -52,6 +52,11 @@ const paymentSchema = new Schema(
     splitId: objectId("DonationSplit", false),
     /** When the money arrived (first payment_intent.succeeded we processed). Receipt date. */
     succeededAt: Date,
+    /**
+     * The payer ticked "send me news" and the confirm email was claimed for sending (2026-11-12). Set by a
+     * compare-and-set, so the webhook, its retries and the return page send it exactly ONCE between them.
+     */
+    newsAskedAt: Date,
     /** Community donation (/donate) aimed at one US ZIP; absent = the "all kids" pool. */
     zip: { type: String, match: /^\d{5}$/ },
 

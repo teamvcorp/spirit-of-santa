@@ -85,6 +85,15 @@ try {
   const res = await fetch(`${base}/api/webhooks/stripe`, { method: "POST", headers: { "content-type": "application/json", "stripe-signature": Stripe.webhooks.generateTestHeaderString({ payload: body, secret: whsec }) }, body });
   check("paid donation with the news tick: webhook 200, payment recorded (news step never breaks payments)",
     res.status === 200 && !!(await Payment.exists({ stripePaymentIntentId: piId, status: "succeeded" })));
+  // Same payment delivered AGAIN (Stripe retry / the return page racing the webhook): the send is claimed once.
+  const firstClaim = (await Payment.findOne({ stripePaymentIntentId: piId }).lean())?.newsAskedAt;
+  const evt2 = `evt_e2enews${randomBytes(6).toString("hex")}`;
+  evtIds.push(evt2);
+  const body2 = body.replace(evtId, evt2);
+  const res2 = await fetch(`${base}/api/webhooks/stripe`, { method: "POST", headers: { "content-type": "application/json", "stripe-signature": Stripe.webhooks.generateTestHeaderString({ payload: body2, secret: whsec }) }, body: body2 });
+  const secondClaim = (await Payment.findOne({ stripePaymentIntentId: piId }).lean())?.newsAskedAt;
+  check("delivered twice: the confirm email is claimed ONCE (newsAskedAt unchanged)",
+    res2.status === 200 && !!firstClaim && secondClaim?.getTime() === firstClaim.getTime());
 
   // 4. What the webhook does with the Stripe email: a donor confirm link in the page language, then the click.
   await sendNewsConfirm(donorMail, "donor", "es", base);

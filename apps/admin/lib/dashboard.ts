@@ -7,6 +7,7 @@ import "server-only";
 import { AuditLog, connectDb, DeedType, Item, NewsSubscription, trusted, User, WishListItem } from "@repo/db";
 import { getSeasonYear } from "@repo/lib/season";
 import { countPendingTexts } from "@repo/deeds/moderation";
+import { NEWS_MAX_SYNC_ATTEMPTS } from "@repo/lib/news";
 import { getSeasonState } from "@repo/stores/season";
 import { storeStatusCounts } from "@repo/stores/queries";
 
@@ -16,7 +17,7 @@ const countBy = async <K extends string>(rows: Promise<{ _id: K; n: number }[]>)
 export async function dashboardStats() {
   await connectDb();
   const year = getSeasonYear(); // no DB trip needed for the year: season state runs in parallel
-  const [season, stores, items, roles, statuses, deeds, views, onLists, activity, pendingTexts, news, newsUnsynced] = await Promise.all([
+  const [season, stores, items, roles, statuses, deeds, views, onLists, activity, pendingTexts, news, newsUnsynced, newsStuck] = await Promise.all([
     getSeasonState(),
     storeStatusCounts(),
     countBy(Item.aggregate<{ _id: string; n: number }>([{ $match: { seasonYear: year } }, { $group: { _id: "$status", n: { $sum: 1 } } }])),
@@ -30,6 +31,8 @@ export async function dashboardStats() {
     // News list (2026-11-12): confirmed + not unsubscribed, by where they said yes. Counts only, no addresses.
     countBy(NewsSubscription.aggregate<{ _id: string; n: number }>([{ $match: { status: "subscribed" } }, { $group: { _id: "$source", n: { $sum: 1 } } }])),
     NewsSubscription.countDocuments({ syncedAt: null }),
+    // Gave up after NEWS_MAX_SYNC_ATTEMPTS: the daily job reports these; a human checks them in Resend.
+    NewsSubscription.countDocuments({ syncedAt: null, syncAttempts: trusted({ $gte: NEWS_MAX_SYNC_ATTEMPTS }) }),
   ]);
   // Who did each recent action (emails of at most 15 accounts).
   // System rows (daily jobs, the spend correction) have NO actor: skip them here (shown as "—"). String(undefined)
@@ -53,7 +56,7 @@ export async function dashboardStats() {
     pendingTexts,
     views: views[0]?.n ?? 0,
     onLists,
-    news: { parent: news.parent ?? 0, public: news.public ?? 0, donor: (news.donor ?? 0) + (news.tip ?? 0), waiting: newsUnsynced },
+    news: { parent: news.parent ?? 0, public: news.public ?? 0, donor: (news.donor ?? 0) + (news.tip ?? 0), waiting: newsUnsynced - newsStuck, stuck: newsStuck },
     activity: activity.map((a) => ({ action: a.action, at: a.createdAt, by: emailOf.get(String(a.actorUserId)) ?? "—" })),
   };
 }

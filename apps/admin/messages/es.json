@@ -389,7 +389,8 @@
       "parent": "Padres",
       "public": "Formulario de la página principal",
       "donor": "Donantes y propinas",
-      "waiting": "Esperando a Resend"
+      "waiting": "Esperando a Resend",
+      "stuck": "Rechazados por Resend (revisar)"
     }
   },
   "AuditActions": {

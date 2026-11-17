@@ -9,3 +9,6 @@
  * wording changes (both languages).
  */
 export const NEWS_CONSENT_VERSION = "2026-11-12";
+
+/** After this many failed Resend tries the daily job stops retrying a row and reports it (a human looks). */
+export const NEWS_MAX_SYNC_ATTEMPTS = 10;

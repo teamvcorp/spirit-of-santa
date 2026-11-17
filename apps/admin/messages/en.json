@@ -389,7 +389,8 @@
       "parent": "Parents",
       "public": "Home page form",
       "donor": "Donors and tippers",
-      "waiting": "Waiting for Resend"
+      "waiting": "Waiting for Resend",
+      "stuck": "Resend refused (check)"
     }
   },
   "AuditActions": {

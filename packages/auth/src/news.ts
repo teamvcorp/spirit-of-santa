@@ -23,7 +23,7 @@ import { sendEmail } from "@repo/email";
 import { removeContact, subscribeContact, unsubscribeContact } from "@repo/email/contacts";
 import { localizePath } from "@repo/i18n/paths";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@repo/lib/locales";
-import { NEWS_CONSENT_VERSION } from "@repo/lib/news";
+import { NEWS_CONSENT_VERSION, NEWS_MAX_SYNC_ATTEMPTS } from "@repo/lib/news";
 import { clientIp, emailKey, hitRateLimit, ipKey } from "./rate-limit.ts";
 import { consumeActionToken, createActionToken } from "./tokens.ts";
 
@@ -107,8 +107,6 @@ export async function confirmNews(raw: unknown): Promise<boolean> {
   return true;
 }
 
-/** After this many failed Resend tries the daily job stops retrying a row and reports it (a human looks). */
-export const NEWS_MAX_SYNC_ATTEMPTS = 10;
 
 /**
  * Push one row's CURRENT status to Resend and stamp syncedAt. Best-effort: on failure the row stays unsynced (with
@@ -190,8 +188,16 @@ async function writeParentNews(p: { id: unknown; email: string; locale: Locale }
       { $set: { status: "unsubscribed", unsubscribedAt: now, syncedAt: null, userId: p.id }, $inc: { rev: 1 } },
     );
   } else {
-    const existing = await NewsSubscription.findOne({ email: p.email }).select("status forgetAt").lean();
-    if (existing?.forgetAt) return; // the account is being deleted: never put it back on the list
+    let existing = await NewsSubscription.findOne({ email: p.email }).select("status forgetAt").lean();
+    if (existing?.forgetAt) {
+      // THIS account is being deleted: never put it back on the list.
+      if (!(await User.exists({ _id: p.id }))) return;
+      // Leftover of an EARLIER, deleted account with the same email (Resend was down when it was deleted):
+      // finish that deletion first, then subscribe this new account (review 2026-11-12).
+      await syncOne(p.email);
+      existing = await NewsSubscription.findOne({ email: p.email }).select("status forgetAt").lean();
+      if (existing?.forgetAt) throw new Error("news: an earlier account's removal is still pending"); // caller keeps/retries
+    }
     if (existing?.status === "subscribed") {
       await NewsSubscription.updateOne({ email: p.email }, { $set: { userId: p.id } });
       return; // already on the list (maybe from the public form): nothing to tell Resend
@@ -211,8 +217,9 @@ async function writeParentNews(p: { id: unknown; email: string; locale: Locale }
       if ((err as { code?: number }).code !== 11000) throw err;
       await NewsSubscription.updateOne(filter, update, { runValidators: true }); // lost the insert race
     }
-    // Deleted between our check and the write? Then take it straight back off the list.
-    if (!(await User.exists({ _id: p.id, role: "parent", status: "active" }))) {
+    // DELETED between our check and the write? Then take it straight back off the list. (Existence only: a
+    // suspension is not a deletion and must not wipe the record.)
+    if (!(await User.exists({ _id: p.id }))) {
       await NewsSubscription.updateOne(
         { email: p.email },
         { $set: { status: "unsubscribed", forgetAt: new Date(), syncedAt: null }, $unset: { userId: "" }, $inc: { rev: 1 } },

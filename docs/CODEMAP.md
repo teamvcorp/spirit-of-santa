@@ -367,7 +367,7 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
 
 - **/donate (slice 2):** community/corporate gifts to "all kids" or one zip POOL and are split ONCE on Dec 1, in EQUAL
   shares among eligible (registered) kids. Admin-set platform fee % taken off the top at the split (platform revenue),
-  stated plainly on the page. Tax receipt email for EVERY gift via Edynsgate (501(c)(3); legal name + EIN in admin).
+  stated plainly on the page. Tax receipt email for EVERY gift from The Von Der Becke Academy Corp (501(c)(3); Edynsgate is one of its projects, not the charity; legal name + EIN in admin).
 - Order: 1 parent bonus → 2 /donate → 3 Jan 1 reset → 4 pay-later SMS (needs Twilio A2P approval). Dec 25 pay-up and
   store payouts/profit tracking moved to Phase 6 (need wish lists + fulfilment).
 - **Slice 1 parent bonus (DONE):** `/parent/bonus` (PIN unlock; `?kid=` preselects; dashboard link per REGISTERED kid).
@@ -394,7 +394,7 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   `receiptsEnabled` OFF by default, audited `settings.update`), `/receipts` (`DonationReceipt`, one per
   PaymentIntent; donor email/name from Stripe Checkout `customer_details`; locale from `sos_locale`). Webhook creates
   + sends the receipt AFTER the money transaction, best-effort. Receipts only go out when switched on + name + EIN
-  (a 501(c)(3) receipt is only valid if the charity receives the gift: user must confirm with Edynsgate/accountant);
+  (a 501(c)(3) receipt is only valid if the charity receives the gift: owner confirmed 2026-11-18: The Von Der Becke Academy Corp);
   saving settings sends waiting ones; claim = CAS on `attempts` + Resend idempotency key `receipt/<no>`.
   Email renderer: body `white-space:pre-line` (multi-line receipt). E2E `browser-community-donate.ts` (26; saves and
   RESTORES PlatformSettings).

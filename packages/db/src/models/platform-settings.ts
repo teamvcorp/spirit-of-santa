@@ -5,7 +5,7 @@
  *  - donationFeeBps: Spirit of Santa's share of community-donation pools, taken off the top at the
  *    Dec 1 split (user decision 2026-11-06). Basis points: 1000 = 10%. NO default on purpose:
  *    the split refuses to run until an admin has chosen it.
- *  - charity: the 501(c)(3) named on tax receipts (Edynsgate). receiptsEnabled stays OFF until the
+ *  - charity: the 501(c)(3) named on tax receipts (The Von Der Becke Academy Corp; Edynsgate is only a project of it). receiptsEnabled stays OFF until the
  *    admin confirms donations are received on the charity's behalf (a receipt is only valid then).
  *  - receiptsFromDay: receipts cover gifts made ON/AFTER this calendar day (Central Time): the day
  *    the charity arrangement took effect. Earlier gifts never get a receipt (review 2026-11-06).

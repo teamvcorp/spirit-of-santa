@@ -34,7 +34,8 @@ async function Content() {
   // The freeze moment is Central-Time midnight: show that calendar day in the page language.
   const intlLocale = toIntlLocale(locale);
   const shareDay = new Intl.DateTimeFormat(intlLocale, { month: "long", day: "numeric", timeZone: "America/Chicago" }).format(win.freezeAt);
-  const open = win.open && settings.donationFeeBps !== null;
+  // The acknowledgment box names the charity: no name set → no gifts (the action refuses too).
+  const open = win.open && settings.donationFeeBps !== null && settings.charity.legalName !== "";
   return (
     <div className="flex flex-col gap-4">
       {settings.donationFeeBps !== null && (
@@ -44,7 +45,7 @@ async function Content() {
         <p className="text-sm text-muted">{t("charity", { orgName: settings.charity.legalName, ein: settings.charity.ein })}</p>
       )}
       {total.cents > 0 && <p className="font-semibold" data-testid="season-total">{t("raised", { amount: formatCents(total.cents) })}</p>}
-      {open ? <CommunityDonateForm /> : <Alert>{t("errors.closed")}</Alert>}
+      {open ? <CommunityDonateForm orgName={settings.charity.legalName} /> : <Alert>{t("errors.closed")}</Alert>}
     </div>
   );
 }

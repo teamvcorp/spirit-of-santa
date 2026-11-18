@@ -155,7 +155,7 @@ The financial layer. Every dollar in and out flows through Stripe; every point h
 
 - [ ] Public page at spiritofsanta.com/donate: donate to all kids or filter by zip code
 - [ ] Stripe Checkout for corporate donations; points distributed pro-rata to eligible children
-- [ ] Tax receipt email (Edynsgate 501c3) auto-generated for donations above a threshold (set in admin)
+- [ ] Tax receipt email (The Von Der Becke Academy Corp 501c3; earlier notes said Edynsgate) auto-generated for donations above a threshold (set in admin)
 
 **Season-end handling**
 

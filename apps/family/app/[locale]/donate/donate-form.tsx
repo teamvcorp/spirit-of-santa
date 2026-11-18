@@ -46,10 +46,32 @@ function ScopeFields({ scope: initialScope, zip }: { scope?: string; zip?: strin
   );
 }
 
-export function CommunityDonateForm() {
+/**
+ * The donor acknowledgment (owner 2026-11-18, wording version @repo/lib/donor-ack). Real checkbox + label, never
+ * pre-ticked (it remembers a tick only across a refused try). The server action re-checks it.
+ */
+function AckBox({ orgName, checked, onChange }: { orgName: string; checked: boolean; onChange: (v: boolean) => void }) {
+  const t = useTranslations("Community");
+  return (
+    <label className="flex items-start gap-3 rounded-xl border border-input p-3 text-sm">
+      <input type="checkbox" name="ack" value="on" required checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-0.5 size-5 shrink-0" data-testid="donor-ack" />
+      <span>{t("ack", { orgName })}</span>
+    </label>
+  );
+}
+
+export function CommunityDonateForm({ orgName }: { orgName: string }) {
   const t = useTranslations("Community");
   const [state, action, pending] = useActionState(communityDonateAction, { status: "idle" } as CommunityState);
   const hydrated = useHydrated();
+  // Seeded from the echoed value; the form remounts (key) per result, and so does this state's owner below.
+  const [ack, setAck] = useState(state.ack === true);
+  const [ackFor, setAckFor] = useState(state.nonce);
+  if (ackFor !== state.nonce) {
+    // A new server result: take its echoed tick (React's "adjust state while rendering" pattern, no effect).
+    setAckFor(state.nonce);
+    setAck(state.ack === true);
+  }
 
   if ("ok" in state && state.ok) {
     if (!stripePromise) return <Alert tone="error">{t("errors.stripe")}</Alert>;
@@ -83,7 +105,9 @@ export function CommunityDonateForm() {
         otherAmountLabel={t("otherAmount")}
       />
       <NewsOptInBox />
-      <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">
+      <AckBox orgName={orgName} checked={ack} onChange={setAck} />
+      {/* Disabled until the box is ticked (owner): a convenience only, the server action refuses without it. */}
+      <Button type="submit" pending={pending} disabled={!hydrated || !ack} className="self-start">
         {t("button")}
       </Button>
       <p className="text-xs text-muted">{t("final")}</p>

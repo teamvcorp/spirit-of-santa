@@ -12,6 +12,7 @@
  */
 import { randomBytes } from "node:crypto";
 import Stripe from "stripe";
+import { DONOR_ACK_VERSION } from "@repo/lib/donor-ack";
 import { chromium, type Page } from "playwright-core";
 import { ActionToken, connectDb, DonationReceipt, NewsSubscription, Payment, PlatformSettings, RateLimit, StripeEvent, trusted } from "@repo/db";
 import { sendNewsConfirm } from "@repo/auth/news";
@@ -31,8 +32,12 @@ const donorMail = `news-donor-${tag}@spiritofsanta.test`;
 const mongoose = await connectDb();
 if (!mongoose.connection.name.endsWith("_dev")) throw new Error("refusing: not a *_dev database");
 const savedSettings = await PlatformSettings.collection.findOne({ key: "platform" });
-// /donate needs a platform fee set (it stays closed otherwise).
-await PlatformSettings.collection.updateOne({ key: "platform" }, { $set: { donationFeeBps: savedSettings?.donationFeeBps ?? 500 } }, { upsert: true });
+// /donate needs a platform fee AND the charity name (the donor acknowledgment names it); closed otherwise.
+await PlatformSettings.collection.updateOne(
+  { key: "platform" },
+  { $set: { donationFeeBps: savedSettings?.donationFeeBps ?? 500, "charity.legalName": savedSettings?.charity?.legalName || "Academy Test Charity" } },
+  { upsert: true },
+);
 const started = Math.floor(Date.now() / 1000) - 5;
 const piIds: string[] = [];
 const evtIds: string[] = [];
@@ -51,6 +56,9 @@ const hydrated = (p: Page) =>
 /** Start a donation on /donate (default amount), optionally ticking the news box; returns the new test session. */
 async function startDonation(tick: boolean) {
   await page.goto(`${base}/donate`);
+  await page.waitForLoadState("networkidle"); // tick only after React has hydrated the form
+  // The required acknowledgment (2026-11-18): the pay button stays disabled until it is ticked.
+  await page.locator('main:visible [data-testid="donor-ack"]').check();
   await hydrated(page);
   const box = page.locator('main:visible [data-testid="news-opt-in"]');
   const unticked = !(await box.isChecked());
@@ -70,6 +78,7 @@ try {
   check("donate form: news box not pre-ticked", a.unticked);
   check("ticked → checkout metadata sos_news=1 (session + payment intent data)",
     a.session?.metadata?.sos_news === "1" && a.session?.metadata?.sos_purpose === "donation");
+  check("real checkout carries the donor acknowledgment version (sos_ack)", a.session?.metadata?.sos_ack === DONOR_ACK_VERSION);
   // 2. Not ticked → no sos_news.
   const b = await startDonation(false);
   check("not ticked → no sos_news in the checkout", !!b.session && b.session.metadata?.sos_news === undefined);

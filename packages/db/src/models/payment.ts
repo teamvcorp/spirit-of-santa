@@ -57,6 +57,15 @@ const paymentSchema = new Schema(
      * compare-and-set, so the webhook, its retries and the return page send it exactly ONCE between them.
      */
     newsAskedAt: Date,
+    /**
+     * Donation: the donor ticked "I understand this donation goes to … I will not receive any goods or services"
+     * BEFORE paying (owner 2026-11-18). version = which wording (@repo/lib/donor-ack); acceptedAt = when the
+     * checkout was opened right after ticking. A receipt needs it (ackAllowsReceipt) for gifts after the rule day.
+     */
+    donorAck: {
+      version: { type: String, maxlength: 40 },
+      acceptedAt: Date,
+    },
     /** Community donation (/donate) aimed at one US ZIP; absent = the "all kids" pool. */
     zip: { type: String, match: /^\d{5}$/ },
 

@@ -17,6 +17,7 @@
  */
 import "server-only";
 import { z } from "zod";
+import { DONOR_ACK_VERSION_PATTERN } from "@repo/lib/donor-ack";
 
 export const PAYMENT_METADATA_VERSION = "1";
 
@@ -52,6 +53,11 @@ export const paymentMetadataSchema = z.discriminatedUnion("sos_purpose", [
     sos_locale: z.enum(["en", "es"]).optional(),
     /** Donor ticked "send me news" (2026-11-12), see the tip schema. */
     sos_news: z.literal("1").optional(),
+    /**
+     * Donor ticked the acknowledgment box (2026-11-18): the WORDING VERSION they saw (@repo/lib/donor-ack).
+     * Optional so checkouts opened before it shipped still parse; any version (old ones too) is accepted.
+     */
+    sos_ack: z.string().regex(DONOR_ACK_VERSION_PATTERN).optional(),
   }),
   // $5 child registration (parental-consent card check). Up to 10 kids, comma-separated ids.
   // sos_promo "1" = family promo code: one $5 covers every listed kid.

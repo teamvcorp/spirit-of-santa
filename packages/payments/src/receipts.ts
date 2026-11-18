@@ -20,6 +20,7 @@ import { createHash } from "node:crypto";
 import { connectDb, DonationReceipt, Payment, trusted } from "@repo/db";
 import { sendEmail } from "@repo/email";
 import { formatCents } from "@repo/lib/format";
+import { ackAllowsReceipt } from "@repo/lib/donor-ack";
 import { getStripe } from "./client.ts";
 import { formatLongDate } from "@repo/lib/format";
 import { getPlatformSettings } from "./settings.ts";
@@ -36,9 +37,15 @@ export async function ensureDonationReceipt(piId: string, link: string): Promise
   if (await DonationReceipt.exists({ stripePaymentIntentId: piId })) return;
   // Only a gift that really went into a pool (not one held for review).
   const pay = await Payment.findOne({ stripePaymentIntentId: piId, purpose: "donation", status: "succeeded", fulfilment: trusted({ $in: ["held", "credited", "retained"] }) })
-    .select("amountCents seasonYear createdAt succeededAt")
+    .select("amountCents seasonYear createdAt succeededAt donorAck")
     .lean();
   if (!pay) return;
+  // No receipt without the donor's acknowledgment (owner 2026-11-18), except gifts made before that rule.
+  // The donate form and its server action both require the box, so this only skips a gift that somehow lacks it.
+  if (!ackAllowsReceipt({ donorAck: pay.donorAck, donatedAt: pay.succeededAt ?? pay.createdAt ?? new Date() })) {
+    console.warn("[receipts] no donor acknowledgment on a donation: no receipt");
+    return;
+  }
 
   // Donor email + name = what they typed in Stripe Checkout (we never ask for it ourselves).
   let email: string | undefined;

@@ -14,6 +14,7 @@ import Stripe from "stripe";
 import { chromium, type Page } from "playwright-core";
 import { AuditLog, connectDb, DonationReceipt, Payment, PlatformSettings, StripeEvent, User } from "@repo/db";
 import { buildPaymentMetadata, getStripe } from "@repo/payments/checkout";
+import { DONOR_ACK_VERSION } from "@repo/lib/donor-ack";
 import { createMfaAdmin, makeChecks } from "./lib.ts";
 
 const [base, adminBase] = process.argv.slice(2);
@@ -107,9 +108,26 @@ try {
   const st1 = await PlatformSettings.findOne({ key: "platform" }).lean();
   check("stored as 1250 basis points, receipts off, audited",
     st1?.donationFeeBps === 1250 && st1.receiptsEnabled === false && (await AuditLog.countDocuments({ actorUserId: admin.id, action: "settings.update" })) === 1);
+  // The donor acknowledgment names the charity (owner 2026-11-18): no charity name → still closed.
+  check("fee set but no charity name → /donate still closed", (await text(visitor, `${base}/donate`)).includes("aren't open right now"));
+  check("charity name saved (receipts still off)", (await save({ fee: "12.5", ein: "", legalName: "Academy Test Charity" })).includes("Saved"));
 
   // 3. Public page now open: rules stated plainly; no receipt promise while receipts are off.
   const page1 = await text(visitor, `${base}/donate`);
+  check("acknowledgment box names the charity, starts unticked, pay button disabled until ticked",
+    page1.includes("a program of Academy Test Charity") && page1.includes("will not receive any goods or services") &&
+      !(await visitor.locator('main:visible [data-testid="donor-ack"]').isChecked()) &&
+      (await visitor.locator("main:visible button[type=submit]").isDisabled()));
+  // Server refuses WITHOUT the box (browser checks removed: the button forced on, `required` dropped).
+  await visitor.evaluate(() => {
+    document.querySelector("main [data-testid=donor-ack]")?.removeAttribute("required");
+    const b = document.querySelector("main button[type=submit]") as HTMLButtonElement | null;
+    if (b) b.disabled = false;
+  });
+  await visitor.locator("main:visible button[type=submit]").click();
+  await visitor.locator("main:visible").getByText("tick the box").waitFor({ timeout: 60_000 });
+  check("server refuses a gift without the acknowledgment (no checkout opened)", (await visitor.locator('[data-testid="stripe-checkout"]').count()) === 0);
+  await visitor.locator('main:visible [data-testid="donor-ack"]').check();
   check("donate page states the equal split, the share day and the 12.5% fee", page1.includes("shared equally") && page1.includes("12.5%") && /December \d+/.test(page1));
   check("no tax-receipt promise while receipts are off", !page1.includes("501(c)(3)"));
   check("header has a Donate link", (await visitor.locator('header a[href$="/donate"]').count()) > 0);
@@ -139,10 +157,12 @@ try {
   check("$50 ZIP gift opens Stripe's embedded form", ((await visitor.locator('[data-testid="stripe-checkout"] iframe').first().getAttribute("src")) ?? "").startsWith("https://js.stripe.com/"));
 
   // 6. Paid (signed webhook) → held in the ZIP pool, receipt row once; out-of-bounds → review.
-  const md = buildPaymentMetadata({ sos_purpose: "donation", sos_zip: "50588", sos_locale: "es" });
+  const md = buildPaymentMetadata({ sos_purpose: "donation", sos_zip: "50588", sos_locale: "es", sos_ack: DONOR_ACK_VERSION });
   const paid = await sendEvent(md, 5000);
   const pay = await Payment.findOne({ stripePaymentIntentId: paid.piId }).lean();
   check("donation recorded HELD in the 50588 pool, no points", paid.status === 200 && pay?.fulfilment === "held" && pay.zip === "50588" && pay.pointsCreditedCentipoints === 0);
+  check("the donor's acknowledgment (wording version + time) is stored on the Payment",
+    pay?.donorAck?.version === DONOR_ACK_VERSION && pay.donorAck.acceptedAt instanceof Date);
   // Replay the same event: no second payment or receipt.
   await fetch(`${base}/api/webhooks/stripe`, { method: "POST", headers: { "content-type": "application/json", "stripe-signature": Stripe.webhooks.generateTestHeaderString({ payload: paid.body, secret: whsec }) }, body: paid.body });
   check("receipt row created exactly once (replayed event)", (await DonationReceipt.countDocuments({ stripePaymentIntentId: paid.piId })) === 1);
@@ -161,18 +181,18 @@ try {
   const today = await mkReceipt("today", new Date());
   const old = await mkReceipt("old", new Date(Date.now() - 10 * 86_400_000));
   const fromDay = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago" }).format(new Date()); // YYYY-MM-DD
-  check("receipts ON without a start day refused", (await save({ fee: "12.5", legalName: "Edynsgate Test Charity", ein: "12-3456789", address: "1 Test St", fromDay: "" }, true)).includes("start covering"));
-  const msg = await save({ fee: "12.5", legalName: "Edynsgate Test Charity", ein: "12-3456789", address: "1 Test St", fromDay }, true);
+  check("receipts ON without a start day refused", (await save({ fee: "12.5", legalName: "Academy Test Charity", ein: "12-3456789", address: "1 Test St", fromDay: "" }, true)).includes("start covering"));
+  const msg = await save({ fee: "12.5", legalName: "Academy Test Charity", ein: "12-3456789", address: "1 Test St", fromDay }, true);
   const [rt, ro] = await Promise.all([DonationReceipt.findOne({ stripePaymentIntentId: today }).lean(), DonationReceipt.findOne({ stripePaymentIntentId: old }).lean()]);
   check("switching receipts on emails today's waiting receipt, with the charity stored on it",
-    msg.includes("waiting receipt was emailed") && rt?.status === "sent" && !!rt.sentAt && rt.issuer?.ein === "12-3456789" && rt.issuer.legalName === "Edynsgate Test Charity", msg);
+    msg.includes("waiting receipt was emailed") && rt?.status === "sent" && !!rt.sentAt && rt.issuer?.ein === "12-3456789" && rt.issuer.legalName === "Academy Test Charity", msg);
   check("a gift from BEFORE the start day is never sent a receipt", ro?.status === "pending" && !ro.sentAt);
   const settingsNow = await text(ap, `${adminBase}/settings`);
   check("admin sees receipt counts + the gift before the start day", settingsNow.includes("Sent:") && settingsNow.includes("made before"));
 
   // 8. Public page now promises the receipt and names the charity; season total shown.
   const page2 = await text(visitor, `${base}/donate`);
-  check("donate page names the 501(c)(3) and EIN once receipts are on", page2.includes("Edynsgate Test Charity") && page2.includes("12-3456789"));
+  check("donate page names the 501(c)(3) and EIN once receipts are on", page2.includes("Academy Test Charity") && page2.includes("12-3456789"));
   check("season total shown", (await visitor.locator('main:visible [data-testid="season-total"]').count()) === 1);
 
   // 9. Thanks page: real unpaid session → not completed; unknown → not found; a non-donation session → not found.

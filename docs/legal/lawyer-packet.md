@@ -60,7 +60,7 @@ should the surprise checkout show the store price next to what the parent pays?*
 - Community donations (spiritofsanta.com/donate) are pooled and shared equally among registered children on
   December 1; an admin-set platform fee is shown before giving.
 - Once an admin switches receipts on (it needs the charity's legal name and EIN, still to be confirmed by the owner,
-  and a start date), every donation from that date gets an emailed receipt naming the receiving charity (Edynsgate).
+  and a start date), every donation from that date gets an emailed receipt naming the receiving charity (The Von Der Becke Academy Corp, EIN 46-1005883; Edynsgate is a project of the Academy, not a separate charity).
   Until then no receipts are sent. *Is the receipt wording right for a tax deduction, given donors receive no goods?*
 
 ## 5. Text messages (pay-later links)

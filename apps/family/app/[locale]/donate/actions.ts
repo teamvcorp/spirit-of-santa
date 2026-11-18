@@ -16,7 +16,7 @@ import { echoAmount, formFields, type AmountEcho } from "../../../lib/amount-for
 
 /** scope + zip are echoed with the amount so the form remounts with what was typed. */
 export type CommunityState = ({ status: "idle" } | CommunityStart | { ok: false; error: "rateLimited" | "invalid" }) &
-  AmountEcho & { scope?: string; zip?: string };
+  AmountEcho & { scope?: string; zip?: string; ack?: boolean };
 
 const schema = z.object({
   scope: z.enum(["all", "zip"]),
@@ -25,21 +25,26 @@ const schema = z.object({
   other: z.string().max(10).optional().default(""),
   locale: z.enum(LOCALES).catch(DEFAULT_LOCALE),
   news: z.literal("on").optional().catch(undefined), // "keep me posted" box
+  // The donor acknowledgment (owner 2026-11-18). REQUIRED: the browser disables the button until it is ticked,
+  // but that is only a convenience; this is the real check (a missing box → the "ack" error, nothing charged).
+  ack: z.literal("on").optional().catch(undefined),
 });
 
 export async function communityDonateAction(_prev: CommunityState, fd: FormData): Promise<CommunityState> {
   const raw = (k: string) => (typeof fd.get(k) === "string" ? String(fd.get(k)).slice(0, 10) : "");
-  const echo = { ...echoAmount(fd), scope: raw("scope"), zip: raw("zip") };
+  const echo = { ...echoAmount(fd), scope: raw("scope"), zip: raw("zip"), ack: raw("ack") === "on" };
   if (!(await publicLimit(await headers(), "community", 10))) return { ok: false, error: "rateLimited", ...echo };
   const parsed = schema.safeParse(formFields(fd));
   if (!parsed.success) return { ok: false, error: "invalid", ...echo };
-  const { scope, zip, amount, other, locale, news } = parsed.data;
-  // The fee must be stated on the page before anyone gives (user decision): no fee set → closed.
-  if ((await getPlatformSettings()).donationFeeBps === null) return { ok: false, error: "closed", ...echo };
+  const { scope, zip, amount, other, locale, news, ack } = parsed.data;
+  // The fee must be stated on the page before anyone gives (user decision): no fee set → closed. The
+  // acknowledgment names the charity, so no charity name → closed too (it could not be shown correctly).
+  const settings = await getPlatformSettings();
+  if (settings.donationFeeBps === null || settings.charity.legalName === "") return { ok: false, error: "closed", ...echo };
   const origin = process.env.NEXTAUTH_URL;
   if (!origin) throw new Error("NEXTAUTH_URL is not set");
   const r = await startCommunityDonation(
-    { zip: scope === "zip" ? zip.trim() : null, amountCents: donationAmountCents(amount, other), locale, news: news === "on" },
+    { zip: scope === "zip" ? zip.trim() : null, amountCents: donationAmountCents(amount, other), locale, news: news === "on", ack: ack === "on" },
     origin,
     (p) => localizePath(p, locale),
   );

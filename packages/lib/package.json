@@ -24,7 +24,8 @@
     "./security-headers": "./src/security-headers.ts",
     "./site": "./src/site.ts",
     "./news": "./src/news.ts",
-    "./elf": "./src/elf.ts"
+    "./elf": "./src/elf.ts",
+    "./donor-ack": "./src/donor-ack.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

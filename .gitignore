@@ -33,3 +33,6 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+# Signed tax forms and similar paperwork: keep on this PC only, never in git
+outreach/retailers/forms/

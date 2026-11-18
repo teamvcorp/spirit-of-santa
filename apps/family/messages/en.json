@@ -537,6 +537,7 @@
     "other": "Other",
     "otherAmount": "Amount in dollars",
     "button": "Continue to payment",
+    "ack": "I understand this donation goes to Spirit of Santa, a program of {orgName}, to be used as Christmas Magic that provides presents to children. I will not receive any goods or services in return for this donation.",
     "final": "All gifts are final. Payments are handled by Stripe; we never see your card number.",
     "total": "Gift: {amount}",
     "received": "Thank you! Your gift is in the pool and will be shared among the children.",
@@ -548,6 +549,7 @@
     "back": "Back to the donation page",
     "errors": {
       "amount": "Choose an amount between {min} and {max}.",
+      "ack": "Please tick the box to confirm you understand where your donation goes.",
       "zip": "Enter a 5-digit ZIP code.",
       "closed": "Community gifts aren't open right now. They open with the Christmas season and close when the gifts are shared.",
       "invalid": "Something was wrong with the form. Please try again.",

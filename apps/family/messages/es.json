@@ -537,6 +537,7 @@
     "other": "Otra",
     "otherAmount": "Cantidad en dólares",
     "button": "Continuar al pago",
+    "ack": "Entiendo que esta donación va a Spirit of Santa, un programa de {orgName}, para usarse como Magia Navideña que da regalos a los niños. No recibiré bienes ni servicios a cambio de esta donación.",
     "final": "Todos los regalos son definitivos. Los pagos los procesa Stripe; nunca vemos el número de tu tarjeta.",
     "total": "Regalo: {amount}",
     "received": "¡Gracias! Tu regalo está en el fondo y se repartirá entre los niños.",
@@ -548,6 +549,7 @@
     "back": "Volver a la página de donaciones",
     "errors": {
       "amount": "Elige una cantidad entre {min} y {max}.",
+      "ack": "Marca la casilla para confirmar que entiendes a dónde va tu donación.",
       "zip": "Escribe un código postal de 5 dígitos.",
       "closed": "Los regalos de la comunidad no están abiertos ahora. Abren con la temporada de Navidad y cierran cuando se reparten los regalos.",
       "invalid": "Algo salió mal con el formulario. Inténtalo de nuevo.",

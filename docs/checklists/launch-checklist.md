@@ -8,7 +8,7 @@ Written 2026-11-07. There are no real users yet, so nothing here needs a data mi
 
 - [ ] **Lawyer review** of the items in `docs/legal/lawyer-packet.md`. If the wording changes after families have
       signed up, tell the developer first: a "please agree again" step must be built before that change goes live.
-- [ ] **Charity details for receipts:** Edynsgate's legal name, EIN and mailing address, then in admin
+- [ ] **Charity details for receipts:** The Von Der Becke Academy Corp (EIN 46-1005883; Edynsgate is a project of the Academy, not a separate charity). DONE in live admin 2026-11-18, but FIX the address typo ("Durhan" → "Durham"; spec: 100 Village Circle Way, #325, Durham, NC 27713), then in admin
       **Settings** switch receipts on and choose the date receipts start.
 - [ ] **Admin Settings:** platform fee % (the /donate page stays closed until it is set) and Spirit of Santa's
       shipping address (stores can't be told where to ship until it is set).

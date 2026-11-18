@@ -15,6 +15,7 @@ import { connectDb, Payment } from "@repo/db";
 import { parseDollarsToCents } from "@repo/lib/format";
 import { DONATION_PRESETS_CENTS, MAX_CHECKOUT_MS, MAX_DONATION_CENTS, MIN_CHECKOUT_MS, MIN_DONATION_CENTS } from "@repo/lib/limits";
 import { getSeasonYear, startOfDayInZone } from "@repo/lib/season";
+import { DONOR_ACK_VERSION } from "@repo/lib/donor-ack";
 import { getSeasonState } from "@repo/stores/season";
 import { NOT_OFFERED_PAYMENT_METHODS, paymentMethodConfig } from "./checkout.ts";
 import { getStripe } from "./client.ts";
@@ -37,22 +38,31 @@ export async function donationWindow(): Promise<{ open: boolean; freezeAt: Date 
   return { open: s.phase === "open", freezeAt: startOfDayInZone(s.dates.freeze) };
 }
 
-export type CommunityStart = { ok: true; clientSecret: string; amountCents: number } | { ok: false; error: "amount" | "zip" | "closed" | "stripe" };
+export type CommunityStart = { ok: true; clientSecret: string; amountCents: number } | { ok: false; error: "amount" | "zip" | "closed" | "stripe" | "ack" };
 
 export async function startCommunityDonation(
   /** news = the donor ticked "send me news" (a confirm link goes to their Stripe email after paying). */
-  input: { zip: string | null; amountCents: number | null; locale: "en" | "es"; news?: boolean },
+  /** ack = the donor ticked the acknowledgment box (owner 2026-11-18): REQUIRED, refused here without it. */
+  input: { zip: string | null; amountCents: number | null; locale: "en" | "es"; news?: boolean; ack: boolean },
   origin: string,
   localePath: (p: string) => string,
 ): Promise<CommunityStart> {
   const { amountCents, zip } = input;
   if (amountCents == null || !Number.isSafeInteger(amountCents) || amountCents < MIN_DONATION_CENTS || amountCents > MAX_DONATION_CENTS) return { ok: false, error: "amount" };
   if (zip !== null && !/^\d{5}$/.test(zip)) return { ok: false, error: "zip" };
+  if (input.ack !== true) return { ok: false, error: "ack" };
   const win = await donationWindow();
   const endsAt = Math.min(win.freezeAt.getTime(), Date.now() + MAX_CHECKOUT_MS);
   if (!win.open || endsAt - Date.now() < MIN_CHECKOUT_MS) return { ok: false, error: "closed" };
 
-  const metadata = buildPaymentMetadata({ sos_purpose: "donation", ...(zip ? { sos_zip: zip } : {}), sos_locale: input.locale, ...(input.news ? { sos_news: "1" as const } : {}) });
+  // sos_ack = the wording version they ticked; the webhook stores it on the Payment (proof for the receipt).
+  const metadata = buildPaymentMetadata({
+    sos_purpose: "donation",
+    ...(zip ? { sos_zip: zip } : {}),
+    sos_locale: input.locale,
+    ...(input.news ? { sos_news: "1" as const } : {}),
+    sos_ack: DONOR_ACK_VERSION,
+  });
   try {
     const session = await getStripe().checkout.sessions.create({
       ...paymentMethodConfig(), // Spirit of Santa's own payment-method group (Link off)

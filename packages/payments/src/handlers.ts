@@ -220,7 +220,9 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
 
     // Community donation: HELD in its pool (zip or "all kids") until the Dec 1 split (Phase 5 slice 2b).
     if (meta.sos_purpose === "donation") {
-      await record("held", meta.sos_zip ? { zip: meta.sos_zip } : {});
+      // The donor's acknowledgment (which wording, when): proof for the receipt (@repo/lib/donor-ack).
+      const donorAck = meta.sos_ack ? { donorAck: { version: meta.sos_ack, acceptedAt: new Date(pi.created * 1000) } } : {};
+      await record("held", { ...(meta.sos_zip ? { zip: meta.sos_zip } : {}), ...donorAck });
       return processed("held:donation");
     }
     // tip | bonus → credit points to the kid. Only a REGISTERED kid of that family (consent

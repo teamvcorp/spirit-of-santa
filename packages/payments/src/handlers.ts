@@ -221,7 +221,10 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
     // Community donation: HELD in its pool (zip or "all kids") until the Dec 1 split (Phase 5 slice 2b).
     if (meta.sos_purpose === "donation") {
       // The donor's acknowledgment (which wording, when): proof for the receipt (@repo/lib/donor-ack).
-      const donorAck = meta.sos_ack ? { donorAck: { version: meta.sos_ack, acceptedAt: new Date(pi.created * 1000) } } : {};
+      // acceptedAt = when our server opened the checkout right after the tick (sos_ack_at); the PaymentIntent's own
+      // time is only a fallback (with Checkout it is created at payment, later than the tick).
+      const ackAt = meta.sos_ack_at ? Number(meta.sos_ack_at) : pi.created;
+      const donorAck = meta.sos_ack ? { donorAck: { version: meta.sos_ack, acceptedAt: new Date(ackAt * 1000) } } : {};
       await record("held", { ...(meta.sos_zip ? { zip: meta.sos_zip } : {}), ...donorAck });
       return processed("held:donation");
     }

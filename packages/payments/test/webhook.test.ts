@@ -77,3 +77,10 @@ test("events that need no action are acknowledged without touching the database"
   assert.deepEqual(await dispatchStripeEvent(ev("checkout.session.expired")), { status: "ignored", note: "no_action_needed" });
   assert.deepEqual(await dispatchStripeEvent(ev("customer.created")), { status: "ignored", note: "unsubscribed_event_type" });
 });
+
+test("donation metadata: the donor acknowledgment version + tick time round-trip; junk is refused", () => {
+  const md = buildPaymentMetadata({ sos_purpose: "donation", sos_ack: "donor-ack-2026-11-18", sos_ack_at: "1795000000" });
+  assert.deepEqual(parsePaymentMetadata(md), md);
+  assert.equal(parsePaymentMetadata({ ...md, sos_ack_at: "dddddddddd" }), null);
+  assert.equal(parsePaymentMetadata({ ...md, sos_ack: "yes" }), null);
+});

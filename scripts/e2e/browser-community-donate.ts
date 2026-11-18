@@ -157,12 +157,12 @@ try {
   check("$50 ZIP gift opens Stripe's embedded form", ((await visitor.locator('[data-testid="stripe-checkout"] iframe').first().getAttribute("src")) ?? "").startsWith("https://js.stripe.com/"));
 
   // 6. Paid (signed webhook) → held in the ZIP pool, receipt row once; out-of-bounds → review.
-  const md = buildPaymentMetadata({ sos_purpose: "donation", sos_zip: "50588", sos_locale: "es", sos_ack: DONOR_ACK_VERSION });
+  const md = buildPaymentMetadata({ sos_purpose: "donation", sos_zip: "50588", sos_locale: "es", sos_ack: DONOR_ACK_VERSION, sos_ack_at: String(Math.floor(Date.now() / 1000) - 600) });
   const paid = await sendEvent(md, 5000);
   const pay = await Payment.findOne({ stripePaymentIntentId: paid.piId }).lean();
   check("donation recorded HELD in the 50588 pool, no points", paid.status === 200 && pay?.fulfilment === "held" && pay.zip === "50588" && pay.pointsCreditedCentipoints === 0);
   check("the donor's acknowledgment (wording version + time) is stored on the Payment",
-    pay?.donorAck?.version === DONOR_ACK_VERSION && pay.donorAck.acceptedAt instanceof Date);
+    pay?.donorAck?.version === DONOR_ACK_VERSION && pay.donorAck.acceptedAt instanceof Date && Date.now() - pay.donorAck.acceptedAt.getTime() > 500_000);
   // Replay the same event: no second payment or receipt.
   await fetch(`${base}/api/webhooks/stripe`, { method: "POST", headers: { "content-type": "application/json", "stripe-signature": Stripe.webhooks.generateTestHeaderString({ payload: paid.body, secret: whsec }) }, body: paid.body });
   check("receipt row created exactly once (replayed event)", (await DonationReceipt.countDocuments({ stripePaymentIntentId: paid.piId })) === 1);

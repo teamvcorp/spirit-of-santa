@@ -43,7 +43,12 @@ export async function ensureDonationReceipt(piId: string, link: string): Promise
   // No receipt without the donor's acknowledgment (owner 2026-11-18), except gifts made before that rule.
   // The donate form and its server action both require the box, so this only skips a gift that somehow lacks it.
   if (!ackAllowsReceipt({ donorAck: pay.donorAck, donatedAt: pay.succeededAt ?? pay.createdAt ?? new Date() })) {
-    console.warn("[receipts] no donor acknowledgment on a donation: no receipt");
+    // Visible to an admin (the payments review list), never silently dropped (review 2026-11-18). No donor data logged.
+    await Payment.updateOne(
+      { stripePaymentIntentId: piId, needsReview: trusted({ $ne: true }) },
+      { $set: { needsReview: true, reviewReason: "No donor acknowledgment recorded: no tax receipt was sent" } },
+    );
+    console.warn("[receipts] no donor acknowledgment on a donation: no receipt (flagged for admin)");
     return;
   }
 

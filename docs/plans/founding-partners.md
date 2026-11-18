@@ -204,3 +204,19 @@ Owner must confirm before the text ships:
   not in emails.
 - Donor checkbox wording: **approved as written** (EN). ES drafted by Claude; owner reviews.
 - Charity details: owner says they are **already entered** in admin Settings.
+
+## Review notes (slice 4, 2026-11-18)
+- A gift without the acknowledgment after the rule day is flagged needsReview (no receipt), never silently dropped.
+- Slice 3's admin offline gift MUST set Payment.donorAck when admin ticks "donor signed the acknowledgment",
+  or ensureDonationReceipt will refuse its receipt.
+
+## Slice P: public partners page (owner request 2026-11-18)
+A family-site page of every company we invited, from the SAME Store collection (no second list). Owner answers:
+- Statuses: invited → "Pending"; pending (signed up, in review or partner fee due) → "Processing";
+  approved → "Approved"; declined our invitation → a little Grinch; stores WE rejected or suspended are hidden.
+  Admin gets a "mark declined" action on invited stores (new status or field; audited).
+- North Star on top of any status when the store holds the season donor badge (slice 3's helper, one source of truth).
+- Logos: the store uploads its own logo in the store app (= permission); until then the tile shows the company name.
+  Declined companies: name only + Grinch, NEVER a logo.
+- Tap a tile: signed-in parent with one registered kid → that kid's gift list filtered to this store; several kids →
+  "Whose wish list?" choice; anyone else → sign up, with the line "to see what wonders await".

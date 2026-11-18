@@ -60,7 +60,7 @@ const paymentSchema = new Schema(
     /**
      * Donation: the donor ticked "I understand this donation goes to … I will not receive any goods or services"
      * BEFORE paying (owner 2026-11-18). version = which wording (@repo/lib/donor-ack); acceptedAt = when the
-     * checkout was opened right after ticking. A receipt needs it (ackAllowsReceipt) for gifts after the rule day.
+     * checkout was opened right after ticking (metadata sos_ack_at). A receipt needs it (ackAllowsReceipt) for gifts after the rule day.
      */
     donorAck: {
       version: { type: String, maxlength: 40 },

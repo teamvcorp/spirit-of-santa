@@ -996,6 +996,19 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   live region is always rendered (only its text changes), shown above the tab bar, never takes taps; reduced motion
   leaves at once; aria-disabled + focus handed to the note; `elfDay` built from `calendarDateIn` (formatToParts).
 
+## Founding partners (spec docs/plans/founding-partners.md, owner 2026-11-18)
+Big companies: $50k partner fee (business payment, NEVER a donation), store-linked Christmas Magic gifts, a season
+"Christmas Magic donor" badge (recognition only, never ordering), and a public partners page. Owner answers at the
+bottom of the spec. Charity on receipts = The Von Der Becke Academy Corp (EIN 46-1005883); Edynsgate is a project of it.
+- **Donor acknowledgment (slice 4, DONE):** /donate has a required, unticked box (Community.ack, names the charity
+  from PlatformSettings.charity.legalName; /donate stays closed while that is empty). Pay button disabled until
+  ticked; the action + startCommunityDonation refuse without it. Metadata sos_ack (wording version) + sos_ack_at
+  (server time) → Payment.donorAck {version, acceptedAt} (webhook donation branch). Receipts: ensureDonationReceipt
+  needs it via ackAllowsReceipt (@repo/lib/donor-ack); gifts before DONOR_ACK_REQUIRED_FROM (2026-11-20) are exempt;
+  a gift without it is flagged needsReview (never silently dropped). Change the wording → bump DONOR_ACK_VERSION.
+- Next: partners page (slice P), partner fee (slice 2), store-linked gifts + badge (slice 3, incl. admin offline
+  gift with "donor signed the acknowledgment" tick: ensureDonationReceipt refuses gifts without donorAck).
+
 ## Open items / TODO
 
 - **No DB integration test yet.** `connectDb()` and auth flows are untested against a real MongoDB.

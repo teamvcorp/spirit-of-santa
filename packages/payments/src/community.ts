@@ -62,6 +62,7 @@ export async function startCommunityDonation(
     sos_locale: input.locale,
     ...(input.news ? { sos_news: "1" as const } : {}),
     sos_ack: DONOR_ACK_VERSION,
+    sos_ack_at: String(Math.floor(Date.now() / 1000)),
   });
   try {
     const session = await getStripe().checkout.sessions.create({

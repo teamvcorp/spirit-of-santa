@@ -1008,6 +1008,9 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   fee), creates an ACTIVE owner + PENDING store (admin approves as before). signup-complete:ip 20/h (argon2 cost).
   peekStoreSignup: open / done (used < 1 h, so a no-JS submit or reload shows "ready") / null. token is a
   SECRET_FIELD (never echoed). The old verify-email path still works for pre-existing pending sign-ups (48 h purge).
+- Review 2026-11-19: "done" needs ActionToken.completedAt (usedAt alone = cancelled by a newer link). Replacing an old
+  pending sign-up (here AND in acceptStoreInvite) is refused if that pending user owns a store an admin already
+  reviewed (non-pending): the store would lose its owner. E2E text checks: use shown() (next-intl ships all strings).
 
 ## Founding partners (spec docs/plans/founding-partners.md, owner 2026-11-18)
 Big companies: $50k partner fee (business payment, NEVER a donation), store-linked Christmas Magic gifts, a season

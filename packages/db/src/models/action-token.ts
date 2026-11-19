@@ -49,6 +49,11 @@ const actionTokenSchema = new Schema(
     usedAt: Date,
     /** When set, the row is deleted at this moment (TTL 0). store_signup: 14 days, owner's rule for unused emails. */
     purgeAt: Date,
+    /**
+     * store_signup: set ONLY when the link really created the account (usedAt alone also means "cancelled by a newer
+     * link"), so the page shows "your account is ready" only then (review 2026-11-19).
+     */
+    completedAt: Date,
   },
   { timestamps: { createdAt: true, updatedAt: false }, versionKey: false },
 );

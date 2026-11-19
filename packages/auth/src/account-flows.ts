@@ -190,7 +190,8 @@ export async function peekStoreSignup(raw: unknown): Promise<{ email: string; st
   const open = await peekActionToken(raw, "store_signup");
   if (open) return { email: open.email, state: "open" };
   if (typeof raw !== "string" || raw.length > 100) return null;
-  const used = await ActionToken.findOne({ tokenHash: hashToken(raw), purpose: "store_signup", usedAt: trusted({ $gt: new Date(Date.now() - 3_600_000) }) })
+  // completedAt (not usedAt): a link cancelled by a newer one is "used" too, but created nothing.
+  const used = await ActionToken.findOne({ tokenHash: hashToken(raw), purpose: "store_signup", completedAt: trusted({ $gt: new Date(Date.now() - 3_600_000) }) })
     .select("email")
     .lean();
   return used ? { email: used.email, state: "done" } : null;
@@ -210,7 +211,8 @@ export async function completeStoreSignup(input: StoreSignupCompleteInput, ctx: 
         const now = new Date();
         const token = await ActionToken.findOneAndUpdate(
           { tokenHash: hashToken(input.token), purpose: "store_signup", usedAt: null, expiresAt: trusted({ $gt: now }) },
-          { $set: { usedAt: now } },
+          // completedAt: this link made the account (rolled back with everything else if anything below fails).
+          { $set: { usedAt: now, completedAt: now } },
           { session, returnDocument: "after" },
         ).lean();
         if (!token) return { ok: false, error: "invalidLink" };
@@ -219,6 +221,8 @@ export async function completeStoreSignup(input: StoreSignupCompleteInput, ctx: 
           // Only an old never-confirmed one-step sign-up is replaced (the click proves who owns the address).
           // Anything else: refuse and roll back (the link stays usable; they should sign in instead).
           if (existing.status !== "pending" || existing.role !== "store_owner") throw new SignupLinkUsed();
+          // Never orphan a store an admin already reviewed (e.g. rejected while unconfirmed): keep that owner (review 2026-11-19).
+          if (await Store.exists({ ownerUserId: existing._id, status: trusted({ $ne: "pending" }) }).session(session)) throw new SignupLinkUsed();
           await Store.deleteMany({ ownerUserId: existing._id, status: "pending", "partnerFee.status": trusted({ $ne: "paid" }) }, { session });
           await ActionToken.updateMany({ userId: existing._id, usedAt: null }, { $set: { usedAt: now } }, { session });
           await User.deleteOne({ _id: existing._id, status: "pending" }, { session });
@@ -503,6 +507,8 @@ export async function acceptStoreInvite(input: AcceptInviteInput, ctx: FlowConte
         // the address, so the squatter's pending account + pending store are removed
         // (review finding 2026-11-05). Any other existing account → refuse, keep the token.
         if (existing.status !== "pending" || existing.role !== "store_owner") throw new InviteNoLongerValid();
+        // Same rule as store sign-up: never orphan a store an admin already reviewed (review 2026-11-19).
+        if (await Store.exists({ ownerUserId: existing._id, status: trusted({ $ne: "pending" }) }).session(session)) throw new InviteNoLongerValid();
         await Store.deleteMany({ ownerUserId: existing._id, status: "pending", "partnerFee.status": trusted({ $ne: "paid" }) }, { session });
         await ActionToken.updateMany({ userId: existing._id, usedAt: null }, { $set: { usedAt: now } }, { session });
         await User.deleteOne({ _id: existing._id, status: "pending" }, { session });

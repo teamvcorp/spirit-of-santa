@@ -97,7 +97,7 @@ try {
     store?.status === "pending" && store.ownerUserId?.toString() === user?._id.toString() && store.discountAgreement?.version === STORE_AGREEMENT_VERSION && store.contact?.email === email);
   check("password stored only as an argon2id hash", ((await User.findOne({ email }).select("+passwordHash").lean())?.passwordHash ?? "").startsWith("$argon2id$"));
   const again = await (await fetch(base + path!)).text();
-  check("the link works once: reopening it shows 'ready' (no form); still one account", again.includes("Your store account is ready") && !again.includes('name="password"') && (await User.countDocuments({ email })) === 1);
+  check("the link works once: reopening it shows 'ready' (no form); still one account", shown(again, "Your store account is ready") && !again.includes('name="password"') && (await User.countDocuments({ email })) === 1);
   const session = await signIn(email, PASSWORD);
   check("sign-in works right away; session has role + storeId", session?.role === "store_owner" && session.storeId === String(store?._id));
 
@@ -131,7 +131,24 @@ try {
   const exp = await requestLink(expEmail);
   await ActionToken.updateOne({ email: expEmail, purpose: "store_signup" }, { $set: { expiresAt: new Date(Date.now() - 1000) } });
   const expPage = await (await fetch(base + exp.path!)).text();
-  check("expired link → 'expired or already used' + ask for a new one", expPage.includes("expired or was already used") && expPage.includes('name="email"'));
+  check("expired link → 'expired or already used' + ask for a new one", shown(expPage, "expired or was already used") && expPage.includes('name="email"'));
+
+  // 8b. Review fixes 2026-11-19. A link CANCELLED by a newer one must not say "ready" (nothing was created).
+  await clearLimits();
+  const twiceEmail = `e2e-store-${tag}-twice@spiritofsanta.test`;
+  const first = await requestLink(twiceEmail);
+  await requestLink(twiceEmail); // the newer email cancels the first link
+  const firstPage = await (await fetch(base + first.path!)).text();
+  check("an older (cancelled) link says expired, never 'account ready'", shown(firstPage, "expired or was already used") && !shown(firstPage, "Your store account is ready"));
+  // An unconfirmed owner of a store an admin already REJECTED is never replaced (the store would lose its owner).
+  await clearLimits();
+  const rejEmail = `e2e-store-${tag}-rej@spiritofsanta.test`;
+  const rejUser = await User.create({ email: rejEmail, passwordHash: await hashSecret("old pass phrase long"), role: "store_owner", status: "pending" });
+  const rejStore = await Store.create({ name: `Rejected ${tag}`, slug: `e2e-rej-${tag}`, category: "toys", status: "rejected", ownerUserId: rejUser._id, contact: { email: rejEmail } });
+  const rejLink = await requestLink(rejEmail);
+  const rejTry = await submitForm(rejLink.path!, { ...details, storeName: `Again ${tag}` });
+  check("owner of a REJECTED store isn't replaced: refused, store keeps its owner",
+    shown(rejTry, "already have an account") && !!(await User.exists({ _id: rejUser._id })) && String((await Store.findById(rejStore._id).lean())?.ownerUserId) === String(rejUser._id) && (await User.countDocuments({ email: rejEmail })) === 1);
 
   // 9. Forgot / reset password (unchanged flow, still works for these accounts).
   const forgot = await submitForm("/forgot-password", { email, locale: "en" });
@@ -171,7 +188,7 @@ try {
   throw err;
 } finally {
   const users = await User.find({ email: trusted({ $regex: new RegExp(`^e2e-(store|es|bot)-${tag}(-[a-z0-9]+)?@`) }) }).select("_id storeId email").lean();
-  await Store.collection.deleteMany({ $or: [{ _id: { $in: users.map((u) => u.storeId).filter(Boolean) } }, { slug: `e2e-old-${tag}` }] });
+  await Store.collection.deleteMany({ $or: [{ _id: { $in: users.map((u) => u.storeId).filter(Boolean) } }, { slug: { $in: [`e2e-old-${tag}`, `e2e-rej-${tag}`] } }] });
   await ActionToken.collection.deleteMany({ email: { $regex: new RegExp(`-${tag}(-[a-z0-9]+)?@spiritofsanta\\.test$`) } });
   await User.collection.deleteMany({ _id: { $in: users.map((u) => u._id) } });
   await clearLimits();

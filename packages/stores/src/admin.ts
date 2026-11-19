@@ -31,7 +31,7 @@ type StoreStatus = (typeof STORE_STATUSES)[number];
 type StoreBefore = { _id: { toString(): string }; name: string; status: StoreStatus; ownerUserId?: { toString(): string } | null };
 export type AdminResult =
   | { ok: true; storeId?: string; emailFailed?: boolean }
-  | { ok: false; error: "notFound" | "badStatus" | "emailInUse" | "ownerUnverified" | "alreadyInvited" };
+  | { ok: false; error: "notFound" | "badStatus" | "emailInUse" | "ownerUnverified" | "alreadyInvited" | "declinedBefore" };
 
 function assertAdmin(actor: AdminActor) {
   // Defence in depth: the Server Action already called requireRole(..., "admin").
@@ -260,6 +260,9 @@ export async function inviteStore(actor: AdminActor, input: InviteStoreInput, lo
   // it must not be able to block an invite (accepting the invite replaces it; review 2026-11-05).
   if (await User.exists({ email: input.ownerEmail, status: trusted({ $ne: "pending" }) })) return { ok: false, error: "emailInUse" };
   if (await Store.exists({ status: "invited", "contact.email": input.ownerEmail })) return { ok: false, error: "alreadyInvited" };
+  // A company that said no stays listed as declined: inviting again would show it TWICE on the public partners page.
+  // The admin cancels the declined entry first (review 2026-11-18).
+  if (await Store.exists({ status: "declined", "contact.email": input.ownerEmail })) return { ok: false, error: "declinedBefore" };
 
   let storeId: string | null = null;
   let slug = slugify(input.storeName);

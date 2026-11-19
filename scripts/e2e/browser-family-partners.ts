@@ -16,7 +16,7 @@ import { AuditLog, connectDb, Family, Item, Kid, Store, User } from "@repo/db";
 import { hashSecret } from "@repo/auth/password";
 import { getSeasonYear } from "@repo/lib/season";
 import { blobPublicHost } from "@repo/storage/image-rules";
-import { declineStoreInvite } from "@repo/stores/admin";
+import { declineStoreInvite, inviteStore } from "@repo/stores/admin";
 import { makeChecks } from "./lib.ts";
 
 const [base] = process.argv.slice(2);
@@ -33,16 +33,21 @@ if (!mongoose.connection.name.endsWith("_dev")) throw new Error("refusing: not a
 // Stores in every status (raw inserts: owners/photos aren't needed here). Names sort A→Z inside each group.
 const host = blobPublicHost(process.env.BLOB_STORE_ID);
 const logo = (id: mongooseLib.Types.ObjectId) => ({ url: `https://${host}/stores/${id}/123e4567-e89b-42d3-a456-426614174000.webp`, pathname: `stores/${id}/123e4567-e89b-42d3-a456-426614174000.webp` });
-const ids = { a: oid(), b: oid(), proc: oid(), inv: oid(), dec: oid(), rej: oid(), sus: oid() };
+const ids = { a: oid(), b: oid(), proc: oid(), unconf: oid(), inv: oid(), dec: oid(), rej: oid(), sus: oid() };
+// Self-sign-up owners: one CONFIRMED (listed as Processing), one not confirmed (never listed: review 2026-11-18).
+const procOwner = await User.create({ email: `e2e-partner-proc-${tag}@spiritofsanta.test`, passwordHash: await hashSecret(PW), role: "store_owner", status: "active" });
+const unconfOwner = await User.create({ email: `e2e-partner-unconf-${tag}@spiritofsanta.test`, passwordHash: await hashSecret(PW), role: "store_owner", status: "pending" });
+const decEmail = `e2e-partner-dec-${tag}@spiritofsanta.test`;
 const slug = (k: string) => `e2e-p-${k}-${tag}`;
 const now = new Date();
 const store = (k: keyof typeof ids, name: string, status: string, extra: object = {}) => ({ _id: ids[k], name: `${name} ${tag}`, slug: slug(k), status, createdAt: now, updatedAt: now, ...extra });
 await Store.collection.insertMany([
   store("b", "Bbb Bikes", "approved"),
   store("a", "Aaa Toys", "approved", { logo: logo(ids.a) }),
-  store("proc", "Ccc Crafts", "pending", { logo: logo(ids.proc) }),
+  store("proc", "Ccc Crafts", "pending", { ownerUserId: procOwner._id, logo: logo(ids.proc) }), // logo NOT shown: not approved
+  store("unconf", "Cxx Unconfirmed", "pending", { ownerUserId: unconfOwner._id }),
   store("inv", "Ddd Dolls", "invited"),
-  store("dec", "Eee Electronics", "invited", { logo: logo(ids.dec) }), // declined below, through the admin service
+  store("dec", "Eee Electronics", "invited", { logo: logo(ids.dec), contact: { email: decEmail } }), // declined below, through the admin service
   store("rej", "Fff Rejected", "rejected"),
   store("sus", "Ggg Suspended", "suspended"),
 ]);
@@ -70,6 +75,7 @@ const mkFamily = async (name: string, kids: { firstName: string; registered: boo
 const one = await mkFamily("one", [{ firstName: "Ivy", registered: true }, { firstName: "Unreg", registered: false }]);
 const two = await mkFamily("two", [{ firstName: "Max", registered: true }, { firstName: "Zoe", registered: true }]);
 const none = await mkFamily("none", [{ firstName: "Wait", registered: false }]);
+users.push(procOwner._id, unconfOwner._id);
 const adminUser = await User.create({ email: `e2e-partner-admin-${tag}@spiritofsanta.test`, passwordHash: await hashSecret(PW), role: "admin", status: "active" });
 users.push(adminUser._id);
 
@@ -104,18 +110,21 @@ try {
   const decAgain = await declineStoreInvite({ id: String(adminUser._id), role: "admin" }, String(ids.a));
   check("admin marks an invited company declined (audited); an approved store can't be",
     dec.ok && !decAgain.ok && (await Store.findById(ids.dec).lean())?.status === "declined" && !!(await AuditLog.exists({ action: "store.invite_declined", targetId: ids.dec })));
+  const reinvite = await inviteStore({ id: String(adminUser._id), role: "admin" }, { storeName: "Eee Again", ownerEmail: decEmail, category: "toys", discountBps: 1000 }, "en");
+  check("inviting a declined company again is refused (no duplicate tile)", !reinvite.ok && reinvite.error === "declinedBefore" && (await Store.countDocuments({ "contact.email": decEmail })) === 1);
 
   // 2. The public page.
   const anon = await newPage();
   check("/partners loads, header links to it", (await open(anon, "/partners")) === 200 && (await anon.locator('header a[href$="/partners"]').count()) > 0);
   const slugs = await ours(anon).evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.slug));
-  check("order: approved A→Z, processing, pending, declined; rejected + suspended hidden",
+  check("order: approved A→Z, processing, pending, declined; rejected, suspended + UNCONFIRMED sign-up hidden",
     JSON.stringify(slugs) === JSON.stringify([slug("a"), slug("b"), slug("proc"), slug("inv"), slug("dec")]), JSON.stringify(slugs));
   const statusOf = async (k: string) => (await anon.locator(`main:visible [data-slug="${slug(k)}"]`).getAttribute("data-status")) ?? "";
   check("status badges: approved / processing / pending / declined",
     (await statusOf("a")) === "approved" && (await statusOf("proc")) === "processing" && (await statusOf("inv")) === "pending" && (await statusOf("dec")) === "declined");
   const tile = (k: string) => anon.locator(`main:visible [data-slug="${slug(k)}"]`);
   check("store's own logo shown; no logo → the name instead", (await tile("a").locator("img").count()) === 1 && (await tile("b").locator("img").count()) === 0 && (await tile("b").innerText()).includes("Bbb Bikes"));
+  check("a not-yet-approved store's logo is NOT shown (name only)", (await tile("proc").locator("img").count()) === 0 && (await tile("proc").innerText()).includes("Ccc Crafts"));
   check("declined: NO logo (even though one is stored), not a link, grumpy face + 'Declined'",
     (await tile("dec").locator("img").count()) === 0 && (await tile("dec").locator("a").count()) === 0 && (await tile("dec").locator("svg").count()) > 0 && (await tile("dec").innerText()).includes("Declined"));
   check("no North Star yet (store-linked gifts come in slice 3)", (await anon.locator('main:visible [data-testid="partner-donor"]').count()) === 0);
@@ -126,7 +135,7 @@ try {
     const text = await anon.locator("main:visible").innerText();
     return text.includes("Page not found") && !text.includes(tag);
   };
-  check("rejected / suspended / declined: 'Page not found', name never shown", (await notFoundPage("rej")) && (await notFoundPage("sus")) && (await notFoundPage("dec")));
+  check("rejected / suspended / declined / unconfirmed: 'Page not found', name never shown", (await notFoundPage("rej")) && (await notFoundPage("sus")) && (await notFoundPage("dec")) && (await notFoundPage("unconf")));
 
   // 3. A visitor taps a tile → sign up "to see what wonders await".
   await open(anon, "/partners");

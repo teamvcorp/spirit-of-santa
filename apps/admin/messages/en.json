@@ -91,7 +91,8 @@
       "badStatus": "This store's status changed meanwhile. Refresh the page and try again.",
       "emailInUse": "That email already has an account.",
       "ownerUnverified": "The owner hasn't confirmed their email yet, so the store can't be approved.",
-      "alreadyInvited": "This email already has a pending invitation. Open that store to resend or cancel it."
+      "alreadyInvited": "This email already has a pending invitation. Open that store to resend or cancel it.",
+      "declinedBefore": "This company declined an earlier invitation. Open that store (Declined tab) and cancel it first, then invite again."
     },
     "audit": {
       "store_approve": "Approved",

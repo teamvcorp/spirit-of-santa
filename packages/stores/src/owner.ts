@@ -150,8 +150,9 @@ export async function setStoreLogo(actor: StoreActor, file: Blob): Promise<Owner
     await deletePublicImage(image.pathname, { folder: "stores", ownerId: storeId });
     return { ok: false, error: "readOnly" };
   }
-  if (before.logo?.pathname) await deletePublicImage(before.logo.pathname, { folder: "stores", ownerId: storeId });
   await audit(actor.id, "store.logo_set", "store", storeId, { replaced: !!before.logo?.pathname });
+  // The new logo is already live: dropping the old file is best-effort (a storage hiccup must not report a failure).
+  if (before.logo?.pathname) await deletePublicImage(before.logo.pathname, { folder: "stores", ownerId: storeId }).catch(() => console.error("[stores] old logo file not deleted"));
   return { ok: true };
 }
 
@@ -164,8 +165,9 @@ export async function removeStoreLogo(actor: StoreActor): Promise<OwnerResult> {
     .select("logo")
     .lean();
   if (!before?.logo?.pathname) return { ok: false, error: "notFound" };
-  await deletePublicImage(before.logo.pathname, { folder: "stores", ownerId: storeId }); // DB first, then the file
   await audit(actor.id, "store.logo_remove", "store", storeId);
+  // DB first, then the file (best-effort: the logo is already gone from the site).
+  await deletePublicImage(before.logo.pathname, { folder: "stores", ownerId: storeId }).catch(() => console.error("[stores] logo file not deleted"));
   return { ok: true };
 }
 

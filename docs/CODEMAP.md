@@ -1018,6 +1018,8 @@ bottom of the spec. Charity on receipts = The Von Der Becke Academy Corp (EIN 46
   finish registering. Gift browser store filter: giftQuerySchema.store (approved stores only, else ignored).
   GrumpyFace/NorthStar = original SVGs (apps/family/components/partner-icons.tsx), NOT the Dr. Seuss Grinch.
   Slice 2 must map "approved but partner fee due" to Processing here.
+  Review 2026-11-18: a self-signed-up (pending) store is listed ONLY once its owner confirmed their email (publicRows);
+  logos show ONLY for approved stores; re-inviting a declined company is refused (declinedBefore) so it never shows twice.
 - Next: partner fee (slice 2), store-linked gifts + badge (slice 3, incl. admin offline
   gift with "donor signed the acknowledgment" tick: ensureDonationReceipt refuses gifts without donorAck).
 

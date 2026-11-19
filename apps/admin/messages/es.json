@@ -91,7 +91,8 @@
       "badStatus": "El estado de esta tienda cambió mientras tanto. Actualiza la página e inténtalo de nuevo.",
       "emailInUse": "Ese correo ya tiene una cuenta.",
       "ownerUnverified": "El dueño aún no confirmó su correo, así que la tienda no se puede aprobar.",
-      "alreadyInvited": "Este correo ya tiene una invitación pendiente. Abre esa tienda para reenviarla o cancelarla."
+      "alreadyInvited": "Este correo ya tiene una invitación pendiente. Abre esa tienda para reenviarla o cancelarla.",
+      "declinedBefore": "Esta empresa rechazó una invitación anterior. Abre esa tienda (pestaña Rechazó la invitación) y cancélala primero; luego invita de nuevo."
     },
     "audit": {
       "store_approve": "Aprobada",

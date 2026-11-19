@@ -101,15 +101,19 @@
 .sos-elf-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 5; }
 main:has([data-testid="stripe-checkout"]) .sos-elf-layer { display: none; }
 .sos-elf {
-  position: absolute; width: 24px; height: 92px; padding: 0; border: 0; background: transparent; cursor: pointer;
+  position: absolute; width: 24px; height: 80px; padding: 0; border: 0; background: transparent; cursor: pointer;
   pointer-events: auto; border-radius: 12px;
 }
-.sos-elf img { position: absolute; bottom: 0; width: 64px; height: 92px; transform-origin: 50% 100%; transition: transform 0.35s ease-out; pointer-events: none; }
+/*
+ * max-width: none: the base styles cap every <img> at its box's width (24px here), which squeezed him to 24px wide
+ * and made him look stretched tall (owner 2026-11-19). 56×80 = the picture's own shape (250×360).
+ */
+.sos-elf img { position: absolute; bottom: 0; width: 56px; max-width: none; height: 80px; transform-origin: 50% 100%; transition: transform 0.35s ease-out; pointer-events: none; }
 .sos-elf-left { left: 0; }
-.sos-elf-left img { left: -40px; transform: rotate(58deg); } /* face shows; the picture is see-through to taps */
+.sos-elf-left img { left: -38px; transform: rotate(58deg); } /* face shows; the picture is see-through to taps */
 .sos-elf-left:hover img, .sos-elf-left:focus-visible img { transform: rotate(48deg) translateY(-6px); }
 .sos-elf-right { right: 0; }
-.sos-elf-right img { right: -40px; transform: rotate(-58deg); }
+.sos-elf-right img { right: -38px; transform: rotate(-58deg); }
 .sos-elf-right:hover img, .sos-elf-right:focus-visible img { transform: rotate(-48deg) translateY(-6px); }
 .sos-elf:focus-visible { outline: 3px solid var(--color-accent, #d4a017); outline-offset: -3px; } /* inside: the layer clips outside */
 @keyframes sos-elf-bye { 0% { transform: translateY(0) scale(1); opacity: 1; } 35% { transform: translateY(-14px) scale(1.08); } 100% { transform: translateY(10px) scale(0.6); opacity: 0; } }

@@ -90,7 +90,7 @@ function Elf({ page }: { page: ElfPage }) {
             data-testid="hidden-elf"
           >
             {/* Decorative: the button's label says what it is. */}
-            <Image src={ILLUSTRATIONS.elf} alt="" width={64} height={92} draggable={false} />
+            <Image src={ILLUSTRATIONS.elf} alt="" width={56} height={80} draggable={false} />
           </button>
         </div>
       )}

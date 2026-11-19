@@ -74,6 +74,18 @@
       "body": "Gracias por apoyar a los niños a través de Spirit of Santa, un programa de {orgName}.\n\nNúmero de recibo: {receiptNo}\nFecha: {date}\nMonto: {amount}\nDonante: {donorName}\n\n{orgName}, EIN {ein}\n{orgAddress}\n\nNo se proporcionaron bienes ni servicios a cambio de esta contribución. {orgName} es una organización exenta de impuestos según la sección 501(c)(3) del Código de Rentas Internas. Guarda este recibo para tus registros de impuestos.",
       "button": "Visitar Spirit of Santa"
     },
+    "partnerFeeInvoice": {
+      "subject": "Factura {invoiceNo}: cuota de socio fundador de Spirit of Santa",
+      "heading": "Cuota de socio fundador",
+      "body": "Hola, {storeName}:\n\nGracias por ser socio fundador de Spirit of Santa. Aquí está la factura de la cuota única de socio fundador.\n\nNúmero de factura: {invoiceNo}\nFecha: {date}\nMonto a pagar: {amount}\nFacturado a: {storeName}\nPagadero a: {orgName}\n{orgAddress}\n\nEsta cuota es un pago comercial por unirse al programa como socio fundador. No es una donación y no es reembolsable. Tu tienda será visible para las familias cuando recibamos la cuota y tu tienda esté aprobada.\n\nPago: por cheque, ACH o transferencia bancaria. Responde a este correo para recibir los datos de pago e incluye el número de factura con tu pago.",
+      "button": "Abrir el panel de tu tienda"
+    },
+    "partnerFeePaid": {
+      "subject": "Pago recibido: factura {invoiceNo}",
+      "heading": "Pago recibido",
+      "body": "Hola, {storeName}:\n\nRecibimos tu cuota de socio fundador. ¡Gracias!\n\nNúmero de factura: {invoiceNo}\nMonto pagado: {amount}\nFecha de recepción: {paidDate}\nForma de pago: {method}{reference}\n\nEste fue un pago comercial por el programa de socios fundadores. No es una donación y no es reembolsable. Guarda este correo para tus registros.",
+      "button": "Abrir el panel de tu tienda"
+    },
     "storeOrders": {
       "subject": "Pedidos de regalos de Spirit of Santa para {storeName}",
       "heading": "Pedidos de regalos",

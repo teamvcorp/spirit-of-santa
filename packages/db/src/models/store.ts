@@ -13,6 +13,7 @@
 import mongoose, { type InferSchemaType, type Model } from "mongoose";
 const { Schema, model, models } = mongoose;
 import { MAX_DISCOUNT_BPS, STORE_CATEGORIES } from "@repo/lib/store";
+import { MAX_PARTNER_FEE_CENTS, PARTNER_FEE_METHODS } from "@repo/lib/limits";
 import { imageSchema, objectId } from "./_shared.ts";
 
 export const STORE_STATUSES = [
@@ -133,6 +134,28 @@ const storeSchema = new Schema(
     rejectionReason: { type: String, maxlength: 500 },
     /** When an admin recorded that the company declined our invitation. */
     declinedAt: Date,
+
+    /**
+     * FOUNDING PARTNER FEE (owner 2026-11-18): a one-time BUSINESS payment, never a donation (no donation receipt,
+     * no pool, never Christmas Magic). Admin decides per store; never refunded. While "due" the store can't be
+     * approved, so families never see it (the ONE visibility rule stays status "approved").
+     * Written only by @repo/stores/partner-fee (audited).
+     */
+    partnerFee: {
+      status: { type: String, enum: ["not_required", "due", "paid", "waived"], default: "not_required" },
+      amountCents: { type: Number, min: 1, max: MAX_PARTNER_FEE_CENTS, validate: { validator: (v: unknown) => v == null || Number.isSafeInteger(v), message: "partnerFee.amountCents must be an integer" } },
+      /** Human-readable, unique per store (FP-…); shown on the invoice. */
+      invoiceNo: { type: String, match: /^FP-[0-9A-F]{12}$/ },
+      dueSetAt: Date,
+      paidAt: Date,
+      /** Season the money arrived in (admin money summary). */
+      paidSeasonYear: Number,
+      paidVia: { type: String, enum: PARTNER_FEE_METHODS },
+      /** Check number / bank reference, admin-entered. */
+      reference: { type: String, trim: true, maxlength: 120 },
+      recordedByUserId: objectId("User", false),
+      waivedReason: { type: String, trim: true, maxlength: 500 },
+    },
   },
   { timestamps: true, versionKey: false },
 );

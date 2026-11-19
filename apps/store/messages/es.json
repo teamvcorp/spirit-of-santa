@@ -65,7 +65,7 @@
     "passwordHint": "Al menos {min} caracteres. Una frase corta funciona bien.",
     "submit": "Aceptar y crear cuenta",
     "submitting": "Creando cuenta…",
-    "done": "¡Listo! Tu tienda está aprobada y tu cuenta está lista.",
+    "done": "¡Listo! Tu cuenta está lista. Inicia sesión para ver tu tienda.",
     "signIn": "Iniciar sesión",
     "invalid": "Este enlace de invitación venció o ya se usó. Pide a Spirit of Santa que te envíe uno nuevo."
   },
@@ -113,7 +113,15 @@
       "limitReached": "Llegaste al límite de artículos. Archiva un artículo para agregar otro.",
       "priceRequired": "Escribe un precio."
     },
-    "ordersAlert": "{ready, plural, =0 {} one {# regalo está listo para enviar.} other {# regalos están listos para enviar.}} {setAside, plural, =0 {} one {# regalo guardado para diciembre.} other {# regalos guardados para diciembre.}}"
+    "ordersAlert": "{ready, plural, =0 {} one {# regalo está listo para enviar.} other {# regalos están listos para enviar.}} {setAside, plural, =0 {} one {# regalo guardado para diciembre.} other {# regalos guardados para diciembre.}}",
+    "backToDashboard": "Volver a tu panel",
+    "fee": {
+      "title": "Cuota de socio fundador",
+      "due": "Pendiente: {amount}. Tu tienda será visible para las familias cuando recibamos la cuota y tu tienda esté aprobada.",
+      "paid": "Pagada el {date}. ¡Gracias!",
+      "waived": "Exonerada: no hay cuota que pagar.",
+      "invoice": "Ver tu factura"
+    }
   },
   "Profile": {
     "title": "Perfil de la tienda",

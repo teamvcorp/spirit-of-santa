@@ -2,6 +2,7 @@
 import { z } from "zod";
 import { MAX_PRICE_CENTS, parseDollarsToCents } from "@repo/lib/format";
 import { MAX_DISCOUNT_BPS, STORE_CATEGORIES } from "@repo/lib/store";
+import { PARTNER_FEE_METHODS } from "@repo/lib/limits";
 
 /**
  * Discount typed by an admin as a percentage ("20", "17.5") → integer basis points.
@@ -18,6 +19,18 @@ export const objectIdSchema = z.string().regex(/^[a-f0-9]{24}$/, "invalid");
 
 export const rejectReasonSchema = z.string().trim().min(3, "tooShort").max(500, "tooLong");
 export const suspendReasonSchema = z.string().trim().min(3, "tooShort").max(500, "tooLong");
+
+/** Founding partner fee forms (admin, 2026-11-18). Amount in dollars, like "50000" or "50,000.00". */
+export const partnerFeeAmountSchema = z
+  .string()
+  .trim()
+  .transform((v) => v.replace(/[$,\s]/g, ""))
+  .pipe(z.string().regex(/^\d{1,7}(\.\d{1,2})?$/, "invalid"));
+export const partnerFeePaymentSchema = z.object({
+  paidOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "invalid"),
+  via: z.enum(PARTNER_FEE_METHODS, "required"),
+  reference: z.string().trim().max(120, "tooLong"),
+});
 
 export const inviteStoreSchema = z.object({
   storeName: z.string().trim().min(2, "tooShort").max(120, "tooLong"),

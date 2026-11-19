@@ -92,7 +92,10 @@
       "emailInUse": "Ese correo ya tiene una cuenta.",
       "ownerUnverified": "El dueño aún no confirmó su correo, así que la tienda no se puede aprobar.",
       "alreadyInvited": "Este correo ya tiene una invitación pendiente. Abre esa tienda para reenviarla o cancelarla.",
-      "declinedBefore": "Esta empresa rechazó una invitación anterior. Abre esa tienda (pestaña Rechazó la invitación) y cancélala primero; luego invita de nuevo."
+      "declinedBefore": "Esta empresa rechazó una invitación anterior. Abre esa tienda (pestaña Rechazó la invitación) y cancélala primero; luego invita de nuevo.",
+      "feeDue": "La cuota de socio fundador sigue pendiente. Registra el pago (o exonérala) primero y luego aprueba.",
+      "feeState": "La cuota cambió mientras tanto (ya pagada, exonerada o quitada). Actualiza la página.",
+      "invalid": "Algo del formulario no es válido. Revisa el monto, la fecha y los campos."
     },
     "audit": {
       "store_approve": "Aprobada",
@@ -104,7 +107,13 @@
       "store_invite_accepted": "Invitación aceptada",
       "store_invite_resent": "Invitación reenviada",
       "store_invite_cancelled": "Invitación cancelada",
-      "store_invite_declined": "Rechazó nuestra invitación"
+      "store_invite_declined": "Rechazó nuestra invitación",
+      "store_fee_set": "Cuota de socio fijada",
+      "store_fee_cleared": "Cuota de socio quitada",
+      "store_fee_paid": "Cuota de socio pagada",
+      "store_fee_waived": "Cuota de socio exonerada",
+      "store_logo_set": "Logotipo guardado",
+      "store_logo_remove": "Logotipo quitado"
     },
     "ownerUnverifiedNote": "El dueño aún no confirmó su dirección de correo. Podrás aprobar la tienda cuando lo haga. Los registros sin confirmar se eliminan automáticamente después de 48 horas.",
     "rejectReasonNoEmail": "Motivo (nota interna; no se envía correo porque la dirección del dueño no está confirmada)",
@@ -127,7 +136,45 @@
     "pagination": "Páginas",
     "showing": "Mostrando {from}–{to} de {total}",
     "previous": "Anterior",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "fee": {
+      "title": "Cuota de socio fundador",
+      "intro": "Un pago comercial único (no es una donación y nunca se reembolsa). Mientras esté pendiente, la tienda no se puede aprobar, así que las familias no la ven. Solo para tiendas que aún no están activas (invitadas o en revisión).",
+      "statusNone": "Esta tienda no tiene cuota.",
+      "statusDue": "Pendiente: {amount}",
+      "statusPaid": "Pagada {amount} el {date} por {via}{reference}",
+      "statusWaived": "Exonerada",
+      "waivedBecause": "Motivo: {reason}",
+      "openInvoice": "Abrir factura {invoiceNo}",
+      "setTitle": "Exigir la cuota de socio",
+      "changeTitle": "Cambiar el monto",
+      "amountLabel": "Monto (dólares)",
+      "amountHint": "La cifra del dueño es $50,000. La tienda recibe la factura por correo.",
+      "set": "Guardar y enviar la factura",
+      "doneSet": "Guardado. La factura se envió por correo (si la tienda tiene un contacto confirmado).",
+      "paidTitle": "Registrar el pago",
+      "paidOn": "Fecha en que llegó el dinero",
+      "via": "Forma de pago",
+      "reference": "Número de cheque o referencia bancaria",
+      "referenceHint": "Opcional. Aparece en el recibo de la tienda.",
+      "markPaid": "Marcar como pagada",
+      "donePaid": "Pago registrado. Se envió un recibo a la tienda. Ya puedes aprobar la tienda.",
+      "waiveTitle": "Exonerar la cuota",
+      "waiveReason": "¿Por qué se exonera? (queda en el registro)",
+      "waive": "Exonerar",
+      "doneWaive": "Cuota exonerada. Ya puedes aprobar la tienda.",
+      "clearTitle": "Sin cuota al final",
+      "clear": "Quitar la cuota",
+      "doneClear": "Cuota quitada.",
+      "methods": {
+        "check": "Cheque",
+        "ach": "Transferencia ACH",
+        "wire": "Transferencia bancaria",
+        "card": "Tarjeta"
+      },
+      "backToStore": "Volver a la tienda",
+      "printHint": "Usa Imprimir en tu navegador para guardar o imprimir esta factura."
+    }
   },
   "MfaSetup": {
     "title": "Configura el inicio de sesión en dos pasos",
@@ -468,7 +515,11 @@
     "settings_update": "Ajustes cambiados",
     "donations_split": "Regalos comunitarios repartidos",
     "season_reset_run": "Reinicio de temporada ejecutado a mano",
-    "season_reset_attention_cleared": "Aviso del reinicio de temporada marcado como resuelto"
+    "season_reset_attention_cleared": "Aviso del reinicio de temporada marcado como resuelto",
+    "store_fee_set": "Cuota de socio de tienda fijada",
+    "store_fee_cleared": "Cuota de socio de tienda quitada",
+    "store_fee_paid": "Cuota de socio de tienda pagada",
+    "store_fee_waived": "Cuota de socio de tienda exonerada"
   },
   "Moderation": {
     "title": "Revisión de textos de acciones",
@@ -677,6 +728,8 @@
         "note": "La nota debe tener menos de 300 caracteres (sin caracteres especiales)."
       }
     },
-    "withoutAmount": "{count, plural, one {# regalo recibido queda} other {# regalos recibidos quedan}} fuera de las cifras mayoristas y del margen: la tienda todavía no tiene descuento registrado."
+    "withoutAmount": "{count, plural, one {# regalo recibido queda} other {# regalos recibidos quedan}} fuera de las cifras mayoristas y del margen: la tienda todavía no tiene descuento registrado.",
+    "partnerFeesTitle": "Cuotas de socios fundadores (ingreso comercial, no donaciones)",
+    "partnerFees": "Recibidas esta temporada por cheque, ACH o transferencia ({count, plural, one {# tienda} other {# tiendas}}); no incluidas en el neto de arriba"
   }
 }

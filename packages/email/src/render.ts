@@ -72,10 +72,17 @@ export type EmailTemplates = {
   payUpReminder: { link: string; date: string };
   /** News double opt-in (2026-11-12): goes to an address nobody has proven yet, so NO user-typed text. */
   newsConfirm: { link: string };
+  /**
+   * Founding partner fee (2026-11-18): a BUSINESS invoice and payment receipt, never the donation receipt (no
+   * tax wording, no "no goods or services" sentence). storeName typed by an admin or the store; org by an admin.
+   * reference = "" or " (ref …)" pre-built.
+   */
+  partnerFeeInvoice: { link: string; storeName: string; invoiceNo: string; amount: string; date: string; orgName: string; orgAddress: string };
+  partnerFeePaid: { link: string; storeName: string; invoiceNo: string; amount: string; paidDate: string; method: string; reference: string };
 };
 
 /** Security alerts and "you already have an account": "ignore this email" would be wrong advice. */
-const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled", "passwordChanged", "accountDeleted", "accountDeletionStarted", "giftOnItsWayClosing", "donationReceipt", "storeOrders", "giftOnItsWay", "surpriseOnItsWay", "familyDigest", "cutoffReminder", "payUpReminder"]);
+const NO_IGNORE_LINE: ReadonlySet<EmailTemplateName> = new Set(["accountExists", "mfaEnabled", "passwordChanged", "accountDeleted", "accountDeletionStarted", "giftOnItsWayClosing", "donationReceipt", "storeOrders", "giftOnItsWay", "surpriseOnItsWay", "familyDigest", "cutoffReminder", "payUpReminder", "partnerFeeInvoice", "partnerFeePaid"]);
 
 /**
  * Winter Night look for emails (Phase 8.5.4). Same values as the site palette in

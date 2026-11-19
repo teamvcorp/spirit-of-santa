@@ -74,6 +74,18 @@
       "body": "Thank you for supporting children through Spirit of Santa, a program of {orgName}.\n\nReceipt number: {receiptNo}\nDate: {date}\nAmount: {amount}\nDonor: {donorName}\n\n{orgName}, EIN {ein}\n{orgAddress}\n\nNo goods or services were provided in exchange for this contribution. {orgName} is a tax-exempt organization under section 501(c)(3) of the Internal Revenue Code. Please keep this receipt for your tax records.",
       "button": "Visit Spirit of Santa"
     },
+    "partnerFeeInvoice": {
+      "subject": "Invoice {invoiceNo}: Spirit of Santa founding partner fee",
+      "heading": "Founding partner fee",
+      "body": "Hi {storeName},\n\nThank you for becoming a Spirit of Santa founding partner. Here is the invoice for the one-time founding partner fee.\n\nInvoice number: {invoiceNo}\nDate: {date}\nAmount due: {amount}\nBilled to: {storeName}\nPayable to: {orgName}\n{orgAddress}\n\nThis fee is a business payment for joining the program as a founding partner. It is not a donation and it is non-refundable. Your store becomes visible to families once the fee is received and your store is approved.\n\nPayment: by check, ACH or wire transfer. Reply to this email for payment details, and please include the invoice number with your payment.",
+      "button": "Open your store dashboard"
+    },
+    "partnerFeePaid": {
+      "subject": "Payment received: invoice {invoiceNo}",
+      "heading": "Payment received",
+      "body": "Hi {storeName},\n\nWe received your founding partner fee. Thank you!\n\nInvoice number: {invoiceNo}\nAmount paid: {amount}\nDate received: {paidDate}\nPaid by: {method}{reference}\n\nThis was a business payment for the founding partner program. It is not a donation and it is non-refundable. Please keep this email for your records.",
+      "button": "Open your store dashboard"
+    },
     "storeOrders": {
       "subject": "Spirit of Santa gift orders for {storeName}",
       "heading": "Gift orders",

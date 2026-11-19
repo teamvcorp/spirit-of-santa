@@ -103,6 +103,23 @@
       "rejected": "No aprobada",
       "suspended": "Suspendida",
       "declined": "Rechazó la invitación"
+    },
+    "feeInvoice": {
+      "title": "Factura: cuota de socio fundador",
+      "invoiceNo": "Número de factura",
+      "date": "Fecha de factura",
+      "billedTo": "Facturado a",
+      "payableTo": "Pagadero a",
+      "description": "Concepto",
+      "item": "Cuota de socio fundador de Spirit of Santa (pago único)",
+      "amount": "Monto",
+      "status": "Estado",
+      "statusDue": "Pendiente de pago",
+      "statusPaid": "Pagada el {date}",
+      "statusWaived": "Exonerada",
+      "statusNone": "Sin cuota",
+      "notDonation": "Este es un pago comercial por unirse a Spirit of Santa como socio fundador. No es una donación y no es reembolsable.",
+      "howToPay": "Paga con cheque, ACH o transferencia bancaria. Responde al correo de la factura para recibir los datos de pago e incluye el número de factura con tu pago."
     }
   }
 }

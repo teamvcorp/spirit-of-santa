@@ -92,7 +92,10 @@
       "emailInUse": "That email already has an account.",
       "ownerUnverified": "The owner hasn't confirmed their email yet, so the store can't be approved.",
       "alreadyInvited": "This email already has a pending invitation. Open that store to resend or cancel it.",
-      "declinedBefore": "This company declined an earlier invitation. Open that store (Declined tab) and cancel it first, then invite again."
+      "declinedBefore": "This company declined an earlier invitation. Open that store (Declined tab) and cancel it first, then invite again.",
+      "feeDue": "The founding partner fee is still due. Record the payment (or waive it) first, then approve.",
+      "feeState": "The fee changed meanwhile (already paid, waived or cleared). Refresh the page.",
+      "invalid": "Something in the form isn't valid. Check the amount, date and fields."
     },
     "audit": {
       "store_approve": "Approved",
@@ -104,7 +107,13 @@
       "store_invite_accepted": "Invitation accepted",
       "store_invite_resent": "Invitation resent",
       "store_invite_cancelled": "Invitation cancelled",
-      "store_invite_declined": "Declined our invitation"
+      "store_invite_declined": "Declined our invitation",
+      "store_fee_set": "Partner fee set",
+      "store_fee_cleared": "Partner fee cleared",
+      "store_fee_paid": "Partner fee paid",
+      "store_fee_waived": "Partner fee waived",
+      "store_logo_set": "Logo set",
+      "store_logo_remove": "Logo removed"
     },
     "ownerUnverifiedNote": "The owner hasn't confirmed their email address yet. You can approve the store once they do. Unconfirmed sign-ups are removed automatically after 48 hours.",
     "rejectReasonNoEmail": "Reason (internal note; no email is sent because the owner's address isn't confirmed)",
@@ -127,7 +136,45 @@
     "pagination": "Pages",
     "showing": "Showing {from}–{to} of {total}",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "fee": {
+      "title": "Founding partner fee",
+      "intro": "A one-time business payment (not a donation, never refunded). While it's due, the store can't be approved, so families don't see it. Only for stores not yet live (invited or waiting for review).",
+      "statusNone": "No fee for this store.",
+      "statusDue": "Due: {amount}",
+      "statusPaid": "Paid {amount} on {date} by {via}{reference}",
+      "statusWaived": "Waived",
+      "waivedBecause": "Reason: {reason}",
+      "openInvoice": "Open invoice {invoiceNo}",
+      "setTitle": "Require the partner fee",
+      "changeTitle": "Change the amount",
+      "amountLabel": "Amount (dollars)",
+      "amountHint": "The owner's figure is $50,000. The store gets the invoice by email.",
+      "set": "Save and email the invoice",
+      "doneSet": "Saved. The invoice was emailed (if the store has a confirmed contact).",
+      "paidTitle": "Record the payment",
+      "paidOn": "Date the money arrived",
+      "via": "Paid by",
+      "reference": "Check number or bank reference",
+      "referenceHint": "Optional. Shown on the store's receipt.",
+      "markPaid": "Mark paid",
+      "donePaid": "Payment recorded. The store was emailed a receipt. You can approve the store now.",
+      "waiveTitle": "Waive the fee",
+      "waiveReason": "Why is it waived? (kept in the record)",
+      "waive": "Waive",
+      "doneWaive": "Fee waived. You can approve the store now.",
+      "clearTitle": "No fee after all",
+      "clear": "Remove the fee",
+      "doneClear": "Fee removed.",
+      "methods": {
+        "check": "Check",
+        "ach": "ACH bank transfer",
+        "wire": "Wire transfer",
+        "card": "Card"
+      },
+      "backToStore": "Back to the store",
+      "printHint": "Use your browser's Print to save or print this invoice."
+    }
   },
   "MfaSetup": {
     "title": "Set up two-step sign-in",
@@ -468,7 +515,11 @@
     "settings_update": "Settings changed",
     "donations_split": "Community gifts shared",
     "season_reset_run": "Season reset run by hand",
-    "season_reset_attention_cleared": "Season reset flag marked handled"
+    "season_reset_attention_cleared": "Season reset flag marked handled",
+    "store_fee_set": "Store partner fee set",
+    "store_fee_cleared": "Store partner fee cleared",
+    "store_fee_paid": "Store partner fee paid",
+    "store_fee_waived": "Store partner fee waived"
   },
   "Moderation": {
     "title": "Deed text review",
@@ -677,6 +728,8 @@
         "note": "Keep the note under 300 characters (no special characters)."
       }
     },
-    "withoutAmount": "{count, plural, one {# received gift is} other {# received gifts are}} left out of the wholesale and margin figures: the store has no discount on record yet."
+    "withoutAmount": "{count, plural, one {# received gift is} other {# received gifts are}} left out of the wholesale and margin figures: the store has no discount on record yet.",
+    "partnerFeesTitle": "Founding partner fees (business income, not donations)",
+    "partnerFees": "Received this season by check, ACH or wire ({count, plural, one {# store} other {# stores}}); not in the net above"
   }
 }

@@ -12,7 +12,9 @@ import { refresh } from "next/cache";
 import { requireRole } from "@repo/auth";
 import { fieldErrors } from "@repo/auth/schemas";
 import { approveStore, cancelStoreInvite, declineStoreInvite, hideItem, inviteStore, reinstateStore, rejectStore, resendStoreInvite, setStoreDiscount, suspendStore, unhideItem, type AdminResult, type ItemModerationResult } from "@repo/stores/admin";
-import { discountPercentSchema, inviteStoreSchema, objectIdSchema, rejectReasonSchema, suspendReasonSchema } from "@repo/stores/schemas";
+import { discountPercentSchema, inviteStoreSchema, objectIdSchema, partnerFeeAmountSchema, partnerFeePaymentSchema, rejectReasonSchema, suspendReasonSchema } from "@repo/stores/schemas";
+import { clearPartnerFee, markPartnerFeePaid, setPartnerFee, waivePartnerFee, type FeeResult } from "@repo/stores/partner-fee";
+import { parseDollarsToCents } from "@repo/lib/format";
 import { isLocale } from "@repo/lib/locales";
 import { authOptions } from "@/auth";
 import type { AdminFormState } from "./admin-form-state";
@@ -33,6 +35,13 @@ function finish(r: AdminResult): AdminFormState {
   refresh();
   return { status: "done", storeId: r.storeId, emailFailed: r.emailFailed, nonce: randomUUID() };
 }
+/** Founding partner fee results use the same form state (errors → StoreAdmin.errors.<code>). */
+function feeDone(r: FeeResult): AdminFormState {
+  if (!r.ok) return { status: "error", error: r.error, nonce: randomUUID() };
+  refresh();
+  return { status: "done", emailFailed: r.emailFailed, nonce: randomUUID() };
+}
+
 function itemDone(r: ItemModerationResult): AdminFormState {
   refresh(); // also on "badStatus" (another admin acted first): the list shows the current state
   if (!r.ok) return { status: "error", error: r.error, nonce: randomUUID() };
@@ -138,4 +147,41 @@ export async function cancelInviteAction(_prev: AdminFormState, fd: FormData): P
   const r = await cancelStoreInvite(admin, id);
   // No refresh(): the store no longer exists; the page navigates back to the queue.
   return r.ok ? { status: "done", nonce: randomUUID() } : { status: "error", error: r.error, nonce: randomUUID() };
+}
+// ── Founding partner fee (owner 2026-11-18): a business payment, never a donation ──────────────────────────
+/** Set the fee (store becomes "fee due" and can't be approved yet), or change the amount while due. */
+export async function setFeeAction(_prev: AdminFormState, fd: FormData): Promise<AdminFormState> {
+  const admin = await currentAdmin();
+  const id = storeIdOf(fd);
+  if (!id) return { status: "error", error: "notFound" };
+  const amount = partnerFeeAmountSchema.safeParse(str(fd, "amount"));
+  const cents = amount.success ? parseDollarsToCents(amount.data) : null;
+  if (cents == null || cents < 1) return fail({ amount: "invalid" }, fd, ["amount"]);
+  return feeDone(await setPartnerFee(admin, id, cents, str(fd, "locale")));
+}
+
+export async function clearFeeAction(_prev: AdminFormState, fd: FormData): Promise<AdminFormState> {
+  const admin = await currentAdmin();
+  const id = storeIdOf(fd);
+  if (!id) return { status: "error", error: "notFound" };
+  return feeDone(await clearPartnerFee(admin, id));
+}
+
+/** Record a check / ACH / wire that ARRIVED (date it came in, method, bank reference). */
+export async function feePaidAction(_prev: AdminFormState, fd: FormData): Promise<AdminFormState> {
+  const admin = await currentAdmin();
+  const id = storeIdOf(fd);
+  if (!id) return { status: "error", error: "notFound" };
+  const parsed = partnerFeePaymentSchema.safeParse({ paidOn: str(fd, "paidOn"), via: str(fd, "via"), reference: str(fd, "reference") });
+  if (!parsed.success) return fail(fieldErrors(parsed.error), fd, ["paidOn", "via", "reference"]);
+  return feeDone(await markPartnerFeePaid(admin, id, parsed.data, str(fd, "locale")));
+}
+
+export async function waiveFeeAction(_prev: AdminFormState, fd: FormData): Promise<AdminFormState> {
+  const admin = await currentAdmin();
+  const id = storeIdOf(fd);
+  if (!id) return { status: "error", error: "notFound" };
+  const reason = suspendReasonSchema.safeParse(str(fd, "reason"));
+  if (!reason.success) return fail({ reason: reason.error.issues[0]?.message ?? "invalid" }, fd, ["reason"]);
+  return feeDone(await waivePartnerFee(admin, id, reason.data));
 }

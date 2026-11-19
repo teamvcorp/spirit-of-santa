@@ -4,6 +4,10 @@ import { Suspense } from "react";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { orderCounts } from "@repo/wishlists/fulfilment";
+import { getPartnerFee } from "@repo/stores/partner-fee";
+import { formatCents, formatLongDate } from "@repo/lib/format";
+import { isLocale } from "@repo/lib/locales";
+import { getLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { DashboardNav } from "./dashboard-nav";
 import { loadMember } from "./member";
@@ -17,7 +21,14 @@ export async function generateMetadata(): Promise<Metadata> {
 async function Overview() {
   const { user, store, isOwner } = await loadMember();
   if (!store) return <NoAccess />;
-  const [t, statusT, orders] = await Promise.all([getTranslations("Dashboard"), getTranslations("Common.storeStatus"), orderCounts(store._id)]);
+  const [t, statusT, orders, fee, locale] = await Promise.all([
+    getTranslations("Dashboard"),
+    getTranslations("Common.storeStatus"),
+    orderCounts(store._id),
+    isOwner ? getPartnerFee(String(store._id)) : null, // billing: owners only
+    getLocale(),
+  ]);
+  const lang = isLocale(locale) ? locale : "en";
   return (
     <>
       <DashboardNav isOwner={isOwner} current="overview" />
@@ -38,6 +49,22 @@ async function Overview() {
         </Alert>
       )}
       <div className="grid gap-4 md:grid-cols-2">
+        {/* Founding partner fee (2026-11-18): a business payment, never a donation. Owners only. */}
+        {fee && fee.status !== "not_required" && (
+          <Card data-testid="fee-card">
+            <h2 className="text-lg font-semibold">{t("fee.title")}</h2>
+            <p className="mb-3 mt-1 text-sm" data-testid="fee-card-status">
+              {fee.status === "due"
+                ? t("fee.due", { amount: fee.amountCents ? formatCents(fee.amountCents) : "" })
+                : fee.status === "paid"
+                  ? t("fee.paid", { date: fee.paidAt ? formatLongDate(new Date(fee.paidAt), lang, "long") : "" })
+                  : t("fee.waived")}
+            </p>
+            <Link href="/dashboard/partner-fee" className="font-semibold underline underline-offset-4">
+              {t("fee.invoice")}
+            </Link>
+          </Card>
+        )}
         {isOwner && (
           <Card>
             <h2 className="text-lg font-semibold">{t("profileCardTitle")}</h2>

@@ -67,6 +67,13 @@ export const MAX_TIP_CENTS = 100_000;
 export const DONATION_PRESETS_CENTS = [2500, 5000, 10_000, 25_000] as const;
 export const MIN_DONATION_CENTS = 500;
 export const MAX_DONATION_CENTS = 5_000_000;
+/**
+ * Founding partner fee (owner 2026-11-18, docs/plans/founding-partners.md slice 2): a BUSINESS payment, never a
+ * donation. The owner's figure is $50,000; admin types it per store. Upper bound = typo guard only.
+ */
+export const MAX_PARTNER_FEE_CENTS = 100_000_000;
+export const PARTNER_FEE_METHODS = ["check", "ach", "wire", "card"] as const;
+export type PartnerFeeMethod = (typeof PARTNER_FEE_METHODS)[number];
 /** Highest platform fee an admin can set on donation pools (basis points: 3000 = 30%). */
 export const MAX_DONATION_FEE_BPS = 3000;
 

@@ -103,6 +103,23 @@
       "rejected": "Not approved",
       "suspended": "Suspended",
       "declined": "Declined our invitation"
+    },
+    "feeInvoice": {
+      "title": "Invoice: founding partner fee",
+      "invoiceNo": "Invoice number",
+      "date": "Invoice date",
+      "billedTo": "Billed to",
+      "payableTo": "Payable to",
+      "description": "For",
+      "item": "Spirit of Santa founding partner fee (one-time)",
+      "amount": "Amount",
+      "status": "Status",
+      "statusDue": "Due",
+      "statusPaid": "Paid on {date}",
+      "statusWaived": "Waived",
+      "statusNone": "No fee",
+      "notDonation": "This is a business payment for joining Spirit of Santa as a founding partner. It is not a donation and it is non-refundable.",
+      "howToPay": "Pay by check, ACH or wire transfer. Reply to the invoice email for payment details, and include the invoice number with your payment."
     }
   }
 }

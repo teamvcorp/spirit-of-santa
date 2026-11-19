@@ -453,23 +453,26 @@ export async function acceptStoreInvite(input: AcceptInviteInput, ctx: FlowConte
         [{ email: token.email, passwordHash, role: "store_owner", name: input.ownerName, status: "active", locale: ctx.locale, storeId: token.storeId }],
         { session },
       );
+      // Founding partner fee still due (2026-11-18): the owner joins and can set up the store, but it waits in
+      // "pending" (Processing) until an admin records the fee and approves it. Otherwise: approved right away.
+      const feeDue = !!(await Store.exists({ _id: token.storeId, status: "invited", "partnerFee.status": "due" }).session(session));
+      const to = feeDue ? "pending" : "approved";
       const updated = await Store.updateOne(
         { _id: token.storeId, status: "invited" },
         {
           $set: {
-            status: "approved",
+            status: to,
             ownerUserId: user!._id,
             "contact.email": token.email,
             discountAgreement: { version: STORE_AGREEMENT_VERSION, acceptedAt: now, acceptedByUserId: user!._id },
-            reviewedByAdminId: token.createdByUserId,
-            reviewedAt: now,
+            ...(feeDue ? {} : { reviewedByAdminId: token.createdByUserId, reviewedAt: now }),
           },
         },
         { session, runValidators: true },
       );
       if (updated.matchedCount !== 1) throw new InviteNoLongerValid(); // roll everything back
       await AuditLog.create(
-        [{ actorUserId: user!._id, action: "store.invite_accepted", targetType: "store", targetId: token.storeId, details: { from: "invited", to: "approved" } }],
+        [{ actorUserId: user!._id, action: "store.invite_accepted", targetType: "store", targetId: token.storeId, details: { from: "invited", to } }],
         { session },
       );
       return { ok: true };

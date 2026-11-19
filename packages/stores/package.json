@@ -14,7 +14,8 @@
     "./queries": "./src/queries.ts",
     "./schemas": "./src/schemas.ts",
     "./urls": "./src/urls.ts",
-    "./partners": "./src/partners.ts"
+    "./partners": "./src/partners.ts",
+    "./partner-fee": "./src/partner-fee.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

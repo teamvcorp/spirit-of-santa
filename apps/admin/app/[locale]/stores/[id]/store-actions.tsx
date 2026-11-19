@@ -30,7 +30,7 @@ import { INITIAL_ADMIN_STATE, type AdminFormState } from "../admin-form-state";
 
 type Action = (prev: AdminFormState, fd: FormData) => Promise<AdminFormState>;
 
-function ActionForm({
+export function ActionForm({
   action,
   storeId,
   title,
@@ -91,7 +91,7 @@ function DiscountField({ state, defaultValue }: { state: AdminFormState; default
   );
 }
 
-function ReasonField({ state, label, id }: { state: AdminFormState; label: string; id: string }) {
+export function ReasonField({ state, label, id }: { state: AdminFormState; label: string; id: string }) {
   const fieldError = useFieldError();
   const err = fieldError(state.fieldErrors?.reason);
   return (

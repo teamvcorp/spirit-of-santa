@@ -11,6 +11,7 @@ import { requireRole } from "@repo/auth";
 import { formatCents, formatPoints } from "@repo/lib/format";
 import { calendarDateIn, getSeasonYear, isoDay } from "@repo/lib/season";
 import { listPayouts, owedByStore, seasonMoney } from "@repo/wishlists/payouts";
+import { partnerFeesReceived } from "@repo/stores/partner-fee";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
@@ -31,7 +32,7 @@ async function Content({ searchParams }: Pick<Props, "searchParams">) {
   const sp = await searchParams;
   const raw = sp.year;
   const year = typeof raw === "string" && /^\d{4}$/.test(raw) && Number(raw) >= 2026 && Number(raw) <= current ? Number(raw) : current;
-  const [owed, history, money, t] = await Promise.all([owedByStore(), listPayouts(), seasonMoney(year), getTranslations("Payouts")]);
+  const [owed, history, money, t, fees] = await Promise.all([owedByStore(), listPayouts(), seasonMoney(year), getTranslations("Payouts"), partnerFeesReceived(year)]);
   const today = isoDay(calendarDateIn(new Date()));
   // Just recorded (?paid=<id>): confirm it here (the store's owed row is gone by now).
   const justPaid = typeof sp.paid === "string" ? history.find((h) => h.id === sp.paid) : undefined;
@@ -93,6 +94,10 @@ async function Content({ searchParams }: Pick<Props, "searchParams">) {
           {row(t("paidVsOwed", { paid: formatCents(money.gifts.wholesalePaidCents) }), money.gifts.wholesaleOwedCents, "still-owed")}
           {row(t("breakage", { reset: formatPoints(money.breakage.resetCentipoints), forfeit: formatPoints(money.breakage.forfeitCentipoints) }), money.breakage.valueCents, "breakage")}
         </dl>
+        {/* Founding partner fees (2026-11-18): business income paid by check/ACH/wire, NEVER a donation, so it is
+            kept apart from the Stripe money and the net above. */}
+        <h3 className="mb-1 mt-4 font-semibold">{t("partnerFeesTitle")}</h3>
+        <dl className="text-sm">{row(t("partnerFees", { count: fees.count }), fees.cents, "partner-fees")}</dl>
         {money.gifts.withoutAmount > 0 && <Alert tone="error" className="mt-3">{t("withoutAmount", { count: money.gifts.withoutAmount })}</Alert>}
         <p className="mt-3 text-xs text-muted">{t("moneyNote")}</p>
       </Card>

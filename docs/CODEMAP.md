@@ -1022,7 +1022,17 @@ bottom of the spec. Charity on receipts = The Von Der Becke Academy Corp (EIN 46
   logos show ONLY for approved stores; re-inviting a declined company is refused (declinedBefore) so it never shows twice.
   Join line (owner 2026-11-19): bottom of /partners "Own a store or business? Join Spirit of Santa" → store app
   /register (localized; storeAppOrigin, hidden if STORE_APP_URL is missing). Stores self-enroll there; admin approves.
-- Next: partner fee (slice 2), store-linked gifts + badge (slice 3, incl. admin offline
+- **Partner fee (slice 2, DONE):** Store.partnerFee {status not_required|due|paid|waived, amountCents, invoiceNo FP-…,
+  dueSetAt, paidAt, paidSeasonYear, paidVia, reference, recordedByUserId, waivedReason}. Service @repo/stores/partner-fee
+  (setPartnerFee/clearPartnerFee/markPartnerFeePaid/waivePartnerFee, getPartnerFee, buildFeeInvoice, partnerFeesReceived):
+  admin-only, one tx + CAS on fee status + audit (store.fee_set/cleared/paid/waived), email AFTER (partnerFeeInvoice /
+  partnerFeePaid: business wording, NEVER tax/donation-receipt text; to the confirmed owner or the admin-typed invite
+  address only). Visibility: fee due blocks "approved" (approveStore filter + feeDue error; acceptStoreInvite → pending), so
+  family queries are untouched. Fee settable only on invited/pending stores (never hides a live store). Admin: fee card on
+  /stores/[id] (partner-fee.tsx reuses ActionForm), invoice /stores/[id]/invoice; payouts page "Founding partner fees" line
+  apart from donations/net. Store app: owner-only dashboard fee card + /dashboard/partner-fee. Shared invoice layout
+  @repo/ui/fee-invoice + labels Common.feeInvoice. Offline payment only (check/ACH/wire); no Stripe.
+- Next: store-linked gifts + badge (slice 3, incl. admin offline
   gift with "donor signed the acknowledgment" tick: ensureDonationReceipt refuses gifts without donorAck).
 
 ## Open items / TODO

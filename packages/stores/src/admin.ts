@@ -31,7 +31,7 @@ type StoreStatus = (typeof STORE_STATUSES)[number];
 type StoreBefore = { _id: { toString(): string }; name: string; status: StoreStatus; ownerUserId?: { toString(): string } | null };
 export type AdminResult =
   | { ok: true; storeId?: string; emailFailed?: boolean }
-  | { ok: false; error: "notFound" | "badStatus" | "emailInUse" | "ownerUnverified" | "alreadyInvited" | "declinedBefore" };
+  | { ok: false; error: "notFound" | "badStatus" | "emailInUse" | "ownerUnverified" | "alreadyInvited" | "declinedBefore" | "feeDue" };
 
 function assertAdmin(actor: AdminActor) {
   // Defence in depth: the Server Action already called requireRole(..., "admin").
@@ -76,6 +76,8 @@ async function transition(
   action: AuditAction,
   details: Record<string, unknown> = {},
   unset: Record<string, 1> = {},
+  /** Extra conditions checked in the SAME atomic update (e.g. "no partner fee due"). */
+  filterExtra: Record<string, unknown> = {},
 ) {
   assertAdmin(actor);
   await connectDb();
@@ -83,7 +85,7 @@ async function transition(
     const before = await Store.findOneAndUpdate(
       // status filter = the atomic guard. Values are our own constants (no user input), but
       // $in is still an operator we write, so it's marked trusted for sanitizeFilter.
-      { _id: storeId, status: trusted({ $in: from }) },
+      { _id: storeId, status: trusted({ $in: from }), ...filterExtra },
       { $set: set, ...(Object.keys(unset).length ? { $unset: unset } : {}) },
       { session, runValidators: true },
     )
@@ -194,8 +196,14 @@ export async function approveStore(actor: AdminActor, storeId: string, discountB
     "store.approve",
     { discountBps },
     { rejectionReason: 1 },
+    // Founding partner fee still due → not approved (families must not see the store yet). In the SAME update, so an
+    // admin setting the fee at the same moment can't slip past it (@repo/stores/partner-fee).
+    { "partnerFee.status": trusted({ $ne: "due" }) },
   );
-  if (!before) return explain(storeId);
+  if (!before) {
+    if (await Store.exists({ _id: storeId, "partnerFee.status": "due" })) return { ok: false, error: "feeDue" };
+    return explain(storeId);
+  }
   await emailOwner(before.ownerUserId, (link) => ({
     template: "storeApproved",
     values: { storeName: before.name, link },

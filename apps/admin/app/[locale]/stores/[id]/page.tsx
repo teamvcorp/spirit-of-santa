@@ -13,6 +13,10 @@ import { authOptions } from "@/auth";
 import { Link } from "@/i18n/navigation";
 import { StoreActions } from "./store-actions";
 import { ItemModeration } from "./item-moderation";
+import { PartnerFeeCard, type FeeCardView } from "./partner-fee";
+import { feeSettable, getPartnerFee } from "@repo/stores/partner-fee";
+import { formatCents } from "@repo/lib/format";
+import { calendarDateIn, isoDay } from "@repo/lib/season";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("StoreAdmin");
@@ -26,7 +30,7 @@ async function Detail({ params }: { params: PageProps<"/[locale]/stores/[id]">["
   if (!objectIdSchema.safeParse(id).success) notFound();
   const store = await getStoreDetail(id);
   if (!store) notFound();
-  const items = await listItemsForAdmin({ id: user.id, role: user.role }, id);
+  const [items, fee] = await Promise.all([listItemsForAdmin({ id: user.id, role: user.role }, id), getPartnerFee(id)]);
   const [t, statusT, cats, auditT, format] = await Promise.all([
     getTranslations("StoreAdmin"),
     getTranslations("Common.storeStatus"),
@@ -34,6 +38,25 @@ async function Detail({ params }: { params: PageProps<"/[locale]/stores/[id]">["
     getTranslations("StoreAdmin.audit"),
     getFormatter(),
   ]);
+  const feeT = await getTranslations("StoreAdmin.fee");
+  // Founding partner fee card (2026-11-18): formatted here on the server, the card only shows it.
+  const feeView: FeeCardView | null = fee && {
+    status: fee.status,
+    settable: feeSettable(fee),
+    ...(fee.amountCents ? { amount: formatCents(fee.amountCents), amountInput: String(fee.amountCents / 100) } : {}),
+    ...(fee.invoiceNo ? { invoiceNo: fee.invoiceNo } : {}),
+    ...(fee.status === "paid" && fee.paidAt
+      ? {
+          paidLine: feeT("statusPaid", {
+            amount: fee.amountCents ? formatCents(fee.amountCents) : "",
+            date: format.dateTime(new Date(fee.paidAt), { dateStyle: "medium", timeZone: "America/Chicago" }),
+            via: fee.paidVia ? feeT(`methods.${fee.paidVia}`) : "",
+            reference: fee.reference ? ` (${fee.reference})` : "",
+          }),
+        }
+      : {}),
+    ...(fee.waivedReason ? { waivedReason: fee.waivedReason } : {}),
+  };
   const date = (iso?: string) => (iso ? format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }) : "—");
   const row = (label: string, value: React.ReactNode) => (
     <div className="grid grid-cols-[10rem_minmax(0,1fr)] gap-2 py-1">
@@ -73,6 +96,12 @@ async function Detail({ params }: { params: PageProps<"/[locale]/stores/[id]">["
             discountPercent={store.discountBps != null ? String(store.discountBps / 100) : undefined}
             ownerVerified={store.ownerVerified}
           />
+          {feeView && (
+            <Card>
+              <h2 className="mb-1 text-lg font-semibold">{feeT("title")}</h2>
+              <PartnerFeeCard storeId={store.id} view={feeView} today={isoDay(calendarDateIn(new Date()))} />
+            </Card>
+          )}
           <Card data-testid="item-moderation">
             <h2 className="mb-1 text-lg font-semibold">{t("itemModeration.title")}</h2>
             <p className="mb-3 text-sm text-muted">{t("itemModeration.intro")}</p>

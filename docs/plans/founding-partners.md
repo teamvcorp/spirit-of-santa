@@ -220,3 +220,38 @@ A family-site page of every company we invited, from the SAME Store collection (
   Declined companies: name only + Grinch, NEVER a logo.
 - Tap a tile: signed-in parent with one registered kid → that kid's gift list filtered to this store; several kids →
   "Whose wish list?" choice; anyone else → sign up, with the line "to see what wonders await".
+
+## Slice 2 build plan (2026-11-19)
+- **Model:** `Store.partnerFee`:
+  - `status`: `not_required` (default) | `due` | `paid` | `waived`
+  - `amountCents`, `invoiceNo` (`FP-<12 hex of a hash of the store id>`; one fee per store, ever)
+  - `dueSetAt`, `paidAt`, `paidSeasonYear`, `paidVia` (check | ach | wire | card), `reference`
+  - `recordedByUserId`, `waivedReason`
+  - Limit: `MAX_PARTNER_FEE_CENTS` = $1,000,000 in @repo/lib/limits.
+- **Visibility, one place:** "fee due" blocks the existing `approved` status. Families only ever see approved
+  stores, so no family query changes.
+  - `approveStore` refuses with `feeDue`.
+  - `acceptStoreInvite` puts a fee-due store in `pending` instead of `approved`. The admin approves after the
+    fee is paid or waived.
+  - A fee can be set only while a store is invited or pending. Stores already approved (local beta) never get
+    hidden by a fee.
+  - The partners page then shows Pending (invited) or Processing (accepted, fee due).
+- **Service** `@repo/stores/partner-fee`. Admin only, audited, each in one transaction with a compare-and-set
+  on status:
+  - `setPartnerFee(amount)`: sets `due`, or changes the amount while due. Emails the invoice.
+  - `clearPartnerFee`: due → not_required.
+  - `markPartnerFeePaid(day, via, reference)`: due → paid. Emails a receipt of payment.
+  - `waivePartnerFee(reason)`: due → waived.
+- **Emails** `partnerFeeInvoice` / `partnerFeePaid` (EN + ES):
+  - Say "Founding partner fee", "a business payment, not a donation", "non-refundable".
+  - NEVER "tax-deductible" and never the donation-receipt sentence.
+  - Payment instructions say to reply for check, ACH or wire details. No bank details live in code.
+- **Admin:**
+  - A "Founding partner fee" card on the store page: set amount, clear, mark paid, waive. Reuses
+    `ActionForm`.
+  - An optional fee field on the invite form.
+  - A printable invoice page at `/stores/[id]/invoice`.
+  - Partner-fee income as its own line on the payouts money summary (`seasonMoney.partnerFeesCents`), never
+    in donations.
+- **Store app:** an owner-only fee card on the dashboard (Due / Paid on DATE / Waived) and an invoice page at
+  `/dashboard/partner-fee`. The invoice layout is shared via `@repo/ui/fee-invoice`.

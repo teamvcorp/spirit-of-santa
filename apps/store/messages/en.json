@@ -65,7 +65,7 @@
     "passwordHint": "At least {min} characters. A short sentence works well.",
     "submit": "Accept and create account",
     "submitting": "Creating account…",
-    "done": "You're all set! Your store is approved and your account is ready.",
+    "done": "You're all set! Your account is ready. Sign in to see your store.",
     "signIn": "Sign in",
     "invalid": "This invitation link has expired or was already used. Ask Spirit of Santa to send a new one."
   },
@@ -113,7 +113,15 @@
       "limitReached": "You've reached the item limit. Archive an item to add another.",
       "priceRequired": "Please enter a price."
     },
-    "ordersAlert": "{ready, plural, =0 {} one {# gift is ready to ship.} other {# gifts are ready to ship.}} {setAside, plural, =0 {} one {# gift held for December.} other {# gifts held for December.}}"
+    "ordersAlert": "{ready, plural, =0 {} one {# gift is ready to ship.} other {# gifts are ready to ship.}} {setAside, plural, =0 {} one {# gift held for December.} other {# gifts held for December.}}",
+    "backToDashboard": "Back to your dashboard",
+    "fee": {
+      "title": "Founding partner fee",
+      "due": "Due: {amount}. Your store becomes visible to families once the fee is received and your store is approved.",
+      "paid": "Paid on {date}. Thank you!",
+      "waived": "Waived: no fee to pay.",
+      "invoice": "View your invoice"
+    }
   },
   "Profile": {
     "title": "Store profile",

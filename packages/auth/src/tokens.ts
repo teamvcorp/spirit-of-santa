@@ -19,6 +19,7 @@ export const TOKEN_TTL_MS: Record<ActionTokenPurpose, number> = {
   invite_rep: 7 * 24 * 60 * 60 * 1000,
   news_confirm: 7 * 24 * 60 * 60 * 1000,
   store_signup: 14 * 24 * 60 * 60 * 1000,
+  store_gift: 7 * 24 * 60 * 60 * 1000,
 };
 
 /** Purposes whose row (and its email address) is deleted as soon as the link expires (owner 2026-11-19). */

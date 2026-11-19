@@ -13,7 +13,8 @@
 import "server-only";
 import { connectDb, Payment } from "@repo/db";
 import { parseDollarsToCents } from "@repo/lib/format";
-import { DONATION_PRESETS_CENTS, MAX_CHECKOUT_MS, MAX_DONATION_CENTS, MIN_CHECKOUT_MS, MIN_DONATION_CENTS } from "@repo/lib/limits";
+import { DONATION_PRESETS_CENTS, MAX_CHECKOUT_MS, MAX_DONATION_CENTS, MAX_STORE_GIFT_CENTS, MIN_CHECKOUT_MS, MIN_DONATION_CENTS, STORE_GIFT_PRESETS_CENTS } from "@repo/lib/limits";
+import { consumeStoreGift, peekStoreGift } from "@repo/stores/store-gifts";
 import { getSeasonYear, startOfDayInZone } from "@repo/lib/season";
 import { DONOR_ACK_VERSION } from "@repo/lib/donor-ack";
 import { getSeasonState } from "@repo/stores/season";
@@ -22,14 +23,18 @@ import { getStripe } from "./client.ts";
 import { buildPaymentMetadata } from "./metadata.ts";
 import { checkoutReturnStatus } from "./return-status.ts";
 
-/** Amount from the form: a preset ("2500") or "other" + dollars ("150.00"), within bounds. */
-export function donationAmountCents(choice: string, otherDollars: string): number | null {
+/**
+ * Amount from the form: a preset ("2500") or "other" + dollars ("150.00"), within bounds. `store` = a store giving
+ * through its gift link: its own presets and the higher store-gift limit ($50,000 is a recommendation, not a cap).
+ */
+export function donationAmountCents(choice: string, otherDollars: string, store = false): number | null {
+  const max = store ? MAX_STORE_GIFT_CENTS : MAX_DONATION_CENTS;
   if (choice === "other") {
     const c = parseDollarsToCents(otherDollars.trim());
-    return c != null && c >= MIN_DONATION_CENTS && c <= MAX_DONATION_CENTS ? c : null;
+    return c != null && c >= MIN_DONATION_CENTS && c <= max ? c : null;
   }
   const preset = Number(choice);
-  return (DONATION_PRESETS_CENTS as readonly number[]).includes(preset) ? preset : null;
+  return ((store ? STORE_GIFT_PRESETS_CENTS : DONATION_PRESETS_CENTS) as readonly number[]).includes(preset) ? preset : null;
 }
 
 /** Gifts are taken while the season is OPEN; pools are split at the freeze (Central-Time midnight). */
@@ -38,17 +43,29 @@ export async function donationWindow(): Promise<{ open: boolean; freezeAt: Date 
   return { open: s.phase === "open", freezeAt: startOfDayInZone(s.dates.freeze) };
 }
 
-export type CommunityStart = { ok: true; clientSecret: string; amountCents: number } | { ok: false; error: "amount" | "zip" | "closed" | "stripe" | "ack" };
+export type CommunityStart = { ok: true; clientSecret: string; amountCents: number } | { ok: false; error: "amount" | "zip" | "closed" | "stripe" | "ack" | "storeLink" };
 
 export async function startCommunityDonation(
   /** news = the donor ticked "send me news" (a confirm link goes to their Stripe email after paying). */
   /** ack = the donor ticked the acknowledgment box (owner 2026-11-18): REQUIRED, refused here without it. */
-  input: { zip: string | null; amountCents: number | null; locale: "en" | "es"; news?: boolean; ack: boolean },
+  input: {
+    zip: string | null;
+    amountCents: number | null;
+    locale: "en" | "es";
+    news?: boolean;
+    ack: boolean;
+    /** A store's single-use gift link (?store=): the ONLY way a store id reaches the checkout (server-side). */
+    storeToken?: string;
+  },
   origin: string,
   localePath: (p: string) => string,
 ): Promise<CommunityStart> {
   const { amountCents, zip } = input;
-  if (amountCents == null || !Number.isSafeInteger(amountCents) || amountCents < MIN_DONATION_CENTS || amountCents > MAX_DONATION_CENTS) return { ok: false, error: "amount" };
+  // Store mode: the link must still be valid (it is used up below, once the checkout exists).
+  const store = input.storeToken ? await peekStoreGift(input.storeToken) : null;
+  if (input.storeToken && !store) return { ok: false, error: "storeLink" };
+  const maxCents = store ? MAX_STORE_GIFT_CENTS : MAX_DONATION_CENTS;
+  if (amountCents == null || !Number.isSafeInteger(amountCents) || amountCents < MIN_DONATION_CENTS || amountCents > maxCents) return { ok: false, error: "amount" };
   if (zip !== null && !/^\d{5}$/.test(zip)) return { ok: false, error: "zip" };
   if (input.ack !== true) return { ok: false, error: "ack" };
   const win = await donationWindow();
@@ -63,6 +80,7 @@ export async function startCommunityDonation(
     ...(input.news ? { sos_news: "1" as const } : {}),
     sos_ack: DONOR_ACK_VERSION,
     sos_ack_at: String(Math.floor(Date.now() / 1000)),
+    ...(store ? { sos_store_id: store.storeId } : {}),
   });
   try {
     const session = await getStripe().checkout.sessions.create({
@@ -75,7 +93,17 @@ export async function startCommunityDonation(
       line_items: [
         {
           quantity: 1,
-          price_data: { currency: "usd", unit_amount: amountCents, product_data: { name: zip ? `Gift for Spirit of Santa kids in ${zip}` : "Gift for all Spirit of Santa kids" } },
+          price_data: {
+            currency: "usd",
+            unit_amount: amountCents,
+            product_data: {
+              name: store
+                ? `Christmas Magic gift from ${store.storeName}`
+                : zip
+                  ? `Gift for Spirit of Santa kids in ${zip}`
+                  : "Gift for all Spirit of Santa kids",
+            },
+          },
         },
       ],
       // Metadata on BOTH the session and the PaymentIntent (the webhook reads the PaymentIntent;
@@ -84,7 +112,13 @@ export async function startCommunityDonation(
       payment_intent_data: { metadata },
       return_url: new URL(localePath("/donate/thanks"), origin).toString() + "?session_id={CHECKOUT_SESSION_ID}",
     });
-    return session.client_secret ? { ok: true, clientSecret: session.client_secret, amountCents } : { ok: false, error: "stripe" };
+    if (!session.client_secret) return { ok: false, error: "stripe" };
+    // Use the store's link up NOW (atomic). If another tab used it first, this checkout is cancelled: one link, one gift.
+    if (input.storeToken && (await consumeStoreGift(input.storeToken)) !== store?.storeId) {
+      await getStripe().checkout.sessions.expire(session.id).catch(() => undefined);
+      return { ok: false, error: "storeLink" };
+    }
+    return { ok: true, clientSecret: session.client_secret, amountCents };
   } catch (err) {
     console.error("[community] checkout session failed:", err instanceof Error ? err.name : "unknown");
     return { ok: false, error: "stripe" };

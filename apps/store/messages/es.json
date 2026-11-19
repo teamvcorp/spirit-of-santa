@@ -128,6 +128,14 @@
       "paid": "Pagada el {date}. ¡Gracias!",
       "waived": "Exonerada: no hay cuota que pagar.",
       "invoice": "Ver tu factura"
+    },
+    "gift": {
+      "title": "Da Magia Navideña como tu tienda",
+      "body": "Recibe un enlace privado de un solo uso para dar Magia Navideña como tu tienda. Las tiendas cuyas donaciones de esta temporada alcancen nuestro nivel de donante reciben la Estrella Polar en nuestra página Nuestras tiendas. Para donaciones grandes, un cheque, ACH o transferencia evita las comisiones de tarjeta.",
+      "button": "Envíame mi enlace de donación",
+      "sent": "¡Enviado! Revisa tu correo para ver tu enlace (funciona una vez, durante 7 días).",
+      "tooMany": "Ya pediste varios enlaces. Inténtalo de nuevo en una hora.",
+      "failed": "No pudimos enviar el enlace ahora. Inténtalo más tarde."
     }
   },
   "Profile": {

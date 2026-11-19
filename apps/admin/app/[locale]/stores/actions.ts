@@ -14,6 +14,7 @@ import { fieldErrors } from "@repo/auth/schemas";
 import { approveStore, cancelStoreInvite, declineStoreInvite, hideItem, inviteStore, reinstateStore, rejectStore, resendStoreInvite, setStoreDiscount, suspendStore, unhideItem, type AdminResult, type ItemModerationResult } from "@repo/stores/admin";
 import { discountPercentSchema, inviteStoreSchema, objectIdSchema, partnerFeeAmountSchema, partnerFeePaymentSchema, rejectReasonSchema, suspendReasonSchema } from "@repo/stores/schemas";
 import { clearPartnerFee, markPartnerFeePaid, setPartnerFee, waivePartnerFee, type FeeResult } from "@repo/stores/partner-fee";
+import { sendStoreGiftLink } from "@repo/stores/store-gifts";
 import { parseDollarsToCents } from "@repo/lib/format";
 import { isLocale } from "@repo/lib/locales";
 import { authOptions } from "@/auth";
@@ -185,4 +186,14 @@ export async function waiveFeeAction(_prev: AdminFormState, fd: FormData): Promi
   const reason = suspendReasonSchema.safeParse(str(fd, "reason"));
   if (!reason.success) return fail({ reason: reason.error.issues[0]?.message ?? "invalid" }, fd, ["reason"]);
   return feeDone(await waivePartnerFee(admin, id, reason.data));
+}
+
+// ── Store Christmas Magic gifts (founding partners slice 3) ─────────────────────────────────────────────────
+/** Email the store's confirmed owner a single-use "give as {store}" link to /donate. */
+export async function sendGiftLinkAction(_prev: AdminFormState, fd: FormData): Promise<AdminFormState> {
+  const admin = await currentAdmin();
+  const id = storeIdOf(fd);
+  if (!id) return { status: "error", error: "notFound" };
+  const r = await sendStoreGiftLink(id, admin.id);
+  return r.ok ? { status: "done", nonce: randomUUID() } : { status: "error", error: r.error, nonce: randomUUID() };
 }

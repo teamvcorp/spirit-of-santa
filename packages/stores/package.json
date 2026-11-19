@@ -15,7 +15,8 @@
     "./schemas": "./src/schemas.ts",
     "./urls": "./src/urls.ts",
     "./partners": "./src/partners.ts",
-    "./partner-fee": "./src/partner-fee.ts"
+    "./partner-fee": "./src/partner-fee.ts",
+    "./store-gifts": "./src/store-gifts.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

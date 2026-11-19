@@ -13,6 +13,7 @@ import { CENTS_PER_POINT } from "@repo/lib/constants";
 import { formatCents } from "@repo/lib/format";
 import { donationWindow, seasonDonationTotal } from "@repo/payments/community";
 import { getPlatformSettings } from "@repo/payments/settings";
+import { peekStoreGift } from "@repo/stores/store-gifts";
 import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { intlLocale as toIntlLocale } from "@repo/lib/locales";
@@ -28,9 +29,21 @@ export async function generateMetadata(): Promise<Metadata> {
 /** 1250 basis points → "12.5%" (en) / "12,5 %" (es). */
 const percent = (bps: number, locale: string) => new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 2 }).format(bps / 10_000);
 
-async function Content() {
+type Props = PageProps<"/[locale]/donate">;
+
+async function Content({ searchParams }: Pick<Props, "searchParams">) {
   await connection();
-  const [settings, win, total, t, locale] = await Promise.all([getPlatformSettings(), donationWindow(), seasonDonationTotal(), getTranslations("Community"), getLocale()]);
+  // ?store=<token>: a store giving as itself through its single-use gift link (founding partners slice 3).
+  const raw = (await searchParams).store;
+  const storeToken = typeof raw === "string" ? raw.slice(0, 100) : undefined;
+  const [settings, win, total, t, locale, store] = await Promise.all([
+    getPlatformSettings(),
+    donationWindow(),
+    seasonDonationTotal(),
+    getTranslations("Community"),
+    getLocale(),
+    storeToken ? peekStoreGift(storeToken) : null,
+  ]);
   // The freeze moment is Central-Time midnight: show that calendar day in the page language.
   const intlLocale = toIntlLocale(locale);
   const shareDay = new Intl.DateTimeFormat(intlLocale, { month: "long", day: "numeric", timeZone: "America/Chicago" }).format(win.freezeAt);
@@ -45,19 +58,30 @@ async function Content() {
         <p className="text-sm text-muted">{t("charity", { orgName: settings.charity.legalName, ein: settings.charity.ein })}</p>
       )}
       {total.cents > 0 && <p className="font-semibold" data-testid="season-total">{t("raised", { amount: formatCents(total.cents) })}</p>}
-      {open ? <CommunityDonateForm orgName={settings.charity.legalName} /> : <Alert>{t("errors.closed")}</Alert>}
+      {storeToken && !store && <Alert tone="error">{t("storeLinkInvalid")}</Alert>}
+      {store && (
+        <div className="flex flex-col gap-1 rounded-xl border border-accent p-3" data-testid="store-gift">
+          <p className="font-semibold">{t("givingAs", { store: store.storeName })}</p>
+          <p className="text-sm text-muted">{t("storeGiftNote")}</p>
+        </div>
+      )}
+      {open ? (
+        <CommunityDonateForm orgName={settings.charity.legalName} {...(store && storeToken ? { storeToken } : {})} />
+      ) : (
+        <Alert>{t("errors.closed")}</Alert>
+      )}
     </div>
   );
 }
 
-export default function CommunityDonatePage() {
+export default function CommunityDonatePage({ searchParams }: Props) {
   return (
     <main className="relative mx-auto w-full max-w-xl flex-1 p-6">
       <SeasonGate>
         <Card>
           <Heading />
           <Suspense fallback={null}>
-            <Content />
+            <Content searchParams={searchParams} />
           </Suspense>
         </Card>
       </SeasonGate>

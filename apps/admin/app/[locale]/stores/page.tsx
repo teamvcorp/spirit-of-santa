@@ -9,6 +9,8 @@ import { listStores, storeStatusCounts, STORES_PAGE_SIZE, type StoreStatus } fro
 import { authOptions } from "@/auth";
 import { Link } from "@/i18n/navigation";
 import { buttonClass } from "@repo/ui/button";
+import { christmasMagicDonorStoreIds } from "@repo/stores/partners";
+import { NorthStar } from "@repo/ui/partner-icons";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("StoreAdmin");
@@ -23,13 +25,14 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/[locale]/stor
   const status: StoreStatus = (STORE_STATUSES as readonly string[]).includes(String(sp.status)) ? (sp.status as StoreStatus) : "pending";
   // ?page=1,2,… (1-based in the URL). Clamp junk to 1.
   const pageNum = Math.max(1, Math.min(10_000, Number.parseInt(String(sp.page ?? "1"), 10) || 1));
-  const [counts, rows, t, statusT, cats, format] = await Promise.all([
+  const [counts, rows, t, statusT, cats, format, donors] = await Promise.all([
     storeStatusCounts(),
     listStores(status, pageNum - 1),
     getTranslations("StoreAdmin"),
     getTranslations("Common.storeStatus"),
     getTranslations("Common.storeCategories"),
     getFormatter(),
+    christmasMagicDonorStoreIds(), // North Star (owner: show it on the admin store list too)
   ]);
   return (
     <>
@@ -67,6 +70,12 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/[locale]/stor
                     <Link href={`/stores/${r.id}`} className="font-semibold underline underline-offset-4">
                       {r.name}
                     </Link>
+                    {donors.has(r.id) && (
+                      <span className="ml-1 inline-flex align-middle" title={t("donor")} data-testid="admin-donor">
+                        <NorthStar className="size-4" />
+                        <span className="sr-only">{t("donor")}</span>
+                      </span>
+                    )}
                   </td>
                   <td className="py-2 pr-4">{cats(r.category as never)}</td>
                   <td className="py-2 pr-4">{[r.city, r.state].filter(Boolean).join(", ")}</td>

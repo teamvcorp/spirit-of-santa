@@ -28,6 +28,11 @@ export const ACTION_TOKEN_PURPOSES = [
    * until it is used. Works 14 days, and the row (the address) is DELETED at 14 days (purgeAt).
    */
   "store_signup",
+  /**
+   * A store's single-use "give Christmas Magic as {store}" link (founding partners slice 3): opens /donate in store
+   * mode; used up when the checkout starts. Sent only to the store's CONFIRMED owner. 7 days.
+   */
+  "store_gift",
 ] as const;
 export type ActionTokenPurpose = (typeof ACTION_TOKEN_PURPOSES)[number];
 

@@ -128,6 +128,14 @@
       "paid": "Paid on {date}. Thank you!",
       "waived": "Waived: no fee to pay.",
       "invoice": "View your invoice"
+    },
+    "gift": {
+      "title": "Give Christmas Magic as your store",
+      "body": "Get a private, single-use link to give Christmas Magic as your store. Stores whose gifts this season reach our donor level get the North Star on our Our stores page. For large gifts, a check, ACH or wire avoids card fees.",
+      "button": "Email me my gift link",
+      "sent": "Sent! Check your email for your gift link (it works once, for 7 days).",
+      "tooMany": "You’ve asked for several links already. Please try again in an hour.",
+      "failed": "We couldn’t send the link right now. Please try again later."
     }
   },
   "Profile": {

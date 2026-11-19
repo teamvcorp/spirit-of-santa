@@ -163,6 +163,13 @@
       "body": "¡Gracias por tu interés en Spirit of Santa! Usa el botón de abajo para terminar de registrar tu tienda. Si no lo pediste, puedes ignorar este correo: no se ha creado nada y borramos esta solicitud después de 14 días.",
       "button": "Registrar tu tienda",
       "expiry": "Este enlace funciona una sola vez y vence en 14 días."
+    },
+    "storeGiftLink": {
+      "subject": "Tu enlace para dar Magia Navideña como {storeName}",
+      "heading": "Da Magia Navideña como {storeName}",
+      "body": "Este es tu enlace privado para dar Magia Navideña como {storeName}. Las donaciones hechas con él aparecen como de tu tienda, y las tiendas cuyas donaciones de esta temporada alcancen nuestro nivel de donante reciben la insignia de donante de Magia Navideña (la Estrella Polar) en nuestra página Nuestras tiendas.\n\nEl enlace funciona una sola vez. Para donaciones grandes, un cheque, ACH o transferencia evita las comisiones de tarjeta: responde a este correo y lo organizamos.",
+      "button": "Dar Magia Navideña",
+      "expiry": "Este enlace funciona una sola vez y vence en 7 días. Puedes pedir uno nuevo cuando quieras."
     }
   }
 }

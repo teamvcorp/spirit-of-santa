@@ -10,6 +10,7 @@ import { refresh } from "next/cache";
 import { requireRole } from "@repo/auth";
 import { sendPendingReceipts } from "@repo/payments/receipts";
 import { percentToBps, updatePlatformSettings } from "@repo/payments/settings";
+import { parseDollarsToCents } from "@repo/lib/format";
 import { authOptions } from "@/auth";
 
 export type SettingsFormState = {
@@ -21,7 +22,7 @@ export type SettingsFormState = {
   nonce?: string;
 };
 
-const FIELDS = ["fee", "legalName", "ein", "address", "receipts", "fromDay", "shippingAddress"] as const;
+const FIELDS = ["fee", "legalName", "ein", "address", "receipts", "fromDay", "shippingAddress", "badge"] as const;
 // Capped echo copies (the service's Zod schema is the real length check).
 const str = (fd: FormData, k: string) => (typeof fd.get(k) === "string" ? String(fd.get(k)).slice(0, 400) : "");
 
@@ -31,6 +32,9 @@ export async function saveSettingsAction(_prev: SettingsFormState, fd: FormData)
   const fail = (error: string): SettingsFormState => ({ status: "error", error, values, nonce: randomUUID() });
   const bps = percentToBps(values.fee);
   if (bps === null) return fail("fee");
+  // North Star badge threshold in dollars ("" = no badge).
+  const badge = values.badge.trim() === "" ? null : parseDollarsToCents(values.badge.trim());
+  if (values.badge.trim() !== "" && (badge === null || badge < 1)) return fail("badge");
   const r = await updatePlatformSettings(admin.id, {
     donationFeeBps: bps,
     legalName: values.legalName.trim(),
@@ -39,6 +43,7 @@ export async function saveSettingsAction(_prev: SettingsFormState, fd: FormData)
     receiptsEnabled: values.receipts === "on",
     receiptsFromDay: values.fromDay.trim(),
     shippingAddress: values.shippingAddress,
+    donorBadgeCents: badge,
   });
   if (!r.ok) return fail(r.error);
   // A SMALL batch now (keeps Save fast); sendPendingReceipts checks the settings itself.

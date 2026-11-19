@@ -74,6 +74,15 @@ export const MAX_DONATION_CENTS = 5_000_000;
 export const MAX_PARTNER_FEE_CENTS = 100_000_000;
 export const PARTNER_FEE_METHODS = ["check", "ach", "wire", "card"] as const;
 export type PartnerFeeMethod = (typeof PARTNER_FEE_METHODS)[number];
+/**
+ * STORE CHRISTMAS MAGIC GIFTS (founding partners slice 3, owner 2026-11-18): a store giving AS ITSELF through its
+ * single-use gift link. $50,000 is a RECOMMENDATION, not a cap, so these gifts get their own upper bound: the most
+ * one card payment can be at Stripe ($999,999.99), as a typo/fraud guard. Big gifts are better by check/ACH/wire
+ * (recorded by admin). The public /donate cap (MAX_DONATION_CENTS) is unchanged for anonymous gifts.
+ */
+export const MAX_STORE_GIFT_CENTS = 99_999_999;
+/** Buttons on the store gift form; the first is pre-selected ("$50,000 recommended"). */
+export const STORE_GIFT_PRESETS_CENTS = [5_000_000, 10_000_000, 25_000_000] as const;
 /** Highest platform fee an admin can set on donation pools (basis points: 3000 = 30%). */
 export const MAX_DONATION_FEE_BPS = 3000;
 

@@ -20,6 +20,7 @@ import { connectDb, Item, Kid, Store, toObjectId, WishListItem } from "@repo/db"
 import { normalizeObjectId } from "@repo/lib/ids";
 import { itemPriceCentsToCentipoints } from "@repo/lib/points";
 import { getSeasonState } from "@repo/stores/season";
+import { christmasMagicDonorStoreIds } from "@repo/stores/partners";
 import { countsTowardCap, isRemovable, maskSurprise } from "./rules.ts";
 
 export const GIFT_SORTS = ["price_asc", "price_desc", "name", "store"] as const;
@@ -53,6 +54,8 @@ export type GiftCard = {
   photoUrl?: string;
   costCentipoints: number;
   soldOut: boolean;
+  /** The store holds the Christmas Magic donor badge this season (North Star). Display only: never affects order. */
+  storeDonor?: boolean;
 };
 export type GiftDetail = GiftCard & { description?: string };
 
@@ -64,6 +67,7 @@ type RawGift = {
   photo?: { url?: string } | null;
   priceCents: number;
   inventory?: number | null;
+  storeId?: unknown;
   store: { name: string };
 };
 
@@ -140,13 +144,16 @@ async function giftPage(query: GiftQuery, year: number, storeId: string | null):
           { $sort: SORT_STAGES[query.sort] },
           { $skip: (query.page - 1) * GIFTS_PER_PAGE },
           { $limit: GIFTS_PER_PAGE },
-          { $project: { name: 1, category: 1, "photo.url": 1, priceCents: 1, inventory: 1, store: 1 } },
+          { $project: { name: 1, category: 1, "photo.url": 1, priceCents: 1, inventory: 1, store: 1, storeId: 1 } },
         ],
         total: [{ $count: "n" }],
       },
     },
   ]);
-  return { items: (result?.rows ?? []).map(toCard), total: result?.total[0]?.n ?? 0 };
+  // North Star beside the store name (badge = recognition only: added AFTER sorting, never used to sort).
+  const donors = await christmasMagicDonorStoreIds();
+  const items = (result?.rows ?? []).map((g) => ({ ...toCard(g), ...(donors.has(String(g.storeId)) ? { storeDonor: true } : {}) }));
+  return { items, total: result?.total[0]?.n ?? 0 };
 }
 
 /** Categories that have at least one visible gift this season (for the filter list). */

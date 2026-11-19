@@ -28,6 +28,8 @@ const schema = z.object({
   // The donor acknowledgment (owner 2026-11-18). REQUIRED: the browser disables the button until it is ticked,
   // but that is only a convenience; this is the real check (a missing box → the "ack" error, nothing charged).
   ack: z.literal("on").optional().catch(undefined),
+  // A store's single-use gift link token (?store=), passed through the form. Only checked on the server.
+  store: z.string().max(100).optional().catch(undefined),
 });
 
 export async function communityDonateAction(_prev: CommunityState, fd: FormData): Promise<CommunityState> {
@@ -36,7 +38,7 @@ export async function communityDonateAction(_prev: CommunityState, fd: FormData)
   if (!(await publicLimit(await headers(), "community", 10))) return { ok: false, error: "rateLimited", ...echo };
   const parsed = schema.safeParse(formFields(fd));
   if (!parsed.success) return { ok: false, error: "invalid", ...echo };
-  const { scope, zip, amount, other, locale, news, ack } = parsed.data;
+  const { scope, zip, amount, other, locale, news, ack, store } = parsed.data;
   // The fee must be stated on the page before anyone gives (user decision): no fee set → closed. The
   // acknowledgment names the charity, so no charity name → closed too (it could not be shown correctly).
   const settings = await getPlatformSettings();
@@ -44,7 +46,7 @@ export async function communityDonateAction(_prev: CommunityState, fd: FormData)
   const origin = process.env.NEXTAUTH_URL;
   if (!origin) throw new Error("NEXTAUTH_URL is not set");
   const r = await startCommunityDonation(
-    { zip: scope === "zip" ? zip.trim() : null, amountCents: donationAmountCents(amount, other), locale, news: news === "on", ack: ack === "on" },
+    { zip: scope === "zip" ? zip.trim() : null, amountCents: donationAmountCents(amount, other, !!store), locale, news: news === "on", ack: ack === "on", ...(store ? { storeToken: store } : {}) },
     origin,
     (p) => localizePath(p, locale),
   );

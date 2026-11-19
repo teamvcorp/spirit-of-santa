@@ -96,7 +96,10 @@
       "feeDue": "The founding partner fee is still due. Record the payment (or waive it) first, then approve.",
       "feeState": "The fee changed meanwhile (already paid, waived or cleared). Refresh the page.",
       "invalid": "Something in the form isn't valid. Check the amount, date and fields.",
-      "feePaid": "This company already PAID its founding partner fee, so it can’t be deleted (it’s a money record)."
+      "feePaid": "This company already PAID its founding partner fee, so it can’t be deleted (it’s a money record).",
+      "noOwner": "This store has no confirmed owner yet, so there’s nobody to send the link to.",
+      "notConfigured": "Gift links aren’t set up on this site (FAMILY_APP_URL is missing).",
+      "emailFailed": "The email couldn’t be sent. Try again in a minute."
     },
     "audit": {
       "store_approve": "Approved",
@@ -174,7 +177,19 @@
         "card": "Card"
       },
       "backToStore": "Back to the store",
-      "printHint": "Use your browser's Print to save or print this invoice."
+      "printHint": "Use your browser's Print to save or print this invoice.",
+      "giftsTitle": "Christmas Magic gifts"
+    },
+    "donor": "Christmas Magic donor this season",
+    "gifts": {
+      "intro": "Gifts this store made as itself through its gift link (card) or that admin recorded. They join the Dec 1 pool like any donation and get the normal receipt.",
+      "total": "This season: {amount}",
+      "noBadge": "No donor badge is set (Settings).",
+      "donorYes": "North Star earned (level: {threshold}).",
+      "donorNo": "No North Star yet (level: {threshold}).",
+      "sendTitle": "Send the store its gift link",
+      "send": "Email the owner a gift link",
+      "sent": "Gift link emailed to the store’s owner (works once, 7 days)."
     }
   },
   "MfaSetup": {
@@ -563,7 +578,8 @@
       "ein": "Enter the EIN as 12-3456789.",
       "receiptsNeedCharity": "To send receipts, fill in the charity's legal name and EIN.",
       "fromDay": "Choose the day receipts start covering gifts.",
-      "shippingAddress": "Enter the address in up to 6 lines (300 characters)."
+      "shippingAddress": "Enter the address in up to 6 lines (300 characters).",
+      "badge": "Enter the badge amount in dollars (for example 50000), or leave it blank."
     },
     "fromDay": "Receipts cover gifts from",
     "fromDayHint": "The day the charity arrangement took effect. Gifts before this day never get a receipt.",
@@ -571,7 +587,10 @@
     "shippingTitle": "Gift shipping (wish lists)",
     "shippingAddress": "Spirit of Santa shipping address",
     "shippingHint": "Stores ship fully funded gifts here. Shown in store emails and on the store's Orders page. Up to 6 lines.",
-    "shippingMissing": "The shipping address isn't set: stores aren't told about funded gifts until you save one."
+    "shippingMissing": "The shipping address isn't set: stores aren't told about funded gifts until you save one.",
+    "badgeTitle": "Christmas Magic donor badge (North Star)",
+    "badge": "Minimum store gift per season (dollars)",
+    "badgeHint": "A store whose Christmas Magic gifts this season reach this amount gets the North Star on the Our stores page. Your figure: 50000. Leave blank for no badge."
   },
   "Donations": {
     "title": "Community donations",

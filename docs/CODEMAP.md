@@ -1051,7 +1051,17 @@ bottom of the spec. Charity on receipts = The Von Der Becke Academy Corp (EIN 46
   Review 2026-11-19: mark-paid needs the amount the admin SAW (hidden expectedAmountCents → feeState if changed), a date
   not before the invoice day, and an invited store or a pending one with a CONFIRMED owner; a store with a PAID fee is
   never deleted (cancelStoreInvite → feePaid; signup purges skip it). Amount input: real thousands commas only.
-- Next: store-linked gifts + badge (slice 3, incl. admin offline
+- **Store gifts + North Star (slice 3a, DONE):** a store gives AS ITSELF via a single-use link (ActionToken "store_gift",
+  7 days, ONLY to the store's confirmed owner): @repo/stores/store-gifts sendStoreGiftLink (admin "Send gift link" on the store
+  page; owner "Email me my gift link" on the store dashboard, 5/h, shown only when FAMILY_APP_URL works) / peekStoreGift /
+  consumeStoreGift. /donate?store=<token>: "Giving as {store}", STORE_GIFT_PRESETS_CENTS (0,000 first), limit
+  MAX_STORE_GIFT_CENTS; startCommunityDonation peeks, creates the session with sos_store_id, THEN consumes (lost race →
+  session expired, error storeLink). Webhook: store gifts may exceed MAX_DONATION_CENTS; record Payment.storeId. Same pool,
+  ack box, receipt. North Star = christmasMagicDonorStoreIds (@repo/stores/partners; countedStoreGifts: donation, succeeded,
+  this season, held/credited/retained, refundedCents 0, no dispute; ≥ PlatformSettings.donorBadgeCents set in admin
+  Settings, blank = no badges). Shown on /partners, gift cards (GiftCard.storeDonor, added AFTER sorting), admin store list;
+  admin store page shows the season total (storeSeasonGiftCents). Icons in @repo/ui/partner-icons.
+- Next: slice 3b = admin offline
   gift with "donor signed the acknowledgment" tick: ensureDonationReceipt refuses gifts without donorAck).
 
 ## Open items / TODO

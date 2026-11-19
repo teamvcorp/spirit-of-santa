@@ -10,7 +10,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 import { LocaleField } from "@repo/auth/forms";
 import { formatCents } from "@repo/lib/format";
-import { DONATION_PRESETS_CENTS, MAX_DONATION_CENTS, MIN_DONATION_CENTS } from "@repo/lib/limits";
+import { DONATION_PRESETS_CENTS, MAX_DONATION_CENTS, MAX_STORE_GIFT_CENTS, MIN_DONATION_CENTS, STORE_GIFT_PRESETS_CENTS } from "@repo/lib/limits";
 import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/text-field";
@@ -60,7 +60,8 @@ function AckBox({ orgName, checked, onChange }: { orgName: string; checked: bool
   );
 }
 
-export function CommunityDonateForm({ orgName }: { orgName: string }) {
+/** storeToken = a store's gift link (store mode: store presets, $50,000 suggested, the store-gift limit). */
+export function CommunityDonateForm({ orgName, storeToken }: { orgName: string; storeToken?: string }) {
   const t = useTranslations("Community");
   const [state, action, pending] = useActionState(communityDonateAction, { status: "idle" } as CommunityState);
   const hydrated = useHydrated();
@@ -91,15 +92,18 @@ export function CommunityDonateForm({ orgName }: { orgName: string }) {
     <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-4">
       {error && (
         <Alert tone="error">
-          {error === "amount" ? t("errors.amount", { min: formatCents(MIN_DONATION_CENTS), max: formatCents(MAX_DONATION_CENTS) }) : t(`errors.${error}` as never)}
+          {error === "amount"
+            ? t("errors.amount", { min: formatCents(MIN_DONATION_CENTS), max: formatCents(storeToken ? MAX_STORE_GIFT_CENTS : MAX_DONATION_CENTS) })
+            : t(`errors.${error}` as never)}
         </Alert>
       )}
       <LocaleField />
+      {storeToken && <input type="hidden" name="store" value={storeToken} />}
       <ScopeFields scope={state.scope} zip={state.zip} />
       <AmountPicker
         values={state.values}
-        initial={DONATION_PRESETS_CENTS[1]}
-        presets={DONATION_PRESETS_CENTS}
+        initial={storeToken ? STORE_GIFT_PRESETS_CENTS[0] : DONATION_PRESETS_CENTS[1]}
+        presets={storeToken ? STORE_GIFT_PRESETS_CENTS : DONATION_PRESETS_CENTS}
         legend={t("amount")}
         otherLabel={t("other")}
         otherAmountLabel={t("otherAmount")}

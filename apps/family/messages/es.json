@@ -343,7 +343,8 @@
     "surpriseTitle": "¡Una sorpresa!",
     "surpriseName": "Tu regalo sorpresa",
     "surpriseNote": "Envuelto hasta Navidad",
-    "surpriseAdd": "Agregar un regalo sorpresa (padres)"
+    "surpriseAdd": "Agregar un regalo sorpresa (padres)",
+    "storeDonor": "Donante de Magia Navideña"
   },
   "Qr": {
     "payHint": "¿Ves Apple Pay o Google Pay arriba? Tócalo para pagar en un solo paso. O ingresa los datos de tu tarjeta y luego toca el botón «Donar» (Donate) al final del formulario.",
@@ -587,8 +588,12 @@
       "closed": "Los regalos de la comunidad no están abiertos ahora. Abren con la temporada de Navidad y cierran cuando se reparten los regalos.",
       "invalid": "Algo salió mal con el formulario. Inténtalo de nuevo.",
       "rateLimited": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
-      "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde."
-    }
+      "stripe": "Los pagos no están disponibles ahora. Inténtalo más tarde.",
+      "storeLink": "Este enlace de donación de tienda ya se usó o venció. Pide uno nuevo."
+    },
+    "givingAs": "Donando como {store}",
+    "storeGiftNote": "Esta donación de Magia Navideña aparecerá como de tu tienda. 0,000 es nuestra donación sugerida para socios fundadores, pero cualquier monto es bienvenido. Para donaciones grandes, un cheque, ACH o transferencia evita las comisiones de tarjeta: responde al correo de tu enlace.",
+    "storeLinkInvalid": "Este enlace de donación de tienda venció o ya se usó. Pide uno nuevo desde el panel de tu tienda o responde al correo."
   },
   "PayLater": {
     "title": "Pagar más tarde por mensaje de texto",

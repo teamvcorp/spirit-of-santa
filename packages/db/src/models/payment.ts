@@ -66,6 +66,11 @@ const paymentSchema = new Schema(
       version: { type: String, maxlength: 40 },
       acceptedAt: Date,
     },
+    /**
+     * Store Christmas Magic gift (founding partners slice 3): the store that gave, set ONLY by our server from the
+     * store's single-use gift link (metadata sos_store_id), never from a form. Drives the North Star badge.
+     */
+    storeId: objectId("Store", false),
     /** Community donation (/donate) aimed at one US ZIP; absent = the "all kids" pool. */
     zip: { type: String, match: /^\d{5}$/ },
 
@@ -100,6 +105,8 @@ paymentSchema.index({ seasonYear: 1, purpose: 1 }); // margin reports
 paymentSchema.index({ needsReview: 1, updatedAt: -1 }, { partialFilterExpression: { needsReview: true } });
 paymentSchema.index({ fulfilment: 1 }, { partialFilterExpression: { fulfilment: "held" } });
 paymentSchema.index({ kidId: 1, createdAt: -1 });
+// North Star badge: a store's gifts this season (only store gifts have storeId).
+paymentSchema.index({ storeId: 1, seasonYear: 1 }, { partialFilterExpression: { storeId: { $exists: true } } });
 
 export type PaymentDoc = InferSchemaType<typeof paymentSchema>;
 export const Payment = (models.Payment ?? model("Payment", paymentSchema)) as Model<PaymentDoc>;

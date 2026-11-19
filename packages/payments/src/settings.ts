@@ -6,7 +6,7 @@
 import "server-only";
 import { z } from "zod";
 import { AuditLog, connectDb, PlatformSettings, withTransaction } from "@repo/db";
-import { MAX_DONATION_FEE_BPS } from "@repo/lib/limits";
+import { MAX_DONATION_FEE_BPS, MAX_STORE_GIFT_CENTS } from "@repo/lib/limits";
 import { parseIsoDay, startOfDayInZone } from "@repo/lib/season";
 
 export type PlatformSettingsView = {
@@ -22,6 +22,8 @@ export type PlatformSettingsView = {
   receiptsFrom: Date | null;
   /** Where stores ship funded gifts ("" = not set: store emails wait until it is). Multi-line. */
   shippingAddress: string;
+  /** Christmas Magic donor badge threshold per season, cents; null = no badge (founding partners slice 3). */
+  donorBadgeCents: number | null;
 };
 
 export async function getPlatformSettings(): Promise<PlatformSettingsView> {
@@ -38,6 +40,7 @@ export async function getPlatformSettings(): Promise<PlatformSettingsView> {
     receiptsReady: receiptsEnabled && charity.legalName !== "" && charity.ein !== "" && receiptsFromDay !== "",
     receiptsFrom: receiptsFromDay ? startOfDayInZone(receiptsFromDay) : null,
     shippingAddress: s?.shippingAddress ?? "",
+    donorBadgeCents: typeof s?.donorBadgeCents === "number" ? s.donorBadgeCents : null,
   };
 }
 
@@ -61,10 +64,12 @@ export const settingsInputSchema = z.object({
     .string()
     .transform((v) => v.replace(/\r\n?/g, "\n").split("\n").map((l) => l.trim()).filter(Boolean).join("\n"))
     .pipe(z.string().max(300).refine((v) => v.split("\n").length <= 6)),
+  /** null = no North Star badge. */
+  donorBadgeCents: z.number().int().min(1).max(MAX_STORE_GIFT_CENTS).nullable(),
 });
 export type SettingsInput = z.infer<typeof settingsInputSchema>;
 
-export type SettingsResult = { ok: true } | { ok: false; error: "invalid" | "fee" | "ein" | "fromDay" | "receiptsNeedCharity" | "shippingAddress" };
+export type SettingsResult = { ok: true } | { ok: false; error: "invalid" | "fee" | "ein" | "fromDay" | "receiptsNeedCharity" | "shippingAddress" | "badge" };
 
 /** Save all settings at once (admin). Turning receipts ON needs the charity's name + EIN. */
 export async function updatePlatformSettings(adminUserId: string, raw: SettingsInput): Promise<SettingsResult> {
@@ -72,7 +77,7 @@ export async function updatePlatformSettings(adminUserId: string, raw: SettingsI
   if (!parsed.success) {
     // Name the field the admin got wrong (the ONE place these rules live).
     const field = parsed.error.issues[0]?.path[0];
-    return { ok: false, error: field === "donationFeeBps" ? "fee" : field === "ein" ? "ein" : field === "receiptsFromDay" ? "fromDay" : field === "shippingAddress" ? "shippingAddress" : "invalid" };
+    return { ok: false, error: field === "donationFeeBps" ? "fee" : field === "ein" ? "ein" : field === "receiptsFromDay" ? "fromDay" : field === "shippingAddress" ? "shippingAddress" : field === "donorBadgeCents" ? "badge" : "invalid" };
   }
   const v = parsed.data;
   if (v.receiptsEnabled && (v.legalName === "" || v.ein === "")) return { ok: false, error: "receiptsNeedCharity" };
@@ -89,11 +94,14 @@ export async function updatePlatformSettings(adminUserId: string, raw: SettingsI
           "charity.address": v.address,
           receiptsEnabled: v.receiptsEnabled,
           shippingAddress: v.shippingAddress,
+          ...(v.donorBadgeCents != null ? { donorBadgeCents: v.donorBadgeCents } : {}),
           updatedByUserId: adminUserId,
           ...(v.ein ? { "charity.ein": v.ein } : {}),
           ...(v.receiptsFromDay ? { receiptsFromDay: v.receiptsFromDay } : {}),
         },
-        ...(v.ein && v.receiptsFromDay ? {} : { $unset: { ...(v.ein ? {} : { "charity.ein": 1 }), ...(v.receiptsFromDay ? {} : { receiptsFromDay: 1 }) } }),
+        ...(v.ein && v.receiptsFromDay && v.donorBadgeCents != null
+          ? {}
+          : { $unset: { ...(v.ein ? {} : { "charity.ein": 1 }), ...(v.receiptsFromDay ? {} : { receiptsFromDay: 1 }), ...(v.donorBadgeCents != null ? {} : { donorBadgeCents: 1 }) } }),
       },
       { upsert: true, session, runValidators: true, returnDocument: "after", projection: { _id: 1 } },
     );
@@ -111,6 +119,7 @@ export async function updatePlatformSettings(adminUserId: string, raw: SettingsI
             receiptsEnabled: { from: before?.receiptsEnabled ?? false, to: v.receiptsEnabled },
             receiptsFromDay: { from: before?.receiptsFromDay ?? null, to: v.receiptsFromDay || null },
             shippingAddressChanged: (before?.shippingAddress ?? "") !== v.shippingAddress,
+            donorBadgeCents: { from: before?.donorBadgeCents ?? null, to: v.donorBadgeCents },
             charityChanged:
               (before?.charity?.legalName ?? "") !== v.legalName || (before?.charity?.ein ?? "") !== v.ein || (before?.charity?.address ?? "") !== v.address,
           },

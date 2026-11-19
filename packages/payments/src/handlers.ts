@@ -18,7 +18,7 @@ import "server-only";
 import { MAX_PRICE_CENTS } from "@repo/lib/format";
 import type Stripe from "stripe";
 import { Deed, Kid, PayLaterRequest, Payment, Transaction, trusted, withTransaction, WishListItem } from "@repo/db";
-import { MAX_DONATION_CENTS, MAX_TIP_CENTS, MIN_DONATION_CENTS, MIN_TIP_CENTS, REGISTRATION_FEE_CENTS, MIN_STRIPE_CHARGE_CENTS } from "@repo/lib/limits";
+import { MAX_DONATION_CENTS, MAX_STORE_GIFT_CENTS, MAX_TIP_CENTS, MIN_DONATION_CENTS, MIN_TIP_CENTS, REGISTRATION_FEE_CENTS, MIN_STRIPE_CHARGE_CENTS } from "@repo/lib/limits";
 import { centsToCentipoints, centipointsToCents } from "@repo/lib/points";
 import { getSeasonYear } from "@repo/lib/season";
 import { getSeasonState, giftWindow } from "@repo/stores/season";
@@ -50,7 +50,9 @@ function moneyProblem(pi: Stripe.PaymentIntent, meta: PaymentMetadata): string |
   ) {
     return "amount_out_of_bounds"; // creation code should have blocked this: a human checks
   }
-  if (meta.sos_purpose === "donation" && (pi.amount_received < MIN_DONATION_CENTS || pi.amount_received > MAX_DONATION_CENTS)) {
+  // A store's gift (store link, sos_store_id) may be larger: $50,000 is a recommendation, not a cap (owner).
+  const maxDonation = meta.sos_purpose === "donation" && meta.sos_store_id ? MAX_STORE_GIFT_CENTS : MAX_DONATION_CENTS;
+  if (meta.sos_purpose === "donation" && (pi.amount_received < MIN_DONATION_CENTS || pi.amount_received > maxDonation)) {
     return "amount_out_of_bounds";
   }
   // Pay-up: never more than the dearest possible item at $1.50/point (MAX_PRICE_CENTS of points).
@@ -225,7 +227,8 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
       // time is only a fallback (with Checkout it is created at payment, later than the tick).
       const ackAt = meta.sos_ack_at ? Number(meta.sos_ack_at) : pi.created;
       const donorAck = meta.sos_ack ? { donorAck: { version: meta.sos_ack, acceptedAt: new Date(ackAt * 1000) } } : {};
-      await record("held", { ...(meta.sos_zip ? { zip: meta.sos_zip } : {}), ...donorAck });
+      // storeId: which store gave (North Star badge). From OUR metadata only (set server-side from the gift link).
+      await record("held", { ...(meta.sos_zip ? { zip: meta.sos_zip } : {}), ...donorAck, ...(meta.sos_store_id ? { storeId: meta.sos_store_id } : {}) });
       return processed("held:donation");
     }
     // tip | bonus → credit points to the kid. Only a REGISTERED kid of that family (consent

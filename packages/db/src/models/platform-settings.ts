@@ -31,6 +31,11 @@ const platformSettingsSchema = new Schema(
     /** Where stores ship funded gifts (Phase 6 slice 3). Shown in store emails + the Orders page. */
     shippingAddress: { type: String, trim: true, maxlength: 300 },
     receiptsFromDay: { type: String, match: /^\d{4}-\d{2}-\d{2}$/ },
+    /**
+     * CHRISTMAS MAGIC DONOR badge (founding partners slice 3): a store shows the North Star for a season once its
+     * store-linked gifts that season reach this many cents. Admin-set (owner's figure: $50,000); missing = no badge.
+     */
+    donorBadgeCents: { type: Number, min: 1, validate: isSafeInt },
     updatedByUserId: objectId("User", false),
   },
   { timestamps: true, versionKey: false },

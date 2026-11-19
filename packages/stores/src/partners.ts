@@ -10,12 +10,12 @@
  *   rejected / suspended → NOT LISTED (our own decisions are not published)
  * Logos come only from the store's own upload (Store.logo, store app) = their permission.
  *
- * Christmas Magic donor (North Star): `christmasMagicDonorStoreIds` is the ONE place that decides it. Slice 3 will
- * fill it from store-linked gifts (≥ the admin threshold, this season). Until then it returns nobody, so no store
- * can show the star by mistake. The star NEVER changes the order (hard rule): sorting below ignores it.
+ * Christmas Magic donor (North Star): `christmasMagicDonorStoreIds` is the ONE place that decides it, from store-linked
+ * gifts (≥ the admin threshold, this season). The star NEVER changes the order (hard rule): sorting ignores it.
  */
 import "server-only";
-import { connectDb, Store, trusted, User } from "@repo/db";
+import { connectDb, Payment, PlatformSettings, Store, toObjectId, trusted, User } from "@repo/db";
+import { getSeasonYear } from "@repo/lib/season";
 import { LISTED_STORE_STATUSES, orderPartners, publicPartnerStatus, type PartnerStatus } from "@repo/lib/partners";
 
 export type { PartnerStatus };
@@ -24,11 +24,42 @@ const MAX_PARTNERS = 500;
 export type Partner = { slug: string; name: string; status: PartnerStatus; logoUrl?: string; donor: boolean };
 
 /**
- * Stores that gave Christmas Magic at or above the badge threshold THIS season (badge resets Jan 1, owner).
- * TODO(founding partners slice 3): sum store-linked donation Payments (succeeded, not refunded/disputed) per store.
+ * THE North Star rule (founding partners slice 3; one source of truth): stores whose store-linked Christmas Magic
+ * gifts THIS season (badge resets Jan 1, owner) total at least the admin's threshold (Settings; none = no badges).
+ * Counts only money that really arrived and stayed: succeeded, in the pool / shared / kept, never refunded, never
+ * disputed. Recognition only: it never changes order, ranking or anything else (hard rule).
  */
-export async function christmasMagicDonorStoreIds(): Promise<Set<string>> {
-  return new Set();
+/** Which store gifts COUNT (badge and admin totals): arrived and stayed, this season. Aggregate stage (not sanitized). */
+function countedStoreGifts(now: Date, storeId?: string) {
+  return {
+    purpose: "donation",
+    status: "succeeded",
+    seasonYear: getSeasonYear(now),
+    storeId: storeId ? toObjectId(storeId) : { $exists: true, $ne: null },
+    fulfilment: { $in: ["held", "credited", "retained"] },
+    refundedCents: 0,
+    "dispute.stripeDisputeId": { $exists: false },
+  };
+}
+
+/** One store's counted Christmas Magic gifts this season (admin store page). */
+export async function storeSeasonGiftCents(storeId: string, now = new Date()): Promise<number> {
+  await connectDb();
+  const [row] = await Payment.aggregate<{ cents: number }>([{ $match: countedStoreGifts(now, storeId) }, { $group: { _id: null, cents: { $sum: "$amountCents" } } }]);
+  return row?.cents ?? 0;
+}
+
+export async function christmasMagicDonorStoreIds(now = new Date()): Promise<Set<string>> {
+  await connectDb();
+  const settings = await PlatformSettings.findOne({ key: "platform" }).select("donorBadgeCents").lean();
+  const threshold = settings?.donorBadgeCents;
+  if (typeof threshold !== "number" || threshold < 1) return new Set();
+  const rows = await Payment.aggregate<{ _id: unknown }>([
+    { $match: countedStoreGifts(now) },
+    { $group: { _id: "$storeId", cents: { $sum: "$amountCents" } } },
+    { $match: { cents: { $gte: threshold } } },
+  ]);
+  return new Set(rows.map((r) => String(r._id)));
 }
 
 type Raw = { _id: unknown; slug: string; name: string; status: string; ownerUserId?: unknown; logo?: { url?: string } | null };

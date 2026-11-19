@@ -5,6 +5,8 @@ import { Alert } from "@repo/ui/alert";
 import { Card } from "@repo/ui/card";
 import { orderCounts } from "@repo/wishlists/fulfilment";
 import { getPartnerFee } from "@repo/stores/partner-fee";
+import { storeGiftLinksAvailable } from "@repo/stores/store-gifts";
+import { GiftLinkButton } from "./gift-link-button";
 import { formatCents, formatLongDate } from "@repo/lib/format";
 import { isLocale } from "@repo/lib/locales";
 import { getLocale } from "next-intl/server";
@@ -63,6 +65,14 @@ async function Overview() {
             <Link href="/dashboard/partner-fee" className="font-semibold underline underline-offset-4">
               {t("fee.invoice")}
             </Link>
+          </Card>
+        )}
+        {/* Give Christmas Magic AS the store (founding partners slice 3). Needs FAMILY_APP_URL here to build the link. */}
+        {isOwner && (store.status === "approved" || store.status === "pending") && storeGiftLinksAvailable() && (
+          <Card data-testid="gift-card">
+            <h2 className="text-lg font-semibold">{t("gift.title")}</h2>
+            <p className="mb-3 mt-1 text-sm text-muted">{t("gift.body")}</p>
+            <GiftLinkButton />
           </Card>
         )}
         {isOwner && (

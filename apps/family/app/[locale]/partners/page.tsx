@@ -17,7 +17,7 @@ import { storeAppOrigin } from "@repo/stores/urls";
 import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
 import { SeasonGate } from "@/components/season-gate";
-import { GrumpyFace, NorthStar } from "@/components/partner-icons";
+import { GrumpyFace, NorthStar } from "@repo/ui/partner-icons";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Partners");

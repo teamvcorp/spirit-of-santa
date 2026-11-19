@@ -96,7 +96,10 @@
       "feeDue": "La cuota de socio fundador sigue pendiente. Registra el pago (o exonérala) primero y luego aprueba.",
       "feeState": "La cuota cambió mientras tanto (ya pagada, exonerada o quitada). Actualiza la página.",
       "invalid": "Algo del formulario no es válido. Revisa el monto, la fecha y los campos.",
-      "feePaid": "Esta empresa ya PAGÓ su cuota de socio fundador, así que no se puede borrar (es un registro de dinero)."
+      "feePaid": "Esta empresa ya PAGÓ su cuota de socio fundador, así que no se puede borrar (es un registro de dinero).",
+      "noOwner": "Esta tienda aún no tiene un dueño confirmado, así que no hay a quién enviar el enlace.",
+      "notConfigured": "Los enlaces de donación no están configurados en este sitio (falta FAMILY_APP_URL).",
+      "emailFailed": "No se pudo enviar el correo. Inténtalo de nuevo en un minuto."
     },
     "audit": {
       "store_approve": "Aprobada",
@@ -174,7 +177,19 @@
         "card": "Tarjeta"
       },
       "backToStore": "Volver a la tienda",
-      "printHint": "Usa Imprimir en tu navegador para guardar o imprimir esta factura."
+      "printHint": "Usa Imprimir en tu navegador para guardar o imprimir esta factura.",
+      "giftsTitle": "Donaciones de Magia Navideña"
+    },
+    "donor": "Donante de Magia Navideña esta temporada",
+    "gifts": {
+      "intro": "Donaciones que esta tienda hizo como tienda con su enlace (tarjeta) o que registró el administrador. Se suman al fondo del 1 de diciembre como cualquier donación y reciben el recibo normal.",
+      "total": "Esta temporada: {amount}",
+      "noBadge": "No hay nivel de insignia de donante (Configuración).",
+      "donorYes": "Estrella Polar obtenida (nivel: {threshold}).",
+      "donorNo": "Todavía sin Estrella Polar (nivel: {threshold}).",
+      "sendTitle": "Enviar a la tienda su enlace de donación",
+      "send": "Enviar un enlace al dueño",
+      "sent": "Enlace enviado al dueño de la tienda (funciona una vez, 7 días)."
     }
   },
   "MfaSetup": {
@@ -563,7 +578,8 @@
       "ein": "Escribe el EIN como 12-3456789.",
       "receiptsNeedCharity": "Para enviar recibos, escribe el nombre legal y el EIN de la organización.",
       "fromDay": "Elige el día desde el que los recibos cubren los regalos.",
-      "shippingAddress": "Escribe la dirección en hasta 6 líneas (300 caracteres)."
+      "shippingAddress": "Escribe la dirección en hasta 6 líneas (300 caracteres).",
+      "badge": "Escribe el monto de la insignia en dólares (por ejemplo 50000) o déjalo vacío."
     },
     "fromDay": "Los recibos cubren regalos desde",
     "fromDayHint": "El día en que empezó el acuerdo con la organización. Los regalos anteriores nunca reciben recibo.",
@@ -571,7 +587,10 @@
     "shippingTitle": "Envío de regalos (listas de deseos)",
     "shippingAddress": "Dirección de envío de Spirit of Santa",
     "shippingHint": "Las tiendas envían aquí los regalos completos. Aparece en los correos a las tiendas y en su página de Pedidos. Hasta 6 líneas.",
-    "shippingMissing": "Falta la dirección de envío: las tiendas no reciben aviso de regalos completos hasta que la guardes."
+    "shippingMissing": "Falta la dirección de envío: las tiendas no reciben aviso de regalos completos hasta que la guardes.",
+    "badgeTitle": "Insignia de donante de Magia Navideña (Estrella Polar)",
+    "badge": "Donación mínima de la tienda por temporada (dólares)",
+    "badgeHint": "Una tienda cuyas donaciones de Magia Navideña de esta temporada lleguen a este monto recibe la Estrella Polar en la página Nuestras tiendas. Tu cifra: 50000. Déjalo vacío para no mostrar insignia."
   },
   "Donations": {
     "title": "Donaciones de la comunidad",

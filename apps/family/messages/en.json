@@ -343,7 +343,8 @@
     "surpriseTitle": "A surprise!",
     "surpriseName": "Your surprise gift",
     "surpriseNote": "Wrapped until Christmas",
-    "surpriseAdd": "Add a surprise gift (parents)"
+    "surpriseAdd": "Add a surprise gift (parents)",
+    "storeDonor": "Christmas Magic donor"
   },
   "Qr": {
     "payHint": "See Apple Pay or Google Pay at the top? Tap it to pay in one step. Or enter your card details, then tap the “Donate” button at the bottom of the form.",
@@ -587,8 +588,12 @@
       "closed": "Community gifts aren't open right now. They open with the Christmas season and close when the gifts are shared.",
       "invalid": "Something was wrong with the form. Please try again.",
       "rateLimited": "Too many tries. Please wait a few minutes and try again.",
-      "stripe": "Payments aren't available right now. Please try again later."
-    }
+      "stripe": "Payments aren't available right now. Please try again later.",
+      "storeLink": "This store gift link was already used or has expired. Ask for a new one."
+    },
+    "givingAs": "Giving as {store}",
+    "storeGiftNote": "This Christmas Magic gift will be shown as coming from your store. 0,000 is our suggested founding-partner gift, but any amount is welcome. For large gifts, a check, ACH or wire avoids card fees: reply to your gift-link email.",
+    "storeLinkInvalid": "This store gift link has expired or was already used. Ask for a new one from your store dashboard or reply to the email."
   },
   "PayLater": {
     "title": "Pay later by text",

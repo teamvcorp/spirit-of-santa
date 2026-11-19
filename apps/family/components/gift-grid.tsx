@@ -8,6 +8,7 @@ import { getTranslations } from "next-intl/server";
 import { formatPoints } from "@repo/lib/format";
 import type { GiftCard } from "@repo/wishlists/catalog";
 import { Link } from "@/i18n/navigation";
+import { NorthStar } from "@repo/ui/partner-icons";
 
 export async function GiftGrid({ items, hrefFor }: { items: GiftCard[]; hrefFor: (giftId: string) => string }) {
   const t = await getTranslations("Gifts");
@@ -23,7 +24,16 @@ export async function GiftGrid({ items, hrefFor }: { items: GiftCard[]; hrefFor:
             )}
             <div className="flex flex-1 flex-col gap-1 p-3">
               <p className="font-semibold">{g.name}</p>
-              <p className="text-sm text-muted">{t("fromStore", { store: g.storeName })}</p>
+              <p className="flex items-center gap-1 text-sm text-muted">
+                {t("fromStore", { store: g.storeName })}
+                {/* Christmas Magic donor (North Star): recognition only, same order for everyone. */}
+                {g.storeDonor && (
+                  <span title={t("storeDonor")} data-testid="store-donor">
+                    <NorthStar className="size-4" />
+                    <span className="sr-only">{t("storeDonor")}</span>
+                  </span>
+                )}
+              </p>
               <p className="mt-auto font-semibold">
                 {t("cost", { points: formatPoints(g.costCentipoints) })}
                 {g.soldOut && <span className="ml-2 rounded bg-foreground/10 px-2 py-0.5 text-xs font-medium">{t("soldOut")}</span>}

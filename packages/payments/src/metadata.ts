@@ -60,6 +60,11 @@ export const paymentMetadataSchema = z.discriminatedUnion("sos_purpose", [
     sos_ack: z.string().regex(DONOR_ACK_VERSION_PATTERN).optional(),
     /** When they ticked it: our server's clock (unix seconds) as the checkout opened (review 2026-11-18). */
     sos_ack_at: z.string().regex(/^\d{10}$/).optional(),
+    /**
+     * A STORE giving as itself (founding partners slice 3): set by our server from the store's single-use gift link,
+     * never from the form. The webhook stores it on the Payment (North Star badge) and allows the store-gift limit.
+     */
+    sos_store_id: objectId.optional(),
   }),
   // $5 child registration (parental-consent card check). Up to 10 kids, comma-separated ids.
   // sos_promo "1" = family promo code: one $5 covers every listed kid.

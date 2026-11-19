@@ -74,6 +74,8 @@ export type EmailTemplates = {
   newsConfirm: { link: string };
   /** Store sign-up step 1 (email first, 2026-11-19): to an unproven address, so NO user-typed text. */
   storeSignupLink: { link: string };
+  /** A store's single-use "give as {store}" link (founding partners slice 3): ONLY to the store's confirmed owner. */
+  storeGiftLink: { link: string; storeName: string };
   /**
    * Founding partner fee (2026-11-18): a BUSINESS invoice and payment receipt, never the donation receipt (no
    * tax wording, no "no goods or services" sentence). storeName typed by an admin or the store; org by an admin.

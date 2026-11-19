@@ -163,6 +163,13 @@
       "body": "Thanks for your interest in Spirit of Santa! Use the button below to finish registering your store. If you didn’t ask for this, you can ignore this email: nothing has been created, and we delete this request after 14 days.",
       "button": "Register your store",
       "expiry": "This link works once and expires in 14 days."
+    },
+    "storeGiftLink": {
+      "subject": "Your Christmas Magic gift link for {storeName}",
+      "heading": "Give Christmas Magic as {storeName}",
+      "body": "Here is your private link to give Christmas Magic as {storeName}. Gifts made with it are shown as coming from your store, and stores whose gifts this season reach our donor level get the Christmas Magic donor badge (the North Star) on our Our stores page.\n\nThe link works once. For large gifts, a check, ACH or wire transfer avoids card fees: reply to this email and we’ll arrange it.",
+      "button": "Give Christmas Magic",
+      "expiry": "This link works once and expires in 7 days. You can ask for a new one any time."
     }
   }
 }

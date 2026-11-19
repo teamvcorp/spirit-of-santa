@@ -41,6 +41,7 @@ async function Content() {
             // Not chosen yet: suggest today (Central Time), the admin confirms it.
             fromDay: s.receiptsFromDay || isoDay(calendarDateIn(new Date())),
             shippingAddress: s.shippingAddress,
+            badge: s.donorBadgeCents === null ? "" : String(s.donorBadgeCents / 100),
           }}
         />
       </Card>

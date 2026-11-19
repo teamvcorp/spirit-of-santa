@@ -12,7 +12,7 @@ import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { saveSettingsAction, type SettingsFormState } from "./actions";
 
-export type SettingsDefaults = { fee: string; legalName: string; ein: string; address: string; receipts: boolean; fromDay: string; shippingAddress: string };
+export type SettingsDefaults = { fee: string; legalName: string; ein: string; address: string; receipts: boolean; fromDay: string; shippingAddress: string; badge: string };
 
 export function SettingsForm({ saved }: { saved: SettingsDefaults }) {
   const t = useTranslations("Settings");
@@ -27,6 +27,7 @@ export function SettingsForm({ saved }: { saved: SettingsDefaults }) {
     receipts: v ? v.receipts === "on" : saved.receipts,
     fromDay: v?.fromDay ?? saved.fromDay,
     shippingAddress: v?.shippingAddress ?? saved.shippingAddress,
+    badge: v?.badge ?? saved.badge,
   };
   return (
     <form key={state.nonce ?? "initial"} action={action} className="flex flex-col gap-4">
@@ -51,6 +52,9 @@ export function SettingsForm({ saved }: { saved: SettingsDefaults }) {
         <textarea name="shippingAddress" rows={4} maxLength={300} defaultValue={d.shippingAddress} className="rounded-lg border border-foreground/20 bg-background px-3 py-2" aria-describedby="shipping-hint" />
         <span id="shipping-hint" className="text-sm text-muted">{t("shippingHint")}</span>
       </label>
+      {/* Founding partners slice 3: North Star for stores whose gifts this season reach this amount. */}
+      <h3 className="mt-2 font-semibold">{t("badgeTitle")}</h3>
+      <TextField label={t("badge")} hint={t("badgeHint")} name="badge" inputMode="decimal" maxLength={12} defaultValue={d.badge} />
       <Button type="submit" pending={pending} disabled={!hydrated} className="self-start">
         {t("save")}
       </Button>

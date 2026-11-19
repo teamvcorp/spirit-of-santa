@@ -14,6 +14,9 @@ import { Link } from "@/i18n/navigation";
 import { StoreActions } from "./store-actions";
 import { ItemModeration } from "./item-moderation";
 import { PartnerFeeCard, type FeeCardView } from "./partner-fee";
+import { StoreGiftCard } from "./gift-link";
+import { christmasMagicDonorStoreIds, storeSeasonGiftCents } from "@repo/stores/partners";
+import { getPlatformSettings } from "@repo/payments/settings";
 import { feeSettable, getPartnerFee } from "@repo/stores/partner-fee";
 import { formatCents } from "@repo/lib/format";
 import { calendarDateIn, isoDay } from "@repo/lib/season";
@@ -30,7 +33,13 @@ async function Detail({ params }: { params: PageProps<"/[locale]/stores/[id]">["
   if (!objectIdSchema.safeParse(id).success) notFound();
   const store = await getStoreDetail(id);
   if (!store) notFound();
-  const [items, fee] = await Promise.all([listItemsForAdmin({ id: user.id, role: user.role }, id), getPartnerFee(id)]);
+  const [items, fee, giftCents, donors, platform] = await Promise.all([
+    listItemsForAdmin({ id: user.id, role: user.role }, id),
+    getPartnerFee(id),
+    storeSeasonGiftCents(id),
+    christmasMagicDonorStoreIds(),
+    getPlatformSettings(),
+  ]);
   const [t, statusT, cats, auditT, format] = await Promise.all([
     getTranslations("StoreAdmin"),
     getTranslations("Common.storeStatus"),
@@ -102,6 +111,15 @@ async function Detail({ params }: { params: PageProps<"/[locale]/stores/[id]">["
               <PartnerFeeCard storeId={store.id} view={feeView} today={isoDay(calendarDateIn(new Date()))} />
             </Card>
           )}
+          <Card>
+            <h2 className="mb-1 text-lg font-semibold">{feeT("giftsTitle")}</h2>
+            <StoreGiftCard
+              storeId={store.id}
+              total={formatCents(giftCents)}
+              donor={donors.has(store.id)}
+              threshold={platform.donorBadgeCents === null ? null : formatCents(platform.donorBadgeCents)}
+            />
+          </Card>
           <Card data-testid="item-moderation">
             <h2 className="mb-1 text-lg font-semibold">{t("itemModeration.title")}</h2>
             <p className="mb-3 text-sm text-muted">{t("itemModeration.intro")}</p>

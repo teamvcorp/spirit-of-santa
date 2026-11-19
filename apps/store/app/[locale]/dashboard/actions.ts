@@ -13,6 +13,9 @@ import { emailSchema, fieldErrors, storeDetailsSchema } from "@repo/auth/schemas
 import { isLocale } from "@repo/lib/locales";
 import { addStorePhoto, inviteRep, removeRep, removeStoreLogo, removeStorePhoto, setStoreLogo, updateStoreProfile, type OwnerResult } from "@repo/stores/owner";
 import { objectIdSchema } from "@repo/stores/schemas";
+import { memberStore } from "@repo/stores/owner";
+import { sendStoreGiftLink } from "@repo/stores/store-gifts";
+import { hitRateLimit } from "@repo/auth/rate-limit";
 import { authOptions } from "@/auth";
 import type { DashFormState } from "./form-state";
 
@@ -90,4 +93,16 @@ export async function removeRepAction(_prev: DashFormState, fd: FormData): Promi
   if (!id.success) return { status: "error", error: "notFound", nonce: randomUUID() };
   const r = await removeRep(owner, id.data);
   return r.ok ? done() : failed(r);
+}
+/**
+ * "Email me my gift link" (founding partners slice 3): a single-use link to give Christmas Magic AS this store. Owner
+ * only; goes to the owner's own confirmed email; 5 per hour per store (no inbox flooding).
+ */
+export async function sendMyGiftLinkAction(): Promise<DashFormState> {
+  const owner = await currentOwner();
+  const store = await memberStore(owner);
+  if (!store || String(store.ownerUserId) !== owner.id) return { status: "error", error: "notFound", nonce: randomUUID() };
+  if (!(await hitRateLimit(`giftlink:store:${store._id}`, 5, 3600))) return { status: "error", error: "rateLimited", nonce: randomUUID() };
+  const r = await sendStoreGiftLink(String(store._id), owner.id);
+  return r.ok ? { status: "done", nonce: randomUUID() } : { status: "error", error: r.error, nonce: randomUUID() };
 }

@@ -42,7 +42,8 @@
       },
       "errors": {
         "rateLimited": "Demasiados intentos. Espera una hora e inténtalo de nuevo.",
-        "invalidLink": "Este enlace venció o ya se usó. Solicita uno nuevo."
+        "invalidLink": "Este enlace venció o ya se usó. Solicita uno nuevo.",
+        "accountExists": "Ya tienes una cuenta con este correo. Inicia sesión."
       },
       "forgot": {
         "title": "¿Olvidaste tu contraseña?",

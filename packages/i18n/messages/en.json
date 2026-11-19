@@ -42,7 +42,8 @@
       },
       "errors": {
         "rateLimited": "Too many tries. Please wait an hour and try again.",
-        "invalidLink": "This link has expired or was already used. Please request a new one."
+        "invalidLink": "This link has expired or was already used. Please request a new one.",
+        "accountExists": "You already have an account with this email. Please sign in instead."
       },
       "forgot": {
         "title": "Forgot your password?",

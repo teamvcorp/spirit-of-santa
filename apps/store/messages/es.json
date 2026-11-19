@@ -40,9 +40,16 @@
     "submitting": "Creando cuenta…",
     "fixErrors": "Corrige los campos marcados.",
     "sentTitle": "Revisa tu correo",
-    "sentBody": "Te enviamos un enlace de confirmación. Confirma tu correo y luego inicia sesión para preparar tus artículos mientras revisamos tu tienda.",
+    "sentBody": "Si puedes registrarte con ese correo, te enviamos un enlace “Registrar tu tienda”. Funciona durante 14 días.",
     "haveAccount": "¿Ya tienes una cuenta?",
-    "signIn": "Iniciar sesión"
+    "signIn": "Iniciar sesión",
+    "emailIntro": "Empieza con tu correo. Te enviaremos un enlace para registrar tu tienda. (Si no lo usas, borramos tu correo después de 14 días.)",
+    "emailSubmit": "Envíame el enlace",
+    "emailSending": "Enviando…",
+    "linkInvalid": "Ese enlace de registro venció o ya se usó. Escribe tu correo para recibir uno nuevo.",
+    "signingUpAs": "Registrándote como {email}",
+    "doneTitle": "La cuenta de tu tienda está lista",
+    "doneBody": "Inicia sesión para preparar tus artículos mientras revisamos tu tienda."
   },
   "StoreAgreement": {
     "title": "Acuerdo de descuento y garantía para tiendas",

@@ -40,9 +40,16 @@
     "submitting": "Creating account…",
     "fixErrors": "Please fix the highlighted fields.",
     "sentTitle": "Check your email",
-    "sentBody": "We've sent a confirmation link. Confirm your email, then sign in to set up your items while we review your store.",
+    "sentBody": "If you can register with that address, we’ve emailed you a “Register your store” link. It works for 14 days.",
     "haveAccount": "Already have an account?",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "emailIntro": "Start with your email. We’ll send you a link to register your store. (If you don’t use it, we delete your email after 14 days.)",
+    "emailSubmit": "Email me the link",
+    "emailSending": "Sending…",
+    "linkInvalid": "That sign-up link has expired or was already used. Enter your email to get a new one.",
+    "signingUpAs": "Signing up as {email}",
+    "doneTitle": "Your store account is ready",
+    "doneBody": "Sign in to set up your items while we review your store."
   },
   "StoreAgreement": {
     "title": "Store discount and guarantee agreement",

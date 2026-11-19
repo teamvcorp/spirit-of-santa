@@ -996,6 +996,19 @@ Order: 1 admin MFA (DONE, 531ebe3 + review fixes) → 2 season controls (DONE, c
   live region is always rendered (only its text changes), shown above the tab bar, never takes taps; reduced motion
   leaves at once; aria-disabled + focus handed to the note; `elfDay` built from `calendarDateIn` (formatToParts).
 
+## Store sign-up is EMAIL FIRST (owner 2026-11-19: bots / fake accounts)
+- Step 1 store /register: email only (+ honeypot company_url, limits register:ip 5/h, register:global 100/h, silent
+  per-email 3/h). requestStoreSignup (@repo/auth/account-flows) creates NOTHING but an ActionToken purpose
+  "store_signup" (14 days) and emails storeSignupLink. Same answer for every address; an existing confirmed store
+  account gets accountExists instead; another app's account gets nothing.
+- The token row carries purgeAt = expiry: TTL index {purgeAt:1, expireAfterSeconds:0} DELETES it (and the address) at
+  14 days if unused (owner's rule). New index → run npm run db:sync-indexes on prod.
+- Step 2 /register?token=: full form WITHOUT an email field (email from the link, shown). completeStoreSignup: one tx
+  consumes the token, replaces an old never-confirmed one-step sign-up (pending user + pending store, never a paid
+  fee), creates an ACTIVE owner + PENDING store (admin approves as before). signup-complete:ip 20/h (argon2 cost).
+  peekStoreSignup: open / done (used < 1 h, so a no-JS submit or reload shows "ready") / null. token is a
+  SECRET_FIELD (never echoed). The old verify-email path still works for pre-existing pending sign-ups (48 h purge).
+
 ## Founding partners (spec docs/plans/founding-partners.md, owner 2026-11-18)
 Big companies: $50k partner fee (business payment, NEVER a donation), store-linked Christmas Magic gifts, a season
 "Christmas Magic donor" badge (recognition only, never ordering), and a public partners page. Owner answers at the

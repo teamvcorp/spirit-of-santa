@@ -156,6 +156,13 @@
       "body": "Alguien, esperamos que tú, pidió recibir noticias de Spirit of Santa en este correo: algunos correos al año sobre la temporada, las nuevas tiendas y las buenas acciones de los niños. Toca el botón para confirmar. Cada correo de noticias tiene un enlace para cancelar la suscripción.",
       "button": "Sí, envíenme noticias",
       "expiry": "Este enlace funciona una vez y vence en 7 días."
+    },
+    "storeSignupLink": {
+      "subject": "Registra tu tienda en Spirit of Santa",
+      "heading": "Registra tu tienda",
+      "body": "¡Gracias por tu interés en Spirit of Santa! Usa el botón de abajo para terminar de registrar tu tienda. Si no lo pediste, puedes ignorar este correo: no se ha creado nada y borramos esta solicitud después de 14 días.",
+      "button": "Registrar tu tienda",
+      "expiry": "Este enlace funciona una sola vez y vence en 14 días."
     }
   }
 }

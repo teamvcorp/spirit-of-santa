@@ -1,11 +1,12 @@
 "use client";
 /**
- * Store sign-up form. All rules are enforced again on the server
- * (storeRegistrationSchema + registerStoreOwner); HTML attributes here only give quick hints.
+ * Store sign-up STEP 2 (email first, owner 2026-11-19): opened from the emailed "Register your store" link.
+ * The email is NOT a field: it comes from the link (already proven) and is only shown. All rules are enforced
+ * again on the server (storeSignupCompleteSchema + completeStoreSignup); HTML attributes only give quick hints.
  *
  * - Submit is disabled until JavaScript is ready (see @repo/ui/use-hydrated for why).
- * - After an error the server echoes back what was typed (never the password).
- * - "company_url" is a honeypot: hidden from people and screen readers, bots fill it in.
+ * - After an error the server echoes back what was typed (never the password or the link token).
+ * - Bots are stopped at step 1 (honeypot + limits there): nothing reaches this form without a real inbox.
  */
 import { useActionState } from "react";
 import { useLocale, useTranslations } from "next-intl";
@@ -21,10 +22,11 @@ import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { AgreementFields } from "../_components/agreement-fields";
 import { CITY_STATE_ZIP_ROW } from "@repo/ui/layout";
+import { Link } from "@/i18n/navigation";
 
 type Action = (prev: FormState, fd: FormData) => Promise<FormState>;
 
-export function RegisterForm({ action }: { action: Action }) {
+export function RegisterForm({ action, token, email }: { action: Action; token: string; email: string }) {
   const t = useTranslations("RegisterPage");
   const cats = useTranslations("Common.storeCategories");
   const errorsT = useTranslations("Common.accounts.errors");
@@ -33,11 +35,14 @@ export function RegisterForm({ action }: { action: Action }) {
   const locale = useLocale();
   const hydrated = useHydrated();
 
-  if (state.status === "sent") {
+  if (state.status === "done") {
     return (
       <Alert>
-        <strong className="block">{t("sentTitle")}</strong>
-        {t("sentBody")}
+        <strong className="block">{t("doneTitle")}</strong>
+        {t("doneBody")}{" "}
+        <Link href="/signin" className="font-semibold underline underline-offset-4">
+          {t("signIn")}
+        </Link>
       </Alert>
     );
   }
@@ -52,11 +57,14 @@ export function RegisterForm({ action }: { action: Action }) {
       {state.status === "error" && state.error && <Alert tone="error">{errorsT(state.error)}</Alert>}
       {state.status === "error" && state.fieldErrors && !state.error && <Alert tone="error">{t("fixErrors")}</Alert>}
       <input type="hidden" name="locale" value={locale} />
+      <input type="hidden" name="token" value={token} />
 
       <fieldset className="flex flex-col gap-4">
         <legend className="mb-2 text-lg font-semibold">{t("you")}</legend>
+        <p className="text-sm" data-testid="signup-email">
+          {t("signingUpAs", { email })}
+        </p>
         <TextField label={t("ownerName")} name="ownerName" autoComplete="name" required maxLength={100} defaultValue={v.ownerName} error={err("ownerName")} />
-        <TextField label={t("email")} name="email" type="email" autoComplete="email" inputMode="email" required maxLength={254} defaultValue={v.email} error={err("email")} />
         <TextField
           label={t("password")}
           name="password"
@@ -128,14 +136,6 @@ export function RegisterForm({ action }: { action: Action }) {
       </fieldset>
 
       <AgreementFields defaultChecked={v.agree === "on"} error={err("agree")} />
-
-      {/* Honeypot (see header). Off-screen rather than display:none, which some bots skip. */}
-      <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
-        <label>
-          Company URL
-          <input type="text" name="company_url" tabIndex={-1} autoComplete="off" defaultValue="" />
-        </label>
-      </div>
 
       <Button type="submit" pending={pending} disabled={!hydrated}>
         {pending ? t("submitting") : t("submit")}

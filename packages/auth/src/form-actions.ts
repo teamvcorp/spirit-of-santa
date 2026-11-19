@@ -18,15 +18,16 @@ import type { AppName } from "@repo/lib/roles";
 import {
   acceptRepInvite,
   acceptStoreInvite,
+  completeStoreSignup,
   registerParent,
-  registerStoreOwner,
   requestPasswordReset,
+  requestStoreSignup,
   resendVerification,
   resetPassword,
   verifyEmail,
   type FlowContext,
 } from "./account-flows.ts";
-import { acceptInviteSchema, acceptRepInviteSchema, emailSchema, fieldErrors, newPasswordSchema, parentRegistrationSchema, storeRegistrationSchema } from "./schemas.ts";
+import { acceptInviteSchema, acceptRepInviteSchema, emailSchema, fieldErrors, newPasswordSchema, parentRegistrationSchema, storeSignupCompleteSchema, storeSignupEmailSchema } from "./schemas.ts";
 import type { FormState } from "./form-state.ts";
 
 async function context(fd: FormData): Promise<FlowContext> {
@@ -50,7 +51,8 @@ async function atLeast<T>(work: Promise<T>, ms = MIN_RESPONSE_MS): Promise<T> {
 }
 
 /** What the user typed, for re-filling the form after an error. NEVER secrets (password). */
-const SECRET_FIELDS = new Set(["password", "currentPassword", "pin"]);
+// token: single-use email-link secrets are never sent back into the page.
+const SECRET_FIELDS = new Set(["password", "currentPassword", "pin", "token"]);
 function echoValues(fd: FormData, max: number): Record<string, string> {
   const values: Record<string, string> = {};
   for (const [k, v] of fd) if (typeof v === "string" && !SECRET_FIELDS.has(k) && !k.startsWith("$")) values[k] = v.slice(0, max);
@@ -96,13 +98,23 @@ export async function confirmEmailWithToken(_prev: FormState, fd: FormData): Pro
   return r.ok ? { status: "done" } : { status: "error", error: r.error };
 }
 
-export async function registerStore(_prev: FormState, fd: FormData): Promise<FormState> {
-  const parsed = storeRegistrationSchema.safeParse(Object.fromEntries(fd));
-  // Echo back what the user typed (never the password) so a failed submit doesn't wipe it.
+/** Store sign-up step 1 (owner 2026-11-19): email only → "check your inbox" (same answer for every address). */
+export async function requestStoreSignupForm(_prev: FormState, fd: FormData): Promise<FormState> {
+  const parsed = storeSignupEmailSchema.safeParse(Object.fromEntries(fd));
+  const values = { email: str(fd, "email").slice(0, 254) };
+  if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), values, nonce: randomUUID() };
+  const r = await atLeast(requestStoreSignup({ email: parsed.data.email, honeypot: parsed.data.company_url }, await context(fd)));
+  return r.ok ? { status: "sent" } : { status: "error", error: r.error, values, nonce: randomUUID() };
+}
+
+/** Store sign-up step 2, from the emailed link: the full form (no email field: it comes from the link). */
+export async function completeStoreSignupForm(_prev: FormState, fd: FormData): Promise<FormState> {
+  const parsed = storeSignupCompleteSchema.safeParse(Object.fromEntries(fd));
+  // Echo back what the user typed (never the password or the link token: SECRET_FIELDS).
   const values = echoValues(fd, 2000);
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error), values, nonce: randomUUID() };
-  const r = await atLeast(registerStoreOwner(parsed.data, await context(fd)));
-  return r.ok ? { status: "sent" } : { status: "error", error: r.error, values, nonce: randomUUID() };
+  const r = await completeStoreSignup(parsed.data, await context(fd));
+  return r.ok ? { status: "done" } : { status: "error", error: r.error, values, nonce: randomUUID() };
 }
 
 /** Parent sign-up (family app). Echoes what was typed (never the password) on error. */

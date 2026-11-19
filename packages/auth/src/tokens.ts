@@ -18,7 +18,11 @@ export const TOKEN_TTL_MS: Record<ActionTokenPurpose, number> = {
   invite_owner: 7 * 24 * 60 * 60 * 1000,
   invite_rep: 7 * 24 * 60 * 60 * 1000,
   news_confirm: 7 * 24 * 60 * 60 * 1000,
+  store_signup: 14 * 24 * 60 * 60 * 1000,
 };
+
+/** Purposes whose row (and its email address) is deleted as soon as the link expires (owner 2026-11-19). */
+const PURGE_AT_EXPIRY: ReadonlySet<ActionTokenPurpose> = new Set(["store_signup"]);
 
 /** 32 random bytes, base64url: 43 URL-safe characters, 256 bits of entropy. */
 const RAW_TOKEN_RE = /^[A-Za-z0-9_-]{43}$/;
@@ -64,6 +68,7 @@ export async function createActionToken(
     ...(target.locale ? { locale: target.locale } : {}),
     ...(target.newsConsentVersion ? { newsConsentVersion: target.newsConsentVersion } : {}),
     expiresAt: new Date(now.getTime() + TOKEN_TTL_MS[purpose]),
+    ...(PURGE_AT_EXPIRY.has(purpose) ? { purgeAt: new Date(now.getTime() + TOKEN_TTL_MS[purpose]) } : {}),
   });
   return { raw, id: String(doc._id) };
 }

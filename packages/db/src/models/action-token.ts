@@ -23,6 +23,11 @@ export const ACTION_TOKEN_PURPOSES = [
   "invite_rep",
   /** "Yes, send me news" confirm link (public form + donors, owner 2026-11-12): double opt-in, 7 days. */
   "news_confirm",
+  /**
+   * Store sign-up, EMAIL FIRST (owner 2026-11-19): the email gets a "Register your store" link; nothing else exists
+   * until it is used. Works 14 days, and the row (the address) is DELETED at 14 days (purgeAt).
+   */
+  "store_signup",
 ] as const;
 export type ActionTokenPurpose = (typeof ACTION_TOKEN_PURPOSES)[number];
 
@@ -42,12 +47,16 @@ const actionTokenSchema = new Schema(
     newsConsentVersion: { type: String, maxlength: 40 },
     expiresAt: { type: Date, required: true },
     usedAt: Date,
+    /** When set, the row is deleted at this moment (TTL 0). store_signup: 14 days, owner's rule for unused emails. */
+    purgeAt: Date,
   },
   { timestamps: { createdAt: true, updatedAt: false }, versionKey: false },
 );
 
 actionTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 30 });
 actionTokenSchema.index({ email: 1, purpose: 1, createdAt: -1 });
+// Rows WITH purgeAt are deleted at that time (rows without it never match this index's TTL).
+actionTokenSchema.index({ purgeAt: 1 }, { expireAfterSeconds: 0 });
 
 export type ActionTokenDoc = InferSchemaType<typeof actionTokenSchema>;
 export const ActionToken = (models.ActionToken ??

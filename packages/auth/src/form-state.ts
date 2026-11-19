@@ -2,7 +2,7 @@
 export type FormState = {
   status: "idle" | "sent" | "done" | "error";
   /** Form-level error code → Common.accounts.errors.<code>. */
-  error?: "rateLimited" | "invalidLink";
+  error?: "rateLimited" | "invalidLink" | "accountExists";
   /** Field → error code → Common.formErrors.<code>. */
   fieldErrors?: Record<string, string>;
   /** Echo of submitted values (never passwords) to refill the form after an error. */

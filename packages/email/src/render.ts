@@ -72,6 +72,8 @@ export type EmailTemplates = {
   payUpReminder: { link: string; date: string };
   /** News double opt-in (2026-11-12): goes to an address nobody has proven yet, so NO user-typed text. */
   newsConfirm: { link: string };
+  /** Store sign-up step 1 (email first, 2026-11-19): to an unproven address, so NO user-typed text. */
+  storeSignupLink: { link: string };
   /**
    * Founding partner fee (2026-11-18): a BUSINESS invoice and payment receipt, never the donation receipt (no
    * tax wording, no "no goods or services" sentence). storeName typed by an admin or the store; org by an admin.

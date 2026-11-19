@@ -95,3 +95,6 @@ The daily money job runs every morning (about 2 am Chicago time) on the live sit
 
 Some problems show in admin (e.g. the share-out waiting for the fee on **Donations**, or a reset needing
 attention); every problem makes the daily job report a failure in the Vercel logs (family project → Logs).
+
+- [ ] **After deploying email-first store sign-up (2026-11-19):** run `npm run db:sync-indexes` against production so the
+      14-day auto-delete index on sign-up links (ActionToken.purgeAt) exists (production has autoIndex off).

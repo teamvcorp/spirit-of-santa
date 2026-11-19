@@ -29,7 +29,7 @@ import { burnVerifyTime, hashSecret } from "./password.ts";
 import { LOCKOUT_MINUTES } from "./options.ts";
 import { applySignupNewsOptIn } from "./news.ts";
 import { clientIp, emailKey, hitRateLimit, ipKey } from "./rate-limit.ts";
-import type { AcceptInviteInput, AcceptRepInviteInput, ParentRegistrationInput, StoreRegistrationInput } from "./schemas.ts";
+import type { AcceptInviteInput, AcceptRepInviteInput, ParentRegistrationInput, StoreSignupCompleteInput } from "./schemas.ts";
 import { slugify } from "./slug.ts";
 import { consumeActionToken, createActionToken, hashToken, peekActionToken } from "./tokens.ts";
 
@@ -41,7 +41,7 @@ export type FlowContext = {
   appOrigin: string;
 };
 
-export type FlowResult = { ok: true } | { ok: false; error: "rateLimited" | "invalidLink" };
+export type FlowResult = { ok: true } | { ok: false; error: "rateLimited" | "invalidLink" | "accountExists" };
 
 const HOUR = 3600;
 
@@ -147,60 +147,118 @@ async function selfSignUp(spec: {
   return { ok: true };
 }
 
-// ── Store sign-up ────────────────────────────────────────────────────────────────────
-export async function registerStoreOwner(input: StoreRegistrationInput, ctx: FlowContext): Promise<FlowResult> {
-  return selfSignUp({
-    scope: "register",
-    // Site-wide cap: a backstop if someone rotates through many IPs (sign-up spam relay).
-    limits: { perIp: 5, perEmail: 3, global: 100 },
-    app: "store",
-    role: "store_owner",
-    email: input.email,
-    password: input.password,
-    honeypot: input.company_url,
-    ctx,
-    async create(passwordHash) {
-      let slug = slugify(input.storeName);
-      for (let attempt = 0; attempt < 4; attempt++) {
-        try {
-          return await withTransaction(async (session) => {
-            const [user] = await User.create(
-              [{ email: input.email, passwordHash, role: "store_owner", name: input.ownerName, status: "pending", locale: ctx.locale }],
-              { session },
-            );
-            const [store] = await Store.create(
-              [
-                {
-                  name: input.storeName,
-                  slug,
-                  category: input.category,
-                  description: input.description,
-                  contact: {
-                    email: input.email,
-                    phone: input.phone,
-                    website: input.website,
-                    address: { line1: input.line1, city: input.city, state: input.state, zip: input.zip },
-                  },
-                  status: "pending",
-                  ownerUserId: user!._id,
-                  discountAgreement: { version: STORE_AGREEMENT_VERSION, acceptedAt: new Date(), acceptedByUserId: user!._id },
-                },
-              ],
-              { session },
-            );
-            await User.updateOne({ _id: user!._id }, { $set: { storeId: store!._id } }, { session });
-            return String(user!._id);
-          });
-        } catch (err) {
-          const e = err as { code?: number; keyPattern?: Record<string, unknown> };
-          if (e.code !== 11000) throw err;
-          if (e.keyPattern?.email) return null; // same email signed up a moment ago
-          slug = `${slugify(input.storeName).slice(0, 45)}-${randomSuffix()}`; // slug taken: try another
+// ── Store sign-up: EMAIL FIRST (owner 2026-11-19) ────────────────────────────────────
+/*
+ * Step 1 (requestStoreSignup): the visitor gives only an email. We send a "Register your store" link and create
+ * NOTHING else, so bots and fake addresses leave no accounts or stores behind. The link row (with the address) is
+ * deleted after 14 days if unused (ActionToken purgeAt).
+ * Step 2 (completeStoreSignup): the link opens the full form; submitting it creates an ACTIVE owner (the click proved
+ * the address) and a PENDING store that an admin reviews, as before.
+ * Same answer on screen whatever the email (no enumeration); the per-email limit is silent.
+ */
+export async function requestStoreSignup(input: { email: string; honeypot?: string }, ctx: FlowContext): Promise<FlowResult> {
+  await connectDb();
+  // Same limits the old one-step form had (site-wide cap = backstop against rotating IPs).
+  const limit = await checkLimits("register", ctx, input.email, { perIp: 5, perEmail: 3, global: 100 });
+  if (limit === "blocked") return { ok: false, error: "rateLimited" };
+  if (limit === "skipSend") return { ok: true };
+  if (input.honeypot) return { ok: true }; // a bot: fake success, nothing created or sent
+
+  const existing = await User.findOne({ email: input.email }).select("role status").lean();
+  if (existing && !(existing.status === "pending" && existing.role === "store_owner")) {
+    // Confirmed account in this app → "you already have an account"; another app's account → nothing.
+    if (existing.status === "active" && isRoleAllowedInApp(existing.role, "store")) {
+      const link = appLink(ctx, "/signin");
+      await sendLater(() => sendEmail({ to: input.email, locale: ctx.locale, template: "accountExists", values: { link } }), "accountExists");
+    }
+    return { ok: true };
+  }
+  // New address (or an old, never-confirmed one-step sign-up: finishing replaces it).
+  const { raw } = await createActionToken("store_signup", { email: input.email, locale: ctx.locale });
+  const link = appLink(ctx, "/register", raw);
+  await sendLater(() => sendEmail({ to: input.email, locale: ctx.locale, template: "storeSignupLink", values: { link } }), "storeSignupLink");
+  return { ok: true };
+}
+
+/**
+ * What a sign-up link is now: "open" (show the form, with its email), "done" (used in the last hour: the page shows
+ * "your store account is ready", e.g. right after a no-JavaScript submit or a reload), or null (invalid / expired /
+ * used long ago). Holding the link is what proves the email, so telling its holder it's done reveals nothing new.
+ */
+export async function peekStoreSignup(raw: unknown): Promise<{ email: string; state: "open" | "done" } | null> {
+  await connectDb();
+  const open = await peekActionToken(raw, "store_signup");
+  if (open) return { email: open.email, state: "open" };
+  if (typeof raw !== "string" || raw.length > 100) return null;
+  const used = await ActionToken.findOne({ tokenHash: hashToken(raw), purpose: "store_signup", usedAt: trusted({ $gt: new Date(Date.now() - 3_600_000) }) })
+    .select("email")
+    .lean();
+  return used ? { email: used.email, state: "done" } : null;
+}
+
+class SignupLinkUsed extends Error {}
+
+export async function completeStoreSignup(input: StoreSignupCompleteInput, ctx: FlowContext): Promise<FlowResult> {
+  await connectDb();
+  // argon2 per request: cap per IP so this can't be used to burn CPU.
+  if (!(await hitRateLimit(`signup-complete:ip:${ipKey(clientIp(ctx.headers))}`, 20, HOUR))) return { ok: false, error: "rateLimited" };
+  const passwordHash = await hashSecret(input.password);
+  let slug = slugify(input.storeName);
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      return await withTransaction(async (session): Promise<FlowResult> => {
+        const now = new Date();
+        const token = await ActionToken.findOneAndUpdate(
+          { tokenHash: hashToken(input.token), purpose: "store_signup", usedAt: null, expiresAt: trusted({ $gt: now }) },
+          { $set: { usedAt: now } },
+          { session, returnDocument: "after" },
+        ).lean();
+        if (!token) return { ok: false, error: "invalidLink" };
+        const existing = await User.findOne({ email: token.email }).select("status role").session(session).lean();
+        if (existing) {
+          // Only an old never-confirmed one-step sign-up is replaced (the click proves who owns the address).
+          // Anything else: refuse and roll back (the link stays usable; they should sign in instead).
+          if (existing.status !== "pending" || existing.role !== "store_owner") throw new SignupLinkUsed();
+          await Store.deleteMany({ ownerUserId: existing._id, status: "pending", "partnerFee.status": trusted({ $ne: "paid" }) }, { session });
+          await ActionToken.updateMany({ userId: existing._id, usedAt: null }, { $set: { usedAt: now } }, { session });
+          await User.deleteOne({ _id: existing._id, status: "pending" }, { session });
         }
-      }
-      throw new Error("could not allocate a store slug");
-    },
-  });
+        const [user] = await User.create(
+          [{ email: token.email, passwordHash, role: "store_owner", name: input.ownerName, status: "active", locale: ctx.locale }],
+          { session },
+        );
+        const [store] = await Store.create(
+          [
+            {
+              name: input.storeName,
+              slug,
+              category: input.category,
+              description: input.description,
+              contact: {
+                email: token.email,
+                phone: input.phone,
+                website: input.website,
+                address: { line1: input.line1, city: input.city, state: input.state, zip: input.zip },
+              },
+              status: "pending",
+              ownerUserId: user!._id,
+              discountAgreement: { version: STORE_AGREEMENT_VERSION, acceptedAt: now, acceptedByUserId: user!._id },
+            },
+          ],
+          { session },
+        );
+        await User.updateOne({ _id: user!._id }, { $set: { storeId: store!._id } }, { session });
+        return { ok: true };
+      });
+    } catch (err) {
+      if (err instanceof SignupLinkUsed) return { ok: false, error: "accountExists" };
+      const e = err as { code?: number; keyPattern?: Record<string, unknown> };
+      if (e.code !== 11000) throw err;
+      if (e.keyPattern?.email) return { ok: false, error: "accountExists" }; // created a moment ago
+      slug = `${slugify(input.storeName).slice(0, 45)}-${randomSuffix()}`; // slug taken: try another
+    }
+  }
+  throw new Error("could not allocate a store slug");
 }
 
 // ── Parent sign-up (family app) ──────────────────────────────────────────────────────

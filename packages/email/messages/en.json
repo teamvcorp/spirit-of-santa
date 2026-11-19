@@ -156,6 +156,13 @@
       "body": "Someone, hopefully you, asked to get news from Spirit of Santa at this email address: a few emails a year about the season, new stores and how children are doing good deeds. Tap the button to confirm. Every news email has a link to unsubscribe.",
       "button": "Yes, send me news",
       "expiry": "This link works once and expires in 7 days."
+    },
+    "storeSignupLink": {
+      "subject": "Register your store on Spirit of Santa",
+      "heading": "Register your store",
+      "body": "Thanks for your interest in Spirit of Santa! Use the button below to finish registering your store. If you didn’t ask for this, you can ignore this email: nothing has been created, and we delete this request after 14 days.",
+      "button": "Register your store",
+      "expiry": "This link works once and expires in 14 days."
     }
   }
 }

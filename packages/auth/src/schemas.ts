@@ -97,6 +97,19 @@ export const storeRegistrationSchema = z.object({
 export type StoreRegistrationInput = z.infer<typeof storeRegistrationSchema>;
 
 /**
+ * Store sign-up is EMAIL FIRST (owner 2026-11-19). Step 1: only the email (+ the honeypot). Step 2 (from the emailed
+ * link): the full form WITHOUT an email field: the address comes from the link (proven), never from the form.
+ */
+export const storeSignupEmailSchema = z.object({
+  email: emailSchema,
+  company_url: z.string().max(500).optional(),
+});
+export const storeSignupCompleteSchema = storeRegistrationSchema.omit({ email: true, company_url: true }).extend({
+  token: z.string().max(100),
+});
+export type StoreSignupCompleteInput = z.infer<typeof storeSignupCompleteSchema>;
+
+/**
  * Parent sign-up (family app /register). Collects the minimum: the parent's name, email,
  * password, a PRIVATE family name and an optional ZIP (zip-targeted donations). Kids are added
  * after sign-in (first name + birth year only). `consent` must be ticked (COPPA record).

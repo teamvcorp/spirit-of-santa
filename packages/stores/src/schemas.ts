@@ -24,12 +24,16 @@ export const suspendReasonSchema = z.string().trim().min(3, "tooShort").max(500,
 export const partnerFeeAmountSchema = z
   .string()
   .trim()
-  .transform((v) => v.replace(/[$,\s]/g, ""))
-  .pipe(z.string().regex(/^\d{1,7}(\.\d{1,2})?$/, "invalid"));
+  // Only "$" and spaces are dropped. Commas must be real thousands groups ("50,000"): "50,00" is refused, never
+  // read as $5,000 (review 2026-11-19). The action then converts with parseDollarsToCents (same rule).
+  .transform((v) => v.replace(/[$\s]/g, ""))
+  .pipe(z.string().regex(/^(\d{1,7}|\d{1,3}(,\d{3}){1,2})(\.\d{1,2})?$/, "invalid"));
 export const partnerFeePaymentSchema = z.object({
   paidOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "invalid"),
   via: z.enum(PARTNER_FEE_METHODS, "required"),
   reference: z.string().trim().max(120, "tooLong"),
+  /** Hidden field: the amount (cents) the admin saw when recording the payment. */
+  expectedAmountCents: z.coerce.number().int().min(1, "invalid"),
 });
 
 export const inviteStoreSchema = z.object({

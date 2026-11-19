@@ -95,7 +95,8 @@
       "declinedBefore": "Esta empresa rechazó una invitación anterior. Abre esa tienda (pestaña Rechazó la invitación) y cancélala primero; luego invita de nuevo.",
       "feeDue": "La cuota de socio fundador sigue pendiente. Registra el pago (o exonérala) primero y luego aprueba.",
       "feeState": "La cuota cambió mientras tanto (ya pagada, exonerada o quitada). Actualiza la página.",
-      "invalid": "Algo del formulario no es válido. Revisa el monto, la fecha y los campos."
+      "invalid": "Algo del formulario no es válido. Revisa el monto, la fecha y los campos.",
+      "feePaid": "Esta empresa ya PAGÓ su cuota de socio fundador, así que no se puede borrar (es un registro de dinero)."
     },
     "audit": {
       "store_approve": "Aprobada",

@@ -31,7 +31,7 @@ type StoreStatus = (typeof STORE_STATUSES)[number];
 type StoreBefore = { _id: { toString(): string }; name: string; status: StoreStatus; ownerUserId?: { toString(): string } | null };
 export type AdminResult =
   | { ok: true; storeId?: string; emailFailed?: boolean }
-  | { ok: false; error: "notFound" | "badStatus" | "emailInUse" | "ownerUnverified" | "alreadyInvited" | "declinedBefore" | "feeDue" };
+  | { ok: false; error: "notFound" | "badStatus" | "emailInUse" | "ownerUnverified" | "alreadyInvited" | "declinedBefore" | "feeDue" | "feePaid" };
 
 function assertAdmin(actor: AdminActor) {
   // Defence in depth: the Server Action already called requireRole(..., "admin").
@@ -356,11 +356,16 @@ export async function cancelStoreInvite(actor: AdminActor, storeId: string): Pro
   await connectDb();
   const removed = await withTransaction(async (session) => {
     // Declined companies can be removed the same way (off the partners page entirely).
-    const store = await Store.findOneAndDelete({ _id: storeId, status: trusted({ $in: ["invited", "declined"] }) }, { session }).select("_id").lean();
+    // Never delete a store whose founding partner fee was PAID: that is a money record (review 2026-11-19).
+    const store = await Store.findOneAndDelete({ _id: storeId, status: trusted({ $in: ["invited", "declined"] }), "partnerFee.status": trusted({ $ne: "paid" }) }, { session })
+      .select("_id")
+      .lean();
     if (!store) return false;
     await ActionToken.updateMany({ storeId, purpose: "invite_owner", usedAt: null }, { $set: { usedAt: new Date() } }, { session });
     await audit(session, actor, "store.invite_cancelled", storeId, {});
     return true;
   });
-  return removed ? { ok: true } : explain(storeId);
+  if (removed) return { ok: true };
+  if (await Store.exists({ _id: storeId, "partnerFee.status": "paid" })) return { ok: false, error: "feePaid" };
+  return explain(storeId);
 }

@@ -155,21 +155,33 @@ export async function clearPartnerFee(actor: FeeActor, storeId: string): Promise
   return done ? { ok: true } : explain(storeId);
 }
 
-export type FeePaymentInput = { paidOn: string; via: PartnerFeeMethod; reference: string };
+/** expectedAmountCents = the amount the admin SAW on the page: if another admin changed it meanwhile, refuse. */
+export type FeePaymentInput = { paidOn: string; via: PartnerFeeMethod; reference: string; expectedAmountCents: number };
 
 /**
- * Record the payment (money already in the bank). paidOn = the day it arrived (YYYY-MM-DD, Central Time), never in
- * the future. Emails the store a receipt of payment (a BUSINESS receipt: not the donation receipt).
+ * Record the payment (money already in the bank). paidOn = the day it arrived (YYYY-MM-DD, Central Time): never in
+ * the future and never before the invoice day (a typo like 2006 would vanish from every season's money summary).
+ * Only on a store that is invited, or pending with a CONFIRMED owner: the daily purge of unconfirmed sign-ups can
+ * then never delete a paid fee (review 2026-11-19; deletes also refuse a paid store as a backstop).
+ * Emails the store a receipt of payment (a BUSINESS receipt: not the donation receipt).
  */
 export async function markPartnerFeePaid(actor: FeeActor, storeId: string, input: FeePaymentInput, locale: string): Promise<FeeResult> {
   assertAdmin(actor);
   if (!parseIsoDay(input.paidOn) || input.paidOn > isoDay(calendarDateIn(new Date()))) return { ok: false, error: "invalid" };
   if (!(PARTNER_FEE_METHODS as readonly string[]).includes(input.via) || input.reference.length > 120) return { ok: false, error: "invalid" };
+  if (!Number.isSafeInteger(input.expectedAmountCents)) return { ok: false, error: "invalid" };
   await connectDb();
+  const store = await Store.findById(storeId).select("status ownerUserId partnerFee.dueSetAt").lean();
+  if (!store) return { ok: false, error: "notFound" };
+  // Not before the invoice day (Central Time).
+  if (store.partnerFee?.dueSetAt && input.paidOn < isoDay(calendarDateIn(store.partnerFee.dueSetAt))) return { ok: false, error: "invalid" };
+  const ownerConfirmed = store.ownerUserId ? !!(await User.exists({ _id: store.ownerUserId, status: "active" })) : false;
+  if (!(store.status === "invited" || (store.status === "pending" && ownerConfirmed))) return { ok: false, error: "badStatus" };
   const paidAt = startOfDayInZone(input.paidOn);
   const done = await withTransaction(async (session) => {
     const before = await Store.findOneAndUpdate(
-      { _id: storeId, "partnerFee.status": "due" },
+      // Status + the amount the admin saw, re-checked in the same atomic update.
+      { _id: storeId, status: store.status, "partnerFee.status": "due", "partnerFee.amountCents": input.expectedAmountCents },
       {
         $set: {
           "partnerFee.status": "paid",

@@ -375,7 +375,8 @@ export async function purgeUnverifiedStoreSignups(olderThanHours = 48): Promise<
   );
   const ids = users.map((u) => u._id).filter((id) => !keep.has(String(id)));
   if (ids.length === 0) return { users: 0, stores: 0 };
-  const stores = await Store.deleteMany({ ownerUserId: trusted({ $in: ids }), status: "pending" });
+  // Backstop: never a store with a PAID partner fee (a money record). markPartnerFeePaid already needs a confirmed owner.
+  const stores = await Store.deleteMany({ ownerUserId: trusted({ $in: ids }), status: "pending", "partnerFee.status": trusted({ $ne: "paid" }) });
   await ActionToken.deleteMany({ userId: trusted({ $in: ids }) });
   const deleted = await User.deleteMany({ _id: trusted({ $in: ids }), status: "pending" });
   return { users: deleted.deletedCount, stores: stores.deletedCount };
@@ -444,7 +445,7 @@ export async function acceptStoreInvite(input: AcceptInviteInput, ctx: FlowConte
         // the address, so the squatter's pending account + pending store are removed
         // (review finding 2026-11-05). Any other existing account → refuse, keep the token.
         if (existing.status !== "pending" || existing.role !== "store_owner") throw new InviteNoLongerValid();
-        await Store.deleteMany({ ownerUserId: existing._id, status: "pending" }, { session });
+        await Store.deleteMany({ ownerUserId: existing._id, status: "pending", "partnerFee.status": trusted({ $ne: "paid" }) }, { session });
         await ActionToken.updateMany({ userId: existing._id, usedAt: null }, { $set: { usedAt: now } }, { session });
         await User.deleteOne({ _id: existing._id, status: "pending" }, { session });
       }

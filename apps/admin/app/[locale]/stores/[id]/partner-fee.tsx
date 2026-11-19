@@ -21,6 +21,7 @@ export type FeeCardView = {
   settable: boolean;
   amount?: string; // formatted, e.g. "$50,000.00"
   amountInput?: string; // for the form, e.g. "50000"
+  amountCents?: number; // the amount shown: "mark paid" must match it (another admin may change it meanwhile)
   invoiceNo?: string;
   paidLine?: string; // "Paid on Nov 19, 2026 by check (ref 1042)"
   waivedReason?: string;
@@ -72,6 +73,7 @@ export function PartnerFeeCard({ storeId, view, today }: { storeId: string; view
             <ActionForm action={feePaidAction} storeId={storeId} title={t("paidTitle")} submit={t("markPaid")} doneMessage={t("donePaid")} onDone={onDone}>
               {(s) => (
                 <>
+                  <input type="hidden" name="expectedAmountCents" value={view.amountCents ?? ""} />
                   <TextField label={t("paidOn")} name="paidOn" type="date" required max={today} defaultValue={s.values?.paidOn ?? today} error={fieldError(s.fieldErrors?.paidOn)} />
                   <SelectField label={t("via")} name="via" required defaultValue={s.values?.via ?? "check"} error={fieldError(s.fieldErrors?.via)}>
                     {PARTNER_FEE_METHODS.map((m) => (

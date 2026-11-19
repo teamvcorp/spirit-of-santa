@@ -1032,6 +1032,9 @@ bottom of the spec. Charity on receipts = The Von Der Becke Academy Corp (EIN 46
   /stores/[id] (partner-fee.tsx reuses ActionForm), invoice /stores/[id]/invoice; payouts page "Founding partner fees" line
   apart from donations/net. Store app: owner-only dashboard fee card + /dashboard/partner-fee. Shared invoice layout
   @repo/ui/fee-invoice + labels Common.feeInvoice. Offline payment only (check/ACH/wire); no Stripe.
+  Review 2026-11-19: mark-paid needs the amount the admin SAW (hidden expectedAmountCents → feeState if changed), a date
+  not before the invoice day, and an invited store or a pending one with a CONFIRMED owner; a store with a PAID fee is
+  never deleted (cancelStoreInvite → feePaid; signup purges skip it). Amount input: real thousands commas only.
 - Next: store-linked gifts + badge (slice 3, incl. admin offline
   gift with "donor signed the acknowledgment" tick: ensureDonationReceipt refuses gifts without donorAck).
 

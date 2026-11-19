@@ -43,7 +43,7 @@ async function Detail({ params }: { params: PageProps<"/[locale]/stores/[id]">["
   const feeView: FeeCardView | null = fee && {
     status: fee.status,
     settable: feeSettable(fee),
-    ...(fee.amountCents ? { amount: formatCents(fee.amountCents), amountInput: String(fee.amountCents / 100) } : {}),
+    ...(fee.amountCents ? { amount: formatCents(fee.amountCents), amountInput: String(fee.amountCents / 100), amountCents: fee.amountCents } : {}),
     ...(fee.invoiceNo ? { invoiceNo: fee.invoiceNo } : {}),
     ...(fee.status === "paid" && fee.paidAt
       ? {

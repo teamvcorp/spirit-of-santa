@@ -20,7 +20,9 @@ import { acceptStoreInvite } from "@repo/auth/account-flows";
 import { hashSecret } from "@repo/auth/password";
 import { createActionToken } from "@repo/auth/tokens";
 import { getSeasonYear } from "@repo/lib/season";
-import { clearPartnerFee, partnerFeesReceived, setPartnerFee, waivePartnerFee } from "@repo/stores/partner-fee";
+import { clearPartnerFee, markPartnerFeePaid, partnerFeesReceived, setPartnerFee, waivePartnerFee } from "@repo/stores/partner-fee";
+import { cancelStoreInvite } from "@repo/stores/admin";
+import { calendarDateIn, isoDay } from "@repo/lib/season";
 import { createMfaAdmin, makeChecks } from "./lib.ts";
 
 const [adminBase, storeBase, familyBase, adminLog] = process.argv.slice(2);
@@ -36,11 +38,12 @@ const logStart = readFileSync(adminLog, "utf8").length;
 // A store that signed itself up (pending, owner confirmed), one live store, one still invited.
 const owner = await User.create({ email: `e2e-fee-owner-${tag}@spiritofsanta.test`, passwordHash: await hashSecret(PW), role: "store_owner", status: "active", locale: "en" });
 const now = new Date();
-const ids = { pend: oid(), live: oid(), inv: oid(), clr: oid() };
+const ids = { pend: oid(), live: oid(), inv: oid(), clr: oid(), paidInv: oid() };
 await Store.collection.insertMany([
   { _id: ids.pend, name: `Fee Pending ${tag}`, slug: `e2e-fee-p-${tag}`, category: "toys", status: "pending", ownerUserId: owner._id, discountBps: 1500, contact: { email: owner.email }, createdAt: now, updatedAt: now },
   { _id: ids.live, name: `Fee Live ${tag}`, slug: `e2e-fee-l-${tag}`, category: "toys", status: "approved", ownerUserId: oid(), createdAt: now, updatedAt: now },
   { _id: ids.inv, name: `Fee Invited ${tag}`, slug: `e2e-fee-i-${tag}`, category: "toys", status: "invited", discountBps: 1000, contact: { email: `e2e-fee-inv-${tag}@spiritofsanta.test` }, createdAt: now, updatedAt: now },
+  { _id: ids.paidInv, name: `Fee PaidInv ${tag}`, slug: `e2e-fee-pi-${tag}`, category: "toys", status: "invited", contact: { email: `e2e-fee-pi-${tag}@spiritofsanta.test` }, createdAt: now, updatedAt: now },
   { _id: ids.clr, name: `Fee Clear ${tag}`, slug: `e2e-fee-c-${tag}`, category: "toys", status: "invited", contact: { email: `e2e-fee-clr-${tag}@spiritofsanta.test` }, createdAt: now, updatedAt: now },
 ]);
 await User.updateOne({ _id: owner._id }, { $set: { storeId: ids.pend } });
@@ -145,7 +148,7 @@ try {
   // 7. Money summary: partner fees on their own line, apart from donations.
   await ap.goto(`${adminBase}/payouts`);
   await ap.locator('main:visible [data-testid="partner-fees"]').waitFor({ timeout: 60_000 });
-  const expected = feesBefore.cents + 5_000_000;
+  const expected = feesBefore.cents + 5_000_000; // (the 9b payment is recorded later in the run)
   check("payouts: partner fees shown on their own line", (await ap.locator('main:visible [data-testid="partner-fees"]').innerText()).replace(/[$,]/g, "") === (expected / 100).toFixed(2));
 
   // 8. An INVITED store with a fee due joins as "pending" (not approved) when the owner accepts.
@@ -162,6 +165,18 @@ try {
   check("a waived fee can't be set again", !(await setPartnerFee(adminActor, String(ids.inv), 100, "en")).ok);
   await setPartnerFee(adminActor, String(ids.clr), 5_000_000, "en");
   check("clear: due → no fee", (await clearPartnerFee(adminActor, String(ids.clr))).ok && (await fee(ids.clr))?.status === "not_required");
+
+  // 9b. Review fixes 2026-11-19: amount must match what the admin saw; no date before the invoice; a PAID fee's
+  //     store can't be deleted (cancel invite).
+  const today = isoDay(calendarDateIn(new Date()));
+  await setPartnerFee(adminActor, String(ids.paidInv), 5_000_000, "en");
+  const wrongAmount = await markPartnerFeePaid(adminActor, String(ids.paidInv), { paidOn: today, via: "wire", reference: "", expectedAmountCents: 2_500_000 }, "en");
+  check("mark paid refused when the amount changed since the page was shown", !wrongAmount.ok && wrongAmount.error === "feeState" && (await fee(ids.paidInv))?.status === "due");
+  const tooOld = await markPartnerFeePaid(adminActor, String(ids.paidInv), { paidOn: "2006-11-19", via: "wire", reference: "", expectedAmountCents: 5_000_000 }, "en");
+  check("a payment date before the invoice day is refused", !tooOld.ok && tooOld.error === "invalid");
+  check("mark paid on an invited store with the right amount", (await markPartnerFeePaid(adminActor, String(ids.paidInv), { paidOn: today, via: "wire", reference: "W-9", expectedAmountCents: 5_000_000 }, "en")).ok);
+  const cancel = await cancelStoreInvite(adminActor, String(ids.paidInv));
+  check("a store whose fee was PAID can't be deleted (cancel invite refused)", !cancel.ok && cancel.error === "feePaid" && !!(await Store.exists({ _id: ids.paidInv })));
 
   // 10. Never on a live store (families already use it).
   const live = await setPartnerFee(adminActor, String(ids.live), 5_000_000, "en");

@@ -95,7 +95,8 @@
       "declinedBefore": "This company declined an earlier invitation. Open that store (Declined tab) and cancel it first, then invite again.",
       "feeDue": "The founding partner fee is still due. Record the payment (or waive it) first, then approve.",
       "feeState": "The fee changed meanwhile (already paid, waived or cleared). Refresh the page.",
-      "invalid": "Something in the form isn't valid. Check the amount, date and fields."
+      "invalid": "Something in the form isn't valid. Check the amount, date and fields.",
+      "feePaid": "This company already PAID its founding partner fee, so it can’t be deleted (it’s a money record)."
     },
     "audit": {
       "store_approve": "Approved",

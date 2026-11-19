@@ -172,8 +172,9 @@ export async function feePaidAction(_prev: AdminFormState, fd: FormData): Promis
   const admin = await currentAdmin();
   const id = storeIdOf(fd);
   if (!id) return { status: "error", error: "notFound" };
-  const parsed = partnerFeePaymentSchema.safeParse({ paidOn: str(fd, "paidOn"), via: str(fd, "via"), reference: str(fd, "reference") });
+  const parsed = partnerFeePaymentSchema.safeParse({ paidOn: str(fd, "paidOn"), via: str(fd, "via"), reference: str(fd, "reference"), expectedAmountCents: str(fd, "expectedAmountCents") });
   if (!parsed.success) return fail(fieldErrors(parsed.error), fd, ["paidOn", "via", "reference"]);
+  // feeState if the amount changed since the page was shown (another admin): the page reloads with the new amount.
   return feeDone(await markPartnerFeePaid(admin, id, parsed.data, str(fd, "locale")));
 }
 

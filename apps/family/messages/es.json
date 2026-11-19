@@ -592,7 +592,7 @@
       "storeLink": "Este enlace de donación de tienda ya se usó o venció. Pide uno nuevo."
     },
     "givingAs": "Donando como {store}",
-    "storeGiftNote": "Esta donación de Magia Navideña aparecerá como de tu tienda. 0,000 es nuestra donación sugerida para socios fundadores, pero cualquier monto es bienvenido. Para donaciones grandes, un cheque, ACH o transferencia evita las comisiones de tarjeta: responde al correo de tu enlace.",
+    "storeGiftNote": "Esta donación de Magia Navideña aparecerá como de tu tienda. {amount} es nuestra donación sugerida para socios fundadores, pero cualquier monto es bienvenido. Para donaciones grandes, un cheque, ACH o transferencia evita las comisiones de tarjeta: responde al correo de tu enlace.",
     "storeLinkInvalid": "Este enlace de donación de tienda venció o ya se usó. Pide uno nuevo desde el panel de tu tienda o responde al correo."
   },
   "PayLater": {

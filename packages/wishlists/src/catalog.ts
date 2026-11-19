@@ -135,6 +135,8 @@ async function giftPage(query: GiftQuery, year: number, storeId: string | null):
   if (query.q) match.$text = { $search: query.q };
   if (query.category) match.category = query.category;
 
+  // The North Star set loads alongside the page (independent queries, one round-trip of latency).
+  const donorsP = christmasMagicDonorStoreIds().catch(() => new Set<string>()); // a badge problem never breaks the gift page
   const [result] = await Item.aggregate<{ rows: RawGift[]; total: { n: number }[] }>([
     { $match: match },
     ...approvedStoreStages,
@@ -151,7 +153,7 @@ async function giftPage(query: GiftQuery, year: number, storeId: string | null):
     },
   ]);
   // North Star beside the store name (badge = recognition only: added AFTER sorting, never used to sort).
-  const donors = await christmasMagicDonorStoreIds();
+  const donors = await donorsP;
   const items = (result?.rows ?? []).map((g) => ({ ...toCard(g), ...(donors.has(String(g.storeId)) ? { storeDonor: true } : {}) }));
   return { items, total: result?.total[0]?.n ?? 0 };
 }

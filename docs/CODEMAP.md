@@ -1061,6 +1061,9 @@ bottom of the spec. Charity on receipts = The Von Der Becke Academy Corp (EIN 46
   this season, held/credited/retained, refundedCents 0, no dispute; ≥ PlatformSettings.donorBadgeCents set in admin
   Settings, blank = no badges). Shown on /partners, gift cards (GiftCard.storeDonor, added AFTER sorting), admin store list;
   admin store page shows the season total (storeSeasonGiftCents). Icons in @repo/ui/partner-icons.
+  Review 2026-11-19: a used/invalid store link shows NO public form (no uncredited store gift); a store gift held for
+  review keeps storeId; donor set loads in parallel and never breaks the gift page; amounts in copy come from code
+  ({amount}), never typed (a shell once ate "$5").
 - Next: slice 3b = admin offline
   gift with "donor signed the acknowledgment" tick: ensureDonationReceipt refuses gifts without donorAck).
 

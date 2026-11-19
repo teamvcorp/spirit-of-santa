@@ -99,7 +99,10 @@ try {
   await page.goto(`${base}/donate?store=${raw}`);
   await page.locator('main:visible [data-testid="store-gift"]').waitFor({ timeout: 60_000 });
   await page.waitForLoadState("networkidle");
-  check("store mode: 'Giving as {store}', $50,000 pre-selected", (await page.locator('main:visible [data-testid="store-gift"]').innerText()).includes(`Giving as Gift Store ${tag}`) && (await page.locator('main:visible input[name="amount"][value="5000000"]').isChecked()));
+  check("store mode: 'Giving as {store}', '$50,000.00 is our suggested…', $50,000 pre-selected",
+    (await page.locator('main:visible [data-testid="store-gift"]').innerText()).includes(`Giving as Gift Store ${tag}`) &&
+      (await page.locator('main:visible [data-testid="store-gift"]').innerText()).includes("$50,000.00 is our suggested") &&
+      (await page.locator('main:visible input[name="amount"][value="5000000"]').isChecked()));
   check("the store is never a form field (only the link token travels)", (await page.locator('main:visible [name="storeId"], main:visible [name="sos_store_id"]').count()) === 0);
   await page.locator('main:visible [data-testid="donor-ack"]').check();
   await page.locator("main:visible button[type=submit]").click();
@@ -111,13 +114,17 @@ try {
   const again = await newPage();
   await again.goto(`${base}/donate?store=${raw}`);
   await again.locator("main:visible [role=alert]").first().waitFor({ timeout: 60_000 });
-  check("a used link → 'expired or already used', normal gift form (no store mode)", (await again.locator("main:visible").innerText()).includes("expired or was already used") && (await again.locator('main:visible [data-testid="store-gift"]').count()) === 0);
+  check("a used link → 'expired or already used' and NO donate form (a store can't give without credit)",
+    (await again.locator("main:visible").innerText()).includes("expired or was already used") && (await again.locator('main:visible [data-testid="store-gift"]').count()) === 0 && (await again.locator("main:visible form").count()) === 0);
 
   // 3. Paid: a $60,000 store gift (over the public cap) is accepted and recorded with the store.
   const md = buildPaymentMetadata({ sos_purpose: "donation", sos_locale: "en", sos_ack: DONOR_ACK_VERSION, sos_store_id: String(ids.s) });
   const paid = await sendEvent(md, 6_000_000);
   const pay = await Payment.findOne({ stripePaymentIntentId: paid.piId }).lean();
   check("$60,000 store gift accepted into the pool with storeId (not review)", paid.status === 200 && pay?.fulfilment === "held" && String(pay.storeId) === String(ids.s));
+  const tooBig = await sendEvent(md, 100_000_000); // over even the store limit → review, but still tied to the store
+  const big = await Payment.findOne({ stripePaymentIntentId: tooBig.piId }).lean();
+  check("a store gift held for review keeps its store link", big?.fulfilment === "review" && String(big.storeId) === String(ids.s));
 
   // 4. North Star: none without a badge level; appears once the season total reaches it; display only.
   const fam = await newPage();

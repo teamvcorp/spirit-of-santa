@@ -11,6 +11,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { CENTS_PER_POINT } from "@repo/lib/constants";
 import { formatCents } from "@repo/lib/format";
+import { STORE_GIFT_PRESETS_CENTS } from "@repo/lib/limits";
 import { donationWindow, seasonDonationTotal } from "@repo/payments/community";
 import { getPlatformSettings } from "@repo/payments/settings";
 import { peekStoreGift } from "@repo/stores/store-gifts";
@@ -62,10 +63,12 @@ async function Content({ searchParams }: Pick<Props, "searchParams">) {
       {store && (
         <div className="flex flex-col gap-1 rounded-xl border border-accent p-3" data-testid="store-gift">
           <p className="font-semibold">{t("givingAs", { store: store.storeName })}</p>
-          <p className="text-sm text-muted">{t("storeGiftNote")}</p>
+          <p className="text-sm text-muted">{t("storeGiftNote", { amount: formatCents(STORE_GIFT_PRESETS_CENTS[0]) })}</p>
         </div>
       )}
-      {open ? (
+      {/* A store link that no longer works: NO public form here, or the store could give without credit (review
+          2026-11-19). They ask for a fresh link instead. */}
+      {storeToken && !store ? null : open ? (
         <CommunityDonateForm orgName={settings.charity.legalName} {...(store && storeToken ? { storeToken } : {})} />
       ) : (
         <Alert>{t("errors.closed")}</Alert>

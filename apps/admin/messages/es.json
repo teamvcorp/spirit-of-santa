@@ -182,7 +182,7 @@
     },
     "donor": "Donante de Magia Navideña esta temporada",
     "gifts": {
-      "intro": "Donaciones que esta tienda hizo como tienda con su enlace (tarjeta) o que registró el administrador. Se suman al fondo del 1 de diciembre como cualquier donación y reciben el recibo normal.",
+      "intro": "Donaciones que esta tienda hizo como tienda con su enlace de donación. Se suman al fondo del 1 de diciembre como cualquier donación y reciben el recibo normal.",
       "total": "Esta temporada: {amount}",
       "noBadge": "No hay nivel de insignia de donante (Configuración).",
       "donorYes": "Estrella Polar obtenida (nivel: {threshold}).",

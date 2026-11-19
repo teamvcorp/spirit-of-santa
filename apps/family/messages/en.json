@@ -592,7 +592,7 @@
       "storeLink": "This store gift link was already used or has expired. Ask for a new one."
     },
     "givingAs": "Giving as {store}",
-    "storeGiftNote": "This Christmas Magic gift will be shown as coming from your store. 0,000 is our suggested founding-partner gift, but any amount is welcome. For large gifts, a check, ACH or wire avoids card fees: reply to your gift-link email.",
+    "storeGiftNote": "This Christmas Magic gift will be shown as coming from your store. {amount} is our suggested founding-partner gift, but any amount is welcome. For large gifts, a check, ACH or wire avoids card fees: reply to your gift-link email.",
     "storeLinkInvalid": "This store gift link has expired or was already used. Ask for a new one from your store dashboard or reply to the email."
   },
   "PayLater": {

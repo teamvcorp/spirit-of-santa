@@ -182,7 +182,7 @@
     },
     "donor": "Christmas Magic donor this season",
     "gifts": {
-      "intro": "Gifts this store made as itself through its gift link (card) or that admin recorded. They join the Dec 1 pool like any donation and get the normal receipt.",
+      "intro": "Gifts this store made as itself through its gift link. They join the Dec 1 pool like any donation and get the normal receipt.",
       "total": "This season: {amount}",
       "noBadge": "No donor badge is set (Settings).",
       "donorYes": "North Star earned (level: {threshold}).",

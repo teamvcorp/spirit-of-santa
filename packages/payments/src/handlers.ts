@@ -184,7 +184,9 @@ async function creditPaymentIntent(pi: Stripe.PaymentIntent): Promise<Outcome> {
       );
     };
     const review = async (reason: string) => {
-      await record("review", { needsReview: true, reviewReason: `Not credited: ${reason}` });
+      // Keep the store link on a store gift held for review, so it still counts for that store once cleared.
+      const store = meta.sos_purpose === "donation" && meta.sos_store_id ? { storeId: meta.sos_store_id } : {};
+      await record("review", { needsReview: true, reviewReason: `Not credited: ${reason}`, ...store });
       return processed(`review:${reason}`);
     };
 

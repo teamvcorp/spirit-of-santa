@@ -8,9 +8,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { connection } from "next/server";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { localizePath } from "@repo/i18n/paths";
+import { isLocale } from "@repo/lib/locales";
 import { listPartners, type Partner } from "@repo/stores/partners";
+import { storeAppOrigin } from "@repo/stores/urls";
 import { Card } from "@repo/ui/card";
 import { Link } from "@/i18n/navigation";
 import { SeasonGate } from "@/components/season-gate";
@@ -82,6 +85,29 @@ async function Content() {
   );
 }
 
+/**
+ * "Own a store? Join" (owner 2026-11-19): stores already self-enroll at the store app's /register (pending until an
+ * admin approves). A plain <a>: it is ANOTHER app, not a locale route here. No store-app address configured → no
+ * line (never a broken page or link).
+ */
+async function JoinLine() {
+  const [t, locale] = await Promise.all([getTranslations("Partners"), getLocale()]);
+  let href: string;
+  try {
+    href = new URL(localizePath("/register", isLocale(locale) ? locale : "en"), storeAppOrigin()).toString();
+  } catch {
+    return null;
+  }
+  return (
+    <p className="mt-8 text-center">
+      {t("joinPrompt")}{" "}
+      <a href={href} className="font-semibold underline underline-offset-4" data-testid="partners-join">
+        {t("joinLink")}
+      </a>
+    </p>
+  );
+}
+
 export default async function PartnersPage() {
   const t = await getTranslations("Partners");
   return (
@@ -99,6 +125,9 @@ export default async function PartnersPage() {
         </ul>
         <Suspense fallback={null}>
           <Content />
+        </Suspense>
+        <Suspense fallback={null}>
+          <JoinLine />
         </Suspense>
       </SeasonGate>
     </main>

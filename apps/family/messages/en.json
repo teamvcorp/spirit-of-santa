@@ -550,7 +550,9 @@
     "noKids": "Finish registering a child to start building a wish list.",
     "toParent": "Go to my family",
     "chooseKid": "Whose wish list?",
-    "kidList": "{name}’s wish list"
+    "kidList": "{name}’s wish list",
+    "joinPrompt": "Own a store or business?",
+    "joinLink": "Join Spirit of Santa"
   },
   "Community": {
     "navLink": "Donate",

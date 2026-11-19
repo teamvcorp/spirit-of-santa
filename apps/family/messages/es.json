@@ -550,7 +550,9 @@
     "noKids": "Termina de registrar a un niño para empezar su lista de deseos.",
     "toParent": "Ir a mi familia",
     "chooseKid": "¿De quién es la lista de deseos?",
-    "kidList": "Lista de deseos de {name}"
+    "kidList": "Lista de deseos de {name}",
+    "joinPrompt": "¿Tienes una tienda o negocio?",
+    "joinLink": "Únete a Spirit of Santa"
   },
   "Community": {
     "navLink": "Donar",

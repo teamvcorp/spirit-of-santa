@@ -119,6 +119,11 @@ try {
   const slugs = await ours(anon).evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.slug));
   check("order: approved A→Z, processing, pending, declined; rejected, suspended + UNCONFIRMED sign-up hidden",
     JSON.stringify(slugs) === JSON.stringify([slug("a"), slug("b"), slug("proc"), slug("inv"), slug("dec")]), JSON.stringify(slugs));
+  const joinHref = (p: Page) => p.locator('main:visible [data-testid="partners-join"]').getAttribute("href");
+  // The store app's own sign-up (pending until an admin approves): STORE_APP_URL, localhost:3001 in dev.
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  const storeOrigin = new URL(process.env.STORE_APP_URL ?? "http://localhost:3001").origin;
+  check("'Own a store? Join' links to the store app's sign-up", (await joinHref(anon)) === `${storeOrigin}/register`, (await joinHref(anon)) ?? "none");
   const statusOf = async (k: string) => (await anon.locator(`main:visible [data-slug="${slug(k)}"]`).getAttribute("data-status")) ?? "";
   check("status badges: approved / processing / pending / declined",
     (await statusOf("a")) === "approved" && (await statusOf("proc")) === "processing" && (await statusOf("inv")) === "pending" && (await statusOf("dec")) === "declined");
@@ -182,6 +187,7 @@ try {
   const es = await newPage();
   await open(es, "/es/partners");
   check("Spanish page", (await es.locator("main:visible h1").innerText()).includes("Nuestras tiendas") && (await es.locator(`main:visible [data-slug="${slug("dec")}"]`).innerText()).includes("Rechazó"));
+  check("Spanish join link goes to the Spanish store sign-up", (await es.locator('main:visible [data-testid="partners-join"]').getAttribute("href")) === `${storeOrigin}/es/register`);
   check("no browser errors", errors.length === 0, errors.slice(0, 3).join(" || "));
 } catch (err) {
   report();

@@ -101,7 +101,8 @@
       "pending": "Pending approval",
       "approved": "Approved",
       "rejected": "Not approved",
-      "suspended": "Suspended"
+      "suspended": "Suspended",
+      "declined": "Declined our invitation"
     }
   }
 }

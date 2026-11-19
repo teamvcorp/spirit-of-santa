@@ -269,6 +269,8 @@
     "linkLocked": "Enter the parent PIN first (parent area), then try again."
   },
   "Gifts": {
+    "onlyStore": "Gifts from {store}",
+    "allStores": "Show all stores",
     "browseTitle": "Find gifts",
     "browseIntro": "Gifts from local stores. Each gift costs as much Christmas Magic as its price in dollars.",
     "backToKid": "Back to {name}",
@@ -520,6 +522,35 @@
         "zip": "Enter a 5-digit ZIP code (or ZIP+4)."
       }
     }
+  },
+  "Partners": {
+    "navLink": "Our stores",
+    "title": "Our stores",
+    "intro": "The stores and companies we have invited to fill Christmas wish lists, and where each one stands.",
+    "empty": "No stores to show yet. Check back soon!",
+    "donor": "Christmas Magic donor",
+    "status": {
+      "approved": "Approved",
+      "processing": "Processing",
+      "pending": "Pending",
+      "declined": "Declined"
+    },
+    "legend": {
+      "approved": "Approved: their gifts are on wish lists",
+      "processing": "Processing: signed up, getting ready",
+      "pending": "Pending: invited, no answer yet",
+      "declined": "Declined our invitation",
+      "donor": "Gave Christmas Magic this season"
+    },
+    "wonders": "Sign up to see what wonders await!",
+    "signUp": "Sign up",
+    "signIn": "Already have an account? Sign in",
+    "back": "All stores",
+    "notReady": "{store} is getting ready. Their gifts will appear on wish lists once they are approved.",
+    "noKids": "Finish registering a child to start building a wish list.",
+    "toParent": "Go to my family",
+    "chooseKid": "Whose wish list?",
+    "kidList": "{name}’s wish list"
   },
   "Community": {
     "navLink": "Donate",

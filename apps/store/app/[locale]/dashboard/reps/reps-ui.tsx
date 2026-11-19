@@ -12,14 +12,7 @@ import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/text-field";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { inviteRepAction, removeRepAction } from "../actions";
-import { INITIAL_DASH_STATE, type DashFormState } from "../form-state";
-
-type Action = (prev: DashFormState, fd: FormData) => Promise<DashFormState>;
-const reporting = (action: Action, onDone: () => void): Action => async (prev, fd) => {
-  const result = await action(prev, fd);
-  if (result.status === "done") onDone();
-  return result;
-};
+import { INITIAL_DASH_STATE, reporting } from "../form-state";
 
 /** role=status region that takes focus when a message appears. */
 function useNotice() {

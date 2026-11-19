@@ -1006,7 +1006,19 @@ bottom of the spec. Charity on receipts = The Von Der Becke Academy Corp (EIN 46
   (server time) → Payment.donorAck {version, acceptedAt} (webhook donation branch). Receipts: ensureDonationReceipt
   needs it via ackAllowsReceipt (@repo/lib/donor-ack); gifts before DONOR_ACK_REQUIRED_FROM (2026-11-20) are exempt;
   a gift without it is flagged needsReview (never silently dropped). Change the wording → bump DONOR_ACK_VERSION.
-- Next: partners page (slice P), partner fee (slice 2), store-linked gifts + badge (slice 3, incl. admin offline
+- **Partners page (slice P, DONE):** family /partners (header "Our stores") lists Stores from the SAME collection via
+  @repo/stores/partners (listPartners, partnerBySlug). Status mapping + order are pure in @repo/lib/partners
+  (publicPartnerStatus, orderPartners; unit test proves the donor star never changes order). invited→Pending,
+  pending→Processing, approved→Approved, NEW Store status "declined" (admin "Mark declined" on an invited store,
+  declineStoreInvite, audited store.invite_declined; cancel still deletes it) → grumpy face, NAME ONLY. rejected/
+  suspended hidden. Store.logo set only by the OWNER in the store app (setStoreLogo/removeStoreLogo, @repo/stores/owner;
+  audited store.logo_set/remove; shares the photo rate limit) = permission. North Star = christmasMagicDonorStoreIds()
+  (returns nobody until slice 3 fills it). Tile → /partners/<slug>: not a parent → "wonders await" sign-up; store not
+  approved → getting ready; 1 registered kid → /kids/<id>/gifts?store=<slug>; several → "Whose wish list?"; none →
+  finish registering. Gift browser store filter: giftQuerySchema.store (approved stores only, else ignored).
+  GrumpyFace/NorthStar = original SVGs (apps/family/components/partner-icons.tsx), NOT the Dr. Seuss Grinch.
+  Slice 2 must map "approved but partner fee due" to Processing here.
+- Next: partner fee (slice 2), store-linked gifts + badge (slice 3, incl. admin offline
   gift with "donor signed the acknowledgment" tick: ensureDonationReceipt refuses gifts without donorAck).
 
 ## Open items / TODO

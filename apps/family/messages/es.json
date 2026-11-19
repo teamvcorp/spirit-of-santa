@@ -269,6 +269,8 @@
     "linkLocked": "Primero escribe el PIN de padres (área de padres) e inténtalo de nuevo."
   },
   "Gifts": {
+    "onlyStore": "Regalos de {store}",
+    "allStores": "Ver todas las tiendas",
     "browseTitle": "Buscar regalos",
     "browseIntro": "Regalos de tiendas locales. Cada regalo cuesta tanta Magia Navideña como su precio en dólares.",
     "backToKid": "Volver a {name}",
@@ -520,6 +522,35 @@
         "zip": "Escribe un código postal de 5 dígitos (o ZIP+4)."
       }
     }
+  },
+  "Partners": {
+    "navLink": "Nuestras tiendas",
+    "title": "Nuestras tiendas",
+    "intro": "Las tiendas y empresas que invitamos a llenar las listas de deseos de Navidad, y en qué punto está cada una.",
+    "empty": "Aún no hay tiendas para mostrar. ¡Vuelve pronto!",
+    "donor": "Donante de Magia Navideña",
+    "status": {
+      "approved": "Aprobada",
+      "processing": "En proceso",
+      "pending": "Pendiente",
+      "declined": "Rechazó"
+    },
+    "legend": {
+      "approved": "Aprobada: sus regalos están en las listas de deseos",
+      "processing": "En proceso: se registró y se está preparando",
+      "pending": "Pendiente: invitada, aún sin respuesta",
+      "declined": "Rechazó nuestra invitación",
+      "donor": "Dio Magia Navideña esta temporada"
+    },
+    "wonders": "¡Regístrate para ver las maravillas que te esperan!",
+    "signUp": "Registrarse",
+    "signIn": "¿Ya tienes una cuenta? Inicia sesión",
+    "back": "Todas las tiendas",
+    "notReady": "{store} se está preparando. Sus regalos aparecerán en las listas de deseos cuando sea aprobada.",
+    "noKids": "Termina de registrar a un niño para empezar su lista de deseos.",
+    "toParent": "Ir a mi familia",
+    "chooseKid": "¿De quién es la lista de deseos?",
+    "kidList": "Lista de deseos de {name}"
   },
   "Community": {
     "navLink": "Donar",

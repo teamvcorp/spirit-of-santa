@@ -8,6 +8,7 @@ import { DashboardNav } from "../dashboard-nav";
 import { isStoreEditable, loadMember } from "../member";
 import { NoAccess } from "../no-access";
 import { Photos } from "./photos";
+import { StoreLogo } from "./logo";
 import { ProfileForm } from "./profile-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -43,6 +44,10 @@ async function Content() {
               zip: a?.zip ?? "",
             }}
           />
+        </Card>
+        <Card>
+          <h2 className="mb-4 text-lg font-semibold">{t("logo")}</h2>
+          <StoreLogo editable={editable} logoUrl={store.logo?.url} />
         </Card>
         <Card>
           <h2 className="mb-4 text-lg font-semibold">{t("photos")}</h2>

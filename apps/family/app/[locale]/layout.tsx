@@ -51,6 +51,7 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
   if (!isLocale(locale)) notFound(); // the proxy normally guarantees a valid locale
   const common = await getTranslations("Common");
   const community = await getTranslations("Community");
+  const partners = await getTranslations("Partners");
   const footer = await getTranslations("Footer");
   const nav = await getTranslations("SiteNav");
 
@@ -76,6 +77,10 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
               <>
                 <Link href="/#how" className="font-semibold underline-offset-4 hover:underline">
                   {nav("howLink")}
+                </Link>
+                {/* Public "Our stores" page: every company we invited (owner 2026-11-18). */}
+                <Link href="/partners" className="font-semibold underline-offset-4 hover:underline">
+                  {partners("navLink")}
                 </Link>
                 {/* Public page for community / corporate gifts (Phase 5 slice 2). */}
                 <Link href="/donate" className="font-semibold underline-offset-4 hover:underline">

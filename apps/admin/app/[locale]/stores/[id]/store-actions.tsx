@@ -19,6 +19,7 @@ import { useRouter } from "@/i18n/navigation";
 import {
   approveAction,
   cancelInviteAction,
+  declineInviteAction,
   discountAction,
   reinstateAction,
   rejectAction,
@@ -172,6 +173,11 @@ export function StoreActions({
         {status === "invited" && (
           <>
             <ActionForm action={resendInviteAction} storeId={storeId} title={t("resendTitle")} submit={t("resend")} doneMessage={t("doneResend")} onDone={onDone} />
+            <ActionForm action={declineInviteAction} storeId={storeId} title={t("declineTitle")} submit={t("decline")} doneMessage={t("doneDecline")} onDone={onDone} variant="secondary" />
+          </>
+        )}
+        {(status === "invited" || status === "declined") && (
+          <>
             <ActionForm
               action={cancelInviteAction}
               storeId={storeId}

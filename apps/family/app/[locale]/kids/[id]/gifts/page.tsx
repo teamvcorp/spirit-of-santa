@@ -31,6 +31,7 @@ type Props = PageProps<"/[locale]/kids/[id]/gifts">;
 /** Same filters, another page (keeps the URL short: defaults are left out). */
 function pageHref(kidId: string, q: GiftQuery, page: number) {
   const sp = new URLSearchParams();
+  if (q.store) sp.set("store", q.store);
   if (q.q) sp.set("q", q.q);
   if (q.category) sp.set("category", q.category);
   if (q.sort !== "price_asc") sp.set("sort", q.sort);
@@ -56,9 +57,19 @@ async function Content({ params, searchParams }: Pick<Props, "params" | "searchP
       {/* Browsing is always fine; adding isn't for an unregistered child or outside the open season. */}
       {!kid.registered ? <Alert className="my-3">{t("why.notRegistered")}</Alert> : season.phase !== "open" ? <Alert className="my-3">{t("why.seasonNotOpen")}</Alert> : null}
       <p className="mb-4 text-muted">{t("browseIntro")}</p>
+      {/* One store's gifts (a tile on the public partners page): say so, with a way back to every store. */}
+      {result.store && (
+        <p className="mb-4 flex flex-wrap items-baseline gap-x-3 font-semibold" data-testid="store-filter">
+          {t("onlyStore", { store: result.store.name })}
+          <Link href={pageHref(kid.id, { ...query, store: "" }, 1)} className="text-sm font-normal underline underline-offset-4">
+            {t("allStores")}
+          </Link>
+        </p>
+      )}
 
       {/* GET form: the filters live in the URL (no Server Action needed for reading). */}
       <form method="get" className="mb-6 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:items-end" role="search">
+        {result.store && <input type="hidden" name="store" value={result.store.slug} />}
         <label className="flex flex-col gap-1 text-sm font-medium">
           {t("searchLabel")}
           <input name="q" type="search" defaultValue={query.q} maxLength={60} placeholder={t("searchPlaceholder")} className="rounded-lg border border-foreground/20 bg-background px-3 py-2" />

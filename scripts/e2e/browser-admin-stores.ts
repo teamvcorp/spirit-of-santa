@@ -283,9 +283,18 @@ try {
   if (toCancel) extraStoreIds.push(toCancel._id);
   await page.goto(`${adminBase}/stores/${toCancel?._id}`);
   await ready(page);
+  // The company says no (2026-11-18): "Mark declined" → declined, audited; it can still be cancelled (deleted).
+  await page.locator("form", { hasText: "They said no" }).locator('button[type="submit"]').click();
+  await page.locator("main").getByText("Marked declined").waitFor({ timeout: 15_000 });
+  const declined = await Store.findById(toCancel?._id).lean();
+  check("mark declined → status 'declined' (no owner needed), audited",
+    declined?.status === "declined" && !!declined.declinedAt && !!(await AuditLog.exists({ targetId: toCancel?._id, action: "store.invite_declined" })));
+  await page.goto(`${adminBase}/stores/${toCancel?._id}`);
+  await ready(page);
+  check("a declined store has no 'Resend' or 'Mark declined' any more", (await page.locator("form", { hasText: "They said no" }).count()) === 0 && (await page.locator("form", { hasText: "Resend the invitation" }).count()) === 0);
   await page.locator("form", { hasText: "Cancel the invitation" }).locator('button[type="submit"]').click();
   await page.waitForURL(/status=invited/, { timeout: 15_000 });
-  check("cancel invitation → store deleted, back on the Invited tab", !(await Store.exists({ _id: toCancel?._id })));
+  check("cancel a declined company → store deleted, back on the Invited tab", !(await Store.exists({ _id: toCancel?._id })));
 
   check("no browser errors", consoleErrors.length === 0, consoleErrors.slice(0, 3).join(" || "));
 } catch (err) {

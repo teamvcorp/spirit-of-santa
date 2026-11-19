@@ -120,6 +120,55 @@ export async function removeStorePhoto(actor: StoreActor, pathname: string): Pro
   return { ok: true };
 }
 
+// ── Logo (public partners page, owner 2026-11-18) ──────────────────────────────────────
+/**
+ * Set or replace the store's logo. OWNER only: their own upload is the company's permission for us to show it on
+ * the public partners page. Same checks, limits and storage as photos (shares the photo rate limit).
+ */
+export async function setStoreLogo(actor: StoreActor, file: Blob): Promise<OwnerResult> {
+  const store = await ownedStore(actor);
+  if (!store) return { ok: false, error: "notFound" };
+  if (!isStoreEditable(store.status)) return { ok: false, error: "readOnly" };
+  if (!(await hitRateLimit(`photo:store:${store._id}`, 30, 3600))) return { ok: false, error: "rateLimited" };
+  const storeId = String(store._id);
+  let image;
+  try {
+    image = await uploadPublicImage(file, { folder: "stores", ownerId: storeId });
+  } catch (err) {
+    if (err instanceof ImageUploadError) return { ok: false, error: err.code };
+    throw err;
+  }
+  // Swap atomically and get the OLD logo back, so its file can be deleted (never an orphan, never a lost new one).
+  const before = await Store.findOneAndUpdate(
+    { _id: storeId, ownerUserId: actor.id, status: trusted({ $in: [...EDITABLE_STORE_STATUSES] }) },
+    { $set: { logo: { url: image.url, pathname: image.pathname } } },
+    { runValidators: true },
+  )
+    .select("logo")
+    .lean();
+  if (!before) {
+    await deletePublicImage(image.pathname, { folder: "stores", ownerId: storeId });
+    return { ok: false, error: "readOnly" };
+  }
+  if (before.logo?.pathname) await deletePublicImage(before.logo.pathname, { folder: "stores", ownerId: storeId });
+  await audit(actor.id, "store.logo_set", "store", storeId, { replaced: !!before.logo?.pathname });
+  return { ok: true };
+}
+
+export async function removeStoreLogo(actor: StoreActor): Promise<OwnerResult> {
+  const store = await ownedStore(actor);
+  if (!store) return { ok: false, error: "notFound" };
+  if (!isStoreEditable(store.status)) return { ok: false, error: "readOnly" };
+  const storeId = String(store._id);
+  const before = await Store.findOneAndUpdate({ _id: storeId, ownerUserId: actor.id, "logo.pathname": trusted({ $exists: true }) }, { $unset: { logo: 1 } })
+    .select("logo")
+    .lean();
+  if (!before?.logo?.pathname) return { ok: false, error: "notFound" };
+  await deletePublicImage(before.logo.pathname, { folder: "stores", ownerId: storeId }); // DB first, then the file
+  await audit(actor.id, "store.logo_remove", "store", storeId);
+  return { ok: true };
+}
+
 // ── Reps ─────────────────────────────────────────────────────────────────────────────
 export type RepRow = { id: string; name?: string; email: string };
 export type PendingInviteRow = { email: string; expiresAt: string };

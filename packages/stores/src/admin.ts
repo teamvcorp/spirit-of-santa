@@ -320,12 +320,32 @@ export async function resendStoreInvite(actor: AdminActor, storeId: string, loca
   return { ok: true, storeId, emailFailed: !sent };
 }
 
-/** Cancel an invitation: the invited store is deleted and its links stop working. */
+/**
+ * The company said NO to our invitation (owner 2026-11-18): invited → declined. Its invite links stop working. It stays
+ * on the public partners page by name with a little grumpy face (never its logo); "cancel" still deletes it.
+ */
+export async function declineStoreInvite(actor: AdminActor, storeId: string): Promise<AdminResult> {
+  assertAdmin(actor);
+  await connectDb();
+  const done = await withTransaction(async (session) => {
+    const before = await Store.findOneAndUpdate({ _id: storeId, status: "invited" }, { $set: { status: "declined", declinedAt: new Date() } }, { session, runValidators: true })
+      .select("_id")
+      .lean();
+    if (!before) return false;
+    await ActionToken.updateMany({ storeId, purpose: "invite_owner", usedAt: null }, { $set: { usedAt: new Date() } }, { session });
+    await audit(session, actor, "store.invite_declined", storeId, { from: "invited", to: "declined" });
+    return true;
+  });
+  return done ? { ok: true } : explain(storeId);
+}
+
+/** Cancel an invitation: the invited (or declined) store is deleted and its links stop working. */
 export async function cancelStoreInvite(actor: AdminActor, storeId: string): Promise<AdminResult> {
   assertAdmin(actor);
   await connectDb();
   const removed = await withTransaction(async (session) => {
-    const store = await Store.findOneAndDelete({ _id: storeId, status: "invited" }, { session }).select("_id").lean();
+    // Declined companies can be removed the same way (off the partners page entirely).
+    const store = await Store.findOneAndDelete({ _id: storeId, status: trusted({ $in: ["invited", "declined"] }) }, { session }).select("_id").lean();
     if (!store) return false;
     await ActionToken.updateMany({ storeId, purpose: "invite_owner", usedAt: null }, { $set: { usedAt: new Date() } }, { session });
     await audit(session, actor, "store.invite_cancelled", storeId, {});

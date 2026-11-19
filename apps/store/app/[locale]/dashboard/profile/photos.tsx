@@ -16,19 +16,9 @@ import { Alert } from "@repo/ui/alert";
 import { Button } from "@repo/ui/button";
 import { useHydrated } from "@repo/ui/use-hydrated";
 import { addPhotoAction, removePhotoAction } from "../actions";
-import { INITIAL_DASH_STATE, type DashFormState } from "../form-state";
+import { INITIAL_DASH_STATE, reporting } from "../form-state";
 
 export type PhotoRow = { url: string; pathname: string };
-type Action = (prev: DashFormState, fd: FormData) => Promise<DashFormState>;
-
-/** Wrap an action so success is reported from inside the call (the form may unmount after refresh). */
-function reporting(action: Action, onDone: () => void): Action {
-  return async (prev, fd) => {
-    const result = await action(prev, fd);
-    if (result.status === "done") onDone();
-    return result;
-  };
-}
 
 function RemovePhoto({ pathname, label, onDone }: { pathname: string; label: string; onDone: () => void }) {
   const errorsT = useTranslations("Dashboard.errors");

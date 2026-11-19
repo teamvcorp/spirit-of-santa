@@ -167,6 +167,32 @@ try {
   check("'Photo removed' confirmation shown", (await mainText(owner)).includes("Photo removed."));
   uploaded.length = 0; // removed by the app itself
 
+  // 3b. Logo for the public partners page (2026-11-18): upload, replace (old file dropped), remove; audited.
+  const logoForm = () => owner.locator("form", { has: owner.locator('[name="logo"]') });
+  check("no logo yet: the page explains the store name shows instead", (await mainText(owner)).includes("No logo yet"));
+  await ready(owner);
+  await owner.setInputFiles('[name="logo"]', photoFile);
+  await logoForm().locator('button[type="submit"]').click();
+  await owner.locator('main [data-testid="store-logo"]').waitFor({ timeout: 30_000 });
+  const logo1 = (await Store.findById(A.storeId).lean())?.logo;
+  if (logo1?.pathname) uploaded.push(logo1.pathname);
+  check("logo uploaded, shown and stored in this store's folder", !!logo1?.pathname?.startsWith(`stores/${A.storeId}/`) && (await mainText(owner)).includes("Logo saved."));
+  await ready(owner);
+  await owner.setInputFiles('[name="logo"]', photoFile);
+  await logoForm().locator('button[type="submit"]').click();
+  for (let i = 0; i < 60 && (await Store.findById(A.storeId).lean())?.logo?.pathname === logo1?.pathname; i++) await owner.waitForTimeout(500);
+  const logo2 = (await Store.findById(A.storeId).lean())?.logo;
+  if (logo2?.pathname) uploaded.push(logo2.pathname);
+  check("replacing the logo swaps the file (one logo, new path)", !!logo2?.pathname && logo2.pathname !== logo1?.pathname);
+  if (logo1?.pathname) uploaded.splice(uploaded.indexOf(logo1.pathname), 1); // the app deleted the old file
+  await owner.goto(`${base}/dashboard/profile`);
+  await ready(owner);
+  await owner.getByRole("button", { name: "Remove logo" }).click();
+  await owner.locator("main").getByText("Logo removed.").waitFor({ timeout: 30_000 });
+  check("owner removes the logo (DB cleared)", !(await Store.findById(A.storeId).lean())?.logo);
+  check("logo changes audited", (await AuditLog.countDocuments({ targetId: a1?._id, action: "store.logo_set" })) === 2 && (await AuditLog.countDocuments({ targetId: a1?._id, action: "store.logo_remove" })) === 1);
+  uploaded.length = 0;
+
   // Review fix: a store not yet approved can't send rep invites.
   const ownerP = await newPage();
   await signInUI(ownerP, mail("p"), PW);

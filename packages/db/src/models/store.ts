@@ -4,6 +4,8 @@
  * Status flow:  invited (admin sent an invite, owner hasn't accepted yet)
  *               pending (self-registered, waiting for admin)  → approved | rejected
  *               approved ⇄ suspended
+ *               invited → declined (the company said no to our invitation; owner 2026-11-18). Shown on the public
+ *               partners page by NAME only (never a logo); admin can still delete it (cancel invite).
  * Pending/invited stores may already set up their profile and items (user decision
  * 2026-11-05); families only ever see APPROVED stores.
  */
@@ -19,6 +21,7 @@ export const STORE_STATUSES = [
   "approved",
   "rejected",
   "suspended",
+  "declined",
 ] as const;
 
 const storeSchema = new Schema(
@@ -34,6 +37,11 @@ const storeSchema = new Schema(
     },
     category: { type: String, required: true, enum: STORE_CATEGORIES },
     description: { type: String, trim: true, maxlength: 2000 },
+    /**
+     * The company's logo for the public partners page (owner 2026-11-18). ONLY the store's own owner can set it
+     * (store app): their upload is their permission to show it. Never shown for a declined company.
+     */
+    logo: { type: imageSchema, required: false },
     photos: {
       type: [imageSchema],
       default: [],
@@ -72,15 +80,15 @@ const storeSchema = new Schema(
       required: true,
       index: true,
     },
-    /** Required except while "invited" (the owner account is created when they accept). */
+    /** Required except while "invited"/"declined" (the owner account is created when they accept). */
     ownerUserId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: [
         function (this: { status?: string }) {
-          return this.status !== "invited";
+          return this.status !== "invited" && this.status !== "declined";
         },
-        "ownerUserId is required once the store is not just invited",
+        "ownerUserId is required once the store is not just invited (or declined)",
       ],
     },
     repUserIds: {
@@ -123,6 +131,8 @@ const storeSchema = new Schema(
     reviewedByAdminId: objectId("User", false),
     reviewedAt: Date,
     rejectionReason: { type: String, maxlength: 500 },
+    /** When an admin recorded that the company declined our invitation. */
+    declinedAt: Date,
   },
   { timestamps: true, versionKey: false },
 );

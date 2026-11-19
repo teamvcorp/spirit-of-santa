@@ -129,7 +129,17 @@
     "photoHint": "JPEG, PNG or WebP, up to {mb} MB. We remove location data from photos automatically.",
     "upload": "Upload photo",
     "photoAdded": "Photo added.",
-    "photoRemoved": "Photo removed."
+    "photoRemoved": "Photo removed.",
+    "logo": "Logo",
+    "logoIntro": "Your logo appears on Spirit of Santa's public \"Our stores\" page. By uploading it, you give us permission to show it there. Remove it any time.",
+    "noLogo": "No logo yet. Until you add one, the page shows your store's name.",
+    "logoAlt": "Your store logo",
+    "addLogo": "Add your logo",
+    "replaceLogo": "Replace your logo",
+    "uploadLogo": "Upload logo",
+    "removeLogo": "Remove logo",
+    "logoSaved": "Logo saved.",
+    "logoRemoved": "Logo removed."
   },
   "Reps": {
     "title": "Reps",

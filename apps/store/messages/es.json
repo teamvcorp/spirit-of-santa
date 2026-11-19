@@ -129,7 +129,17 @@
     "photoHint": "JPEG, PNG o WebP, hasta {mb} MB. Quitamos automáticamente los datos de ubicación de las fotos.",
     "upload": "Subir foto",
     "photoAdded": "Foto agregada.",
-    "photoRemoved": "Foto quitada."
+    "photoRemoved": "Foto quitada.",
+    "logo": "Logotipo",
+    "logoIntro": "Tu logotipo aparece en la página pública \"Nuestras tiendas\" de Spirit of Santa. Al subirlo, nos das permiso para mostrarlo ahí. Puedes quitarlo cuando quieras.",
+    "noLogo": "Aún no hay logotipo. Hasta que agregues uno, la página muestra el nombre de tu tienda.",
+    "logoAlt": "El logotipo de tu tienda",
+    "addLogo": "Agrega tu logotipo",
+    "replaceLogo": "Cambia tu logotipo",
+    "uploadLogo": "Subir logotipo",
+    "removeLogo": "Quitar logotipo",
+    "logoSaved": "Logotipo guardado.",
+    "logoRemoved": "Logotipo quitado."
   },
   "Reps": {
     "title": "Representantes",

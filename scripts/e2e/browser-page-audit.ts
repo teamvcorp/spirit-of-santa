@@ -72,7 +72,7 @@ async function unlockPin(page: Page) {
 
 // `afterFirst` runs once after the FIRST path is checked (the parent's PIN page is checked locked, then unlocked).
 const PAGES: { app: string; base: string; login?: () => Promise<string | undefined>; afterFirst?: (p: Page) => Promise<void>; paths: string[] }[] = [
-  { app: "family", base: family, paths: ["/", "/donate", "/signin", "/register", "/forgot-password", "/privacy", "/terms", "/text-messages", "/news/confirm", "/account-deleted", "/account-deleted/closing", "/es", "/no-such-page"] },
+  { app: "family", base: family, paths: ["/", "/donate", "/partners", "/signin", "/register", "/forgot-password", "/privacy", "/terms", "/text-messages", "/news/confirm", "/account-deleted", "/account-deleted/closing", "/es", "/no-such-page"] },
   {
     app: "family (parent)", base: family, login: async () => (await signIn(family, parent.email, PW))?.cookie, afterFirst: unlockPin,
     paths: ["/parent/pin", "/", "/parent", "/parent/notifications", "/parent/address", "/parent/payup", "/parent/bonus", "/parent/kids/new", "/parent/delete-account", "/parent/our-data", `/parent/kids/${kid._id}`, k, `${k}/gifts`, `${k}/gifts/${itemId}`, `${k}/deed`, `${k}/surprise`, `${k}/surprise/${itemId}`],

@@ -16,7 +16,7 @@
 import "server-only";
 import { z } from "zod";
 import { ownFamilyId, type Parent } from "@repo/auth/family-owner";
-import { connectDb, Item, Kid, toObjectId, WishListItem } from "@repo/db";
+import { connectDb, Item, Kid, Store, toObjectId, WishListItem } from "@repo/db";
 import { normalizeObjectId } from "@repo/lib/ids";
 import { itemPriceCentsToCentipoints } from "@repo/lib/points";
 import { getSeasonState } from "@repo/stores/season";
@@ -34,13 +34,15 @@ export const giftQuerySchema = z.object({
   category: z.string().trim().max(60).catch(""),
   sort: z.enum(GIFT_SORTS).catch("price_asc"),
   page: z.coerce.number().int().min(1).max(MAX_PAGE).catch(1),
+  /** One store's gifts only (its slug), e.g. from a tile on the public partners page (2026-11-18). "" = all. */
+  store: z.string().trim().regex(/^(?:[a-z0-9-]{3,60})?$/).catch(""),
 });
 export type GiftQuery = z.infer<typeof giftQuerySchema>;
 
 /** First value of a search param (Next gives string | string[] | undefined). */
 const one = (v: unknown) => (Array.isArray(v) ? v[0] : v) ?? undefined;
 export function parseGiftQuery(params: Record<string, unknown>): GiftQuery {
-  return giftQuerySchema.parse({ q: one(params.q) ?? "", category: one(params.category) ?? "", sort: one(params.sort), page: one(params.page) });
+  return giftQuerySchema.parse({ q: one(params.q) ?? "", category: one(params.category) ?? "", sort: one(params.sort), page: one(params.page), store: one(params.store) ?? "" });
 }
 
 export type GiftCard = {
@@ -96,23 +98,36 @@ const SORT_STAGES: Record<GiftSort, Record<string, 1 | -1>> = {
   store: { "store.name": 1, name: 1, _id: 1 },
 };
 
-export type GiftPage = { items: GiftCard[]; total: number; page: number; pages: number; categories: string[] };
+/** store = the store filter that applied (approved stores only); absent = all stores, or an unknown/hidden slug. */
+export type GiftPage = { items: GiftCard[]; total: number; page: number; pages: number; categories: string[]; store?: { slug: string; name: string } };
 
 /** One page of the national gift browser. */
 export async function browseGifts(query: GiftQuery, now = new Date()): Promise<GiftPage> {
   await connectDb();
   const { year } = await getSeasonState(now);
+  // Store filter: only an APPROVED store narrows the list. An unknown or not-approved slug is ignored (all gifts),
+  // so an old link never shows an empty page or reveals a hidden store.
+  const store = query.store ? await Store.findOne({ slug: query.store, status: "approved" }).select("_id slug name").lean() : null;
+  const storeId = store ? String(store._id) : null;
   // Independent queries: run together (one round-trip of latency, not two).
-  const [first, categories] = await Promise.all([giftPage(query, year), giftCategories(year)]);
+  const [first, categories] = await Promise.all([giftPage(query, year, storeId), giftCategories(year)]);
   const pages = Math.max(1, Math.ceil(first.total / GIFTS_PER_PAGE));
   // A page past the end (old or edited link) shows the LAST page instead of "no gifts".
-  const result = query.page > pages && first.total > 0 ? await giftPage({ ...query, page: pages }, year) : first;
-  return { items: result.items, total: result.total, page: Math.min(query.page, pages), pages, categories };
+  const result = query.page > pages && first.total > 0 ? await giftPage({ ...query, page: pages }, year, storeId) : first;
+  return {
+    items: result.items,
+    total: result.total,
+    page: Math.min(query.page, pages),
+    pages,
+    categories,
+    ...(store ? { store: { slug: store.slug, name: store.name } } : {}),
+  };
 }
 
-async function giftPage(query: GiftQuery, year: number): Promise<{ items: GiftCard[]; total: number }> {
+async function giftPage(query: GiftQuery, year: number, storeId: string | null): Promise<{ items: GiftCard[]; total: number }> {
   // $text must be in the FIRST $match (uses the name+description text index from the Item model).
   const match: Record<string, unknown> = { seasonYear: year, status: "active", priceCents: { $gt: 0 } };
+  if (storeId) match.storeId = toObjectId(storeId); // aggregate doesn't cast ids
   if (query.q) match.$text = { $search: query.q };
   if (query.category) match.category = query.category;
 

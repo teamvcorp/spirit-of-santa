@@ -11,7 +11,7 @@ import { refresh } from "next/cache";
 import { requireRole } from "@repo/auth";
 import { emailSchema, fieldErrors, storeDetailsSchema } from "@repo/auth/schemas";
 import { isLocale } from "@repo/lib/locales";
-import { addStorePhoto, inviteRep, removeRep, removeStorePhoto, updateStoreProfile, type OwnerResult } from "@repo/stores/owner";
+import { addStorePhoto, inviteRep, removeRep, removeStoreLogo, removeStorePhoto, setStoreLogo, updateStoreProfile, type OwnerResult } from "@repo/stores/owner";
 import { objectIdSchema } from "@repo/stores/schemas";
 import { authOptions } from "@/auth";
 import type { DashFormState } from "./form-state";
@@ -53,6 +53,21 @@ export async function addPhotoAction(_prev: DashFormState, fd: FormData): Promis
 export async function removePhotoAction(_prev: DashFormState, fd: FormData): Promise<DashFormState> {
   const owner = await currentOwner();
   const r = await removeStorePhoto(owner, str(fd, "pathname").slice(0, 200));
+  return r.ok ? done() : failed(r);
+}
+
+/** Logo for the public partners page (owner 2026-11-18): the owner's upload = permission to show it. */
+export async function setLogoAction(_prev: DashFormState, fd: FormData): Promise<DashFormState> {
+  const owner = await currentOwner();
+  const file = fd.get("logo");
+  if (!(file instanceof Blob) || file.size === 0) return { status: "error", error: "empty", nonce: randomUUID() };
+  const r = await setStoreLogo(owner, file);
+  return r.ok ? done() : failed(r);
+}
+
+export async function removeLogoAction(): Promise<DashFormState> {
+  const owner = await currentOwner();
+  const r = await removeStoreLogo(owner);
   return r.ok ? done() : failed(r);
 }
 

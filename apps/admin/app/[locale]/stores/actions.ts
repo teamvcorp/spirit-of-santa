@@ -11,7 +11,7 @@ import { randomUUID } from "node:crypto";
 import { refresh } from "next/cache";
 import { requireRole } from "@repo/auth";
 import { fieldErrors } from "@repo/auth/schemas";
-import { approveStore, cancelStoreInvite, hideItem, inviteStore, reinstateStore, rejectStore, resendStoreInvite, setStoreDiscount, suspendStore, unhideItem, type AdminResult, type ItemModerationResult } from "@repo/stores/admin";
+import { approveStore, cancelStoreInvite, declineStoreInvite, hideItem, inviteStore, reinstateStore, rejectStore, resendStoreInvite, setStoreDiscount, suspendStore, unhideItem, type AdminResult, type ItemModerationResult } from "@repo/stores/admin";
 import { discountPercentSchema, inviteStoreSchema, objectIdSchema, rejectReasonSchema, suspendReasonSchema } from "@repo/stores/schemas";
 import { isLocale } from "@repo/lib/locales";
 import { authOptions } from "@/auth";
@@ -121,6 +121,14 @@ export async function resendInviteAction(_prev: AdminFormState, fd: FormData): P
   if (!id) return { status: "error", error: "notFound" };
   const language = str(fd, "locale");
   return finish(await resendStoreInvite(admin, id, isLocale(language) ? language : "en"));
+}
+
+/** The company said no (owner 2026-11-18): invited → declined, shown by name on the public partners page. */
+export async function declineInviteAction(_prev: AdminFormState, fd: FormData): Promise<AdminFormState> {
+  const admin = await currentAdmin();
+  const id = storeIdOf(fd);
+  if (!id) return { status: "error", error: "notFound" };
+  return finish(await declineStoreInvite(admin, id));
 }
 
 export async function cancelInviteAction(_prev: AdminFormState, fd: FormData): Promise<AdminFormState> {
